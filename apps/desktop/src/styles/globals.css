@@ -86,6 +86,10 @@
   --ring: #1f4d3a;
   --sidebar: #ffffff;
   --chrome: #183a2c;
+  --zen-sky: #e4f1ec;
+  --zen-shallow: #9cc9bb;
+  --zen-mid: #3f8a78;
+  --zen-deep: #164a3d;
   --chrome-foreground: #f5f5f2;
   --chrome-muted: #c9ddd1;
   --chrome-accent: #22503d;
@@ -140,6 +144,10 @@
   --ring: #7cc4a0;
   --sidebar: #131519;
   --chrome: #132a20;
+  --zen-sky: #1d3a33;
+  --zen-shallow: #1a4a3f;
+  --zen-mid: #123a31;
+  --zen-deep: #071a15;
   --chrome-foreground: #e8f1ec;
   --chrome-muted: #a9c7b6;
   --chrome-accent: #1b3a2c;
@@ -226,5 +234,15 @@
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes zen-breathe {
+  0%,
+  100% {
+    transform: scale(0.6);
+  }
+  40% {
+    transform: scale(1);
   }
 }

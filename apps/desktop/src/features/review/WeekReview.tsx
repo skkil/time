@@ -59,8 +59,6 @@ const ORDINAL: Record<StepId, number> = {
 };
 
 export function WeekReview({ week }: { week: DateKey }) {
-  const { data } = useWeek(week);
-  const { data: quarter } = useQuarter(week);
   const title = `Week ${isoWeekNumber(week)} review`;
 
   return (
@@ -70,7 +68,7 @@ export function WeekReview({ week }: { week: DateKey }) {
         meta={formatWeekRange(week)}
         actions={
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/review">
+            <Link to="/reports/reviews">
               <ArrowLeftIcon />
               Review
             </Link>
@@ -79,29 +77,42 @@ export function WeekReview({ week }: { week: DateKey }) {
       />
       <PageBody>
         <div className="mx-auto grid max-w-3xl gap-8">
-          {week > mondayOf(todayKey()) ? (
-            <p className="text-sm text-muted-foreground">
-              This week hasn’t started yet. Plan its outcomes from the Review
-              page.
-            </p>
-          ) : (
-            data &&
-            quarter !== undefined && (
-              <ReviewFlow key={week} week={data} quarter={quarter} />
-            )
-          )}
+          <WeekReviewFlow week={week} />
         </div>
       </PageBody>
     </Page>
   );
 }
 
+export function WeekReviewFlow({
+  week,
+  onDone,
+}: {
+  week: DateKey;
+  onDone?: () => void;
+}) {
+  const { data } = useWeek(week);
+  const { data: quarter } = useQuarter(week);
+  if (week > mondayOf(todayKey()))
+    return (
+      <p className="text-sm text-muted-foreground">
+        This week hasn’t started yet. Plan its outcomes from Reports.
+      </p>
+    );
+  if (!data || quarter === undefined) return null;
+  return (
+    <ReviewFlow key={week} week={data} quarter={quarter} onDone={onDone} />
+  );
+}
+
 function ReviewFlow({
   week,
   quarter,
+  onDone,
 }: {
   week: Week;
   quarter: Quarter | null;
+  onDone?: () => void;
 }) {
   const monday = week.startDate;
   const navigate = useNavigate();
@@ -185,8 +196,12 @@ function ReviewFlow({
       )}
       {step.id === 'done' && (
         <footer className="flex justify-end border-t pt-4">
-          <Button onClick={() => navigate({ to: '/reports/reviews' })}>
-            Back to Review
+          <Button
+            onClick={() =>
+              onDone ? onDone() : navigate({ to: '/reports/reviews' })
+            }
+          >
+            {onDone ? 'Close' : 'Back to Reviews'}
           </Button>
         </footer>
       )}

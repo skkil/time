@@ -1,11 +1,19 @@
 import { useSyncExternalStore } from 'react';
 
+export type ZenBackdropMode = 'auto' | 'shader' | 'static' | 'off';
+
 export type Preferences = {
   zoom: number;
+  zenBackdrop: ZenBackdropMode;
+  zenTheme: string;
+  dismissedPlanCard: string;
 };
 
 const defaults: Preferences = {
   zoom: 1,
+  zenBackdrop: 'auto',
+  zenTheme: 'water',
+  dismissedPlanCard: '',
 };
 
 const storageKey = 'preferences';

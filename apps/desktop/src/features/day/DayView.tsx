@@ -21,14 +21,16 @@ import {
 } from '@/features/habits/api';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
-import { DayCheckIn } from '@/features/review/DayCheckIn';
 import { useWeek } from '@/features/review/api';
 import { outcomeEvidence } from '@/features/review/format';
+import { useRitualRuns } from '@/features/rituals/api';
+import { useRitualRunner } from '@/features/rituals/runner-context';
 import { TaskItem } from '@/features/tasks/TaskItem';
 import { FlatTaskList } from '@/features/tasks/TaskList';
 import { useTaskIndex } from '@/features/tasks/api';
 import { useStartTimer, useStopTimer, useTimer } from '@/features/time/api';
 import { useNow } from '@/hooks/use-now';
+import { setPreference, usePreference } from '@/lib/preferences';
 import {
   formatClockTime,
   formatDuration,
@@ -41,7 +43,7 @@ import {
 import { cn } from '@/lib/utils';
 
 import { Leftovers } from './Leftovers';
-import { useDayPlan } from './plan';
+import { type DayPlan, useDayPlan } from './plan';
 
 export function DayView() {
   const { data: timer } = useTimer();
@@ -100,6 +102,8 @@ function Outline() {
       />
       <PageBody>
         <div className="mx-auto grid max-w-3xl gap-8">
+          <PlanTodayCard plan={plan} />
+
           <WeekOutcomes />
 
           {plan.earlier.length > 0 && (
@@ -170,8 +174,6 @@ function Outline() {
               </ul>
             </Section>
           )}
-
-          <DayCheckIn />
         </div>
       </PageBody>
 
@@ -187,6 +189,40 @@ function Outline() {
         </DialogContent>
       </Dialog>
     </Page>
+  );
+}
+
+function PlanTodayCard({ plan }: { plan: DayPlan & { loading: boolean } }) {
+  const today = todayKey();
+  const { open, active } = useRitualRunner();
+  const dismissed = usePreference('dismissedPlanCard') === today;
+  const { data: runs } = useRitualRuns(today, shiftKey(today, 1));
+  const planned = plan.blocks.length > 0 || plan.musts.length > 0;
+  const planningRanToday = (runs ?? []).some(
+    (run) => run.kind === 'morning' && run.finishedAt !== null,
+  );
+  if (plan.loading || planned || dismissed || planningRanToday || active)
+    return null;
+
+  return (
+    <div className="flex items-center gap-4 rounded-lg border border-primary/30 bg-now-tint px-4 py-3">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold">Plan today · 2 min</p>
+        <p className="text-xs text-muted-foreground">
+          Sort leftovers, pick up to three musts, give them a time.
+        </p>
+      </div>
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={() => setPreference('dismissedPlanCard', today)}
+      >
+        Not today
+      </Button>
+      <Button size="sm" onClick={() => open('morning')}>
+        Start
+      </Button>
+    </div>
   );
 }
 

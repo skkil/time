@@ -30,6 +30,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ProjectNav } from '@/features/projects/ProjectNav';
+import { RitualProvider } from '@/features/rituals/RitualProvider';
 import { SettingsDialog } from '@/features/settings/SettingsDialog';
 import { TaskDialogProvider } from '@/features/tasks/TaskDialog';
 import { useTasks } from '@/features/tasks/api';
@@ -45,12 +46,14 @@ import { SearchDialog } from './SearchDialog';
 export function AppShell() {
   return (
     <TaskDialogProvider>
-      <div className="grid h-full grid-rows-[auto_minmax(0,1fr)]">
-        <TopBar />
-        <main className="min-h-0 overflow-hidden">
-          <Outlet />
-        </main>
-      </div>
+      <RitualProvider>
+        <div className="grid h-full grid-rows-[auto_minmax(0,1fr)]">
+          <TopBar />
+          <main className="min-h-0 overflow-hidden">
+            <Outlet />
+          </main>
+        </div>
+      </RitualProvider>
     </TaskDialogProvider>
   );
 }

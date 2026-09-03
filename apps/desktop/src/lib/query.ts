@@ -56,4 +56,8 @@ export const keys = {
   week: (monday: string) => ['review', 'week', monday] as const,
   weeks: (from: string, to: string) => ['review', 'weeks', from, to] as const,
   quarter: (monday: string) => ['review', 'quarter', monday] as const,
+  rituals: ['rituals'] as const,
+  planningTime: ['rituals', 'planningTime'] as const,
+  ritualRuns: (from: string, to: string) =>
+    ['rituals', 'runs', from, to] as const,
 };
