@@ -212,6 +212,83 @@ export function useSetTaskOutcome() {
   });
 }
 
+export function useSetTasksSomeday() {
+  const cache = useTaskCache();
+  return useMutation({
+    mutationFn: ({ ids, someday }: { ids: Id[]; someday: boolean }) =>
+      commands.setTasksSomeday(ids, someday),
+    onMutate: async ({ ids, someday }) => {
+      const previous = await cache.freeze();
+      cache.update((tasks) =>
+        tasks.map((task) =>
+          ids.includes(task.id)
+            ? {
+                ...task,
+                someday,
+                ...(someday && {
+                  dueDate: null,
+                  dueTime: null,
+                  recurrence: null,
+                  mustOn: null,
+                }),
+              }
+            : task,
+        ),
+      );
+      return { previous };
+    },
+    onError: (_error, _vars, context) => cache.restore(context?.previous),
+    onSettled: () => cache.refresh(),
+  });
+}
+
+export function useSetTaskMust() {
+  const cache = useTaskCache();
+  return useMutation({
+    mutationFn: ({ id, mustOn }: { id: Id; mustOn: DateKey | null }) =>
+      commands.setTaskMust(id, mustOn),
+    onMutate: async ({ id, mustOn }) => {
+      const previous = await cache.freeze();
+      cache.update((tasks) =>
+        tasks.map((task) =>
+          task.id === id
+            ? { ...task, mustOn, someday: mustOn ? false : task.someday }
+            : task,
+        ),
+      );
+      return { previous };
+    },
+    onError: (_error, _vars, context) => cache.restore(context?.previous),
+    onSettled: () => cache.refresh(),
+  });
+}
+
+export function useSetTaskNextStep() {
+  const cache = useTaskCache();
+  return useMutation({
+    mutationFn: ({ id, nextStep }: { id: Id; nextStep: string }) =>
+      commands.setTaskNextStep(id, nextStep),
+    onSuccess: (task) => cache.replace(task),
+  });
+}
+
+export function useDeleteTasks() {
+  const cache = useTaskCache();
+  return useMutation({
+    mutationFn: (ids: Id[]) => commands.deleteTasks(ids),
+    onSuccess: (_result, ids) => {
+      cache.update((tasks) =>
+        tasks.filter(
+          (task) =>
+            !ids.includes(task.id) &&
+            (task.parentId === null || !ids.includes(task.parentId)),
+        ),
+      );
+      return cache.refresh();
+    },
+  });
+}
+
 export function useDeleteTask() {
   const cache = useTaskCache();
   return useMutation({

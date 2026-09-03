@@ -53,7 +53,7 @@ import { EntryDialog } from './EntryDialog';
 import { TimerBar } from './TimerBar';
 import { useDeleteEntry, useStartTimer, useTimeEntries, useTimer } from './api';
 
-const route = getRouteApi('/time');
+const route = getRouteApi('/reports/time');
 
 type EditorState = { entry?: TimeEntry; date?: DateKey } | null;
 
@@ -108,7 +108,7 @@ export function TimePage() {
             <WeekSwitcher
               week={week}
               onChange={(next) =>
-                navigate({ to: '/time', search: { week: next } })
+                navigate({ to: '/reports/time', search: { week: next } })
               }
             />
             <Button

@@ -1,9 +1,10 @@
-import { getRouteApi, useNavigate } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useMemo } from 'react';
 
 import { Page, PageHeader, Stat, WeekSwitcher } from '@/components/page';
 import { useTimeEntries } from '@/features/time/api';
 import {
+  type DateKey,
   formatDuration,
   formatWeekRange,
   isoWeekNumber,
@@ -13,10 +14,7 @@ import {
 import { ScheduleView } from './ScheduleView';
 import { useBlocks } from './api';
 
-const route = getRouteApi('/planner');
-
-export function PlannerPage() {
-  const { week } = route.useSearch();
+export function WeekView({ week }: { week: DateKey }) {
   const navigate = useNavigate();
   const { data: blocks = [] } = useBlocks(week);
   const { data: entries = [] } = useTimeEntries(week, shiftKey(week, 7));
@@ -36,7 +34,7 @@ export function PlannerPage() {
   );
 
   const go = (next: { week: string }) =>
-    navigate({ to: '/planner', search: next });
+    navigate({ to: '/', search: { view: 'week', ...next } });
 
   return (
     <Page>

@@ -6,6 +6,7 @@ import {
   InboxIcon,
   NotebookPenIcon,
   RepeatIcon,
+  SunsetIcon,
   TimerIcon,
 } from 'lucide-react';
 
@@ -45,36 +46,41 @@ export function SearchDialog({
   };
 
   const pages = [
-    { label: 'Inbox', icon: InboxIcon, run: () => navigate({ to: '/inbox' }) },
     {
-      label: 'Today',
+      label: 'Day',
       icon: CalendarCheckIcon,
-      run: () => navigate({ to: '/today' }),
+      run: () => navigate({ to: '/', search: { view: 'day', week } }),
     },
+    {
+      label: 'Week',
+      icon: CalendarRangeIcon,
+      run: () => navigate({ to: '/', search: { view: 'week', week } }),
+    },
+    { label: 'Inbox', icon: InboxIcon, run: () => navigate({ to: '/inbox' }) },
     {
       label: 'Upcoming',
       icon: CalendarDaysIcon,
       run: () => navigate({ to: '/upcoming', search: { from: todayKey() } }),
     },
     {
-      label: 'Planner',
-      icon: CalendarRangeIcon,
-      run: () => navigate({ to: '/planner', search: { week } }),
+      label: 'Someday',
+      icon: SunsetIcon,
+      run: () => navigate({ to: '/someday' }),
     },
     {
-      label: 'Time',
+      label: 'Reviews',
+      icon: NotebookPenIcon,
+      run: () => navigate({ to: '/reports/reviews' }),
+    },
+    {
+      label: 'Time report',
       icon: TimerIcon,
-      run: () => navigate({ to: '/time', search: { week } }),
+      run: () => navigate({ to: '/reports/time', search: { week } }),
     },
     {
       label: 'Habits',
       icon: RepeatIcon,
-      run: () => navigate({ to: '/habits', search: { week } }),
-    },
-    {
-      label: 'Review',
-      icon: NotebookPenIcon,
-      run: () => navigate({ to: '/review' }),
+      run: () => navigate({ to: '/reports/habits', search: { week } }),
     },
   ];
 

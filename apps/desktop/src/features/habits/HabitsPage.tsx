@@ -65,7 +65,7 @@ import {
   statusLabel,
 } from './meta';
 
-const route = getRouteApi('/habits');
+const route = getRouteApi('/reports/habits');
 
 type Lookup = ReturnType<typeof dayLookup>;
 
@@ -104,7 +104,7 @@ export function HabitsPage() {
             <WeekSwitcher
               week={week}
               onChange={(next) =>
-                navigate({ to: '/habits', search: { week: next } })
+                navigate({ to: '/reports/habits', search: { week: next } })
               }
             />
             <NewHabitMenu

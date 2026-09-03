@@ -7,11 +7,12 @@ import {
 } from '@tanstack/react-router';
 
 import { HabitsPage } from '@/features/habits/HabitsPage';
-import { PlannerPage } from '@/features/planner/PlannerPage';
+import { MainPage } from '@/features/main/MainPage';
+import { ReportsPage } from '@/features/reports/ReportsPage';
 import { ReviewHome } from '@/features/review/ReviewHome';
 import { WeekReview } from '@/features/review/WeekReview';
 import { ProjectView } from '@/features/tasks/ProjectView';
-import { TodayPage } from '@/features/tasks/TodayPage';
+import { SomedayPage } from '@/features/tasks/SomedayPage';
 import { UpcomingPage } from '@/features/tasks/UpcomingPage';
 import { TimePage } from '@/features/time/TimePage';
 import { type DateKey, mondayOf, todayKey } from '@/lib/time';
@@ -20,6 +21,8 @@ import { AppShell } from './AppShell';
 import { RouteError } from './RouteError';
 
 type WeekSearch = { week: DateKey };
+export type MainView = 'day' | 'week';
+type MainSearch = { view: MainView; week: DateKey };
 
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -33,19 +36,25 @@ function validateWeek(search: Record<string, unknown>): WeekSearch {
 
 const rootRoute = createRootRoute({ component: AppShell });
 
-const indexRoute = createRoute({
+export const mainRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  beforeLoad: () => {
-    throw redirect({ to: '/today' });
-  },
+  validateSearch: (search: Record<string, unknown>): MainSearch => ({
+    view: search.view === 'week' ? 'week' : 'day',
+    ...validateWeek(search),
+  }),
+  component: MainPage,
 });
 
-export const plannerRoute = createRoute({
+const plannerRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/planner',
-  validateSearch: validateWeek,
-  component: PlannerPage,
+  beforeLoad: () => {
+    throw redirect({
+      to: '/',
+      search: { view: 'week', week: mondayOf(todayKey()) },
+    });
+  },
 });
 
 const inboxRoute = createRoute({
@@ -57,7 +66,18 @@ const inboxRoute = createRoute({
 const todayRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/today',
-  component: TodayPage,
+  beforeLoad: () => {
+    throw redirect({
+      to: '/',
+      search: { view: 'day', week: mondayOf(todayKey()) },
+    });
+  },
+});
+
+const somedayRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/someday',
+  component: SomedayPage,
 });
 
 export const upcomingRoute = createRoute({
@@ -85,25 +105,56 @@ export const projectRoute = createRoute({
   },
 });
 
-export const timeRoute = createRoute({
+export const reportsRoute = createRoute({
   getParentRoute: () => rootRoute,
+  path: '/reports',
+  component: ReportsPage,
+});
+
+const reportsIndexRoute = createRoute({
+  getParentRoute: () => reportsRoute,
+  path: '/',
+  beforeLoad: () => {
+    throw redirect({ to: '/reports/reviews' });
+  },
+});
+
+export const timeRoute = createRoute({
+  getParentRoute: () => reportsRoute,
   path: '/time',
   validateSearch: validateWeek,
   component: TimePage,
 });
 
 export const habitsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => reportsRoute,
   path: '/habits',
   validateSearch: validateWeek,
   component: HabitsPage,
 });
 
-const reviewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/review',
+const reviewsRoute = createRoute({
+  getParentRoute: () => reportsRoute,
+  path: '/reviews',
   component: ReviewHome,
 });
+
+const legacyRoutes = (['time', 'habits', 'review'] as const).map((page) =>
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: `/${page}`,
+    beforeLoad: () => {
+      throw redirect(
+        page === 'review'
+          ? { to: '/reports/reviews' }
+          : {
+              to: page === 'time' ? '/reports/time' : '/reports/habits',
+              search: { week: mondayOf(todayKey()) },
+            },
+      );
+    },
+  }),
+);
 
 export const weekReviewRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -121,15 +172,20 @@ export const weekReviewRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  indexRoute,
+  mainRoute,
   inboxRoute,
   todayRoute,
   upcomingRoute,
+  somedayRoute,
   plannerRoute,
   projectRoute,
-  timeRoute,
-  habitsRoute,
-  reviewRoute,
+  reportsRoute.addChildren([
+    reportsIndexRoute,
+    timeRoute,
+    habitsRoute,
+    reviewsRoute,
+  ]),
+  ...legacyRoutes,
   weekReviewRoute,
 ]);
 

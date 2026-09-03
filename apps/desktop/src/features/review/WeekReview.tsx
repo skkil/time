@@ -185,7 +185,7 @@ function ReviewFlow({
       )}
       {step.id === 'done' && (
         <footer className="flex justify-end border-t pt-4">
-          <Button onClick={() => navigate({ to: '/review' })}>
+          <Button onClick={() => navigate({ to: '/reports/reviews' })}>
             Back to Review
           </Button>
         </footer>
