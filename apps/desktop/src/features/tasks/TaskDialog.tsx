@@ -50,7 +50,6 @@ import {
   DeadlinePicker,
   DuePicker,
   EstimatePicker,
-  LabelPicker,
   PlacementPicker,
   PriorityPicker,
 } from './fields';
@@ -88,8 +87,8 @@ export function TaskDialogProvider({ children }: { children: ReactNode }) {
         >
           <DialogTitle className="sr-only">Quick add</DialogTitle>
           <DialogDescription className="sr-only">
-            Type a task. Dates, p1–p4, #project, /section, @label and “every …”
-            are recognised as you type.
+            Type a task. Dates, p1–p4, #project, /section and “every …” are
+            recognised as you type.
           </DialogDescription>
           {state.mode === 'create' && (
             <TaskEditor
@@ -313,12 +312,6 @@ function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
             <PriorityPicker
               value={task.priority}
               onChange={(priority) => save({ priority })}
-            />
-          </Field>
-          <Field label="Labels">
-            <LabelPicker
-              value={task.labelIds}
-              onChange={(labelIds) => save({ labelIds })}
             />
           </Field>
           <Field label="Outcome">

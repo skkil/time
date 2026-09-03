@@ -7,7 +7,6 @@ import {
   FlagIcon,
   InboxIcon,
   RepeatIcon,
-  TagIcon,
   TargetIcon,
   TimerIcon,
   XIcon,
@@ -47,7 +46,7 @@ import {
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
-import { useLabels, useResolveLabels, useSections } from './api';
+import { useSections } from './api';
 import {
   PRIORITIES,
   dueTone,
@@ -378,91 +377,6 @@ export function PriorityPicker({
             {value === priority && <CheckIcon className="ml-auto size-4" />}
           </button>
         ))}
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-export function LabelPicker({
-  value,
-  onChange,
-  typed = [],
-}: {
-  value: Id[];
-  onChange: (value: Id[]) => void;
-  typed?: string[];
-}) {
-  const { data: labels } = useLabels();
-  const resolve = useResolveLabels();
-  const [search, setSearch] = useState('');
-  const chosen = [
-    ...(labels ?? [])
-      .filter((label) => value.includes(label.id))
-      .map((label) => label.name),
-    ...typed,
-  ].filter((name, i, all) => all.indexOf(name) === i);
-  const trimmed = search.trim().replace(/\s+/g, '_');
-  const exists = labels?.some(
-    (label) => label.name.toLowerCase() === trimmed.toLowerCase(),
-  );
-
-  const toggle = (id: Id) =>
-    onChange(
-      value.includes(id)
-        ? value.filter((other) => other !== id)
-        : [...value, id],
-    );
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Chip
-          active={chosen.length > 0}
-          icon={<TagIcon />}
-          onClear={() => onChange([])}
-        >
-          {chosen.length > 0 ? chosen.join(', ') : 'Labels'}
-        </Chip>
-      </PopoverTrigger>
-      <PopoverContent className="w-56 p-0" align="start">
-        <Command>
-          <CommandInput
-            placeholder="Type a label"
-            value={search}
-            onValueChange={setSearch}
-          />
-          <CommandList>
-            <CommandEmpty>No labels yet.</CommandEmpty>
-            <CommandGroup>
-              {(labels ?? []).map((label) => (
-                <CommandItem
-                  key={label.id}
-                  value={label.name}
-                  data-checked={value.includes(label.id)}
-                  onSelect={() => toggle(label.id)}
-                >
-                  <TagIcon className="text-muted-foreground" />
-                  {label.name}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-            {trimmed && !exists && (
-              <CommandGroup forceMount>
-                <CommandItem
-                  forceMount
-                  value={`create ${trimmed}`}
-                  onSelect={async () => {
-                    const [id] = await resolve([trimmed]);
-                    onChange([...value, id]);
-                    setSearch('');
-                  }}
-                >
-                  Create “{trimmed}”
-                </CommandItem>
-              </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
       </PopoverContent>
     </Popover>
   );

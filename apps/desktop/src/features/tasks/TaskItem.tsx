@@ -41,7 +41,6 @@ import { PriorityCheck } from './PriorityCheck';
 import {
   taskToInput,
   useDeleteTask,
-  useLabels,
   useSections,
   useSetTaskCompleted,
   useTaskIndex,
@@ -90,7 +89,6 @@ export function TaskItem({
   const remove = useDeleteTask();
   const start = useStartTimer();
   const { data: timer } = useTimer();
-  const { data: labels } = useLabels();
   const { data: sections } = useSections();
   const tasks = useTaskIndex();
   const index = useProjectIndex();
@@ -107,9 +105,6 @@ export function TaskItem({
   const section = sections?.find((s) => s.id === task.sectionId);
   const parent =
     task.parentId === null ? undefined : tasks.byId.get(task.parentId);
-  const taskLabels = (labels ?? []).filter((label) =>
-    task.labelIds.includes(label.id),
-  );
   const firstLine = task.notes.split('\n')[0];
   const tone = task.dueDate ? dueTone(task.dueDate, today) : 'later';
   const save = (patch: Partial<ReturnType<typeof taskToInput>>) =>
@@ -232,9 +227,6 @@ export function TaskItem({
                 formatEstimate(task.estimateMinutes)}
             </span>
           )}
-          {taskLabels.map((label) => (
-            <span key={label.id}>@{label.name}</span>
-          ))}
           {showParent && parent && (
             <span className="truncate">↳ {parent.title}</span>
           )}

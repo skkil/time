@@ -9,6 +9,7 @@ use crate::error::{Error, Result};
 use crate::types::{Date, Id, Seconds, Timestamp};
 
 const MAX_OPEN_OUTCOMES: i64 = 3;
+const MAX_CARRIES: i32 = 2;
 const MAX_PRIORITIES: i64 = 3;
 const LAST_STEP: i32 = 6;
 pub const WEEKS_PER_QUARTER: i64 = 13;
@@ -72,6 +73,7 @@ pub struct Outcome {
     pub status: OutcomeStatus,
     pub priority_id: Option<Id>,
     pub carried_from: Option<Id>,
+    pub times_carried: i32,
     pub tasks_total: i32,
     pub tasks_done: i32,
     pub tracked_seconds: Seconds,
@@ -198,13 +200,31 @@ fn outcomes(conn: &Connection, start: Date) -> Result<Vec<Outcome>> {
                 status: OutcomeStatus::parse(&row.get::<_, String>(2)?)?,
                 priority_id: row.get(3)?,
                 carried_from: row.get(4)?,
+                times_carried: 0,
                 tasks_total: row.get(5)?,
                 tasks_done: row.get(6)?,
                 tracked_seconds: row.get(7)?,
             })
         },
     )?;
-    Ok(rows.collect::<rusqlite::Result<_>>()?)
+    let mut outcomes = rows.collect::<rusqlite::Result<Vec<_>>>()?;
+    for outcome in &mut outcomes {
+        outcome.times_carried = times_carried(conn, outcome.id)?;
+    }
+    Ok(outcomes)
+}
+
+fn times_carried(conn: &Connection, id: Id) -> Result<i32> {
+    Ok(conn.query_row(
+        "WITH RECURSIVE chain(id, previous) AS (
+           SELECT id, carried_from FROM outcome WHERE id = ?1
+           UNION ALL
+           SELECT o.id, o.carried_from FROM outcome o JOIN chain ON o.id = chain.previous
+         )
+         SELECT COUNT(*) - 1 FROM chain",
+        params![id],
+        |row| row.get(0),
+    )?)
 }
 
 fn ensure_week(conn: &Connection, start: Date) -> Result<()> {
@@ -422,6 +442,11 @@ pub fn set_outcome_status(conn: &mut Connection, id: Id, status: OutcomeStatus) 
         uncarry(&tx, id)?;
     }
     if status == OutcomeStatus::Carried {
+        if times_carried(&tx, id)? >= MAX_CARRIES {
+            return Err(Error::invalid(
+                "Carried twice already. Shrink it, give it a new date, or drop it.",
+            ));
+        }
         carry(&tx, id, start)?;
     }
     tx.execute(
@@ -734,6 +759,13 @@ mod tests {
             set_outcome_status(conn, outcome, OutcomeStatus::Achieved)?;
             assert!(week(conn, monday.add_days(7))?.outcomes.is_empty());
             assert_eq!(tasks::get(conn, open.id)?.outcome_id, Some(outcome));
+
+            set_outcome_status(conn, outcome, OutcomeStatus::Carried)?;
+            let second = week(conn, monday.add_days(7))?.outcomes[0].id;
+            set_outcome_status(conn, second, OutcomeStatus::Carried)?;
+            let third = &week(conn, monday.add_days(14))?.outcomes[0];
+            assert_eq!(third.times_carried, 2);
+            assert!(set_outcome_status(conn, third.id, OutcomeStatus::Carried).is_err());
             Ok(())
         })
         .unwrap();

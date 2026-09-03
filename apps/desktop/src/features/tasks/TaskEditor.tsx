@@ -1,24 +1,18 @@
 import { type FormEvent, useMemo, useState } from 'react';
 
-import type { Id, TaskInput } from '@/bindings';
+import type { TaskInput } from '@/bindings';
 import { Button } from '@/components/ui/button';
 import { useProjects } from '@/features/projects/api';
 import { todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 import { SmartInput } from './SmartInput';
-import {
-  EMPTY_TASK,
-  useCreateTask,
-  useResolveLabels,
-  useSections,
-} from './api';
+import { EMPTY_TASK, useCreateTask, useSections } from './api';
 import {
   DeadlinePicker,
   type Due,
   DuePicker,
   EstimatePicker,
-  LabelPicker,
   PlacementPicker,
   PriorityPicker,
 } from './fields';
@@ -43,7 +37,6 @@ export function TaskEditor({
   const { data: projects } = useProjects();
   const { data: sections } = useSections();
   const create = useCreateTask();
-  const resolveLabels = useResolveLabels();
   const [text, setText] = useState('');
   const [notes, setNotes] = useState('');
   const [due, setDue] = useState<Due>({
@@ -54,7 +47,6 @@ export function TaskEditor({
   const [deadline, setDeadline] = useState(initial.deadline);
   const [priority, setPriority] = useState(initial.priority);
   const [estimate, setEstimate] = useState(initial.estimateMinutes);
-  const [labelIds, setLabelIds] = useState<Id[]>(initial.labelIds);
   const [placement, setPlacement] = useState({
     projectId: initial.projectId,
     sectionId: initial.sectionId,
@@ -94,7 +86,6 @@ export function TaskEditor({
     setPriority(initial.priority);
     setEstimate(initial.estimateMinutes);
     setDeadline(initial.deadline);
-    setLabelIds(initial.labelIds);
     setDue({
       dueDate: initial.dueDate,
       dueTime: initial.dueTime,
@@ -105,7 +96,6 @@ export function TaskEditor({
   const submit = async (event?: FormEvent) => {
     event?.preventDefault();
     if (!parsed.title) return;
-    const typedLabels = await resolveLabels(parsed.labels);
     create.mutate(
       {
         ...initial,
@@ -115,7 +105,6 @@ export function TaskEditor({
         deadline: effective.deadline,
         priority: effective.priority,
         estimateMinutes: effective.estimate,
-        labelIds: [...new Set([...labelIds, ...typedLabels])],
         projectId: effective.placement.projectId,
         sectionId: effective.placement.sectionId,
         parentId: initial.parentId,
@@ -176,11 +165,6 @@ export function TaskEditor({
         />
         <DeadlinePicker value={effective.deadline} onChange={setDeadline} />
         <PriorityPicker value={effective.priority} onChange={setPriority} />
-        <LabelPicker
-          value={labelIds}
-          typed={parsed.labels}
-          onChange={setLabelIds}
-        />
         <EstimatePicker value={effective.estimate} onChange={setEstimate} />
       </div>
       <div className="flex items-center gap-2 border-t px-2 py-2">

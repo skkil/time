@@ -3,7 +3,6 @@ import {
   ArchiveIcon,
   BanIcon,
   CheckIcon,
-  FlameIcon,
   MinusIcon,
   MoreHorizontalIcon,
   PencilIcon,
@@ -387,13 +386,12 @@ function JournalRow({
           {day?.manual && <span>· set by you</span>}
         </p>
       </div>
-      {habit.streak > 0 && (
+      {habit.dueDays > 0 && (
         <span
-          className="flex items-center gap-0.5 text-xs text-p2"
-          title={`${habit.streak}-day streak`}
+          className="text-xs text-muted-foreground"
+          title="Done on these days out of the last 14, rest days not counted"
         >
-          <FlameIcon className="size-3.5" />
-          {habit.streak}
+          {habit.doneDays} of {habit.dueDays}
         </span>
       )}
       {canCount && (

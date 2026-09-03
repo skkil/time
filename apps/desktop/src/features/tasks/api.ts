@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 import {
   type Date as DateKey,
   type Id,
-  type Label,
   type Section,
   type Task,
   type TaskInput,
@@ -19,10 +18,6 @@ export function useTasks() {
 
 export function useSections() {
   return useQuery({ queryKey: keys.sections, queryFn: commands.listSections });
-}
-
-export function useLabels() {
-  return useQuery({ queryKey: keys.labels, queryFn: commands.listLabels });
 }
 
 export function useTaskIndex() {
@@ -54,7 +49,6 @@ export const EMPTY_TASK: TaskInput = {
   deadline: null,
   recurrence: null,
   estimateMinutes: null,
-  labelIds: [],
 };
 
 export const taskToInput = (task: Task): TaskInput => ({
@@ -69,7 +63,6 @@ export const taskToInput = (task: Task): TaskInput => ({
   deadline: task.deadline,
   recurrence: task.recurrence,
   estimateMinutes: task.estimateMinutes,
-  labelIds: task.labelIds,
 });
 
 function useTaskCache() {
@@ -309,64 +302,4 @@ export function useDeleteSection() {
     mutationFn: (id: Id) => commands.deleteSection(id),
     onSuccess: cache.refresh,
   });
-}
-
-export function useCreateLabel() {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      name,
-      color = 'graphite',
-    }: {
-      name: string;
-      color?: string;
-    }) => commands.createLabel(name, color),
-    onSuccess: (label) =>
-      client.setQueryData<Label[]>(keys.labels, (labels) =>
-        [...(labels ?? []), label].sort((a, b) => a.name.localeCompare(b.name)),
-      ),
-  });
-}
-
-export function useUpdateLabel() {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      id,
-      name,
-      color,
-    }: {
-      id: Id;
-      name: string;
-      color: string;
-    }) => commands.updateLabel(id, name, color),
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.labels }),
-  });
-}
-
-export function useDeleteLabel() {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: (id: Id) => commands.deleteLabel(id),
-    onSuccess: () =>
-      Promise.all([
-        client.invalidateQueries({ queryKey: keys.labels }),
-        client.invalidateQueries({ queryKey: keys.tasks }),
-      ]),
-  });
-}
-
-export function useResolveLabels() {
-  const { data: labels } = useLabels();
-  const create = useCreateLabel();
-  return async (names: string[]): Promise<Id[]> => {
-    const ids: Id[] = [];
-    for (const name of names) {
-      const found = labels?.find(
-        (label) => label.name.toLowerCase() === name.toLowerCase(),
-      );
-      ids.push(found ? found.id : (await create.mutateAsync({ name })).id);
-    }
-    return ids;
-  };
 }

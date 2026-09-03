@@ -79,6 +79,8 @@ function initialInput(state: NonNullable<HabitDialogState>): HabitInput {
       area: habit.area,
       startDate: habit.startDate,
       tracking: habit.tracking,
+      skipDays: habit.skipDays,
+      anchor: habit.anchor,
     };
   }
   return {
@@ -91,6 +93,8 @@ function initialInput(state: NonNullable<HabitDialogState>): HabitInput {
     area: '',
     startDate: todayKey(),
     tracking: null,
+    skipDays: 1,
+    anchor: '',
   };
 }
 
@@ -159,7 +163,7 @@ function HabitForm({
           {input.kind === 'build'
             ? 'Something to do regularly.'
             : input.kind === 'quit'
-              ? 'Something to stop. Each clean day counts toward the streak.'
+              ? 'Something to stop. Each clean day counts.'
               : 'Something to keep under a daily limit.'}
         </DialogDescription>
       </DialogHeader>
@@ -176,6 +180,20 @@ function HabitForm({
           }
           onChange={(event) => set('name', event.target.value)}
         />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="habit-anchor">After I…</Label>
+        <Input
+          id="habit-anchor"
+          value={input.anchor}
+          maxLength={120}
+          placeholder="pour my morning coffee"
+          onChange={(event) => set('anchor', event.target.value)}
+        />
+        <p className="text-xs text-muted-foreground">
+          Tie it to something you already do. That works better than a reminder.
+        </p>
       </div>
 
       <ToggleGroup
@@ -269,6 +287,20 @@ function HabitForm({
             value={input.timeOfDay}
             onChange={(timeOfDay) => set('timeOfDay', timeOfDay)}
             options={TIMES_OF_DAY}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="habit-skips">Rest days</Label>
+          <Choice
+            id="habit-skips"
+            label="Rest days"
+            value={String(input.skipDays)}
+            onChange={(value) => set('skipDays', Number(value))}
+            options={[
+              { value: '0', label: 'None' },
+              { value: '1', label: '1 a week' },
+              { value: '2', label: '2 a week' },
+            ]}
           />
         </div>
         <div className="grid gap-2">

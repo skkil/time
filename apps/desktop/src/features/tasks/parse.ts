@@ -18,8 +18,7 @@ export type TokenKind =
   | 'duration'
   | 'priority'
   | 'project'
-  | 'section'
-  | 'label';
+  | 'section';
 
 export type Token = { kind: TokenKind; start: number; end: number };
 
@@ -41,7 +40,6 @@ export type Parsed = {
   priority?: number;
   projectId?: Id | null;
   sectionId?: Id;
-  labels: string[];
 };
 
 const DAY = String.raw`(?:monday|mon|tuesday|tue|wednesday|wed|thursday|thu|friday|fri|saturday|sat|sunday|sun)`;
@@ -178,7 +176,7 @@ function longestName<T extends { name: string }>(
 
 export function parseQuickAdd(text: string, context: ParseContext): Parsed {
   const tokens: Token[] = [];
-  const result: Parsed = { title: text, tokens, labels: [] };
+  const result: Parsed = { title: text, tokens };
   const free = (start: number, end: number) =>
     tokens.every((token) => end <= token.start || start >= token.end);
 
@@ -293,13 +291,6 @@ export function parseQuickAdd(text: string, context: ParseContext): Parsed {
       result.sectionId = section.id;
       break;
     }
-  }
-
-  for (const match of text.matchAll(/(?<=^|\s)@([^\s@#]+)/gu)) {
-    const end = match.index + match[0].length;
-    if (!free(match.index, end)) continue;
-    tokens.push({ kind: 'label', start: match.index, end });
-    if (!result.labels.includes(match[1])) result.labels.push(match[1]);
   }
 
   if (result.recurrence && !result.dueDate)

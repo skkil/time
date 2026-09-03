@@ -10,7 +10,6 @@ import { HabitsPage } from '@/features/habits/HabitsPage';
 import { PlannerPage } from '@/features/planner/PlannerPage';
 import { ReviewHome } from '@/features/review/ReviewHome';
 import { WeekReview } from '@/features/review/WeekReview';
-import { LabelPage } from '@/features/tasks/LabelPage';
 import { ProjectView } from '@/features/tasks/ProjectView';
 import { TodayPage } from '@/features/tasks/TodayPage';
 import { UpcomingPage } from '@/features/tasks/UpcomingPage';
@@ -86,16 +85,6 @@ export const projectRoute = createRoute({
   },
 });
 
-export const labelRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/labels/$labelId',
-  params: {
-    parse: (params) => ({ labelId: Number(params.labelId) }),
-    stringify: (params) => ({ labelId: String(params.labelId) }),
-  },
-  component: LabelPage,
-});
-
 export const timeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/time',
@@ -138,7 +127,6 @@ const routeTree = rootRoute.addChildren([
   upcomingRoute,
   plannerRoute,
   projectRoute,
-  labelRoute,
   timeRoute,
   habitsRoute,
   reviewRoute,

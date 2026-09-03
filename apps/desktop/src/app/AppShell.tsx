@@ -16,7 +16,6 @@ import {
   RepeatIcon,
   SearchIcon,
   SettingsIcon,
-  TagIcon,
   TimerIcon,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -32,7 +31,7 @@ import { Kbd } from '@/components/ui/kbd';
 import { ProjectNav } from '@/features/projects/ProjectNav';
 import { SettingsDialog } from '@/features/settings/SettingsDialog';
 import { TaskDialogProvider } from '@/features/tasks/TaskDialog';
-import { useLabels, useTasks } from '@/features/tasks/api';
+import { useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { SidebarTimer } from '@/features/time/SidebarTimer';
 import { formatShortcut, useShortcuts } from '@/lib/shortcuts';
@@ -94,7 +93,6 @@ function NavLinks({ items, offset }: { items: NavItem[]; offset: number }) {
 
 function Sidebar() {
   const { data: tasks } = useTasks();
-  const { data: labels } = useLabels();
   const { newTask } = useTaskDialog();
   const navigate = useNavigate();
   const [searching, setSearching] = useState(false);
@@ -217,27 +215,6 @@ function Sidebar() {
 
       <div className="-mx-3 grid min-h-0 flex-1 content-start gap-3 overflow-y-auto px-3">
         <ProjectNav />
-        {labels && labels.length > 0 && (
-          <nav aria-label="Labels">
-            <h2 className="mb-1 px-2 font-sans text-xs font-semibold text-muted-foreground">
-              Labels
-            </h2>
-            <ul className="grid gap-0.5">
-              {labels.map((label) => (
-                <li key={label.id}>
-                  <Link
-                    to="/labels/$labelId"
-                    params={{ labelId: label.id }}
-                    className={linkClass}
-                  >
-                    <TagIcon className="size-3.5 text-muted-foreground" />
-                    <span className="truncate">{label.name}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        )}
       </div>
 
       <SidebarTimer />

@@ -27,12 +27,15 @@ pub struct Task {
     pub deadline: Option<Date>,
     pub recurrence: Option<String>,
     pub estimate_minutes: Option<i32>,
-    pub label_ids: Vec<Id>,
     pub position: i32,
     pub completed_at: Option<Timestamp>,
     pub created_at: Timestamp,
     pub tracked_seconds: Seconds,
     pub outcome_id: Option<Id>,
+    pub rollover_count: i32,
+    pub someday: bool,
+    pub next_step: String,
+    pub must_on: Option<Date>,
 }
 
 #[derive(Debug, Clone, Deserialize, Type)]
@@ -49,7 +52,6 @@ pub struct TaskInput {
     pub deadline: Option<Date>,
     pub recurrence: Option<String>,
     pub estimate_minutes: Option<i32>,
-    pub label_ids: Vec<Id>,
 }
 
 #[derive(Debug, Clone, Copy, Deserialize, Type)]
@@ -63,19 +65,10 @@ pub struct TaskPlacement {
 
 const SELECT: &str = "SELECT t.id, t.title, t.notes, t.project_id, t.section_id, t.parent_id,
        t.priority, t.due_date, t.due_time, t.deadline, t.recurrence, t.estimate_minutes,
-       (SELECT group_concat(l.label_id) FROM task_label l WHERE l.task_id = t.id),
        t.position, t.completed_at, t.created_at,
        (SELECT COALESCE(SUM(e.ended_at - e.started_at), 0) FROM time_entry e WHERE e.task_id = t.id),
-       t.outcome_id
+       t.outcome_id, t.rollover_count, t.someday, t.next_step, t.must_on
      FROM task t";
-
-fn label_ids(value: Option<String>) -> Vec<Id> {
-    value
-        .unwrap_or_default()
-        .split(',')
-        .filter_map(|id| id.parse().ok().map(Id))
-        .collect()
-}
 
 fn from_row(row: &Row) -> rusqlite::Result<Task> {
     Ok(Task {
@@ -91,12 +84,15 @@ fn from_row(row: &Row) -> rusqlite::Result<Task> {
         deadline: row.get(9)?,
         recurrence: row.get(10)?,
         estimate_minutes: row.get(11)?,
-        label_ids: label_ids(row.get(12)?),
-        position: row.get(13)?,
-        completed_at: row.get(14)?,
-        created_at: row.get(15)?,
-        tracked_seconds: row.get(16)?,
-        outcome_id: row.get(17)?,
+        position: row.get(12)?,
+        completed_at: row.get(13)?,
+        created_at: row.get(14)?,
+        tracked_seconds: row.get(15)?,
+        outcome_id: row.get(16)?,
+        rollover_count: row.get(17)?,
+        someday: row.get(18)?,
+        next_step: row.get(19)?,
+        must_on: row.get(20)?,
     })
 }
 
@@ -279,17 +275,6 @@ fn place(conn: &Connection, id: Id, container: Container, before: Option<Id>) ->
     Ok(())
 }
 
-fn set_labels(conn: &Connection, id: Id, label_ids: &[Id]) -> Result<()> {
-    conn.execute("DELETE FROM task_label WHERE task_id = ?1", params![id])?;
-    for label_id in label_ids {
-        conn.execute(
-            "INSERT OR IGNORE INTO task_label (task_id, label_id) VALUES (?1, ?2)",
-            params![id, label_id],
-        )?;
-    }
-    Ok(())
-}
-
 pub fn create(conn: &mut Connection, input: &TaskInput) -> Result<Task> {
     let valid = validate(conn, None, input)?;
     let tx = conn.transaction()?;
@@ -311,7 +296,6 @@ pub fn create(conn: &mut Connection, input: &TaskInput) -> Result<Task> {
     )?;
     let id = Id(tx.last_insert_rowid());
     place(&tx, id, valid.container, None)?;
-    set_labels(&tx, id, &input.label_ids)?;
     tx.execute(
         "UPDATE task SET outcome_id = (SELECT p.outcome_id FROM task p WHERE p.id = task.parent_id)
          WHERE id = ?1 AND parent_id IS NOT NULL",
@@ -349,7 +333,6 @@ pub fn update(conn: &mut Connection, id: Id, input: &TaskInput) -> Result<Task> 
     if previous != valid.container {
         place(&tx, id, valid.container, None)?;
     }
-    set_labels(&tx, id, &input.label_ids)?;
     tx.commit()?;
     get(conn, id)
 }
@@ -373,11 +356,15 @@ pub fn reschedule(conn: &mut Connection, ids: &[Id], due_date: Option<Date>) -> 
     let tx = conn.transaction()?;
     for id in ids {
         let rows = tx.execute(
-            "UPDATE task SET due_date = ?1,
+            "UPDATE task SET rollover_count = rollover_count
+                               + (due_date IS NOT NULL AND due_date <= ?3 AND ?1 > due_date),
+                             due_date = ?1,
                              due_time = CASE WHEN ?1 IS NULL THEN NULL ELSE due_time END,
-                             recurrence = CASE WHEN ?1 IS NULL THEN NULL ELSE recurrence END
+                             recurrence = CASE WHEN ?1 IS NULL THEN NULL ELSE recurrence END,
+                             someday = CASE WHEN ?1 IS NULL THEN someday ELSE 0 END,
+                             must_on = CASE WHEN must_on = ?1 THEN must_on ELSE NULL END
              WHERE id = ?2",
-            params![due_date, id],
+            params![due_date, id, Date::today()],
         )?;
         ensure_changed(rows, "Task")?;
     }
@@ -429,6 +416,55 @@ pub fn set_outcome(conn: &mut Connection, id: Id, outcome_id: Option<Id>) -> Res
     }
     tx.commit()?;
     get(conn, id)
+}
+
+pub fn set_someday(conn: &mut Connection, ids: &[Id], someday: bool) -> Result<()> {
+    let tx = conn.transaction()?;
+    for id in ids {
+        let rows = tx.execute(
+            "UPDATE task SET someday = ?1,
+                             due_date = CASE WHEN ?1 THEN NULL ELSE due_date END,
+                             due_time = CASE WHEN ?1 THEN NULL ELSE due_time END,
+                             recurrence = CASE WHEN ?1 THEN NULL ELSE recurrence END,
+                             must_on = CASE WHEN ?1 THEN NULL ELSE must_on END
+             WHERE id = ?2",
+            params![someday, id],
+        )?;
+        ensure_changed(rows, "Task")?;
+    }
+    tx.commit()?;
+    Ok(())
+}
+
+pub fn set_must(conn: &Connection, id: Id, must_on: Option<Date>) -> Result<Task> {
+    let rows = conn.execute(
+        "UPDATE task SET must_on = ?1,
+                         due_date = CASE WHEN ?1 IS NULL OR due_date <= ?1 THEN due_date ELSE ?1 END,
+                         someday = CASE WHEN ?1 IS NULL THEN someday ELSE 0 END
+         WHERE id = ?2",
+        params![must_on, id],
+    )?;
+    ensure_changed(rows, "Task")?;
+    get(conn, id)
+}
+
+pub fn set_next_step(conn: &Connection, id: Id, next_step: &str) -> Result<Task> {
+    let next_step = optional_text(next_step, "Next step", 500)?;
+    let rows = conn.execute(
+        "UPDATE task SET next_step = ?1 WHERE id = ?2",
+        params![next_step, id],
+    )?;
+    ensure_changed(rows, "Task")?;
+    get(conn, id)
+}
+
+pub fn delete_many(conn: &mut Connection, ids: &[Id]) -> Result<()> {
+    let tx = conn.transaction()?;
+    for id in ids {
+        tx.execute("DELETE FROM task WHERE id = ?1", params![id])?;
+    }
+    tx.commit()?;
+    Ok(())
 }
 
 pub fn delete(conn: &Connection, id: Id) -> Result<()> {
@@ -484,6 +520,30 @@ pub async fn set_task_outcome(db: State<'_, Db>, id: Id, outcome_id: Option<Id>)
 
 #[tauri::command]
 #[specta::specta]
+pub async fn set_tasks_someday(db: State<'_, Db>, ids: Vec<Id>, someday: bool) -> Result<()> {
+    db.call(|conn| set_someday(conn, &ids, someday))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_task_must(db: State<'_, Db>, id: Id, must_on: Option<Date>) -> Result<Task> {
+    db.call(|conn| set_must(conn, id, must_on))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_task_next_step(db: State<'_, Db>, id: Id, next_step: String) -> Result<Task> {
+    db.call(|conn| set_next_step(conn, id, &next_step))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn delete_tasks(db: State<'_, Db>, ids: Vec<Id>) -> Result<()> {
+    db.call(|conn| delete_many(conn, &ids))
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn delete_task(db: State<'_, Db>, id: Id) -> Result<()> {
     db.call(|conn| delete(conn, id))
 }
@@ -502,7 +562,6 @@ pub fn input(title: &str, project_id: Option<Id>) -> TaskInput {
         deadline: None,
         recurrence: None,
         estimate_minutes: None,
-        label_ids: Vec::new(),
     }
 }
 
@@ -510,7 +569,7 @@ pub fn input(title: &str, project_id: Option<Id>) -> TaskInput {
 mod tests {
     use super::*;
     use crate::features::projects::{self, ProjectInput};
-    use crate::features::{labels, sections};
+    use crate::features::sections;
     use crate::types::date;
 
     fn project(conn: &Connection, name: &str) -> Result<projects::Project> {
@@ -644,6 +703,33 @@ mod tests {
     }
 
     #[test]
+    fn rescheduling_a_due_task_counts_a_rollover() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let today = Date::today();
+            let mut task = input("Essay", None);
+            task.due_date = Some(today.add_days(-1));
+            let task = create(conn, &task)?;
+            reschedule(conn, &[task.id], Some(today))?;
+            reschedule(conn, &[task.id], Some(today.add_days(1)))?;
+            assert_eq!(get(conn, task.id)?.rollover_count, 2);
+            reschedule(conn, &[task.id], Some(today.add_days(5)))?;
+            assert_eq!(get(conn, task.id)?.rollover_count, 2);
+
+            set_someday(conn, &[task.id], true)?;
+            let parked = get(conn, task.id)?;
+            assert!(parked.someday);
+            assert_eq!(parked.due_date, None);
+
+            let must = set_must(conn, task.id, Some(today))?;
+            assert!(!must.someday);
+            assert_eq!(must.must_on, Some(today));
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
     fn completing_a_repeating_task_moves_it_forward() {
         let db = Db::in_memory();
         db.call(|conn| {
@@ -654,22 +740,6 @@ mod tests {
             let next = set_completed(conn, task.id, true)?;
             assert!(next.completed_at.is_none());
             assert_eq!(next.due_date, Some(Date::today().add_days(7)));
-            Ok(())
-        })
-        .unwrap();
-    }
-
-    #[test]
-    fn stores_labels() {
-        let db = Db::in_memory();
-        db.call(|conn| {
-            let short = labels::create(conn, "short", "graphite")?;
-            let mut task = input("Email", None);
-            task.label_ids = vec![short.id];
-            let task = create(conn, &task)?;
-            assert_eq!(task.label_ids, vec![short.id]);
-            labels::delete(conn, short.id)?;
-            assert!(get(conn, task.id)?.label_ids.is_empty());
             Ok(())
         })
         .unwrap();

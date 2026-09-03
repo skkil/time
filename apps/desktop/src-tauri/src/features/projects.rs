@@ -3,16 +3,19 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::State;
 
-use super::{ensure_changed, required_text};
+use super::{ensure_changed, optional_text, required_text};
 use crate::db::Db;
 use crate::error::{Error, Result};
-use crate::types::Id;
+use crate::types::{Date, Id, Timestamp};
 
 pub const COLORS: [&str; 8] = [
     "graphite", "blue", "teal", "green", "olive", "amber", "rust", "plum",
 ];
 pub const MAX_DEPTH: i64 = 3;
 pub const VIEWS: [&str; 2] = ["list", "board"];
+pub const KINDS: [&str; 2] = ["project", "area"];
+pub const STATUSES: [&str; 4] = ["active", "paused", "done", "dropped"];
+pub const REVIEW_WEEKS: [i32; 3] = [1, 2, 4];
 
 #[derive(Debug, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
@@ -24,6 +27,28 @@ pub struct Project {
     pub position: i32,
     pub archived: bool,
     pub view: String,
+    pub kind: String,
+    pub status: String,
+    pub outcome: String,
+    pub weekly_minutes: Option<i32>,
+    pub target_date: Option<Date>,
+    pub kill_criteria: String,
+    pub review_every_weeks: i32,
+    pub last_reviewed_at: Option<Timestamp>,
+    pub in_order: bool,
+}
+
+#[derive(Debug, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct ProjectSettings {
+    pub kind: String,
+    pub status: String,
+    pub outcome: String,
+    pub weekly_minutes: Option<i32>,
+    pub target_date: Option<Date>,
+    pub kill_criteria: String,
+    pub review_every_weeks: i32,
+    pub in_order: bool,
 }
 
 #[derive(Debug, Deserialize, Type)]
@@ -34,7 +59,10 @@ pub struct ProjectInput {
     pub color: String,
 }
 
-const SELECT: &str = "SELECT id, parent_id, name, color, position, archived, view FROM project";
+const SELECT: &str = "SELECT id, parent_id, name, color, position, archived, view, kind, status,
+       outcome, weekly_minutes, target_date, kill_criteria, review_every_weeks, last_reviewed_at,
+       in_order
+     FROM project";
 
 fn from_row(row: &Row) -> rusqlite::Result<Project> {
     Ok(Project {
@@ -45,6 +73,15 @@ fn from_row(row: &Row) -> rusqlite::Result<Project> {
         position: row.get(4)?,
         archived: row.get(5)?,
         view: row.get(6)?,
+        kind: row.get(7)?,
+        status: row.get(8)?,
+        outcome: row.get(9)?,
+        weekly_minutes: row.get(10)?,
+        target_date: row.get(11)?,
+        kill_criteria: row.get(12)?,
+        review_every_weeks: row.get(13)?,
+        last_reviewed_at: row.get(14)?,
+        in_order: row.get(15)?,
     })
 }
 
@@ -128,8 +165,8 @@ fn validate(conn: &Connection, input: &ProjectInput, moving: Option<Id>) -> Resu
 pub fn create(conn: &Connection, input: &ProjectInput) -> Result<Project> {
     let name = validate(conn, input, None)?;
     conn.execute(
-        "INSERT INTO project (parent_id, name, color, position)
-         VALUES (?1, ?2, ?3, (SELECT COALESCE(MAX(position), 0) + 1 FROM project))",
+        "INSERT INTO project (parent_id, name, color, position, kind, review_every_weeks)
+         VALUES (?1, ?2, ?3, (SELECT COALESCE(MAX(position), 0) + 1 FROM project), 'project', 1)",
         params![input.parent_id, name, input.color],
     )?;
     get(conn, Id(conn.last_insert_rowid()))
@@ -180,6 +217,74 @@ pub fn set_view(conn: &Connection, id: Id, view: &str) -> Result<Project> {
     get(conn, id)
 }
 
+pub fn update_settings(conn: &Connection, id: Id, settings: &ProjectSettings) -> Result<Project> {
+    let current = get(conn, id)?;
+    if !KINDS.contains(&settings.kind.as_str()) {
+        return Err(Error::invalid(format!("Unknown kind: {}", settings.kind)));
+    }
+    if !STATUSES.contains(&settings.status.as_str()) {
+        return Err(Error::invalid(format!(
+            "Unknown status: {}",
+            settings.status
+        )));
+    }
+    if settings.kind == "area" && matches!(settings.status.as_str(), "done" | "dropped") {
+        return Err(Error::invalid("Areas don't finish; pause them instead."));
+    }
+    if !REVIEW_WEEKS.contains(&settings.review_every_weeks) {
+        return Err(Error::invalid("Review every 1, 2 or 4 weeks."));
+    }
+    if let Some(minutes) = settings.weekly_minutes
+        && !(1..=7 * 24 * 60).contains(&minutes)
+    {
+        return Err(Error::invalid("Weekly time must be within a week."));
+    }
+    if settings.kind == "area"
+        && let Some(parent_id) = current.parent_id
+        && get(conn, parent_id)?.kind == "project"
+    {
+        return Err(Error::invalid("An area can't sit inside a project."));
+    }
+    if settings.kind == "project"
+        && conn.query_row(
+            "SELECT EXISTS(SELECT 1 FROM project WHERE parent_id = ?1 AND kind = 'area')",
+            params![id],
+            |row| row.get::<_, bool>(0),
+        )?
+    {
+        return Err(Error::invalid("Move the areas inside it out first."));
+    }
+    let outcome = optional_text(&settings.outcome, "Outcome", 300)?;
+    let kill_criteria = optional_text(&settings.kill_criteria, "Stop rule", 300)?;
+    conn.execute(
+        "UPDATE project SET kind = ?1, status = ?2, outcome = ?3, weekly_minutes = ?4,
+                            target_date = ?5, kill_criteria = ?6, review_every_weeks = ?7,
+                            in_order = ?8
+         WHERE id = ?9",
+        params![
+            settings.kind,
+            settings.status,
+            outcome,
+            settings.weekly_minutes,
+            settings.target_date,
+            kill_criteria,
+            settings.review_every_weeks,
+            settings.in_order,
+            id
+        ],
+    )?;
+    get(conn, id)
+}
+
+pub fn mark_reviewed(conn: &Connection, id: Id) -> Result<Project> {
+    let rows = conn.execute(
+        "UPDATE project SET last_reviewed_at = ?1 WHERE id = ?2",
+        params![Timestamp::now(), id],
+    )?;
+    ensure_changed(rows, "Project")?;
+    get(conn, id)
+}
+
 pub fn delete(conn: &Connection, id: Id) -> Result<()> {
     let rows = conn.execute("DELETE FROM project WHERE id = ?1", params![id])?;
     ensure_changed(rows, "Project")
@@ -213,6 +318,22 @@ pub async fn set_project_archived(db: State<'_, Db>, id: Id, archived: bool) -> 
 #[specta::specta]
 pub async fn set_project_view(db: State<'_, Db>, id: Id, view: String) -> Result<Project> {
     db.call(|conn| set_view(conn, id, &view))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn update_project_settings(
+    db: State<'_, Db>,
+    id: Id,
+    settings: ProjectSettings,
+) -> Result<Project> {
+    db.call(|conn| update_settings(conn, id, &settings))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn mark_project_reviewed(db: State<'_, Db>, id: Id) -> Result<Project> {
+    db.call(|conn| mark_reviewed(conn, id))
 }
 
 #[tauri::command]
@@ -264,6 +385,38 @@ mod tests {
                 update(conn, a.id, &input("A", Some(other.id)))?.parent_id,
                 Some(other.id)
             );
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    fn settings(kind: &str, status: &str) -> ProjectSettings {
+        ProjectSettings {
+            kind: kind.into(),
+            status: status.into(),
+            outcome: String::new(),
+            weekly_minutes: Some(360),
+            target_date: None,
+            kill_criteria: String::new(),
+            review_every_weeks: 1,
+            in_order: false,
+        }
+    }
+
+    #[test]
+    fn projects_sit_under_areas_not_the_reverse() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let health = create(conn, &input("Health", None))?;
+            update_settings(conn, health.id, &settings("area", "active"))?;
+            let run = create(conn, &input("Half marathon", Some(health.id)))?;
+            assert_eq!(run.kind, "project");
+            let inner = create(conn, &input("Training plan", Some(run.id)))?;
+            assert!(update_settings(conn, inner.id, &settings("area", "active")).is_err());
+            assert!(update_settings(conn, health.id, &settings("area", "done")).is_err());
+            let done = update_settings(conn, run.id, &settings("project", "done"))?;
+            assert_eq!(done.weekly_minutes, Some(360));
+            assert!(mark_reviewed(conn, run.id)?.last_reviewed_at.is_some());
             Ok(())
         })
         .unwrap();

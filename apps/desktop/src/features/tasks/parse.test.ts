@@ -47,9 +47,8 @@ describe('parseQuickAdd', () => {
   });
 
   it('picks the longest matching project and its sections', () => {
-    const result = parse('Write tests #STiTy (SKKAI) @short @deep-work');
+    const result = parse('Write tests #STiTy (SKKAI)');
     expect(result.projectId).toBe(2);
-    expect(result.labels).toEqual(['short', 'deep-work']);
     expect(result.title).toBe('Write tests');
 
     const sectioned = parse(
@@ -65,7 +64,7 @@ describe('parseQuickAdd', () => {
     const result = parse('Decide 5 things to monitor on query planning');
     expect(result.title).toBe('Decide 5 things to monitor on query planning');
     expect(result.tokens).toEqual([]);
-    expect(parse('email a@b.com').labels).toEqual([]);
+    expect(parse('email a@b.com').title).toBe('email a@b.com');
     expect(parse('#Unknown project').projectId).toBeUndefined();
   });
 

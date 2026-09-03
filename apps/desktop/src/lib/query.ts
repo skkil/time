@@ -42,7 +42,6 @@ export const keys = {
   projects: ['projects'] as const,
   tasks: ['tasks'] as const,
   sections: ['sections'] as const,
-  labels: ['labels'] as const,
   blocks: (monday: string) => ['blocks', monday] as const,
   allBlocks: ['blocks'] as const,
   entries: (from: string, to: string) => ['entries', from, to] as const,

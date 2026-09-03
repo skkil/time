@@ -9,6 +9,8 @@ export const commands = {
 	updateProject: (id: Id, input: ProjectInput) => __TAURI_INVOKE<Project>("update_project", { id, input }),
 	setProjectArchived: (id: Id, archived: boolean) => __TAURI_INVOKE<null>("set_project_archived", { id, archived }),
 	setProjectView: (id: Id, view: string) => __TAURI_INVOKE<Project>("set_project_view", { id, view }),
+	updateProjectSettings: (id: Id, settings: ProjectSettings) => __TAURI_INVOKE<Project>("update_project_settings", { id, settings }),
+	markProjectReviewed: (id: Id) => __TAURI_INVOKE<Project>("mark_project_reviewed", { id }),
 	deleteProject: (id: Id) => __TAURI_INVOKE<null>("delete_project", { id }),
 	listTasks: () => __TAURI_INVOKE<Task[]>("list_tasks"),
 	createTask: (input: TaskInput) => __TAURI_INVOKE<Task>("create_task", { input }),
@@ -17,6 +19,10 @@ export const commands = {
 	rescheduleTasks: (ids: Id[], dueDate: Date | null) => __TAURI_INVOKE<null>("reschedule_tasks", { ids, dueDate }),
 	setTaskCompleted: (id: Id, completed: boolean) => __TAURI_INVOKE<Task>("set_task_completed", { id, completed }),
 	setTaskOutcome: (id: Id, outcomeId: Id | null) => __TAURI_INVOKE<Task>("set_task_outcome", { id, outcomeId }),
+	setTasksSomeday: (ids: Id[], someday: boolean) => __TAURI_INVOKE<null>("set_tasks_someday", { ids, someday }),
+	setTaskMust: (id: Id, mustOn: Date | null) => __TAURI_INVOKE<Task>("set_task_must", { id, mustOn }),
+	setTaskNextStep: (id: Id, nextStep: string) => __TAURI_INVOKE<Task>("set_task_next_step", { id, nextStep }),
+	deleteTasks: (ids: Id[]) => __TAURI_INVOKE<null>("delete_tasks", { ids }),
 	deleteTask: (id: Id) => __TAURI_INVOKE<null>("delete_task", { id }),
 	listSections: () => __TAURI_INVOKE<Section[]>("list_sections"),
 	createSection: (projectId: Id | null, name: string, before: Id | null) => __TAURI_INVOKE<Section>("create_section", { projectId, name, before }),
@@ -24,10 +30,6 @@ export const commands = {
 	setSectionCollapsed: (id: Id, collapsed: boolean) => __TAURI_INVOKE<Section>("set_section_collapsed", { id, collapsed }),
 	reorderSection: (id: Id, before: Id | null) => __TAURI_INVOKE<Section>("reorder_section", { id, before }),
 	deleteSection: (id: Id) => __TAURI_INVOKE<null>("delete_section", { id }),
-	listLabels: () => __TAURI_INVOKE<Label[]>("list_labels"),
-	createLabel: (name: string, color: string) => __TAURI_INVOKE<Label>("create_label", { name, color }),
-	updateLabel: (id: Id, name: string, color: string) => __TAURI_INVOKE<Label>("update_label", { id, name, color }),
-	deleteLabel: (id: Id) => __TAURI_INVOKE<null>("delete_label", { id }),
 	listBlocks: (from: Date, to: Date) => __TAURI_INVOKE<TimeBlock[]>("list_blocks", { from, to }),
 	createBlock: (taskId: Id, span: BlockSpan) => __TAURI_INVOKE<TimeBlock>("create_block", { taskId, span }),
 	rescheduleBlock: (id: Id, span: BlockSpan) => __TAURI_INVOKE<TimeBlock>("reschedule_block", { id, span }),
@@ -68,6 +70,17 @@ export const commands = {
 	createPriority: (quarterId: Id, title: string) => __TAURI_INVOKE<null>("create_priority", { quarterId, title }),
 	updatePriority: (id: Id, title: string, note: string) => __TAURI_INVOKE<null>("update_priority", { id, title, note }),
 	removePriority: (id: Id) => __TAURI_INVOKE<null>("remove_priority", { id }),
+	listRituals: () => __TAURI_INVOKE<Ritual[]>("list_rituals"),
+	updateRitual: (kind: string, input: RitualInput) => __TAURI_INVOKE<Ritual>("update_ritual", { kind, input }),
+	getPlanningTime: () => __TAURI_INVOKE<string | null>("get_planning_time"),
+	choosePlanningTime: (time: string) => __TAURI_INVOKE<Ritual[]>("choose_planning_time", { time }),
+	dueRitual: (event: RitualEvent) => __TAURI_INVOKE<Ritual | null>("due_ritual", { event }),
+	listRitualRuns: (from: Date, to: Date) => __TAURI_INVOKE<RitualRun[]>("list_ritual_runs", { from, to }),
+	startRitual: (kind: string, taskId: Id | null) => __TAURI_INVOKE<RitualRun>("start_ritual", { kind, taskId }),
+	reachRitualStep: (id: Id, step: number) => __TAURI_INVOKE<RitualRun>("reach_ritual_step", { id, step }),
+	finishRitual: (id: Id) => __TAURI_INVOKE<RitualRun>("finish_ritual", { id }),
+	skipRitual: (id: Id) => __TAURI_INVOKE<RitualRun>("skip_ritual", { id }),
+	snoozeRitual: (id: Id) => __TAURI_INVOKE<RitualRun>("snooze_ritual", { id }),
 };
 
 /* Types */
@@ -111,7 +124,10 @@ export type Habit = {
 	area: string,
 	startDate: Date,
 	tracking: Tracking | null,
-	streak: number,
+	skipDays: number,
+	anchor: string,
+	doneDays: number,
+	dueDays: number,
 	cleanSince: Date | null,
 };
 
@@ -133,15 +149,11 @@ export type HabitInput = {
 	area: string,
 	startDate: Date,
 	tracking: Tracking | null,
+	skipDays: number,
+	anchor: string,
 };
 
 export type Id = number;
-
-export type Label = {
-	id: Id,
-	name: string,
-	color: string,
-};
 
 export type ManualStatus = "done" | "failed" | "skipped";
 
@@ -151,6 +163,7 @@ export type Outcome = {
 	status: OutcomeStatus,
 	priorityId: Id | null,
 	carriedFrom: Id | null,
+	timesCarried: number,
 	tasksTotal: number,
 	tasksDone: number,
 	trackedSeconds: Seconds,
@@ -173,6 +186,15 @@ export type Project = {
 	position: number,
 	archived: boolean,
 	view: string,
+	kind: string,
+	status: string,
+	outcome: string,
+	weeklyMinutes: number | null,
+	targetDate: Date | null,
+	killCriteria: string,
+	reviewEveryWeeks: number,
+	lastReviewedAt: Timestamp | null,
+	inOrder: boolean,
 };
 
 export type ProjectInput = {
@@ -181,12 +203,55 @@ export type ProjectInput = {
 	color: string,
 };
 
+export type ProjectSettings = {
+	kind: string,
+	status: string,
+	outcome: string,
+	weeklyMinutes: number | null,
+	targetDate: Date | null,
+	killCriteria: string,
+	reviewEveryWeeks: number,
+	inOrder: boolean,
+};
+
 export type Quarter = {
 	id: Id,
 	label: string,
 	startDate: Date,
 	weekNo: number,
 	priorities: Priority[],
+};
+
+export type Ritual = {
+	kind: string,
+	enabled: boolean,
+	trigger: string,
+	atMinute: number,
+	weekdays: number,
+	minMinutes: number,
+	steps: string[],
+};
+
+export type RitualEvent = { kind: "open" } | { kind: "tick" } | { kind: "timerStopped"; minutes: number };
+
+export type RitualInput = {
+	enabled: boolean,
+	trigger: string,
+	atMinute: number,
+	weekdays: number,
+	steps: string[],
+};
+
+export type RitualRun = {
+	id: Id,
+	kind: string,
+	date: Date,
+	taskId: Id | null,
+	startedAt: Timestamp,
+	finishedAt: Timestamp | null,
+	skipped: boolean,
+	step: number,
+	snoozedUntil: Timestamp | null,
 };
 
 export type RunningTimer = {
@@ -226,12 +291,15 @@ export type Task = {
 	deadline: Date | null,
 	recurrence: string | null,
 	estimateMinutes: number | null,
-	labelIds: Id[],
 	position: number,
 	completedAt: Timestamp | null,
 	createdAt: Timestamp,
 	trackedSeconds: Seconds,
 	outcomeId: Id | null,
+	rolloverCount: number,
+	someday: boolean,
+	nextStep: string,
+	mustOn: Date | null,
 };
 
 export type TaskInput = {
@@ -246,7 +314,6 @@ export type TaskInput = {
 	deadline: Date | null,
 	recurrence: string | null,
 	estimateMinutes: number | null,
-	labelIds: Id[],
 };
 
 export type TaskPlacement = {

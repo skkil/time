@@ -9,7 +9,7 @@ use specta_typescript::Typescript;
 use tauri::Manager;
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
 
-use features::{blocks, habits, labels, projects, review, sections, tasks, time_entries};
+use features::{blocks, habits, projects, review, rituals, sections, tasks, time_entries};
 
 const BINDINGS_PATH: &str = "../src/bindings.ts";
 
@@ -23,6 +23,8 @@ fn specta_builder() -> Builder<tauri::Wry> {
             projects::update_project,
             projects::set_project_archived,
             projects::set_project_view,
+            projects::update_project_settings,
+            projects::mark_project_reviewed,
             projects::delete_project,
             tasks::list_tasks,
             tasks::create_task,
@@ -31,6 +33,10 @@ fn specta_builder() -> Builder<tauri::Wry> {
             tasks::reschedule_tasks,
             tasks::set_task_completed,
             tasks::set_task_outcome,
+            tasks::set_tasks_someday,
+            tasks::set_task_must,
+            tasks::set_task_next_step,
+            tasks::delete_tasks,
             tasks::delete_task,
             sections::list_sections,
             sections::create_section,
@@ -38,10 +44,6 @@ fn specta_builder() -> Builder<tauri::Wry> {
             sections::set_section_collapsed,
             sections::reorder_section,
             sections::delete_section,
-            labels::list_labels,
-            labels::create_label,
-            labels::update_label,
-            labels::delete_label,
             blocks::list_blocks,
             blocks::create_block,
             blocks::reschedule_block,
@@ -82,6 +84,17 @@ fn specta_builder() -> Builder<tauri::Wry> {
             review::create_priority,
             review::update_priority,
             review::remove_priority,
+            rituals::list_rituals,
+            rituals::update_ritual,
+            rituals::get_planning_time,
+            rituals::choose_planning_time,
+            rituals::due_ritual,
+            rituals::list_ritual_runs,
+            rituals::start_ritual,
+            rituals::reach_ritual_step,
+            rituals::finish_ritual,
+            rituals::skip_ritual,
+            rituals::snooze_ritual,
         ])
 }
 

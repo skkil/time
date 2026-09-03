@@ -6,7 +6,6 @@ import {
   InboxIcon,
   NotebookPenIcon,
   RepeatIcon,
-  TagIcon,
   TimerIcon,
 } from 'lucide-react';
 
@@ -23,7 +22,7 @@ import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
 import { projectPath } from '@/features/projects/tree';
 import { PriorityCheck } from '@/features/tasks/PriorityCheck';
-import { useLabels, useTasks } from '@/features/tasks/api';
+import { useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { mondayOf, todayKey } from '@/lib/time';
 
@@ -37,7 +36,6 @@ export function SearchDialog({
   const navigate = useNavigate();
   const { openTask } = useTaskDialog();
   const { data: tasks } = useTasks();
-  const { data: labels } = useLabels();
   const index = useProjectIndex();
   const week = mondayOf(todayKey());
 
@@ -85,11 +83,11 @@ export function SearchDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Search"
-      description="Find a task, project, label or page"
+      description="Find a task, project or page"
       className="sm:max-w-xl"
     >
       <Command>
-        <CommandInput placeholder="Search tasks, projects, labels…" />
+        <CommandInput placeholder="Search tasks and projects…" />
         <CommandList className="max-h-[60vh]">
           <CommandEmpty>Nothing found.</CommandEmpty>
           <CommandGroup heading="Tasks">
@@ -133,25 +131,6 @@ export function SearchDialog({
               >
                 <ProjectDot color={node.color} />
                 {projectPath(index, node.id)}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-          <CommandGroup heading="Labels">
-            {(labels ?? []).map((label) => (
-              <CommandItem
-                key={label.id}
-                value={`label ${label.id} ${label.name}`}
-                onSelect={() =>
-                  go(() =>
-                    navigate({
-                      to: '/labels/$labelId',
-                      params: { labelId: label.id },
-                    }),
-                  )
-                }
-              >
-                <TagIcon className="text-muted-foreground" />
-                {label.name}
               </CommandItem>
             ))}
           </CommandGroup>

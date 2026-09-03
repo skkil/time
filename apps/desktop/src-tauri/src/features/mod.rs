@@ -1,8 +1,8 @@
 pub mod blocks;
 pub mod habits;
-pub mod labels;
 pub mod projects;
 pub mod review;
+pub mod rituals;
 pub mod sections;
 pub mod tasks;
 pub mod time_entries;

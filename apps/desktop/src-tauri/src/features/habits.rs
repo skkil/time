@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::State;
 
-use super::{ensure_changed, projects, required_text};
+use super::{ensure_changed, optional_text, projects, required_text};
 use crate::activitywatch::{self, Usage};
 use crate::db::Db;
 use crate::error::{Error, Result};
@@ -17,6 +17,8 @@ const UNITS: [&str; 2] = ["times", "minutes"];
 const TIMES_OF_DAY: [&str; 4] = ["anytime", "morning", "afternoon", "evening"];
 const SYNC_DAYS: u64 = 60;
 const ALL_DAYS: i32 = 0b111_1111;
+const CONSISTENCY_DAYS: i64 = 14;
+const MAX_SKIP_DAYS: i32 = 2;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
@@ -39,7 +41,10 @@ pub struct Habit {
     pub area: String,
     pub start_date: Date,
     pub tracking: Option<Tracking>,
-    pub streak: i32,
+    pub skip_days: i32,
+    pub anchor: String,
+    pub done_days: i32,
+    pub due_days: i32,
     pub clean_since: Option<Date>,
 }
 
@@ -55,6 +60,8 @@ pub struct HabitInput {
     pub area: String,
     pub start_date: Date,
     pub tracking: Option<Tracking>,
+    pub skip_days: i32,
+    pub anchor: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Type)]
@@ -120,7 +127,7 @@ struct Log {
 }
 
 const SELECT: &str = "SELECT id, name, kind, goal, unit, days, time_of_day, area, start_date,
-       track_source, track_patterns, track_project_id
+       track_source, track_patterns, track_project_id, skip_days, anchor
      FROM habit";
 
 fn from_row(row: &Row) -> rusqlite::Result<Habit> {
@@ -145,7 +152,10 @@ fn from_row(row: &Row) -> rusqlite::Result<Habit> {
                 .collect(),
             project_id: row.get(11).ok().flatten(),
         }),
-        streak: 0,
+        skip_days: row.get(12)?,
+        anchor: row.get(13)?,
+        done_days: 0,
+        due_days: 0,
         clean_since: None,
     })
 }
@@ -202,26 +212,39 @@ fn logs_for(conn: &Connection, habit_id: Id) -> Result<HashMap<Date, Log>> {
 
 fn with_stats(conn: &Connection, mut habit: Habit, today: Date) -> Result<Habit> {
     let logs = logs_for(conn, habit.id)?;
-    let mut streak = 0;
-    let mut broken = false;
-    let mut last_failure: Option<Date> = None;
-    let mut date = today;
-    while date >= habit.start_date {
+    let mut forgiven: HashMap<Date, i32> = HashMap::new();
+    let (mut done_days, mut due_days) = (0, 0);
+    let mut date = today.add_days(1 - CONSISTENCY_DAYS).max(habit.start_date);
+    while date <= today {
         match status(&habit, date, today, logs.get(&date)) {
-            DayStatus::Done if !broken => streak += 1,
-            DayStatus::Missed => broken = true,
-            DayStatus::Failed => {
-                broken = true;
-                last_failure.get_or_insert(date);
+            DayStatus::Done => {
+                done_days += 1;
+                due_days += 1;
+            }
+            DayStatus::Failed => due_days += 1,
+            DayStatus::Missed => {
+                let used = forgiven.entry(date.monday()).or_default();
+                if *used < habit.skip_days {
+                    *used += 1;
+                } else {
+                    due_days += 1;
+                }
             }
             _ => {}
         }
-        if broken && (habit.kind == "build" || last_failure.is_some()) {
+        date = date.add_days(1);
+    }
+    let mut last_failure: Option<Date> = None;
+    let mut date = today;
+    while date >= habit.start_date && habit.kind != "build" {
+        if status(&habit, date, today, logs.get(&date)) == DayStatus::Failed {
+            last_failure = Some(date);
             break;
         }
         date = Date(date.0 - Days::new(1));
     }
-    habit.streak = streak;
+    habit.done_days = done_days;
+    habit.due_days = due_days;
     habit.clean_since = (habit.kind != "build")
         .then(|| last_failure.map_or(habit.start_date, |day| Date(day.0 + Days::new(1))));
     Ok(habit)
@@ -256,6 +279,7 @@ struct Valid {
     goal: f64,
     unit: String,
     area: String,
+    anchor: String,
     tracking: Option<Tracking>,
 }
 
@@ -288,6 +312,10 @@ fn validate(conn: &Connection, input: &HabitInput) -> Result<Valid> {
         }
         _ => input.goal,
     };
+    if !(0..=MAX_SKIP_DAYS).contains(&input.skip_days) {
+        return Err(Error::invalid("Allow at most two skip days a week."));
+    }
+    let anchor = optional_text(&input.anchor, "Anchor", 120)?;
     let area = input.area.trim().chars().take(40).collect();
     let mut unit = input.unit.clone();
 
@@ -335,6 +363,7 @@ fn validate(conn: &Connection, input: &HabitInput) -> Result<Valid> {
         goal,
         unit,
         area,
+        anchor,
         tracking,
     })
 }
@@ -357,13 +386,16 @@ fn write(conn: &Connection, id: Option<Id>, input: &HabitInput) -> Result<Id> {
         source,
         patterns,
         project_id,
+        input.skip_days,
+        valid.anchor,
     ];
     match id {
         None => {
             conn.execute(
                 "INSERT INTO habit (name, kind, goal, unit, days, time_of_day, area, start_date,
-                                    track_source, track_patterns, track_project_id, position)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11,
+                                    track_source, track_patterns, track_project_id, skip_days,
+                                    anchor, position)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13,
                          (SELECT COALESCE(MAX(position), 0) + 1 FROM habit))",
                 values,
             )?;
@@ -373,8 +405,9 @@ fn write(conn: &Connection, id: Option<Id>, input: &HabitInput) -> Result<Id> {
             let rows = conn.execute(
                 "UPDATE habit SET name = ?1, kind = ?2, goal = ?3, unit = ?4, days = ?5,
                                   time_of_day = ?6, area = ?7, start_date = ?8, track_source = ?9,
-                                  track_patterns = ?10, track_project_id = ?11
-                 WHERE id = ?12",
+                                  track_patterns = ?10, track_project_id = ?11, skip_days = ?12,
+                                  anchor = ?13
+                 WHERE id = ?14",
                 params![
                     valid.name,
                     input.kind,
@@ -387,6 +420,8 @@ fn write(conn: &Connection, id: Option<Id>, input: &HabitInput) -> Result<Id> {
                     source,
                     patterns,
                     project_id,
+                    input.skip_days,
+                    valid.anchor,
                     id
                 ],
             )?;
@@ -736,6 +771,8 @@ pub fn input(name: &str, kind: &str) -> HabitInput {
         area: String::new(),
         start_date: Date::today().add_days(-10),
         tracking: None,
+        skip_days: 0,
+        anchor: String::new(),
     }
 }
 
@@ -782,7 +819,8 @@ mod tests {
                 status_on(conn, water.id, today.add_days(-1)),
                 DayStatus::Skipped
             );
-            assert_eq!(get(conn, water.id)?.streak, 1);
+            let water = get(conn, water.id)?;
+            assert_eq!((water.done_days, water.due_days), (1, 10));
             assert!(add_value(conn, water.id, today.add_days(1), 1.0).is_err());
             Ok(())
         })
@@ -801,7 +839,7 @@ mod tests {
                 DayStatus::Done
             );
             assert_eq!(status_on(conn, habit.id, today), DayStatus::Pending);
-            assert_eq!(habit.streak, 10);
+            assert_eq!((habit.done_days, habit.due_days), (10, 10));
             assert_eq!(habit.clean_since, Some(today.add_days(-10)));
 
             set_status(
@@ -811,11 +849,39 @@ mod tests {
                 Some(ManualStatus::Failed),
             )?;
             let habit = get(conn, habit.id)?;
-            assert_eq!(habit.streak, 3);
+            assert_eq!((habit.done_days, habit.due_days), (9, 10));
             assert_eq!(habit.clean_since, Some(today.add_days(-3)));
             Ok(())
         })
         .unwrap();
+    }
+
+    #[test]
+    fn planned_skip_days_forgive_one_miss_a_week() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let today = Date::today();
+            let mut walk = input("Walk", "build");
+            walk.start_date = today.add_days(-6);
+            walk.skip_days = 1;
+            walk.anchor = "After lunch".into();
+            let walk = create(conn, &walk)?;
+            let weeks: std::collections::HashSet<_> =
+                (1..=6).map(|back| today.add_days(-back).monday()).collect();
+            assert_eq!(walk.done_days, 0);
+            assert_eq!(walk.due_days, 6 - weeks.len() as i32);
+            assert_eq!(walk.anchor, "After lunch");
+
+            walk_input_rejects_three_skips(conn)
+        })
+        .unwrap();
+    }
+
+    fn walk_input_rejects_three_skips(conn: &mut Connection) -> Result<()> {
+        let mut walk = input("Walk", "build");
+        walk.skip_days = 3;
+        assert!(create(conn, &walk).is_err());
+        Ok(())
     }
 
     #[test]
