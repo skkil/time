@@ -10,7 +10,10 @@ import {
   MoreHorizontalIcon,
   PencilIcon,
   PlayIcon,
+  RedoIcon,
   RepeatIcon,
+  StarIcon,
+  SunsetIcon,
   TargetIcon,
   TimerIcon,
   Trash2Icon,
@@ -43,6 +46,8 @@ import {
   useDeleteTask,
   useSections,
   useSetTaskCompleted,
+  useSetTaskMust,
+  useSetTasksSomeday,
   useTaskIndex,
   useUpdateTask,
 } from './api';
@@ -87,6 +92,8 @@ export function TaskItem({
   const complete = useSetTaskCompleted();
   const update = useUpdateTask();
   const remove = useDeleteTask();
+  const setMust = useSetTaskMust();
+  const setSomeday = useSetTasksSomeday();
   const start = useStartTimer();
   const { data: timer } = useTimer();
   const { data: sections } = useSections();
@@ -227,6 +234,15 @@ export function TaskItem({
                 formatEstimate(task.estimateMinutes)}
             </span>
           )}
+          {!done && task.rolloverCount >= 2 && (
+            <span
+              className="inline-flex items-center gap-1"
+              title="Pushed to a later day this many times"
+            >
+              <RedoIcon className="size-3" />
+              moved ×{task.rolloverCount}
+            </span>
+          )}
           {showParent && parent && (
             <span className="truncate">↳ {parent.title}</span>
           )}
@@ -341,6 +357,25 @@ export function TaskItem({
               <DropdownMenuItem onSelect={() => openTask(task.id)}>
                 <PencilIcon />
                 Edit task
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() =>
+                  setMust.mutate({
+                    id: task.id,
+                    mustOn: task.mustOn === today ? null : today,
+                  })
+                }
+              >
+                <StarIcon />
+                {task.mustOn === today ? 'Not a must today' : 'Must do today'}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() =>
+                  setSomeday.mutate({ ids: [task.id], someday: !task.someday })
+                }
+              >
+                <SunsetIcon />
+                {task.someday ? 'Bring back from Someday' : 'Move to Someday'}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
