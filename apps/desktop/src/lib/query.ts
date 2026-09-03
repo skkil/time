@@ -1,0 +1,60 @@
+import { MutationCache, QueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+
+import type { Error as CommandError } from '@/bindings';
+
+function isCommandError(error: unknown): error is CommandError {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'kind' in error &&
+    'message' in error
+  );
+}
+
+export function errorMessage(error: unknown): string {
+  if (isCommandError(error)) {
+    return error.kind === 'notFound'
+      ? `${error.message} not found.`
+      : error.message;
+  }
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return 'Something went wrong.';
+}
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  },
+  mutationCache: new MutationCache({
+    onError: (error) => {
+      toast.error(errorMessage(error));
+    },
+  }),
+});
+
+export const keys = {
+  projects: ['projects'] as const,
+  tasks: ['tasks'] as const,
+  sections: ['sections'] as const,
+  labels: ['labels'] as const,
+  blocks: (monday: string) => ['blocks', monday] as const,
+  allBlocks: ['blocks'] as const,
+  entries: (from: string, to: string) => ['entries', from, to] as const,
+  allEntries: ['entries'] as const,
+  timer: ['timer'] as const,
+  habits: ['habits'] as const,
+  habitDays: (from: string, to: string) => ['habitDays', from, to] as const,
+  allHabitDays: ['habitDays'] as const,
+  habitSync: ['habitSync'] as const,
+  review: ['review'] as const,
+  days: (from: string, to: string) => ['review', 'days', from, to] as const,
+  week: (monday: string) => ['review', 'week', monday] as const,
+  weeks: (from: string, to: string) => ['review', 'weeks', from, to] as const,
+  quarter: (monday: string) => ['review', 'quarter', monday] as const,
+};

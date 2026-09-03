@@ -1,0 +1,288 @@
+use rusqlite::{Connection, OptionalExtension, Row, params};
+use serde::{Deserialize, Serialize};
+use specta::Type;
+use tauri::State;
+
+use super::{ensure_changed, required_text};
+use crate::db::Db;
+use crate::error::{Error, Result};
+use crate::types::Id;
+
+pub const COLORS: [&str; 8] = [
+    "graphite", "blue", "teal", "green", "olive", "amber", "rust", "plum",
+];
+pub const MAX_DEPTH: i64 = 3;
+pub const VIEWS: [&str; 2] = ["list", "board"];
+
+#[derive(Debug, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct Project {
+    pub id: Id,
+    pub parent_id: Option<Id>,
+    pub name: String,
+    pub color: String,
+    pub position: i32,
+    pub archived: bool,
+    pub view: String,
+}
+
+#[derive(Debug, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct ProjectInput {
+    pub name: String,
+    pub parent_id: Option<Id>,
+    pub color: String,
+}
+
+const SELECT: &str = "SELECT id, parent_id, name, color, position, archived, view FROM project";
+
+fn from_row(row: &Row) -> rusqlite::Result<Project> {
+    Ok(Project {
+        id: row.get(0)?,
+        parent_id: row.get(1)?,
+        name: row.get(2)?,
+        color: row.get(3)?,
+        position: row.get(4)?,
+        archived: row.get(5)?,
+        view: row.get(6)?,
+    })
+}
+
+pub fn get(conn: &Connection, id: Id) -> Result<Project> {
+    conn.query_row(&format!("{SELECT} WHERE id = ?1"), params![id], from_row)
+        .optional()?
+        .ok_or_else(|| Error::not_found("Project"))
+}
+
+pub fn list(conn: &Connection) -> Result<Vec<Project>> {
+    let mut stmt = conn.prepare(&format!("{SELECT} ORDER BY position, id"))?;
+    let rows = stmt.query_map([], from_row)?;
+    Ok(rows.collect::<rusqlite::Result<_>>()?)
+}
+
+pub fn depth(conn: &Connection, id: Id) -> Result<i64> {
+    Ok(conn.query_row(
+        "WITH RECURSIVE up(id, parent_id, depth) AS (
+           SELECT id, parent_id, 1 FROM project WHERE id = ?1
+           UNION ALL
+           SELECT p.id, p.parent_id, up.depth + 1 FROM project p JOIN up ON p.id = up.parent_id
+         )
+         SELECT MAX(depth) FROM up",
+        params![id],
+        |row| row.get(0),
+    )?)
+}
+
+fn subtree(conn: &Connection, id: Id) -> Result<Vec<(Id, i64)>> {
+    let mut stmt = conn.prepare(
+        "WITH RECURSIVE down(id, depth) AS (
+           SELECT id, 1 FROM project WHERE id = ?1
+           UNION ALL
+           SELECT p.id, down.depth + 1 FROM project p JOIN down ON p.parent_id = down.id
+         )
+         SELECT id, depth FROM down",
+    )?;
+    let rows = stmt.query_map(params![id], |row| Ok((row.get(0)?, row.get(1)?)))?;
+    Ok(rows.collect::<rusqlite::Result<_>>()?)
+}
+
+fn validate(conn: &Connection, input: &ProjectInput, moving: Option<Id>) -> Result<String> {
+    let name = required_text(&input.name, "Project name", 120)?;
+    if !COLORS.contains(&input.color.as_str()) {
+        return Err(Error::invalid(format!("Unknown color: {}", input.color)));
+    }
+    let Some(parent_id) = input.parent_id else {
+        return Ok(name);
+    };
+
+    let parent = get(conn, parent_id)?;
+    if parent.archived {
+        return Err(Error::invalid("Can't add to an archived project."));
+    }
+
+    let height = match moving {
+        Some(id) => {
+            let descendants = subtree(conn, id)?;
+            if descendants
+                .iter()
+                .any(|(descendant, _)| *descendant == parent_id)
+            {
+                return Err(Error::invalid("A project can't move inside itself."));
+            }
+            descendants
+                .iter()
+                .map(|(_, depth)| *depth)
+                .max()
+                .unwrap_or(1)
+        }
+        None => 1,
+    };
+    if depth(conn, parent_id)? + height > MAX_DEPTH {
+        return Err(Error::invalid(format!(
+            "Projects nest at most {MAX_DEPTH} levels deep."
+        )));
+    }
+    Ok(name)
+}
+
+pub fn create(conn: &Connection, input: &ProjectInput) -> Result<Project> {
+    let name = validate(conn, input, None)?;
+    conn.execute(
+        "INSERT INTO project (parent_id, name, color, position)
+         VALUES (?1, ?2, ?3, (SELECT COALESCE(MAX(position), 0) + 1 FROM project))",
+        params![input.parent_id, name, input.color],
+    )?;
+    get(conn, Id(conn.last_insert_rowid()))
+}
+
+pub fn update(conn: &Connection, id: Id, input: &ProjectInput) -> Result<Project> {
+    let current = get(conn, id)?;
+    let moving = (current.parent_id != input.parent_id).then_some(id);
+    let name = validate(conn, input, moving)?;
+    conn.execute(
+        "UPDATE project SET parent_id = ?1, name = ?2, color = ?3 WHERE id = ?4",
+        params![input.parent_id, name, input.color, id],
+    )?;
+    get(conn, id)
+}
+
+pub fn set_archived(conn: &mut Connection, id: Id, archived: bool) -> Result<()> {
+    let tx = conn.transaction()?;
+    let ids = subtree(&tx, id)?;
+    if ids.is_empty() {
+        return Err(Error::not_found("Project"));
+    }
+    if !archived
+        && let Some(parent_id) = get(&tx, id)?.parent_id
+        && get(&tx, parent_id)?.archived
+    {
+        return Err(Error::invalid("Restore the parent project first."));
+    }
+    for (project_id, _) in ids {
+        tx.execute(
+            "UPDATE project SET archived = ?1 WHERE id = ?2",
+            params![archived, project_id],
+        )?;
+    }
+    tx.commit()?;
+    Ok(())
+}
+
+pub fn set_view(conn: &Connection, id: Id, view: &str) -> Result<Project> {
+    if !VIEWS.contains(&view) {
+        return Err(Error::invalid(format!("Unknown view: {view}")));
+    }
+    let rows = conn.execute(
+        "UPDATE project SET view = ?1 WHERE id = ?2",
+        params![view, id],
+    )?;
+    ensure_changed(rows, "Project")?;
+    get(conn, id)
+}
+
+pub fn delete(conn: &Connection, id: Id) -> Result<()> {
+    let rows = conn.execute("DELETE FROM project WHERE id = ?1", params![id])?;
+    ensure_changed(rows, "Project")
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_projects(db: State<'_, Db>) -> Result<Vec<Project>> {
+    db.call(|conn| list(conn))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn create_project(db: State<'_, Db>, input: ProjectInput) -> Result<Project> {
+    db.call(|conn| create(conn, &input))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn update_project(db: State<'_, Db>, id: Id, input: ProjectInput) -> Result<Project> {
+    db.call(|conn| update(conn, id, &input))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_project_archived(db: State<'_, Db>, id: Id, archived: bool) -> Result<()> {
+    db.call(|conn| set_archived(conn, id, archived))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_project_view(db: State<'_, Db>, id: Id, view: String) -> Result<Project> {
+    db.call(|conn| set_view(conn, id, &view))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn delete_project(db: State<'_, Db>, id: Id) -> Result<()> {
+    db.call(|conn| delete(conn, id))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn input(name: &str, parent_id: Option<Id>) -> ProjectInput {
+        ProjectInput {
+            name: name.into(),
+            parent_id,
+            color: "blue".into(),
+        }
+    }
+
+    #[test]
+    fn nests_up_to_three_levels() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let a = create(conn, &input("School", None))?;
+            let b = create(conn, &input("Algorithms", Some(a.id)))?;
+            let c = create(conn, &input("Homework", Some(b.id)))?;
+            assert!(matches!(
+                create(conn, &input("Too deep", Some(c.id))),
+                Err(Error::Invalid(_))
+            ));
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn refuses_cycles_and_deep_moves() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let a = create(conn, &input("A", None))?;
+            let b = create(conn, &input("B", Some(a.id)))?;
+            let other = create(conn, &input("Other", None))?;
+            let other_child = create(conn, &input("Other child", Some(other.id)))?;
+
+            assert!(update(conn, a.id, &input("A", Some(b.id))).is_err());
+            assert!(update(conn, a.id, &input("A", Some(other_child.id))).is_err());
+            assert_eq!(
+                update(conn, a.id, &input("A", Some(other.id)))?.parent_id,
+                Some(other.id)
+            );
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn archives_and_deletes_whole_subtree() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let a = create(conn, &input("A", None))?;
+            let b = create(conn, &input("B", Some(a.id)))?;
+            set_archived(conn, a.id, true)?;
+            assert!(get(conn, b.id)?.archived);
+            assert!(set_archived(conn, b.id, false).is_err());
+
+            delete(conn, a.id)?;
+            assert!(list(conn)?.is_empty());
+            Ok(())
+        })
+        .unwrap();
+    }
+}

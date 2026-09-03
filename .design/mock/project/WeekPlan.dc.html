@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Plan the week</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700&amp;family=Red+Hat+Mono:wght@500&amp;family=Red+Hat+Text:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+body{margin:0}
+.app *{box-sizing:border-box}
+.app{font-family:"Red Hat Text","Pretendard Variable",Pretendard,system-ui,sans-serif;font-size:14px;line-height:1.45;color:#1A1D21;background:#F2F3F0;font-variant-numeric:tabular-nums;min-height:1100px;display:flex;flex-wrap:wrap}
+.app h1,.app h2,.app h3{font-family:"Red Hat Display","Pretendard Variable",Pretendard,system-ui,sans-serif;font-weight:700;margin:0;letter-spacing:-.01em}
+.app h1{font-size:23px}.app h2{font-size:16px}.app h3{font-size:14px}
+.app p{margin:0}
+.m{color:#5B6169}.s{font-size:12px}.b{font-weight:600}
+.tm{font-family:"Red Hat Mono",monospace;font-weight:500;font-size:12px;white-space:nowrap}
+.row{display:flex;align-items:center;gap:8px}
+.col{display:flex;flex-direction:column}
+.nav{flex:1 1 216px;max-width:216px;padding:16px 12px;display:flex;flex-direction:column;gap:2px;border-right:1px solid #D3D6D0}
+.brand{display:flex;align-items:center;gap:8px;padding:4px 10px 16px;font-family:"Red Hat Display",sans-serif;font-weight:700;font-size:15px}
+.nav a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1A1D21;text-decoration:none;font-weight:500}
+.nav a:hover{background:#E4E6E1}
+.nav a[aria-current]{background:#fff;box-shadow:inset 0 0 0 1px #D3D6D0}
+.nav .count{margin-left:auto;font-size:12px;font-weight:600;color:#8A5000}
+.navfoot{margin-top:auto;padding:12px 10px 0;border-top:1px solid #D3D6D0;font-size:12px;color:#5B6169;display:flex;flex-direction:column;gap:6px}
+.ico{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.btn{font:inherit;font-weight:600;font-size:13px;height:32px;padding:0 12px;border-radius:4px;border:1px solid #D3D6D0;background:#fff;color:#1A1D21;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover{background:#E4E6E1}
+.btn.p{background:#1A1D21;color:#fff;border-color:#1A1D21;height:40px;padding:0 18px;font-size:14px}
+.btn:focus-visible,.app a:focus-visible,.app input:focus-visible,.app select:focus-visible{outline:2px solid #0B5CAD;outline-offset:2px}
+.sample{font-size:12px;color:#5B6169;border:1px solid #D3D6D0;border-radius:4px;padding:1px 6px;background:#fff}
+.main{flex:999 1 560px;min-width:0;padding:20px 28px 40px;display:flex;flex-direction:column;gap:20px}
+.q{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;background:#fff;border:1px solid #D3D6D0;border-radius:6px;padding:12px 16px}
+.pri{display:flex;flex-wrap:wrap;gap:6px 24px}
+.pri span .n{font-family:"Red Hat Display",sans-serif;font-weight:700;color:#5B6169;margin-right:6px}
+.strip{display:flex;gap:3px;align-items:flex-end;height:32px}
+.strip i{display:block;width:10px;border-radius:2px;background:#1A1D21}
+.strip i.next{background:transparent;box-shadow:inset 0 0 0 1.5px #1A1D21;height:32px}
+.strip i.e{background:#E4E6E1;height:4px}
+.cols{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.left{flex:1 1 320px;max-width:340px;display:flex;flex-direction:column;gap:16px}
+.card{background:#fff;border:1px solid #D3D6D0;border-radius:6px}
+.oc{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-top:1px solid #E4E6E1}
+.oc:first-child{border-top:0}
+.oc .t{display:flex;gap:8px;align-items:baseline}
+.oc .n{font-family:"Red Hat Display",sans-serif;font-weight:700;color:#5B6169}
+.link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#5B6169}
+.link select{font:inherit;font-size:12px;color:#1A1D21;border:1px solid #D3D6D0;border-radius:4px;background:#fff;height:24px;padding:0 4px}
+.ghd{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:#5B6169;padding:10px 14px 2px}
+.task{display:flex;gap:8px;align-items:flex-start;padding:8px 14px;border-top:1px solid #E4E6E1;cursor:grab}
+.task .grip{width:8px;height:14px;margin-top:3px;flex:none;background:radial-gradient(circle,#5B6169 1px,transparent 1.2px) 0 0/4px 4px}
+.task.drag{box-shadow:0 8px 24px rgba(26,29,33,.14);background:#fff;border:1px solid #1A1D21;border-radius:6px;margin:2px 6px;padding:8px}
+.grid{flex:999 1 720px;min-width:0;background:#fff;border:1px solid #D3D6D0;border-radius:6px;overflow-x:auto}
+.wk{display:grid;grid-template-columns:84px repeat(7,minmax(96px,1fr));min-width:800px}
+.wk > div{border-top:1px solid #E4E6E1;border-left:1px solid #E4E6E1;padding:6px;min-height:40px;display:flex;flex-direction:column;gap:4px}
+.wk > .rh{border-left:0;font-size:12px;font-weight:600;color:#5B6169;padding:8px 10px}
+.wk > .dh{border-top:0;font-size:13px;font-weight:600;padding:10px 8px 6px}
+.wk > .dh .m{font-weight:400}
+.wk > .dh.today{box-shadow:inset 0 -2px 0 #1A1D21}
+.wk > .corner{border-top:0;border-left:0}
+.wk > .we{background:#F7F8F6}
+.dl{font-size:12px;font-weight:600;padding:2px 6px;border-radius:4px;background:#F2F3F0;border:1px solid #D3D6D0}
+.b2{font-size:12px;line-height:1.3;padding:5px 6px;border-radius:4px;border:1px solid #D3D6D0;background:#fff;display:flex;flex-direction:column;gap:1px}
+.b2.f{background:#EAF1F9;border-color:#EAF1F9}
+.b2.cal{background:#F2F3F0;border-color:#F2F3F0;color:#5B6169}
+.b2.rp .tm::after{content:" ↻"}
+.b2 .tm{font-size:11px;color:#5B6169}
+.drop{border:1.5px dashed #1A1D21;border-radius:4px;font-size:12px;font-weight:600;padding:6px;text-align:center}
+.tot{font-size:12px;color:#5B6169}
+.tot b{color:#1A1D21;font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:#5B6169}
+</style>
+</helmet>
+<div class="app">
+
+<nav class="nav" aria-label="Main">
+  <div class="brand">
+    <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="16" height="16" rx="3" fill="#1A1D21"></rect><path d="M2 10h16" stroke="#F2F3F0" stroke-width="1.5"></path><rect x="5" y="12.5" width="7" height="3" rx="1" fill="#6FA3DB"></rect></svg>
+    skkil-time
+  </div>
+  <a href="Main.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v3l2 1.5"></path></svg>Today</a>
+  <a href="WeekPlan.dc.html" aria-current="page"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="1.5"></rect><path d="M2 6.5h12M6 6.5v7.5M10 6.5v7.5"></path></svg>Plan the week</a>
+  <a href="Inbox.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 9.5l1.8-6h8.4l1.8 6v3.5H2z"></path><path d="M2 9.5h3.5l1 1.5h3l1-1.5H14"></path></svg>Review inbox<span class="count">3</span></a>
+  <a href="CloseRating.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Close the day</a>
+  <a href="Week.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 13.5V8M6.2 13.5V4.5M9.8 13.5V6.5M13.5 13.5V2.5"></path></svg>Weekly review</a>
+  <a href="Settings.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 11.5h11"></path><circle cx="6" cy="4.5" r="1.6"></circle><circle cx="10.5" cy="11.5" r="1.6"></circle></svg>Settings</a>
+  <div class="navfoot">
+    <span class="row"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Capture on</span>
+    <span class="row"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"></rect><path d="M4.5 6l2 2-2 2M8 10h3.5"></path></svg>2 agents working</span>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div class="row" style="gap:12px;align-items:baseline">
+      <h1>Plan Q4 · Week 5</h1>
+      <span class="m">Monday 26 October to Sunday 1 November</span>
+    </div>
+    <div class="row"><span class="sample">Sample data</span><button class="btn">Import from Todoist or GitHub</button></div>
+  </div>
+
+  <div class="q" aria-label="Quarter">
+    <div class="col" style="gap:4px">
+      <span class="s m b">Q4 priorities · 28 Sep to 27 Dec</span>
+      <div class="pri"><span><span class="n">1</span>Ledgerline: 10 paying teams</span><span><span class="n">2</span>Webhooks platform stable</span><span><span class="n">3</span>Run 3 times a week</span></div>
+    </div>
+    <div class="col" style="gap:4px;align-items:flex-end">
+      <div class="strip" role="img" aria-label="Focused hours by week: week 1 18 hours, week 2 27, week 3 33, week 4 31, week 5 next, weeks 6 to 13 not yet"><i style="height:17px"></i><i style="height:26px"></i><i style="height:32px"></i><i style="height:30px"></i><i class="next"></i><i class="e"></i><i class="e"></i><i class="e"></i><i class="e"></i><i class="e"></i><i class="e"></i><i class="e"></i><i class="e"></i></div>
+      <span class="s m">Focused hours, weeks 1–13</span>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="left">
+      <section class="card" aria-labelledby="h-o">
+        <div class="ghd" style="padding-bottom:6px"><h2 id="h-o" style="font-size:14px;color:#1A1D21">Outcomes</h2><span>Up to 3</span></div>
+        <div class="oc">
+          <div class="t"><span class="n">1</span><span class="b">Pricing page v2 published</span></div>
+          <span class="link">Serves <select aria-label="Quarter priority for outcome 1"><option>1 · 10 paying teams</option></select> · carried over</span>
+        </div>
+        <div class="oc">
+          <div class="t"><span class="n">2</span><span class="b">5 user interviews done, notes written up</span></div>
+          <span class="link">Serves <select aria-label="Quarter priority for outcome 2"><option>1 · 10 paying teams</option></select></span>
+        </div>
+        <div class="oc">
+          <div class="t"><span class="n">3</span><span class="b">Dead-letter queue shipped</span></div>
+          <span class="link">Serves <select aria-label="Quarter priority for outcome 3"><option>2 · Webhooks stable</option></select></span>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="h-b">
+        <div class="ghd"><h2 id="h-b" style="font-size:14px;color:#1A1D21">Backlog, outcomes first</h2><span class="tm">11</span></div>
+        <div class="ghd">1 · Pricing page v2</div>
+        <div class="task"><span class="grip" aria-hidden="true"></span><div class="col"><span>Comparison table, mobile</span><span class="s m">ledgerline · 1h</span></div></div>
+        <div class="task drag" aria-grabbed="true"><span class="grip" aria-hidden="true"></span><div class="col"><span class="b">Pricing page: final copy pass</span><span class="s m">ledgerline · 45m</span></div></div>
+        <div class="ghd">2 · Interviews</div>
+        <div class="task"><span class="grip" aria-hidden="true"></span><div class="col"><span>Write up interview notes</span><span class="meta"><span>ledgerline</span><span>1h 30m</span><span>due Fri</span></span></div></div>
+        <div class="ghd">3 · Dead-letter queue</div>
+        <div class="task"><span class="grip" aria-hidden="true"></span><div class="col"><span>Dead-letter queue view</span><span class="meta"><span>ledgerline</span><span>agent</span><span>45m</span></span></div></div>
+        <div class="task"><span class="grip" aria-hidden="true"></span><div class="col"><span>Replay failed webhooks</span><span class="meta"><span>ledgerline</span><span>agent</span><span>1h</span></span></div></div>
+        <div class="ghd">No outcome</div>
+        <div class="task"><span class="grip" aria-hidden="true"></span><div class="col"><span>Stripe tax form</span><span class="meta"><span>Admin</span><span>30m</span><span>due Wed</span></span></div></div>
+        <div class="task"><span class="grip" aria-hidden="true"></span><div class="col"><span>Fix #212 retry header casing</span><span class="s m">GitHub issue · ledgerline</span></div></div>
+      </section>
+    </div>
+
+    <section class="grid" aria-label="Week grid">
+      <div class="wk">
+        <div class="corner"></div>
+        <div class="dh">Mon <span class="m">26</span></div>
+        <div class="dh">Tue <span class="m">27</span></div>
+        <div class="dh">Wed <span class="m">28</span></div>
+        <div class="dh">Thu <span class="m">29</span></div>
+        <div class="dh">Fri <span class="m">30</span></div>
+        <div class="dh">Sat <span class="m">31</span></div>
+        <div class="dh">Sun <span class="m">1</span></div>
+
+        <div class="rh">Due</div>
+        <div><span class="dl">Pricing FAQ</span></div>
+        <div></div>
+        <div><span class="dl">Stripe tax form</span></div>
+        <div></div>
+        <div><span class="dl">Interview notes</span></div>
+        <div class="we"></div>
+        <div class="we"></div>
+
+        <div class="rh">Morning</div>
+        <div><div class="b2 rp"><span class="tm">07:30</span>Run</div><div class="b2 f"><span class="tm">09:00–10:30</span>Comparison table, mobile</div></div>
+        <div><div class="b2 f"><span class="tm">09:00–11:00</span>Dead-letter queue view</div></div>
+        <div><div class="b2 rp"><span class="tm">07:30</span>Run</div><div class="b2 f"><span class="tm">09:00–10:30</span>Interview notes, 1–3</div></div>
+        <div><div class="b2 f"><span class="tm">09:00–10:30</span>Replay failed webhooks</div><div class="b2 cal"><span class="tm">10:30</span>Call with Hana</div></div>
+        <div><div class="b2 rp"><span class="tm">07:30</span>Run</div><div class="b2 f"><span class="tm">09:00–10:00</span>Interview notes, 4–5</div></div>
+        <div class="we"></div>
+        <div class="we"></div>
+
+        <div class="rh">Afternoon</div>
+        <div><div class="b2"><span class="tm">13:00–13:30</span>Write pricing FAQ</div><div class="b2 rp"><span class="tm">16:00</span>Email, invoices</div></div>
+        <div><div class="b2 cal"><span class="tm">14:00</span>Interview: Jae</div><div class="b2 rp"><span class="tm">16:00</span>Email, invoices</div></div>
+        <div><div class="drop">Drop here<br><span class="m" style="font-weight:500">Wed afternoon</span></div><div class="b2 rp"><span class="tm">16:00</span>Email, invoices</div></div>
+        <div><div class="b2 cal"><span class="tm">15:00</span>Interview: Sora</div><div class="b2 rp"><span class="tm">16:00</span>Email, invoices</div></div>
+        <div><div class="b2">Stripe tax form</div><div class="b2 rp"><span class="tm">16:00</span>Email, invoices</div></div>
+        <div class="we"><div class="b2">Groceries, laundry</div></div>
+        <div class="we"></div>
+
+        <div class="rh">Evening</div>
+        <div></div>
+        <div><div class="b2">Reply to interview leads</div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div class="we"></div>
+        <div class="we"><div class="b2">Plan the week</div></div>
+
+        <div class="rh">Planned</div>
+        <div class="tot"><b>4h 30m</b> of 7h</div>
+        <div class="tot"><b>3h 30m</b> of 6h</div>
+        <div class="tot"><b>3h 15m</b> of 7h</div>
+        <div class="tot"><b>3h</b> of 5h 30m</div>
+        <div class="tot"><b>3h 30m</b> of 7h</div>
+        <div class="tot we">–</div>
+        <div class="tot we">–</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <span class="s m">Times are optional. "Wed afternoon" is a plan too. Exact blocks also show on Google Calendar.</span>
+    <a class="btn p" href="Main.dc.html">Done, see Monday</a>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

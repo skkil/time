@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Focus block</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700&amp;family=Red+Hat+Mono:wght@500&amp;family=Red+Hat+Text:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+body{margin:0}
+.app *{box-sizing:border-box}
+.app{font-family:"Red Hat Text","Pretendard Variable",Pretendard,system-ui,sans-serif;font-size:14px;line-height:1.45;color:#1A1D21;background:#F2F3F0;font-variant-numeric:tabular-nums;min-height:900px;display:flex;flex-wrap:wrap}
+.app h1,.app h2,.app h3{font-family:"Red Hat Display","Pretendard Variable",Pretendard,system-ui,sans-serif;font-weight:700;margin:0;letter-spacing:-.01em}
+.app h1{font-size:23px}.app h2{font-size:16px}.app h3{font-size:14px}
+.app p{margin:0}
+.m{color:#5B6169}.s{font-size:12px}.b{font-weight:600}
+.row{display:flex;align-items:center;gap:8px}
+.col{display:flex;flex-direction:column}
+.nav{flex:1 1 216px;max-width:216px;padding:16px 12px;display:flex;flex-direction:column;gap:2px;border-right:1px solid #D3D6D0}
+.brand{display:flex;align-items:center;gap:8px;padding:4px 10px 16px;font-family:"Red Hat Display",sans-serif;font-weight:700;font-size:15px}
+.nav a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1A1D21;text-decoration:none;font-weight:500}
+.nav a:hover{background:#E4E6E1}
+.nav a[aria-current]{background:#fff;box-shadow:inset 0 0 0 1px #D3D6D0}
+.nav .count{margin-left:auto;font-size:12px;font-weight:600;color:#8A5000}
+.navfoot{margin-top:auto;padding:12px 10px 0;border-top:1px solid #D3D6D0;font-size:12px;color:#5B6169;display:flex;flex-direction:column;gap:6px}
+.ico{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.btn{font:inherit;font-weight:600;font-size:13px;height:32px;padding:0 12px;border-radius:4px;border:1px solid #D3D6D0;background:#fff;color:#1A1D21;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover{background:#E4E6E1}
+.btn.p{background:#1A1D21;color:#fff;border-color:#1A1D21}
+.btn.q{background:transparent;border-color:transparent;color:#0B5CAD;padding:0 4px}
+.btn:focus-visible,.app a:focus-visible,.app input:focus-visible{outline:2px solid #0B5CAD;outline-offset:2px}
+.chip{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 6px;border-radius:4px;font-size:12px;font-weight:500;background:#E4E6E1;color:#1A1D21;white-space:nowrap}
+.chip.o{background:#EAF1F9;color:#0B5CAD}
+.chip.a{background:#FBF3E6;color:#8A5000}
+.kbd{font-family:"Red Hat Mono",monospace;font-size:11px;padding:0 5px;line-height:18px;border:1px solid #D3D6D0;border-radius:4px;color:#5B6169;background:#fff}
+.sample{font-size:12px;color:#5B6169;border:1px solid #D3D6D0;border-radius:4px;padding:1px 6px;background:#fff}
+.main{flex:999 1 560px;min-width:0;padding:20px 28px 32px;display:flex;flex-wrap:wrap;gap:24px;align-content:flex-start}
+.focus{flex:999 1 560px;min-width:0;background:#fff;border:1px solid #D3D6D0;border-radius:10px;padding:32px 36px;display:flex;flex-direction:column;gap:28px}
+.right{flex:1 1 360px;max-width:420px;display:flex;flex-direction:column;gap:16px}
+.card{background:#fff;border:1px solid #D3D6D0;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.timer{font-family:"Red Hat Display",sans-serif;font-weight:500;font-size:88px;line-height:1;letter-spacing:-.02em}
+.track{position:relative;height:10px;border-radius:5px;background:#E4E6E1;overflow:hidden;display:flex}
+.track i{display:block;height:100%}
+.legend{display:flex;gap:16px;font-size:12px;color:#5B6169;flex-wrap:wrap}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.apps{display:flex;flex-wrap:wrap;gap:6px}
+.app-pill{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:4px;border:1px solid #D3D6D0;font-size:13px;background:#F2F3F0}
+.task{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #E4E6E1}
+.task .chk{width:16px;height:16px;border:1.5px solid #5B6169;border-radius:4px;flex:none}
+.task .chk.done{background:#1A1D21;border-color:#1A1D21}
+.field{display:flex;align-items:center;gap:8px;border:1px solid #D3D6D0;border-radius:6px;height:40px;padding:0 10px;background:#fff}
+.field input{border:0;font:inherit;flex:1;min-width:0;background:transparent;color:#1A1D21}
+.held{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid #E4E6E1}
+.seg{display:inline-flex;border:1px solid #D3D6D0;border-radius:4px;overflow:hidden;background:#fff}
+.seg button{font:inherit;font-size:12px;font-weight:600;border:0;background:#fff;color:#5B6169;padding:4px 10px;cursor:pointer;border-left:1px solid #D3D6D0}
+.seg button:first-child{border-left:0}
+.seg button[aria-checked="true"]{color:#1A1D21;box-shadow:inset 0 0 0 2px #1A1D21}
+.toggle{width:32px;height:18px;border-radius:9px;background:#0B5CAD;position:relative;flex:none;border:0;padding:0;cursor:pointer}
+.toggle::after{content:"";position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff}
+</style>
+</helmet>
+<div class="app">
+
+<nav class="nav" aria-label="Main">
+  <div class="brand">
+    <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="16" height="16" rx="3" fill="#1A1D21"></rect><path d="M2 10h16" stroke="#F2F3F0" stroke-width="1.5"></path><rect x="5" y="12.5" width="7" height="3" rx="1" fill="#6FA3DB"></rect></svg>
+    skkil-time
+  </div>
+  <a href="Main.dc.html" aria-current="page"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v3l2 1.5"></path></svg>Today</a>
+  <a href="WeekPlan.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="1.5"></rect><path d="M2 6.5h12M6 6.5v7.5M10 6.5v7.5"></path></svg>Plan the week</a>
+  <a href="Inbox.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 9.5l1.8-6h8.4l1.8 6v3.5H2z"></path><path d="M2 9.5h3.5l1 1.5h3l1-1.5H14"></path></svg>Review inbox<span class="count">3</span></a>
+  <a href="CloseRating.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Close the day</a>
+  <a href="Week.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 13.5V8M6.2 13.5V4.5M9.8 13.5V6.5M13.5 13.5V2.5"></path></svg>Weekly review</a>
+  <a href="Settings.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 11.5h11"></path><circle cx="6" cy="4.5" r="1.6"></circle><circle cx="10.5" cy="11.5" r="1.6"></circle></svg>Settings</a>
+  <div class="navfoot">
+    <span class="row"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Capture on</span>
+    <span class="row"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"></rect><path d="M4.5 6l2 2-2 2M8 10h3.5"></path></svg>2 agents working</span>
+  </div>
+</nav>
+
+<main class="main">
+  <section class="focus" aria-label="Current focus block">
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap">
+      <div class="row" style="gap:10px">
+        <span class="chip o" style="height:24px;font-weight:600">Focus</span>
+        <span class="m">13:00–14:30</span>
+              </div>
+      <span class="sample">Sample data</span>
+    </div>
+
+    <div class="col" style="gap:10px">
+      <h1 style="font-size:28px">Pricing page v2: layout pass</h1>
+      <div><span class="chip o">Pricing page v2 published</span></div>
+    </div>
+
+    <div class="col" style="gap:14px">
+      <div class="row" style="align-items:baseline;gap:14px">
+        <span class="timer" role="timer" aria-label="47 minutes 12 seconds left">47:12</span>
+        <span class="m" style="font-size:16px">left of 90 min</span>
+      </div>
+      <div class="track" role="img" aria-label="43 minutes in: 41 on plan, 2 off plan">
+        <i style="width:45.5%;background:#0B5CAD"></i><i style="width:2.3%;background:#5B6169"></i>
+      </div>
+      <div class="legend">
+        <span><span class="sw" style="background:#0B5CAD"></span>41 min on this block</span>
+        <span><span class="sw" style="background:#5B6169"></span>2 min elsewhere</span>
+        <span><span class="sw" style="background:#E4E6E1"></span>47 min to go</span>
+        <span>Away from the screen? We'll ask at the end whether it counts.</span>
+      </div>
+    </div>
+
+    <div class="col">
+      <h2 style="padding-bottom:4px">In this block</h2>
+      <div class="task"><span class="chk done" aria-hidden="true"></span><span class="m" style="text-decoration:line-through">Hero and plan cards</span><span class="s m" style="margin-left:auto">35 min</span></div>
+      <div class="task"><span class="chk" aria-hidden="true"></span><span class="b">Comparison table, mobile layout</span><span class="s m" style="margin-left:auto">est. 25 min</span></div>
+      <div class="task"><span class="chk" aria-hidden="true"></span><span>Write pricing FAQ</span><span class="s m" style="margin-left:auto">est. 30 min</span></div>
+    </div>
+
+    <div class="col" style="gap:8px">
+      <div class="row" style="justify-content:space-between">
+        <h2>On plan here</h2>
+        <button class="btn q">Edit list</button>
+      </div>
+      <div class="apps">
+        <span class="app-pill">VS Code</span><span class="app-pill">Ghostty</span><span class="app-pill">localhost:3000</span><span class="app-pill">figma.com</span><span class="app-pill">stripe.com/docs</span>
+      </div>
+      <div class="row s m" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span>Filled from your last 3 blocks on Pricing page v2.</span>
+        <span class="row"><span id="drift-l">If you drift for a minute</span><span class="seg" role="radiogroup" aria-labelledby="drift-l"><button role="radio" aria-checked="true">Nudge once</button><button role="radio" aria-checked="false">Block the site</button></span></span>
+      </div>
+    </div>
+
+    <div class="col" style="gap:8px">
+      <label for="resume" class="b">Where you stopped <span class="m" style="font-weight:400">(optional, saved on the task if you leave early)</span></label>
+      <div class="field"><input id="resume" placeholder="Next step, in one line"></div>
+    </div>
+
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap">
+      <span class="s m">Next: Review inbox at 14:30</span>
+      <div class="row">
+        <button class="btn">Switch task</button>
+        <button class="btn">End block early</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="right" aria-label="Agents during this block">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2>Held until 14:30</h2>
+        <span class="chip a">2</span>
+      </div>
+      <p class="s m">One digest when the block ends.</p>
+      <div class="held">
+        <svg class="ico" viewBox="0 0 16 16" style="margin-top:2px" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"></rect><path d="M4.5 6l2 2-2 2M8 10h3.5"></path></svg>
+        <div class="col" style="flex:1;gap:2px">
+          <span class="b">ledgerline/api</span>
+          <span class="s m">Asking permission, waiting 12 min</span>
+          <span class="s m">Task: Retry tests for webhook handler</span>
+        </div>
+        <button class="btn">Release</button>
+      </div>
+      <div class="held">
+        <svg class="ico" viewBox="0 0 16 16" style="margin-top:2px" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"></rect><path d="M4.5 6l2 2-2 2M8 10h3.5"></path></svg>
+        <div class="col" style="flex:1;gap:2px">
+          <span class="b">ledgerline/web</span>
+          <span class="s m">Finished, draft ready 4 min ago</span>
+          <span class="s m">Task: Pricing copy draft</span>
+        </div>
+        <button class="btn">Release</button>
+      </div>
+    </div>
+
+  </aside>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

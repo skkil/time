@@ -1,0 +1,115 @@
+version: 1
+name: time
+
+requires:
+  - name: Node.js
+    check: command -v node
+    hint: install Node.js 22 or later
+  - name: pnpm
+    check: command -v pnpm
+    hint: npm install -g pnpm
+  - name: Rust
+    check: command -v cargo
+    hint: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  - name: desktop dependencies
+    check: test -d apps/desktop/node_modules
+    hint: cd apps/desktop && pnpm install
+
+dev:
+  run:
+    - name: desktop
+      run: pnpm tauri dev
+      dir: apps/desktop
+
+assets:
+  - name: app-icon
+    source: assets/icon.svg
+    outputs:
+      - format: png
+        size:
+          - 32
+        inset: 80
+        dest: apps/desktop/src-tauri/icons/32x32.png
+      - format: png
+        size:
+          - 128
+        dest: apps/desktop/src-tauri/icons/128x128.png
+      - format: png
+        size:
+          - 256
+        dest: apps/desktop/src-tauri/icons/128x128@2x.png
+      - format: png
+        size:
+          - 512
+        dest: apps/desktop/src-tauri/icons/icon.png
+      - format: png
+        size:
+          - 30
+        inset: 80
+        dest: apps/desktop/src-tauri/icons/Square30x30Logo.png
+      - format: png
+        size:
+          - 44
+        inset: 80
+        dest: apps/desktop/src-tauri/icons/Square44x44Logo.png
+      - format: png
+        size:
+          - 71
+        dest: apps/desktop/src-tauri/icons/Square71x71Logo.png
+      - format: png
+        size:
+          - 89
+        dest: apps/desktop/src-tauri/icons/Square89x89Logo.png
+      - format: png
+        size:
+          - 107
+        dest: apps/desktop/src-tauri/icons/Square107x107Logo.png
+      - format: png
+        size:
+          - 142
+        dest: apps/desktop/src-tauri/icons/Square142x142Logo.png
+      - format: png
+        size:
+          - 150
+        dest: apps/desktop/src-tauri/icons/Square150x150Logo.png
+      - format: png
+        size:
+          - 284
+        dest: apps/desktop/src-tauri/icons/Square284x284Logo.png
+      - format: png
+        size:
+          - 310
+        dest: apps/desktop/src-tauri/icons/Square310x310Logo.png
+      - format: png
+        size:
+          - 50
+        inset: 80
+        dest: apps/desktop/src-tauri/icons/StoreLogo.png
+      - format: ico
+        size:
+          - 16
+          - 24
+          - 32
+          - 48
+          - 64
+          - 256
+        inset: 80
+        dest: apps/desktop/src-tauri/icons/icon.ico
+      - format: copy
+        dest: apps/desktop/public/favicon.svg
+
+ci:
+  tasks:
+    - name: core
+      dir: apps/desktop/src-tauri
+      format: cargo fmt --check
+      lint: cargo clippy --all-targets
+      test: cargo test
+    - name: desktop
+      dir: apps/desktop
+      format: pnpm prettier --check .
+      lint: pnpm lint
+      test: pnpm test
+      build: pnpm compile
+      depends_on:
+        - core

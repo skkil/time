@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="skkil time">
+  <rect x="100" y="100" width="824" height="824" rx="184" fill="#1A1D21"/>
+  <path d="M100 284a184 184 0 0 1 184-184h456a184 184 0 0 1 184 184v204H100z" fill="#2A2E33"/>
+  <rect x="100" y="488" width="824" height="24" fill="#16181B"/>
+  <rect x="84" y="464" width="56" height="72" rx="16" fill="#5B6169"/>
+  <rect x="884" y="464" width="56" height="72" rx="16" fill="#5B6169"/>
+  <rect x="232" y="640" width="400" height="128" rx="32" fill="#7FB0E6"/>
+</svg>

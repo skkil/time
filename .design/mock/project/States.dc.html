@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Edge states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700&amp;family=Red+Hat+Mono:wght@500&amp;family=Red+Hat+Text:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+body{margin:0}
+.app *{box-sizing:border-box}
+.app{font-family:"Red Hat Text","Pretendard Variable",Pretendard,system-ui,sans-serif;font-size:14px;line-height:1.45;color:#1A1D21;background:#F2F3F0;font-variant-numeric:tabular-nums;min-height:1360px;padding:28px 32px 48px;display:flex;flex-direction:column;gap:20px}
+.app h1,.app h2{font-family:"Red Hat Display","Pretendard Variable",Pretendard,system-ui,sans-serif;font-weight:700;margin:0;letter-spacing:-.01em}
+.app h1{font-size:23px}.app h2{font-size:19px}
+.app p{margin:0}
+.m{color:#5B6169}.s{font-size:12px}.b{font-weight:600}
+.row{display:flex;align-items:center;gap:8px}
+.col{display:flex;flex-direction:column}
+.btn{font:inherit;font-weight:600;font-size:13px;height:32px;padding:0 12px;border-radius:4px;border:1px solid #D3D6D0;background:#fff;color:#1A1D21;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover{background:#E4E6E1}
+.btn.p{background:#1A1D21;color:#fff;border-color:#1A1D21}
+.btn:focus-visible,.app input:focus-visible{outline:2px solid #0B5CAD;outline-offset:2px}
+.mono{font-family:"Red Hat Mono",monospace;font-weight:500;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:20px}
+.cell{display:flex;flex-direction:column;gap:8px}
+.k{font-size:12px;font-weight:600;color:#5B6169}
+.panel{background:#fff;border:1px solid #D3D6D0;border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:14px;min-height:220px}
+.banner{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:6px;background:#FBF3E6;color:#1A1D21}
+.banner.dead{background:repeating-linear-gradient(135deg,#E4E6E1 0 6px,#ECEDE9 6px 12px)}
+.capbox{display:flex;align-items:center;gap:8px;border:1px solid #1A1D21;border-radius:6px;padding:0 10px;height:40px;background:#fff}
+.capbox input{flex:1;border:0;font:inherit;background:transparent;min-width:0}
+.dots{display:flex;gap:6px}
+.dots i{width:28px;height:6px;border-radius:3px;background:#E4E6E1}
+.dots i.on{background:#1A1D21}
+.field{display:flex;align-items:center;gap:10px;border:1px solid #8A5000;border-radius:6px;height:44px;padding:0 12px;background:#fff}
+.field input{border:0;font:inherit;font-size:15px;flex:1;min-width:0;background:transparent}
+.term{background:#1A1D21;color:#E4E6E1;border-radius:6px;padding:14px 16px;font-family:"Red Hat Mono",monospace;font-size:12px;line-height:1.7;white-space:pre-wrap;margin:0}
+.bar{height:6px;border-radius:3px;background:#E4E6E1;overflow:hidden}
+.bar i{display:block;height:100%;width:60%;background:#1A1D21}
+.ico{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-top:1px}
+</style>
+</helmet>
+<div class="app">
+  <div class="row" style="justify-content:space-between">
+    <h1>Edge states</h1>
+    <span class="s m">Empty, loading, error and limit states for P0</span>
+  </div>
+
+  <div class="grid">
+    <div class="cell">
+      <span class="k">First day, after setup, nothing scheduled yet</span>
+      <div class="panel">
+        <h2>Give one task a time</h2>
+        <p class="m">This week: <b style="color:#1A1D21">Pricing page v2 published</b>. Pick a task for it and say when: a time, or just "this afternoon".</p>
+        <label class="capbox"><input placeholder="Pricing page layout ~1h #ledgerline" aria-label="Add a task"></label>
+        <p class="s m">Close the day comes after your last block. Day one shows what happened, without a score.</p>
+      </div>
+    </div>
+
+    <div class="cell">
+      <span class="k">Not enough data yet</span>
+      <div class="panel">
+        <h2>Felt and shipped</h2>
+        <p class="m">This appears after 5 felt ratings. You have 2.</p>
+        <div class="dots" aria-label="2 of 5 ratings"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+        
+      </div>
+    </div>
+
+    <div class="cell">
+      <span class="k">Capture stopped (in-app banner)</span>
+      <div class="panel">
+        <div class="banner dead" role="alert">
+          <svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"></circle><path d="M4 12L12 4"></path></svg>
+          <div class="col" style="gap:4px"><span class="b">Capture stopped 10 min ago</span><span class="s">You're active, but ActivityWatch sent nothing since 16:02. This gap shows as "not captured", not idle.</span></div>
+        </div>
+        <div class="row"><button class="btn p">Restart capture</button><button class="btn">See what happened</button></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <span class="k">Today is over-planned</span>
+      <div class="panel">
+        <div class="banner" role="status">
+          <svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5l6 11H2z"></path><path d="M8 7v3"></path></svg>
+          <div class="col" style="gap:4px"><span class="b">45 min more than you have</span><span class="s">Planned 6h 15m. Free time left 5h 30m.</span></div>
+        </div>
+        <p>Move <b>Email, invoices</b> to the backlog? It's the lowest-ranked block.</p>
+        <div class="row"><button class="btn p">Move it</button><button class="btn">Keep my plan</button></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <span class="k">Missed days, fresh start</span>
+      <div class="panel">
+        <h2>Welcome back</h2>
+        <p class="m">Your last close was Tuesday. No need to fill in the days since.</p>
+        <div class="row" style="flex-wrap:wrap"><button class="btn p">Start fresh Monday 26 Oct</button><button class="btn">Start today</button></div>
+        <p class="s m">Your outcomes and backlog are where you left them.</p>
+      </div>
+    </div>
+
+    <div class="cell">
+      <span class="k">Fourth weekly outcome</span>
+      <div class="panel">
+        <h2>Next week's outcomes</h2>
+        <label class="field"><span class="b m">4</span><input value="Blog post about retries" aria-label="Outcome 4" aria-invalid="true" aria-describedby="o4e"></label>
+        <p id="o4e" class="s" style="color:#8A5000;font-weight:600">3 outcomes max. Drop or finish one first.</p>
+      </div>
+    </div>
+
+    <div class="cell">
+      <span class="k">Building the weekly review</span>
+      <div class="panel" aria-busy="true">
+        <h2>Week 43 review</h2>
+        <p class="m">Reading 5 days of capture and 41 agent sessions.</p>
+        <div class="bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" aria-label="Building review"><i></i></div>
+        <p class="s m">Thursday of 5. Usually under 10 seconds.</p>
+      </div>
+    </div>
+
+    <div class="cell">
+      <span class="k">An agent tries to give a verdict over MCP</span>
+      <div class="panel">
+<pre class="term">update_task(id: "retry-config-docs", status: "done")
+<span style="color:#F0B86A">error: verdicts are human-only</span>
+  The draft stays in the review inbox.</pre>
+        
+      </div>
+    </div>
+
+    <div class="cell">
+      <span class="k">An agent says its work is ready</span>
+      <div class="panel">
+<pre class="term">mark_draft_ready(task: "retry-config-docs",
+                 branch: "docs/retry-config")
+<span style="color:#9CC4EE">ok: in your review inbox</span>
+  Counts as done when you accept it.</pre>
+        <p class="s m">The Stop hook alone never makes a draft. It only says the agent is waiting or quiet.</p>
+      </div>
+    </div>
+
+    <div class="cell">
+      <span class="k">End of a focus block with time away</span>
+      <div class="panel">
+        <h2>22 min away during "Interview script"</h2>
+        <p class="m">Were you on this away from the screen, on paper or a tablet?</p>
+        <div class="row"><button class="btn p">Yes, count it</button><button class="btn">No</button></div>
+        <p class="s m">Counted as focus, marked "self-reported". Asked once per block.</p>
+      </div>
+    </div>
+
+    <div class="cell">
+      <span class="k">Blocked site in a focus block (opt-in)</span>
+      <div class="panel">
+        <h2>youtube.com is off until 14:30</h2>
+        <p class="m">Focus: Pricing page v2: layout pass, 47 min left. You turned on blocking for focus blocks.</p>
+        <div class="row"><button class="btn p">Back to the block</button><button class="btn">It's part of the work</button></div>
+        <p class="s m">"Part of the work" lets it through and adds it to this block's list.</p>
+      </div>
+    </div>
+
+    <div class="cell">
+      <span class="k">Agent proposes a block (needs you)</span>
+      <div class="panel">
+        <div class="col" style="gap:4px"><span class="b">Claude Code suggests a block</span><span class="m">Fri 11:00–11:30, Review: "Review retry test drafts"</span></div>
+        <p class="s m">Nothing changes on your calendar until you confirm.</p>
+        <div class="row"><button class="btn p">Add block</button><button class="btn">Edit</button><button class="btn">Dismiss</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1360}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

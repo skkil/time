@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>First run, steps 1 to 3</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700&amp;family=Red+Hat+Mono:wght@500&amp;family=Red+Hat+Text:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+body{margin:0}
+.app *{box-sizing:border-box}
+.app{font-family:"Red Hat Text","Pretendard Variable",Pretendard,system-ui,sans-serif;font-size:14px;line-height:1.45;color:#1A1D21;background:#E4E6E1;font-variant-numeric:tabular-nums;min-height:900px;padding:28px 32px;display:flex;flex-direction:column;gap:20px}
+.app h1,.app h2{font-family:"Red Hat Display","Pretendard Variable",Pretendard,system-ui,sans-serif;font-weight:700;margin:0;letter-spacing:-.01em}
+.app h1{font-size:23px}.app h2{font-size:16px}
+.app p{margin:0}
+.m{color:#5B6169}.s{font-size:12px}.b{font-weight:600}
+.mono{font-family:"Red Hat Mono",monospace;font-weight:500;font-size:12px}
+.row{display:flex;align-items:center;gap:8px}
+.col{display:flex;flex-direction:column}
+.ico{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.btn{font:inherit;font-weight:600;font-size:13px;height:32px;padding:0 12px;border-radius:4px;border:1px solid #D3D6D0;background:#fff;color:#1A1D21;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover{background:#E4E6E1}
+.btn.p{background:#1A1D21;color:#fff;border-color:#1A1D21}
+.btn.q{background:transparent;border-color:transparent;color:#0B5CAD;padding:0 4px}
+.btn:focus-visible,.app a:focus-visible,.app input:focus-visible{outline:2px solid #0B5CAD;outline-offset:2px}
+.k{font-size:11px;font-weight:600;color:#5B6169}
+.wins{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:start}
+.win{background:#F2F3F0;border:1px solid #D3D6D0;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-height:700px}
+.wt{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid #D3D6D0;font-size:13px}
+.steps{display:flex;gap:4px;align-items:center;font-size:12px;color:#5B6169}
+.steps i{display:block;width:18px;height:4px;border-radius:2px;background:#D3D6D0}
+.steps i.on{background:#1A1D21}
+.wb{flex:1;padding:24px 22px;display:flex;flex-direction:column;gap:18px}
+.wf{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-top:1px solid #D3D6D0;gap:8px}
+.card{background:#fff;border:1px solid #D3D6D0;border-radius:6px}
+.r{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;padding:12px 14px;border-top:1px solid #E4E6E1}
+.r:first-child{border-top:0}
+.ok{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#0B5CAD;white-space:nowrap}
+.diff{margin:0;background:#1A1D21;color:#E4E6E1;border-radius:6px;padding:10px 12px;font-family:"Red Hat Mono",monospace;font-size:11.5px;line-height:1.6;overflow-x:auto;white-space:pre}
+.diff .add{color:#9CC4EE}
+.field{display:flex;align-items:center;gap:10px;border:1px solid #1A1D21;border-radius:6px;height:44px;padding:0 12px;background:#fff}
+.field input{border:0;font:inherit;font-size:15px;flex:1;min-width:0;background:transparent;color:#1A1D21}
+.pick{display:flex;flex-direction:column;gap:6px}
+.opt{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid #D3D6D0;border-radius:6px;background:#fff}
+.opt.on{box-shadow:inset 0 0 0 2px #1A1D21;border-color:#1A1D21}
+</style>
+</helmet>
+<div class="app">
+  <div class="row" style="justify-content:space-between">
+    <h1>First run</h1>
+    <span class="s m">Four steps, under 5 minutes. Every step can be skipped. Step 4 is on the next board.</span>
+  </div>
+
+  <div class="wins">
+    <div class="col" style="gap:6px">
+      <span class="k">Step 1 · What it can see</span>
+      <div class="win">
+        <div class="wt"><span class="b">Set up skkil-time</span><div class="steps" aria-label="Step 1 of 4"><i class="on"></i><i></i><i></i><i></i><span>1 of 4</span></div></div>
+        <div class="wb">
+          <div class="col" style="gap:6px">
+            <h2 style="font-size:19px">What skkil-time can see</h2>
+            <p class="m">Everything stays on this computer. Nothing here reads your screen, keystrokes or agent prompts.</p>
+          </div>
+          <div class="card">
+            <div class="r"><div class="col"><span class="b">ActivityWatch</span><span class="s m">Found and running. Apps, windows and away time.</span></div><span class="ok"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Found</span></div>
+            <div class="r"><div class="col"><span class="b">Browser extension</span><span class="s m">Which sites, not what's on them. Firefox found.</span></div><button class="btn">Add to Firefox</button></div>
+            <div class="r"><div class="col"><span class="b">Google Calendar</span><span class="s m">Reads your events. Optionally copies your blocks to one calendar so your phone sees them.</span></div><button class="btn">Connect</button></div>
+          </div>
+          <div class="card" style="padding:12px 14px;background:#F2F3F0">
+            <span class="s m"><b style="color:#1A1D21">If ActivityWatch isn't installed:</b> "Install it for me" (one click, about 40 MB) or "Skip, only track agents and calendar". You can add it later in Settings.</span>
+          </div>
+        </div>
+        <div class="wf"><button class="btn q">Skip</button><button class="btn p">Next</button></div>
+      </div>
+    </div>
+
+    <div class="col" style="gap:6px">
+      <span class="k">Step 2 · Agents</span>
+      <div class="win">
+        <div class="wt"><span class="b">Set up skkil-time</span><div class="steps" aria-label="Step 2 of 4"><i class="on"></i><i class="on"></i><i></i><i></i><span>2 of 4</span></div></div>
+        <div class="wb">
+          <div class="col" style="gap:6px">
+            <h2 style="font-size:19px">Your coding agents</h2>
+            <p class="m">We record when a session works, waits on you, and stops. Never prompts, responses or tool arguments.</p>
+          </div>
+          <div class="card">
+            <div class="r" style="flex-direction:column;align-items:stretch;gap:10px">
+              <div class="row" style="justify-content:space-between"><span class="b">Claude Code</span><span class="ok"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Found</span></div>
+              <span class="s m">Adds to <span class="mono">~/.claude/settings.json</span>. Your 2 hooks stay.</span>
+<pre class="diff"><span class="add">+ "Notification": skkil-hook notify</span>
+<span class="add">+ "Stop":         skkil-hook stop</span>
+<span class="add">+ "SessionEnd":   skkil-hook end</span>
+<span class="add">+ /skkil         slash command</span></pre>
+            </div>
+            <div class="r"><div class="col"><span class="b">Codex, Cursor</span><span class="s m">Not found on this computer. Free when you add them.</span></div><span class="s m">Later</span></div>
+          </div>
+          <div class="col" style="gap:6px">
+            <span class="b">How a task becomes a draft</span>
+            <span class="s m">When the agent says it's ready, or you run <span class="mono">/skkil done</span>. A session that just stops replying shows as "Probably done?", never as a draft.</span>
+          </div>
+        </div>
+        <div class="wf"><button class="btn q">Skip, no agents</button><button class="btn p">Add hooks and command</button></div>
+      </div>
+    </div>
+
+    <div class="col" style="gap:6px">
+      <span class="k">Step 3 · This week</span>
+      <div class="win">
+        <div class="wt"><span class="b">Set up skkil-time</span><div class="steps" aria-label="Step 3 of 4"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><span>3 of 4</span></div></div>
+        <div class="wb">
+          <div class="col" style="gap:6px">
+            <h2 style="font-size:19px">It's Thursday. Pick one outcome for the rest of the week.</h2>
+            <p class="m">A finished result you could show someone on Sunday. One is enough for a first week.</p>
+          </div>
+          <label class="field"><input value="Pricing page v2 published" aria-label="This week's outcome"></label>
+          <div class="col" style="gap:8px">
+            <span class="b">Bring your tasks</span>
+            <div class="pick">
+              <div class="opt on"><span>Todoist</span><span class="s m">142 tasks, 6 projects</span></div>
+              <div class="opt"><span>GitHub Issues</span><span class="s m">Assigned to you</span></div>
+              <div class="opt"><span>Start empty</span><span class="s m">Add as you go</span></div>
+            </div>
+            <span class="s m">Projects come across as projects. Nothing is changed in Todoist.</span>
+          </div>
+        </div>
+        <div class="wf"><button class="btn q">Skip</button><button class="btn p">Show my last 7 days</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Figtree:wght@400;500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=block" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{display:grid;grid-template-columns:repeat(3,560px);gap:24px;padding:24px;background:#888;font-feature-settings:"tnum"}
+.f{border-radius:10px;overflow:hidden;height:660px;display:grid;grid-template-columns:150px 1fr;background:var(--g);color:var(--ink);font-family:var(--font),Pretendard,sans-serif}
+.cap{grid-column:1/-1;padding:8px 14px;font:600 12px/1.4 var(--font),sans-serif;background:var(--side);color:var(--ink2);border-bottom:1px solid var(--line)}
+.side{background:var(--side);padding:14px 10px;display:grid;align-content:start;gap:2px;border-right:1px solid var(--line);font-size:13px}
+.side b{font-weight:800;letter-spacing:-.01em;margin-bottom:10px;font-size:15px}
+.nav{padding:6px 8px;border-radius:6px;color:var(--ink2)}
+.nav.on{background:var(--sel);color:var(--ink);font-weight:600}
+.nav span{float:right;font-variant-numeric:tabular-nums}
+.main{padding:18px 20px;display:grid;align-content:start;gap:14px}
+h1{font-size:24px;font-weight:700;letter-spacing:-.02em}
+.meta{font-size:13px;color:var(--ink2);margin-top:2px}.meta strong{color:var(--ink);font-weight:600}
+.grid{display:grid;grid-template-columns:40px 1fr 1fr;gap:0 6px;font-size:12px;background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:8px}
+.t{color:var(--ink2);font-size:11px;height:34px}
+.blk{border-radius:6px;padding:5px 7px;font-size:12px;font-weight:600;line-height:1.25}
+.blk small{display:block;font-weight:500;opacity:.8;font-size:11px}
+.row{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;gap:10px;align-items:center}
+.row p{font-weight:600;font-size:14px}.row .ev{font-size:12px;color:var(--ink2);margin-top:2px}
+.seg{margin-left:auto;display:flex;gap:4px}.seg i{font-style:normal;font-size:12px;padding:5px 9px;border-radius:6px;border:1px solid var(--line)}
+.seg i.on{background:var(--acc);color:var(--onacc);border-color:var(--acc);font-weight:600}
+.felt{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.felt i{font-style:normal;text-align:center;border:1px solid var(--line);background:var(--surf);border-radius:8px;padding:8px 0;font-size:11px;color:var(--ink2)}
+.felt i b{display:block;font-size:22px;color:var(--ink);font-weight:700}
+.felt i.on{background:var(--acc);border-color:var(--acc);color:var(--onacc)}.felt i.on b{color:var(--onacc)}
+.btn{justify-self:start;background:var(--acc);color:var(--onacc);font-weight:600;font-size:13px;padding:8px 14px;border-radius:7px}
+.timer{font-size:30px;font-weight:700;letter-spacing:-.02em}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+/* A */
+.A{--font:'Schibsted Grotesk';--g:#EEF1F4;--side:#E3E8ED;--surf:#FFFFFF;--line:#D2D9E0;--sel:#FFFFFF;--ink:#0F1419;--ink2:#56606C;--acc:#E4570E;--onacc:#FFFFFF;--now:#E4570E;--p1:#0E7C7B;--p2:#3D5AFE;--p3:#B42A6F}
+/* B */
+.B{--font:'Figtree';--g:#0D1626;--side:#0A121F;--surf:#142036;--line:#22314D;--sel:#1C2A45;--ink:#EDF1F8;--ink2:#93A2BB;--acc:#FFC23D;--onacc:#1A1300;--now:#FFC23D;--p1:#5CCB8F;--p2:#7AA7FF;--p3:#FF7D66}
+/* C */
+.C{--font:'Hanken Grotesk';--g:#F6F6F3;--side:#FFFFFF;--surf:#FFFFFF;--line:#E1E1DC;--sel:#F1F1EC;--ink:#161616;--ink2:#5F5F5A;--acc:#0057B8;--onacc:#FFFFFF;--now:#D7261E;--p1:#D7261E;--p2:#0057B8;--p3:#E8B400}
+</style></head><body>
+<script>
+const frame=(k,name,note)=>`
+<div class="f ${k}"><div class="cap">${k}. ${name} — ${note}</div>
+<div class="side"><b>skkil time</b>
+<div class="nav">Inbox<span>12</span></div><div class="nav">Today<span>5</span></div><div class="nav on">Planner</div><div class="nav">Review</div>
+<div style="margin-top:14px;font-size:11px;color:var(--ink2);font-weight:600">PROJECTS</div>
+<div class="nav"><span class="dot" style="background:var(--p1);float:none"></span>Thesis<span>8</span></div>
+<div class="nav"><span class="dot" style="background:var(--p2);float:none"></span>Career<span>26</span></div>
+<div class="nav"><span class="dot" style="background:var(--p3);float:none"></span>Study<span>3</span></div>
+<div style="margin-top:40px" class="timer">01:24:07</div><div style="font-size:12px;color:var(--ink2)">Thesis · 논문 3장 작성</div>
+</div>
+<div class="main">
+<div><h1>Week 44</h1><div class="meta">26 Oct – 1 Nov 2026 · <strong>12h 30m</strong> planned · <strong>9h 45m</strong> tracked</div></div>
+<div class="grid">
+<div class="t">07:00</div><div></div><div></div>
+<div class="t">08:00</div><div class="blk" style="background:color-mix(in oklab,var(--p1) 22%,var(--surf));border-left:3px solid var(--p1);grid-row:span 2">Write methods section<small>07:30–09:45</small></div><div></div>
+<div class="t">09:00</div><div class="blk" style="background:color-mix(in oklab,var(--p2) 22%,var(--surf));border-left:3px solid var(--p2)">Apply: Arm GPU<small>09:00–10:00</small></div>
+<div class="t">10:00</div><div></div><div class="blk" style="background:var(--now);color:var(--onacc)">Now · 면접 준비<small>10:15–11:00</small></div>
+</div>
+<div class="row"><div><p>Chapter 2 sent to advisor</p><div class="ev">2/3 tasks done · 5h 10m · Serves Submit thesis draft</div></div><div class="seg"><i class="on">Achieved</i><i>Not yet</i><i>Dropped</i></div></div>
+<div class="felt"><i><b>1</b>Rough</i><i><b>2</b>Meh</i><i><b>3</b>Okay</i><i class="on"><b>4</b>Good</i><i><b>5</b>Great</i></div>
+<div class="btn">Start review →</div>
+</div></div>`;
+document.body.innerHTML=frame('A','Freight label','Schibsted Grotesk · cool white, black ink, safety orange')+frame('B','Night departures','Figtree · ink-blue ground, flap amber, signal green')+frame('C','Assembly manual','Hanken Grotesk · white paper, brick red/blue/yellow');
+</script></body></html>

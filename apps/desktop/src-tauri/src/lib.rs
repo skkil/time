@@ -1,0 +1,122 @@
+mod activitywatch;
+mod db;
+mod error;
+mod features;
+mod recurrence;
+mod types;
+
+use specta_typescript::Typescript;
+use tauri::Manager;
+use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
+
+use features::{blocks, habits, labels, projects, review, sections, tasks, time_entries};
+
+const BINDINGS_PATH: &str = "../src/bindings.ts";
+
+fn specta_builder() -> Builder<tauri::Wry> {
+    Builder::<tauri::Wry>::new()
+        .error_handling(ErrorHandlingMode::Throw)
+        .disable_serde_phases()
+        .commands(collect_commands![
+            projects::list_projects,
+            projects::create_project,
+            projects::update_project,
+            projects::set_project_archived,
+            projects::set_project_view,
+            projects::delete_project,
+            tasks::list_tasks,
+            tasks::create_task,
+            tasks::update_task,
+            tasks::move_task,
+            tasks::reschedule_tasks,
+            tasks::set_task_completed,
+            tasks::set_task_outcome,
+            tasks::delete_task,
+            sections::list_sections,
+            sections::create_section,
+            sections::rename_section,
+            sections::set_section_collapsed,
+            sections::reorder_section,
+            sections::delete_section,
+            labels::list_labels,
+            labels::create_label,
+            labels::update_label,
+            labels::delete_label,
+            blocks::list_blocks,
+            blocks::create_block,
+            blocks::reschedule_block,
+            blocks::delete_block,
+            time_entries::list_time_entries,
+            time_entries::create_time_entry,
+            time_entries::update_time_entry,
+            time_entries::delete_time_entry,
+            time_entries::get_timer,
+            time_entries::start_timer,
+            time_entries::edit_timer,
+            time_entries::stop_timer,
+            time_entries::discard_timer,
+            habits::list_habits,
+            habits::create_habit,
+            habits::update_habit,
+            habits::archive_habit,
+            habits::list_habit_days,
+            habits::set_habit_status,
+            habits::add_habit_value,
+            habits::sync_habits,
+            review::list_days,
+            review::rate_day,
+            review::save_day_note,
+            review::skip_day_check_in,
+            review::get_week,
+            review::list_weeks,
+            review::save_week_notes,
+            review::rate_week,
+            review::reach_review_step,
+            review::finish_week_review,
+            review::create_outcome,
+            review::update_outcome,
+            review::update_outcome_status,
+            review::remove_outcome,
+            review::get_quarter,
+            review::upsert_quarter,
+            review::create_priority,
+            review::update_priority,
+            review::remove_priority,
+        ])
+}
+
+fn export_bindings(builder: &Builder<tauri::Wry>) {
+    builder
+        .export(Typescript::default(), BINDINGS_PATH)
+        .expect("TypeScript bindings export");
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    let builder = specta_builder();
+
+    #[cfg(debug_assertions)]
+    export_bindings(&builder);
+
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .invoke_handler(builder.invoke_handler())
+        .setup(move |app| {
+            builder.mount_events(app);
+            let dir = app.path().app_data_dir()?;
+            std::fs::create_dir_all(&dir)?;
+            app.manage(db::Db::open(&dir.join("time.db"))?);
+            app.manage(time_entries::Timer::default());
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn exports_bindings() {
+        super::export_bindings(&super::specta_builder());
+    }
+}

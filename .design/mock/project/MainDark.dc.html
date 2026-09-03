@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Today, dark</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700&amp;family=Red+Hat+Mono:wght@500&amp;family=Red+Hat+Text:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+body{margin:0}
+.app,.app *{box-sizing:border-box}
+.app{--g:#F2F3F0;--sf:#fff;--sk:#E4E6E1;--ln:#D3D6D0;--ln2:#E4E6E1;--ink:#1A1D21;--ink2:#5B6169;--bl:#0B5CAD;--blt:#EAF1F9;--am:#8A5000;--amt:#FBF3E6;--on:#fff;--logo:#6FA3DB}
+.app.dark{--g:#16181B;--sf:#1F2226;--sk:#2A2E33;--ln:#34383E;--ln2:#2A2E33;--ink:#E8EAED;--ink2:#A3A9B1;--bl:#7FB0E6;--blt:#17283B;--am:#F0B86A;--amt:#2E2416;--on:#16181B;--logo:#7FB0E6}
+.app{font-family:"Red Hat Text","Pretendard Variable",Pretendard,system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--g);font-variant-numeric:tabular-nums;min-height:1000px;display:flex;flex-wrap:wrap}
+.app h1,.app h2,.app h3{font-family:"Red Hat Display","Pretendard Variable",Pretendard,system-ui,sans-serif;font-weight:700;margin:0;letter-spacing:-.01em}
+.app h1{font-size:23px}.app h2{font-size:16px}.app h3{font-size:14px}
+.app p{margin:0}
+.m{color:var(--ink2)}.s{font-size:12px}.b{font-weight:600}
+.tm{font-family:"Red Hat Mono",monospace;font-weight:500;font-size:13px;white-space:nowrap}
+.mono{font-family:"Red Hat Mono",monospace;font-weight:500;font-size:12px}
+.row{display:flex;align-items:center;gap:8px}
+.col{display:flex;flex-direction:column}
+.nav{flex:1 1 216px;max-width:216px;padding:16px 12px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--ln)}
+.brand{display:flex;align-items:center;gap:8px;padding:4px 10px 16px;font-family:"Red Hat Display",sans-serif;font-weight:700;font-size:15px}
+.nav a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:var(--ink);text-decoration:none;font-weight:500}
+.nav a:hover{background:var(--sk)}
+.nav a[aria-current]{background:var(--sf);box-shadow:inset 0 0 0 1px var(--ln)}
+.nav .count{margin-left:auto;font-size:12px;font-weight:600;color:var(--am)}
+.navfoot{margin-top:auto;padding:12px 10px 0;border-top:1px solid var(--ln);font-size:12px;color:var(--ink2);display:flex;flex-direction:column;gap:6px}
+.ico{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.btn{font:inherit;font-weight:600;font-size:13px;height:32px;padding:0 12px;border-radius:4px;border:1px solid var(--ln);background:var(--sf);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover{background:var(--sk)}
+.btn.p{background:var(--ink);color:var(--on);border-color:var(--ink)}
+.btn.sm{height:24px;padding:0 8px;font-size:12px}
+.btn:focus-visible,.app a:focus-visible,.app input:focus-visible{outline:2px solid var(--bl);outline-offset:2px}
+.oc{color:var(--ink2);font-size:12px;font-weight:600}
+.sample{font-size:12px;color:var(--ink2);border:1px solid var(--ln);border-radius:4px;padding:1px 6px;background:var(--sf)}
+.st{display:inline-flex;align-items:center;justify-content:center;width:112px;height:24px;padding:0 8px;border-radius:4px;font-size:12px;font-weight:600;white-space:nowrap}
+.st.on{background:var(--blt);color:var(--bl)}
+.st.mv{background:var(--sk);color:var(--ink)}
+.st.now{background:var(--bl);color:var(--on)}
+.st.cal{color:var(--ink2)}
+.main{flex:999 1 560px;min-width:0;display:flex;flex-wrap:wrap}
+.center{flex:999 1 560px;min-width:0;padding:20px 28px 32px;display:flex;flex-direction:column;gap:20px}
+.side{flex:1 1 360px;max-width:400px;background:var(--sf);border-left:1px solid var(--ln);padding:20px 20px 32px;display:flex;flex-direction:column;gap:20px}
+.seg{display:inline-flex;border:1px solid var(--ln);border-radius:4px;overflow:hidden;background:var(--sf)}
+.seg a{padding:4px 12px;font-size:13px;font-weight:600;color:var(--ink2);text-decoration:none}
+.seg a[aria-current]{color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink);border-radius:4px}
+.outs{display:flex;flex-wrap:wrap;gap:8px 32px;align-items:baseline}
+.out{display:flex;align-items:baseline;gap:10px}
+.ledger{background:var(--sf);border:1px solid var(--ln);border-radius:6px;overflow-x:auto}
+.lr{display:grid;grid-template-columns:104px 104px minmax(0,1fr) 128px;column-gap:16px;align-items:start;padding:10px 16px;border-top:1px solid var(--ln2);min-width:640px}
+.lr.h{border-top:0;padding:10px 16px 8px;font-size:12px;font-weight:600;color:var(--ink2)}
+.lr.past .blk{color:var(--ink2)}
+.lr.past .blk .b{color:var(--ink)}
+.lr.now{box-shadow:inset 0 0 0 2px var(--bl);border-radius:2px}
+.lr.free{color:var(--ink2)}
+.lr .ty{font-size:12px;color:var(--ink2)}
+.slot{font-family:"Red Hat Text",sans-serif;font-size:13px;font-weight:600;color:var(--ink2)}
+.drop{border:1px dashed var(--ink2);border-radius:4px;padding:6px 10px;font-size:13px;color:var(--ink2)}
+.lane{display:grid;grid-template-columns:110px minmax(0,1fr) 120px;align-items:center;column-gap:10px;font-size:12px;color:var(--ink2);margin-top:6px}
+.lane .mono{color:var(--ink)}
+.capbox{display:flex;align-items:center;gap:8px;border:1px solid var(--ink);border-radius:6px;padding:0 8px 0 10px;height:40px;background:var(--sf)}
+.capbox input{flex:1;border:0;font:inherit;font-size:14px;color:var(--ink);background:transparent;min-width:0}
+.capbox input::placeholder{color:var(--ink2)}
+.capbox input:focus-visible{outline:none}
+.capbox:focus-within{box-shadow:0 0 0 2px var(--bl)}
+.kbd{font-family:"Red Hat Mono",monospace;font-size:11px;padding:0 5px;line-height:18px;border:1px solid var(--ln);border-radius:4px;color:var(--ink2);background:var(--sf)}
+.task{display:flex;gap:10px;align-items:flex-start;padding:9px 4px;border-bottom:1px solid var(--ln2)}
+.task .chk{width:16px;height:16px;border:1.5px solid var(--ink2);border-radius:4px;margin-top:2px;flex:none;background:var(--sf)}
+.task .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.task .meta{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--ink2);flex-wrap:wrap}
+.ghd{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;color:var(--ink2);padding:4px 4px 6px}
+.when{border:2px solid var(--ink);border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:8px;margin:2px 0 8px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--ln);border-radius:6px}
+.opt.on{box-shadow:inset 0 0 0 2px var(--ink);border-color:var(--ink)}
+.radio{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--ink2);flex:none;margin-top:2px}
+.opt.on .radio{border:5px solid var(--ink)}
+.field{display:flex;align-items:center;gap:6px;border:1px solid var(--ln);border-radius:4px;height:32px;padding:0 8px}
+.field input{border:0;font:inherit;font-size:13px;flex:1;min-width:0;background:transparent;color:var(--ink)}
+.slots{display:flex;gap:6px}
+.slots span{flex:1;text-align:center;font-size:13px;font-weight:600;padding:5px 0;border:1px solid var(--ln);border-radius:4px;color:var(--ink2)}
+.slots span.on{color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink);border-color:var(--ink)}
+</style>
+</helmet>
+<div class="app dark">
+
+<nav class="nav" aria-label="Main">
+  <div class="brand">
+    <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="16" height="16" rx="3" fill="currentColor"></rect><path d="M2 10h16" stroke-width="1.5" style="stroke:var(--g)"></path><rect x="5" y="12.5" width="7" height="3" rx="1" style="fill:var(--logo)"></rect></svg>
+    skkil-time
+  </div>
+  <a href="Main.dc.html" aria-current="page"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v3l2 1.5"></path></svg>Today</a>
+  <a href="WeekPlan.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="1.5"></rect><path d="M2 6.5h12M6 6.5v7.5M10 6.5v7.5"></path></svg>Plan the week</a>
+  <a href="Inbox.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 9.5l1.8-6h8.4l1.8 6v3.5H2z"></path><path d="M2 9.5h3.5l1 1.5h3l1-1.5H14"></path></svg>Review inbox<span class="count">3</span></a>
+  <a href="CloseRating.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Close the day</a>
+  <a href="Week.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 13.5V8M6.2 13.5V4.5M9.8 13.5V6.5M13.5 13.5V2.5"></path></svg>Weekly review</a>
+  <a href="Settings.dc.html"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 11.5h11"></path><circle cx="6" cy="4.5" r="1.6"></circle><circle cx="10.5" cy="11.5" r="1.6"></circle></svg>Settings</a>
+  <div class="navfoot">
+    <span class="row"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Capture on</span>
+    <span class="row"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"></rect><path d="M4.5 6l2 2-2 2M8 10h3.5"></path></svg>2 agents working</span>
+    <span class="col" style="gap:4px;align-items:flex-start">Capture from anywhere<span class="kbd" style="white-space:nowrap">Super Shift Space</span></span>
+  </div>
+</nav>
+
+<main class="main">
+  <section class="center" aria-label="Day plan">
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div class="row" style="gap:12px;align-items:baseline">
+        <h1>Thursday 22 October</h1>
+        <span class="m">Q4 · Week 4</span>
+      </div>
+      <div class="row">
+        <span class="sample">Sample data</span>
+        <div class="seg" role="group" aria-label="View"><a href="Main.dc.html" aria-current="page">Day</a><a href="WeekPlan.dc.html">Week</a></div>
+      </div>
+    </div>
+
+    <div class="outs" aria-label="This week's outcomes">
+      <div class="out"><span class="b">Webhook retries live in production</span><span class="tm m">3/5</span></div>
+      <div class="out"><span class="b">Pricing page v2 published</span><span class="tm m">1/4</span></div>
+      <div class="out"><span class="b">5 user interviews booked</span><span class="tm m">2/5</span></div>
+      <a class="s m" href="Inbox.dc.html" style="margin-left:auto;color:var(--ink2)">2 delegated · <b style="color:var(--am)">3 drafts</b> to review</a>
+    </div>
+
+    <div class="ledger" role="table" aria-label="Today, plan against reality">
+      <div class="lr h" role="row"><span role="columnheader">Scheduled</span><span role="columnheader">Actual</span><span role="columnheader">Block</span><span role="columnheader">Status</span></div>
+
+      <div class="lr past" role="row"><span class="tm">08:30–08:40</span><span class="tm">08:31–08:39</span><div class="blk"><span class="b">Plan the day</span> <span class="ty">Ritual, 2 min plan</span></div><span class="st on">On time</span></div>
+
+      <div class="lr past" role="row"><span class="tm">09:00–10:30</span><span class="tm">09:15–10:40</span><div class="blk col"><span><span class="b">Webhook retries: backoff and idempotency keys</span> <span class="ty">Focus</span></span><span class="oc">Webhook retries live · ledgerline</span></div><span class="st mv">Moved +15m</span></div>
+
+      <div class="lr past" role="row"><span class="tm m">10:30–11:00</span><span class="tm m">10:30–11:00</span><div class="blk"><span>Call with Hana</span> <span class="ty">Google Calendar</span></div><span class="st cal">Calendar</span></div>
+
+      <div class="lr now" role="row">
+        <span class="tm">11:00–12:00</span><span class="tm">11:05–now</span>
+        <div class="col" style="gap:2px">
+          <span><span class="b">Supervise agents</span> <span class="ty">Alerts come through</span></span>
+          <div class="lane">
+            <span class="mono">ledgerline/api</span>
+            <svg viewBox="0 0 170 12" width="100%" height="12" aria-hidden="true"><line x1="4" y1="6" x2="108" y2="6" stroke-width="3" stroke-linecap="round" style="stroke:var(--ink)"></line><line x1="108" y1="6" x2="166" y2="6" stroke-width="3" stroke-dasharray="2 5" stroke-linecap="round" style="stroke:var(--am)"></line><circle cx="108" cy="6" r="4.5" stroke-width="2.5" style="fill:var(--sf);stroke:var(--am)"></circle></svg>
+            <span style="color:var(--am);font-weight:600">Waiting 12m</span>
+          </div>
+          <div class="lane">
+            <span class="mono">ledgerline/web</span>
+            <svg viewBox="0 0 170 12" width="100%" height="12" aria-hidden="true"><line x1="22" y1="6" x2="166" y2="6" stroke-width="3" stroke-linecap="round" style="stroke:var(--ink)"></line></svg>
+            <span>Working 22m</span>
+          </div>
+          <div class="lane">
+            <span class="mono">ledgerline/jobs</span>
+            <svg viewBox="0 0 170 12" width="100%" height="12" aria-hidden="true"><line x1="60" y1="6" x2="166" y2="6" stroke-width="3" stroke-dasharray="8 4" stroke-linecap="round" style="stroke:var(--ink2)"></line></svg>
+            <span class="row" style="gap:6px">No task <a class="btn sm" href="#assign">Assign</a></span>
+          </div>
+        </div>
+        <span class="st now">Now, 40m left</span>
+      </div>
+
+      <div class="lr free" role="row"><span class="slot">Midday</span><span></span><span>Lunch walk <span class="ty">Life, not tracked</span></span><span></span></div>
+
+      <div class="lr" role="row"><span class="tm">13:00–14:30</span><span class="tm m">–</span><div class="col"><span><span class="b">Pricing page v2: layout pass</span> <span class="ty">Focus</span></span><span class="oc">Pricing page v2 published · ledgerline</span></div><span></span></div>
+      <div class="lr" role="row"><span class="tm">14:30–15:00</span><span class="tm m">–</span><span><span class="b">Review inbox, 3 drafts</span> <span class="ty">Review</span></span><span></span></div>
+      <div class="lr" role="row"><span class="tm">15:00–16:00</span><span class="tm m">–</span><span><span class="b">Interview script, first draft</span> <span class="ty">Focus</span></span><span></span></div>
+      <div class="lr" role="row"><span class="tm">16:00–16:30</span><span class="tm m">–</span><span class="row" style="gap:6px"><span class="b">Email, invoices</span> <span class="ty row" style="gap:4px"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 16 16" role="img" aria-label="Repeats"><path d="M3 7a5 5 0 0 1 9-2.5M13 9a5 5 0 0 1-9 2.5"></path><path d="M12 2v2.5H9.5M4 14v-2.5h2.5"></path></svg>Weekdays · Admin</span></span><span></span></div>
+      <div class="lr free" role="row"><span class="tm">16:30–17:45</span><span></span><span class="drop">Free, 1h 15m. Drop a task here.</span><span></span></div>
+      <div class="lr" role="row"><span class="slot">Evening</span><span class="tm m">–</span><span><span class="b">세무사님께 답장</span> <span class="ty">Reply to the accountant · Admin</span></span><span></span></div>
+      <div class="lr" role="row"><span class="slot">After last block</span><span class="tm m">–</span><span><span class="b">Close the day</span> <span class="ty">3 min</span></span><span></span></div>
+    </div>
+  </section>
+
+  <aside class="side" aria-label="Tasks">
+    <div class="col" style="gap:8px">
+      <label for="capture" class="b">Add a task</label>
+      <div class="capbox"><input id="capture" placeholder="Title ~30m #project @agent"></div>
+      <span class="s m">Or from a terminal: <span class="mono">skkil add "…"</span></span>
+    </div>
+
+    <div class="col">
+      <div class="ghd"><span>On a trigger</span></div>
+      <div class="task">
+        <span class="chk" aria-hidden="true"></span>
+        <div class="grow"><span>Send call recap to Hana</span><span class="meta"><span>After the call with Hana</span><span class="tm s">10m</span></span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="ghd"><span>Backlog, outcomes first</span><span class="tm">6</span></div>
+      <div class="task">
+        <span class="chk" aria-hidden="true"></span>
+        <div class="grow"><span>Dead-letter queue view for failed retries</span><span class="meta"><span class="oc">Webhook retries live</span><span class="row" style="gap:4px"><svg class="ico" style="width:14px;height:14px" viewBox="0 0 16 16" role="img" aria-label="Agent task"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"></rect><path d="M4.5 6l2 2-2 2M8 10h3.5"></path></svg><span class="tm s">45m</span></span><span>Due Fri</span></span></div>
+      </div>
+      <div class="task">
+        <span class="chk" aria-hidden="true"></span>
+        <div class="grow"><span>Dead-letter queue: alert copy</span><span class="meta"><span class="oc">Webhook retries live</span><span class="tm s">20m</span></span></div>
+      </div>
+      <div class="task" style="border-bottom:0">
+        <span class="chk" aria-hidden="true"></span>
+        <div class="grow"><span class="b">Book 2 more interviews</span><span class="meta"><span class="oc">5 user interviews booked</span><span class="tm s">15m</span><span>Carried from Wed</span></span></div>
+      </div>
+      <div class="when" role="group" aria-labelledby="when-t">
+        <span class="b" id="when-t">When will you do this?</span>
+        <div class="opt on"><span class="radio" aria-hidden="true"></span><div class="col"><span class="b">New block 16:30–16:45</span><span class="s m">1h 15m free there</span></div></div>
+                <div class="opt"><span class="radio" aria-hidden="true"></span><div class="col" style="flex:1;gap:6px"><span class="b">Part of the day</span><div class="slots" aria-label="Part of the day"><span>Morning</span><span>Afternoon</span><span>Evening</span></div></div></div>
+        <div class="opt"><span class="radio" aria-hidden="true"></span><label class="field" style="flex:1"><span class="s m">After</span><input placeholder="the interview script"></label></div>
+        <div class="row" style="justify-content:flex-end"><button class="btn">Keep in backlog</button><button class="btn p">Schedule</button></div>
+      </div>
+
+      <div class="ghd" style="padding-top:14px"><span>No outcome</span></div>
+      <div class="task">
+        <span class="chk" aria-hidden="true"></span>
+        <div class="grow"><span>Renew domain ledgerline.app</span><span class="meta"><span>Admin</span><span class="b" style="color:var(--ink)">Due today</span></span></div>
+      </div>
+      <div class="task">
+        <span class="chk" aria-hidden="true"></span>
+        <div class="grow"><span>Gym, legs</span><span class="meta"><span>Life</span><span class="tm s">1h</span></span></div>
+      </div>
+    </div>
+  </aside>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
