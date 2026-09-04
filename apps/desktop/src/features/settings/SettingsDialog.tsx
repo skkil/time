@@ -1,4 +1,4 @@
-import { type LucideIcon, PaletteIcon } from 'lucide-react';
+import { type LucideIcon, PaletteIcon, SunriseIcon } from 'lucide-react';
 import { type ComponentType, useState } from 'react';
 
 import {
@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 
 import { AppearanceSettings } from './AppearanceSettings';
+import { RitualSettings } from './RitualSettings';
 
 type Section = {
   id: string;
@@ -26,6 +27,13 @@ const sections: Section[] = [
     icon: PaletteIcon,
     content: AppearanceSettings,
   },
+  {
+    id: 'rituals',
+    label: 'Rituals',
+    description: 'When planning and review open, and which steps they take.',
+    icon: SunriseIcon,
+    content: RitualSettings,
+  },
 ];
 
 export function SettingsDialog({
@@ -41,7 +49,7 @@ export function SettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="grid h-[480px] grid-cols-[180px_minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-2xl">
+      <DialogContent className="grid h-[560px] grid-cols-[180px_minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-3xl">
         <nav
           aria-label="Settings"
           className="grid content-start gap-0.5 border-r bg-sidebar p-3"

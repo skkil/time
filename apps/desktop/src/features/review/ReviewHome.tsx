@@ -100,7 +100,7 @@ function ReviewPrompt({ week }: { week: DateKey }) {
         <p className="mt-1 text-sm text-muted-foreground">
           {started
             ? `You stopped at ${STEP_NAMES[Math.min(data.step, STEP_NAMES.length - 1)]}.`
-            : 'About 5 minutes: how it felt, your outcomes, then next week’s plan.'}
+            : 'About 10 minutes: how it felt, your outcomes, a quick clean-up, then next week’s plan.'}
         </p>
       </div>
       <Button asChild>

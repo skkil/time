@@ -28,11 +28,11 @@ import {
   todayKey,
 } from '@/lib/time';
 
+import { ClearDeck } from './ClearDeck';
 import { OutcomeCard } from './OutcomeCard';
 import { OutcomePicker } from './OutcomePicker';
 import { OutcomePlanner } from './OutcomePlanner';
 import { QuarterSetup } from './QuarterPanel';
-import { WeekFacts } from './WeekFacts';
 import {
   useFinishWeek,
   useQuarter,
@@ -46,12 +46,12 @@ import {
 import { QUARTER_WEEKS, count } from './format';
 
 type StepId =
-  'feel' | 'outcomes' | 'week' | 'reflect' | 'plan' | 'quarter' | 'done';
+  'feel' | 'outcomes' | 'deck' | 'reflect' | 'plan' | 'quarter' | 'done';
 
 const ORDINAL: Record<StepId, number> = {
   feel: 0,
   outcomes: 1,
-  week: 2,
+  deck: 2,
   reflect: 3,
   plan: 4,
   quarter: 5,
@@ -122,8 +122,8 @@ function ReviewFlow({
   const steps: (Step & { id: StepId })[] = [
     { id: 'feel', label: 'Feel' },
     { id: 'outcomes', label: 'Outcomes' },
-    { id: 'week', label: 'The week' },
-    { id: 'reflect', label: 'Reflect' },
+    { id: 'deck', label: 'Clear the deck' },
+    { id: 'reflect', label: 'One change' },
     { id: 'plan', label: 'Plan next week' },
     ...(quarter?.weekNo === QUARTER_WEEKS
       ? [{ id: 'quarter' as const, label: 'Quarter' }]
@@ -167,7 +167,14 @@ function ReviewFlow({
         {step.id === 'outcomes' && (
           <OutcomesStep week={week} quarter={quarter} />
         )}
-        {step.id === 'week' && <WeekFacts week={monday} />}
+        {step.id === 'deck' && (
+          <>
+            <StepHeading title="Clear the deck">
+              Tidy what’s piling up so next week starts light.
+            </StepHeading>
+            <ClearDeck nextMonday={shiftKey(monday, 7)} />
+          </>
+        )}
         {step.id === 'reflect' && <ReflectStep week={week} />}
         {step.id === 'plan' && <PlanStep week={week} />}
         {step.id === 'quarter' && quarter && (
@@ -240,6 +247,8 @@ function FeelStep({ week }: { week: Week }) {
   );
 }
 
+const MAX_CARRIES = 2;
+
 const DECISIONS: { value: OutcomeStatus; label: string }[] = [
   { value: 'achieved', label: 'Achieved' },
   { value: 'carried', label: 'Not yet' },
@@ -258,7 +267,8 @@ function OutcomesStep({
     <div className="grid gap-8">
       <div>
         <StepHeading title="Did each outcome happen?">
-          “Not yet” carries it into next week with its open tasks.
+          “Not yet” carries it into next week with its open tasks. After two
+          carries, shrink it, re-date it, or let it go.
         </StepHeading>
         {week.outcomes.length === 0 ? (
           <p className="rounded-md border border-dashed px-4 py-3 text-sm text-muted-foreground">
@@ -293,6 +303,17 @@ function OutcomesStep({
                         key={decision.value}
                         value={decision.value}
                         className="px-3"
+                        disabled={
+                          decision.value === 'carried' &&
+                          outcome.timesCarried >= MAX_CARRIES &&
+                          outcome.status !== 'carried'
+                        }
+                        title={
+                          decision.value === 'carried' &&
+                          outcome.timesCarried >= MAX_CARRIES
+                            ? 'Carried twice already. Rename it smaller in the plan step, or drop it.'
+                            : undefined
+                        }
                       >
                         {decision.label}
                       </ToggleGroupItem>
@@ -350,20 +371,19 @@ function AlsoFinished({ week, outcomes }: { week: Week; outcomes: Outcome[] }) {
   );
 }
 
-const PROMPTS: { key: keyof WeekNotes; label: string; placeholder: string }[] =
-  [
-    { key: 'worked', label: 'What worked', placeholder: 'Keep doing' },
-    {
-      key: 'fellShort',
-      label: 'What fell short, and why',
-      placeholder: 'Be specific, not harsh',
-    },
-    {
-      key: 'change',
-      label: 'One change for next week',
-      placeholder: 'Small enough to actually do',
-    },
-  ];
+const OPTIONAL_PROMPTS: {
+  key: keyof WeekNotes;
+  label: string;
+  placeholder: string;
+}[] = [
+  { key: 'worked', label: 'What worked', placeholder: 'Keep doing' },
+  {
+    key: 'fellShort',
+    label: 'What fell short, and why',
+    placeholder: 'Be specific, not harsh',
+  },
+];
+const PROMPT_KEYS: (keyof WeekNotes)[] = ['worked', 'fellShort', 'change'];
 
 function ReflectStep({ week }: { week: Week }) {
   const { data: previous } = useWeek(shiftKey(week.startDate, -7));
@@ -372,14 +392,14 @@ function ReflectStep({ week }: { week: Week }) {
   const [saved, setSaved] = useState(week.notes);
 
   const commit = () => {
-    if (PROMPTS.some(({ key }) => notes[key] !== saved[key]))
+    if (PROMPT_KEYS.some((key) => notes[key] !== saved[key]))
       save.mutate(notes, { onSuccess: () => setSaved(notes) });
   };
 
   return (
     <>
-      <StepHeading title="Reflect">
-        Optional. A sentence each is plenty.
+      <StepHeading title="One change for next week">
+        Small enough to actually do.
       </StepHeading>
       {previous?.notes.change && (
         <p className="mb-5 rounded-md bg-muted px-4 py-3 text-sm">
@@ -390,26 +410,44 @@ function ReflectStep({ week }: { week: Week }) {
         </p>
       )}
       <div className="grid gap-4">
-        {PROMPTS.map((prompt) => (
-          <div key={prompt.key} className="grid gap-1.5">
-            <Label htmlFor={`note-${prompt.key}`}>{prompt.label}</Label>
-            <Textarea
-              id={`note-${prompt.key}`}
-              rows={2}
-              value={notes[prompt.key]}
-              placeholder={prompt.placeholder}
-              maxLength={2000}
-              onChange={(event) =>
-                setNotes({ ...notes, [prompt.key]: event.target.value })
-              }
-              onBlur={commit}
-            />
+        <Textarea
+          aria-label="One change for next week"
+          rows={2}
+          value={notes.change}
+          placeholder="e.g. no meetings before 11 on Tuesdays"
+          maxLength={2000}
+          onChange={(event) =>
+            setNotes({ ...notes, change: event.target.value })
+          }
+          onBlur={commit}
+        />
+        <details>
+          <summary className="cursor-pointer text-sm text-muted-foreground">
+            More reflection (optional)
+          </summary>
+          <div className="mt-3 grid gap-4">
+            {OPTIONAL_PROMPTS.map((prompt) => (
+              <div key={prompt.key} className="grid gap-1.5">
+                <Label htmlFor={`note-${prompt.key}`}>{prompt.label}</Label>
+                <Textarea
+                  id={`note-${prompt.key}`}
+                  rows={2}
+                  value={notes[prompt.key]}
+                  placeholder={prompt.placeholder}
+                  maxLength={2000}
+                  onChange={(event) =>
+                    setNotes({ ...notes, [prompt.key]: event.target.value })
+                  }
+                  onBlur={commit}
+                />
+              </div>
+            ))}
           </div>
-        ))}
+        </details>
         <p className="text-xs text-muted-foreground" aria-live="polite">
           {save.isPending
             ? 'Saving…'
-            : PROMPTS.some(({ key }) => saved[key])
+            : PROMPT_KEYS.some((key) => saved[key])
               ? 'Saved'
               : ''}
         </p>
@@ -445,7 +483,8 @@ function QuarterStep({ week, quarter }: { week: Week; quarter: Quarter }) {
     <div className="grid gap-8">
       <div>
         <StepHeading title={`${quarter.label} is ending`}>
-          Look back at each priority before planning the next 13 weeks.
+          For each priority: keep it, change it, or drop it. Nothing carries
+          over on its own.
         </StepHeading>
         <ul className="divide-y overflow-hidden rounded-md border bg-card">
           {quarter.priorities.map((priority) => (
@@ -468,12 +507,7 @@ function QuarterStep({ week, quarter }: { week: Week; quarter: Quarter }) {
             priorities.
           </p>
         ) : (
-          nextQuarter === null && (
-            <QuarterSetup
-              start={next}
-              priorities={quarter.priorities.map((priority) => priority.title)}
-            />
-          )
+          nextQuarter === null && <QuarterSetup start={next} priorities={[]} />
         )}
       </section>
     </div>
@@ -500,7 +534,7 @@ function PriorityWrapUp({
         value={note}
         maxLength={2000}
         aria-label={`Note on ${priority.title}`}
-        placeholder="Where did this end up?"
+        placeholder="Keep, change or drop, and why?"
         onChange={(event) => setNote(event.target.value)}
         onBlur={() =>
           note !== priority.note &&

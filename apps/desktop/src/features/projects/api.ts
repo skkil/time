@@ -1,7 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { type Id, type ProjectInput, commands } from '@/bindings';
+import {
+  type Id,
+  type Project,
+  type ProjectInput,
+  type ProjectSettings,
+  commands,
+} from '@/bindings';
 import { keys } from '@/lib/query';
 
 import { buildProjectIndex } from './tree';
@@ -71,4 +77,42 @@ export function useSetProjectView() {
       commands.setProjectView(id, view),
     onSuccess: () => client.invalidateQueries({ queryKey: keys.projects }),
   });
+}
+
+export const settingsOf = (project: Project): ProjectSettings => ({
+  kind: project.kind,
+  status: project.status,
+  outcome: project.outcome,
+  weeklyMinutes: project.weeklyMinutes,
+  targetDate: project.targetDate,
+  killCriteria: project.killCriteria,
+  reviewEveryWeeks: project.reviewEveryWeeks,
+  inOrder: project.inOrder,
+});
+
+export function useUpdateProjectSettings() {
+  const invalidate = useInvalidateProjects();
+  return useMutation({
+    mutationFn: ({ id, settings }: { id: Id; settings: ProjectSettings }) =>
+      commands.updateProjectSettings(id, settings),
+    onSuccess: invalidate,
+  });
+}
+
+export function useMarkProjectReviewed() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: Id) => commands.markProjectReviewed(id),
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.projects }),
+  });
+}
+
+const WEEK_SECONDS = 7 * 24 * 3600;
+
+export function isDueForReview(project: Project, now: number) {
+  if (project.archived || project.status !== 'active') return false;
+  if (project.lastReviewedAt === null) return true;
+  return (
+    now - project.lastReviewedAt >= project.reviewEveryWeeks * WEEK_SECONDS
+  );
 }

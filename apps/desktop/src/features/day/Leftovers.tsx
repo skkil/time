@@ -14,10 +14,12 @@ import { cn } from '@/lib/utils';
 export function Leftovers({
   tasks,
   target,
+  targetLabel,
   className,
 }: {
   tasks: Task[];
   target: DateKey;
+  targetLabel?: string;
   className?: string;
 }) {
   const reschedule = useRescheduleTasks();
@@ -26,13 +28,13 @@ export function Leftovers({
   const index = useProjectIndex();
   const today = todayKey();
   const ids = tasks.map((task) => task.id);
-  const targetLabel = target === today ? 'Today' : 'Tomorrow';
+  const label = targetLabel ?? (target === today ? 'Today' : 'Tomorrow');
   const later = shiftKey(target, 1);
 
   if (tasks.length === 0)
     return (
       <p className={cn('text-sm text-muted-foreground', className)}>
-        Nothing left over. Clean slate.
+        Nothing here. Clean slate.
       </p>
     );
 
@@ -67,17 +69,19 @@ export function Leftovers({
                     reschedule.mutate({ ids: [task.id], dueDate: target })
                   }
                 >
-                  {targetLabel}
+                  {label}
                 </Button>
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  onClick={() =>
-                    reschedule.mutate({ ids: [task.id], dueDate: later })
-                  }
-                >
-                  {target === today ? 'Tomorrow' : 'Day after'}
-                </Button>
+                {!targetLabel && (
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    onClick={() =>
+                      reschedule.mutate({ ids: [task.id], dueDate: later })
+                    }
+                  >
+                    {target === today ? 'Tomorrow' : 'Day after'}
+                  </Button>
+                )}
                 <Button
                   size="xs"
                   variant="ghost"
@@ -108,7 +112,7 @@ export function Leftovers({
             variant="outline"
             onClick={() => reschedule.mutate({ ids, dueDate: target })}
           >
-            {targetLabel}
+            {label}
           </Button>
           <Button
             size="xs"
