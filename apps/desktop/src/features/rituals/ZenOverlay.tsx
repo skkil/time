@@ -118,9 +118,7 @@ export function ZenOverlay({
   const header = (
     <header className="flex items-center gap-3">
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-semibold tracking-wide text-primary uppercase">
-          {meta.label}
-        </p>
+        <p className="text-sm font-semibold text-primary">{meta.label}</p>
         <p className="text-xs text-muted-foreground">{meta.minutes}</p>
       </div>
       {kind !== 'session' && run.snoozedUntil === null && (
@@ -228,9 +226,6 @@ export function PlanningChooser({ onDone }: { onDone: () => void }) {
       onEscape={onDone}
     >
       <div className="grid gap-1">
-        <p className="text-xs font-semibold tracking-wide text-primary uppercase">
-          Welcome
-        </p>
         <h2 className="text-2xl font-bold">When do you plan your day?</h2>
         <p className="text-sm text-muted-foreground">
           There’s no right answer. You can change it any time in Settings.

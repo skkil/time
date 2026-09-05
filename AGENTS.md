@@ -10,18 +10,21 @@ memory in `.design/DESIGN.md`.
 
 ## Domain model
 
-- **Project** — nested (max depth 3) with a colour, a list/board view and an
-  archived flag; archiving or deleting cascades to the subtree. `NULL`
+- **Project** — nested (max depth 3) with a colour, a list/board view, an
+  archived flag and settings: `kind` (project or area; areas never sit inside
+  projects), `status` (active/paused/done/dropped; inactive ones leave Day and
+  the drawer tree), outcome, weekly hours budget, target date, stop-if
+  criteria, review cadence and `in_order`; archiving or deleting cascades to the subtree. `NULL`
   project means Inbox.
 - **Section** — ordered group inside a project (or the Inbox); deleting it
   deletes its tasks.
 - **Task** — Todoist-shaped: title, description (`notes`), project, section,
   parent (sub-tasks inherit the parent's project/section), priority 1–4
   (1 = highest), due date + optional time, deadline, recurrence, duration
-  (`estimate_minutes`), labels, sibling `position`. Completing a repeating
+  (`estimate_minutes`), sibling `position`, `rollover_count` (bumped when a
+  due task is pushed later), `someday`, `must_on` (≤3 musts per day) and a
+  `next_step` resume note. Completing a repeating
   task moves its date forward instead of closing it.
-- **Label** — name (no spaces, case-insensitive unique) attached via
-  `task_label`.
 - **TimeBlock** — a planned span for a task on the schedule grid.
 - **TimeEntry** — tracked time with optional project/task; a linked task
   decides the project. The running timer is in memory only.
@@ -33,13 +36,23 @@ memory in `.design/DESIGN.md`.
   status is derived in `habits::status`, never stored. Websites and apps are
   read from ActivityWatch (`SKKIL_ACTIVITYWATCH_URL`, default
   `http://localhost:5600`).
-- **Day / Week / Quarter** — an optional day check-in on Today (felt
-  rating, one-line note, or skipped); weekly outcomes (≤3 open, linked to
-  tasks via `task.outcome_id`, status open/achieved/carried/dropped, where
-  carried copies the outcome into next week with its open tasks) and a
-  guided weekly review (`/review/$week`, progress in `week.step`, finished
-  at `week.reviewed_at`); quarter priorities over 13 weeks. Spec:
-  `.jennifer/products/personal-time/spec-review-2026-11-01.md`.
+- **Ritual / RitualRun** — configurable routines in `features/rituals.rs`:
+  morning, evening, wind_down, session (after a timer stops) and weekly. Each
+  has one trigger (`first_open`, `at_time`, `end_of_day`,
+  `after_timer_stop`, `manual`), weekdays (Monday = bit 0) and ordered steps
+  from a closed library. `due_ritual(event)` decides what opens; a run fires
+  once a day unless snoozed (15 min, once). The frontend shows rituals in a
+  full-window zen overlay (`features/rituals`, backdrop in `features/zen`,
+  WebGL2 water shader with a static fallback; themes carry their own shader).
+- **Day / Week / Quarter** — a day note and felt rating written by rituals;
+  weekly outcomes (≤3 open, linked to tasks via `task.outcome_id`, status
+  open/achieved/carried/dropped; carried copies the outcome into next week
+  with its open tasks, at most twice) and a guided weekly review (feel,
+  outcomes, clear the deck, one change, plan, quarter wrap-up; progress in
+  `week.step`, finished at `week.reviewed_at`); quarter priorities over 13
+  weeks. Habits count "x of last 14 days" with planned rest days, no streaks.
+  Specs: `.jennifer/products/personal-time/spec-review-2026-11-01.md` and
+  `spec-simple-shell-2026-11-01.md`.
 
 ## Repository structure
 
@@ -75,7 +88,7 @@ cargo clippy --all-targets
 ### Todoist parity
 
 - Quick add parses `tomorrow 3pm`, `next fri`, `Nov 5`, `p1`–`p4`,
-  `#Project`, `/Section`, `@label`, `every …`, `{deadline}`, `for 1h` in
+  `#Project`, `/Section`, `every …`, `{deadline}`, `for 1h` in
   `src/features/tasks/parse.ts` (tests beside it, `pnpm test`).
 - Recurrence rules are parsed and advanced in `src-tauri/src/recurrence.rs`;
   keep the frontend phrases a subset of what it accepts.
@@ -102,6 +115,11 @@ cargo clippy --all-targets
   per-device UI preferences through `src/lib/preferences.ts`. New settings
   are a section in `features/settings/SettingsDialog.tsx` built from
   `SettingRow`.
+- Routes: `/` is the main page (`?view=day|week`), with a top bar (Tasks
+  drawer, Day/Week toggle, timer, search, add, Reports, settings). Tasks live
+  in the left drawer (Inbox, Upcoming, Someday, projects). `/reports/{reviews,
+  time,habits}` replaces the old Time, Habits and Review pages;
+  `/review/$week` stays. Old routes redirect.
 - Imports use `@/` instead of parent-relative `../` (enforced by ESLint).
 
 ## No root-level tooling

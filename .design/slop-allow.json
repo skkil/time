@@ -1,4 +1,5 @@
 {
   "cream-ground": "Not a ground: #FBF3E6 is the amber status tint (moved / attention / waiting on you), paired with #8A5000 text. Ground is pale stone #F2F3F0 per DESIGN.md.",
-  "three-up-grid": "Product truth, not feature cards: max 3 weekly outcomes (REQ-PLAN-01), 3 verdicts accept/revise/reject (REQ-AG-03), 3 draft facts (REQ-AG-02), 3 mobile tabs (REQ-PLT-04 scope)."
+  "three-up-grid": "Product truth, not feature cards: max 3 weekly outcomes (REQ-PLAN-01), 3 verdicts accept/revise/reject (REQ-AG-03), 3 draft facts (REQ-AG-02), 3 mobile tabs (REQ-PLT-04 scope).",
+  "zen-backdrop": "Founder decision 2026-11-01: 'water only in zen … i want a brighter and green-like look'. Gradient and slow ambient water shader are limited to the zen ritual overlay; the working UI stays flat."
 }
