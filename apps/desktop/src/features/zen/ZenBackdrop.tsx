@@ -1,11 +1,14 @@
 import { usePreference } from '@/lib/preferences';
 import { cn } from '@/lib/utils';
 
+import { ShaderLayer } from './ShaderLayer';
 import { zenTheme } from './themes';
 
 export function ZenBackdrop({ className }: { className?: string }) {
   const mode = usePreference('zenBackdrop');
   const theme = zenTheme(usePreference('zenTheme'));
+  const shader =
+    mode === 'auto' || mode === 'shader' ? theme.shader : undefined;
 
   return (
     <div
@@ -23,6 +26,13 @@ export function ZenBackdrop({ className }: { className?: string }) {
             className="absolute inset-0"
             style={{ backgroundImage: theme.staticBackground }}
           />
+          {shader && (
+            <ShaderLayer
+              key={theme.id}
+              source={shader}
+              guard={mode === 'auto'}
+            />
+          )}
           <svg className="absolute inset-0 size-full opacity-[0.07] mix-blend-soft-light">
             <filter id="zen-grain">
               <feTurbulence

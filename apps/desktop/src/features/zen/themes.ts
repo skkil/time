@@ -1,7 +1,10 @@
+import { waterShader } from './water.frag';
+
 export type ZenTheme = {
   id: string;
   label: string;
   staticBackground: string;
+  shader?: string;
 };
 
 export const ZEN_THEMES: ZenTheme[] = [
@@ -14,6 +17,7 @@ export const ZEN_THEMES: ZenTheme[] = [
       'radial-gradient(140% 80% at 40% 110%, var(--zen-deep) 0%, transparent 70%)',
       'linear-gradient(180deg, var(--zen-sky) 0%, var(--zen-shallow) 38%, var(--zen-mid) 72%, var(--zen-deep) 100%)',
     ].join(', '),
+    shader: waterShader,
   },
 ];
 
