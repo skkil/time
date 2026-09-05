@@ -1,20 +1,38 @@
 import { useSyncExternalStore } from 'react';
 
-export type ZenBackdropMode = 'auto' | 'shader' | 'static' | 'off';
+export type ZenBackdropMode = 'motion' | 'still';
+
+export type WeatherPlace = {
+  name: string;
+  latitude: number;
+  longitude: number;
+};
 
 export type Preferences = {
   zoom: number;
   zenBackdrop: ZenBackdropMode;
   zenTheme: string;
-  dismissedPlanCard: string;
+  profileName: string;
+  showDate: boolean;
+  showWeekday: boolean;
+  showWeather: boolean;
+  weatherPlace: WeatherPlace | null;
+  lastProject: string;
 };
 
 const defaults: Preferences = {
   zoom: 1,
-  zenBackdrop: 'auto',
+  zenBackdrop: 'motion',
   zenTheme: 'water',
-  dismissedPlanCard: '',
+  profileName: '',
+  showDate: true,
+  showWeekday: true,
+  showWeather: true,
+  weatherPlace: null,
+  lastProject: 'inbox',
 };
+
+const BACKDROP_MODES: ZenBackdropMode[] = ['motion', 'still'];
 
 const storageKey = 'preferences';
 const listeners = new Set<() => void>();
@@ -25,6 +43,8 @@ function read(): Preferences {
   try {
     const stored = JSON.parse(localStorage.getItem(storageKey) ?? '{}');
     cache = { ...defaults, ...stored };
+    if (!BACKDROP_MODES.includes(cache!.zenBackdrop))
+      cache!.zenBackdrop = 'motion';
   } catch {
     cache = defaults;
   }

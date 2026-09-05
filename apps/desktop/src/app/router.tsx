@@ -8,12 +8,12 @@ import {
 
 import { HabitsPage } from '@/features/habits/HabitsPage';
 import { MainPage } from '@/features/main/MainPage';
+import { ProjectsSpace } from '@/features/projects/ProjectsSpace';
 import { ReportsPage } from '@/features/reports/ReportsPage';
 import { ReviewHome } from '@/features/review/ReviewHome';
 import { WeekReview } from '@/features/review/WeekReview';
 import { ProjectView } from '@/features/tasks/ProjectView';
 import { SomedayPage } from '@/features/tasks/SomedayPage';
-import { UpcomingPage } from '@/features/tasks/UpcomingPage';
 import { TimePage } from '@/features/time/TimePage';
 import { type DateKey, mondayOf, todayKey } from '@/lib/time';
 
@@ -60,7 +60,9 @@ const plannerRoute = createRoute({
 const inboxRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/inbox',
-  component: () => <ProjectView projectId={null} />,
+  beforeLoad: () => {
+    throw redirect({ to: '/projects' });
+  },
 });
 
 const todayRoute = createRoute({
@@ -77,24 +79,43 @@ const todayRoute = createRoute({
 const somedayRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/someday',
+  beforeLoad: () => {
+    throw redirect({ to: '/projects/someday' });
+  },
+});
+
+const upcomingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/upcoming',
+  beforeLoad: () => {
+    throw redirect({
+      to: '/',
+      search: { view: 'week', week: mondayOf(todayKey()) },
+    });
+  },
+});
+
+export const projectsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/projects',
+  component: ProjectsSpace,
+});
+
+const projectsInboxRoute = createRoute({
+  getParentRoute: () => projectsRoute,
+  path: '/',
+  component: () => <ProjectView projectId={null} />,
+});
+
+const projectsSomedayRoute = createRoute({
+  getParentRoute: () => projectsRoute,
+  path: '/someday',
   component: SomedayPage,
 });
 
-export const upcomingRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/upcoming',
-  validateSearch: (search: Record<string, unknown>): { from: DateKey } => ({
-    from:
-      typeof search.from === 'string' && DATE_KEY.test(search.from)
-        ? search.from
-        : todayKey(),
-  }),
-  component: UpcomingPage,
-});
-
 export const projectRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/projects/$projectId',
+  getParentRoute: () => projectsRoute,
+  path: '/$projectId',
   params: {
     parse: (params) => ({ projectId: Number(params.projectId) }),
     stringify: (params) => ({ projectId: String(params.projectId) }),
@@ -178,7 +199,11 @@ const routeTree = rootRoute.addChildren([
   upcomingRoute,
   somedayRoute,
   plannerRoute,
-  projectRoute,
+  projectsRoute.addChildren([
+    projectsInboxRoute,
+    projectsSomedayRoute,
+    projectRoute,
+  ]),
   reportsRoute.addChildren([
     reportsIndexRoute,
     timeRoute,

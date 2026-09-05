@@ -261,7 +261,7 @@ export function TaskItem({
       {!done && (
         <div
           className={cn(
-            'absolute right-0 flex items-center rounded-md bg-background opacity-0 group-focus-within/task:opacity-100 group-hover/task:opacity-100 has-[[data-state=open]]:opacity-100',
+            'absolute right-0 flex items-center rounded-md bg-popover opacity-0 group-focus-within/task:opacity-100 group-hover/task:opacity-100 has-[[data-state=open]]:opacity-100',
             variant === 'row' ? 'top-1.5' : 'top-2 right-2 bg-card',
           )}
         >

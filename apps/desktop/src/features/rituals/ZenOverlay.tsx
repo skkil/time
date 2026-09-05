@@ -1,21 +1,14 @@
-import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  MoonIcon,
-  SunIcon,
-  XIcon,
-} from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, XIcon } from 'lucide-react';
 import { Dialog as DialogPrimitive } from 'radix-ui';
 import { type ReactNode, useState } from 'react';
 
 import type { Ritual, RitualRun } from '@/bindings';
 import { Button } from '@/components/ui/button';
 import { WeekReviewFlow } from '@/features/review/WeekReview';
-import { ZenBackdrop } from '@/features/zen/ZenBackdrop';
 import { mondayOf, shiftKey, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
-import { useChoosePlanningTime, useRunActions } from './api';
+import { useRunActions } from './api';
 import {
   RITUALS,
   type RitualKind,
@@ -52,14 +45,13 @@ function ZenFrame({
           aria-describedby={undefined}
           onPointerDownOutside={(event) => event.preventDefault()}
           className={cn(
-            'fixed inset-0 z-50 grid place-items-center overflow-y-auto p-6 outline-none data-open:animate-in data-open:duration-500 data-open:fade-in-0',
+            'fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-[rgba(4,14,20,.62)] p-6 backdrop-blur-lg outline-none data-open:animate-in data-open:duration-700 data-open:fade-in-0',
             dark && 'dark',
           )}
         >
-          <ZenBackdrop className="fixed" />
           <div
             className={cn(
-              'relative grid w-full gap-6 rounded-2xl bg-card/95 p-8 text-card-foreground shadow-[0_24px_64px_rgba(7,26,21,.28)]',
+              'relative grid w-full gap-6 rounded-[28px] bg-[rgba(10,24,32,.82)] p-9 text-foreground shadow-[0_30px_80px_rgba(0,0,0,.35)] ring-1 ring-white/10 backdrop-blur-xl',
               wide ? 'max-w-3xl' : 'max-w-xl',
             )}
           >
@@ -110,10 +102,6 @@ export function ZenOverlay({
     actions.skip.mutate(run.id);
     onClose();
   };
-  const later = () => {
-    actions.snooze.mutate(run.id);
-    onClose();
-  };
 
   const header = (
     <header className="flex items-center gap-3">
@@ -121,11 +109,6 @@ export function ZenOverlay({
         <p className="text-sm font-semibold text-primary">{meta.label}</p>
         <p className="text-xs text-muted-foreground">{meta.minutes}</p>
       </div>
-      {kind !== 'session' && run.snoozedUntil === null && (
-        <Button variant="ghost" size="sm" onClick={later}>
-          In 15 min
-        </Button>
-      )}
       <Button variant="ghost" size="sm" onClick={skip}>
         Skip
       </Button>
@@ -197,54 +180,6 @@ export function ZenOverlay({
           {!last && <ArrowRightIcon />}
         </Button>
       </footer>
-    </ZenFrame>
-  );
-}
-
-export function PlanningChooser({ onDone }: { onDone: () => void }) {
-  const choose = useChoosePlanningTime();
-  const pick = (time: 'morning' | 'evening') =>
-    choose.mutate(time, { onSuccess: onDone });
-  const options = [
-    {
-      time: 'morning' as const,
-      icon: SunIcon,
-      title: 'In the morning',
-      body: 'When you open the app, sort leftovers and pick today’s musts.',
-    },
-    {
-      time: 'evening' as const,
-      icon: MoonIcon,
-      title: 'In the evening',
-      body: 'At the end of the day, see what moved and set up tomorrow.',
-    },
-  ];
-  return (
-    <ZenFrame
-      label="When do you plan your day?"
-      description="Choose when skkil time helps you plan."
-      onEscape={onDone}
-    >
-      <div className="grid gap-1">
-        <h2 className="text-2xl font-bold">When do you plan your day?</h2>
-        <p className="text-sm text-muted-foreground">
-          There’s no right answer. You can change it any time in Settings.
-        </p>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {options.map(({ time, icon: Icon, title, body }) => (
-          <button
-            key={time}
-            type="button"
-            onClick={() => pick(time)}
-            className="grid gap-2 rounded-xl border bg-card p-4 text-left outline-none hover:border-primary focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <Icon className="size-5 text-primary" strokeWidth={1.5} />
-            <span className="font-semibold">{title}</span>
-            <span className="text-sm text-muted-foreground">{body}</span>
-          </button>
-        ))}
-      </div>
     </ZenFrame>
   );
 }

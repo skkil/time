@@ -1,51 +1,66 @@
+import { useEffect, useState } from 'react';
+
 import { usePreference } from '@/lib/preferences';
 import { cn } from '@/lib/utils';
 
-import { ShaderLayer } from './ShaderLayer';
 import { zenTheme } from './themes';
 
-export function ZenBackdrop({ className }: { className?: string }) {
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+function useVisible() {
+  const [visible, setVisible] = useState(!document.hidden);
+  useEffect(() => {
+    const sync = () => setVisible(!document.hidden);
+    document.addEventListener('visibilitychange', sync);
+    return () => document.removeEventListener('visibilitychange', sync);
+  }, []);
+  return visible;
+}
+
+export function ZenBackdrop({
+  deep = false,
+  className,
+}: {
+  deep?: boolean;
+  className?: string;
+}) {
   const mode = usePreference('zenBackdrop');
   const theme = zenTheme(usePreference('zenTheme'));
-  const shader =
-    mode === 'auto' || mode === 'shader' ? theme.shader : undefined;
+  const visible = useVisible();
+  const [loaded, setLoaded] = useState<string | null>(null);
+  const moving = mode === 'motion' && !reducedMotion.matches && visible;
 
   return (
     <div
       aria-hidden
-      className={cn(
-        'pointer-events-none absolute inset-0 overflow-hidden',
-        className,
-      )}
+      className={cn('pointer-events-none inset-0 overflow-hidden', className)}
     >
-      {mode === 'off' ? (
-        <div className="absolute inset-0 bg-background" />
-      ) : (
-        <>
-          <div
-            className="absolute inset-0"
-            style={{ backgroundImage: theme.staticBackground }}
-          />
-          {shader && (
-            <ShaderLayer
-              key={theme.id}
-              source={shader}
-              guard={mode === 'auto'}
-            />
+      <img
+        src={theme.poster}
+        alt=""
+        className="absolute inset-0 size-full scale-105 object-cover"
+      />
+      {moving && (
+        <img
+          key={theme.id}
+          src={theme.animation}
+          alt=""
+          decoding="async"
+          onLoad={() => setLoaded(theme.animation)}
+          className={cn(
+            'absolute inset-0 size-full scale-105 object-cover transition-opacity duration-[2000ms]',
+            loaded === theme.animation ? 'opacity-100' : 'opacity-0',
           )}
-          <svg className="absolute inset-0 size-full opacity-[0.07] mix-blend-soft-light">
-            <filter id="zen-grain">
-              <feTurbulence
-                type="fractalNoise"
-                baseFrequency="0.9"
-                numOctaves="2"
-                stitchTiles="stitch"
-              />
-            </filter>
-            <rect width="100%" height="100%" filter="url(#zen-grain)" />
-          </svg>
-        </>
+        />
       )}
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,16,24,.72)_0%,rgba(4,16,24,.42)_38%,rgba(4,16,24,.28)_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,16,24,.35)_0%,transparent_22%,transparent_70%,rgba(4,16,24,.55)_100%)]" />
+      <div
+        className={cn(
+          'absolute inset-0 bg-[rgba(4,16,24,.55)] backdrop-blur-[6px] transition-opacity duration-[1200ms]',
+          deep ? 'opacity-100' : 'opacity-0',
+        )}
+      />
     </div>
   );
 }

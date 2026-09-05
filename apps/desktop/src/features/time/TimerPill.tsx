@@ -26,16 +26,16 @@ export function TimerPill() {
   const project = timer.projectId ? index.byId.get(timer.projectId) : undefined;
 
   return (
-    <div className="flex h-8 items-center gap-1 rounded-full bg-chrome-accent pr-1 pl-3 text-chrome-foreground">
+    <div className="flex h-8 items-center gap-1 rounded-full bg-white/10 pr-1 pl-3 text-foreground backdrop-blur-md">
       <Link
         to="/"
         search={{ view: 'day', week: mondayOf(todayKey()) }}
-        className="flex min-w-0 items-center gap-2 rounded-sm text-xs outline-offset-2 focus-visible:outline-2 focus-visible:outline-chrome-foreground"
+        className="flex min-w-0 items-center gap-2 rounded-sm text-xs outline-offset-2 focus-visible:outline-2 focus-visible:outline-foreground"
       >
         <span className="font-semibold">
           {formatStopwatch(now - timer.startedAt)}
         </span>
-        <span className="max-w-40 truncate text-chrome-muted">
+        <span className="max-w-40 truncate text-foreground/60">
           {task?.title || timer.description || project?.name || 'Timer'}
         </span>
       </Link>
@@ -44,7 +44,7 @@ export function TimerPill() {
           <Button
             size="icon-xs"
             variant="ghost"
-            className="rounded-full text-chrome-foreground hover:bg-chrome hover:text-chrome-foreground"
+            className="rounded-full text-foreground hover:bg-white/15"
             aria-label="Stop timer"
             onClick={() => stop.mutate(undefined)}
           >

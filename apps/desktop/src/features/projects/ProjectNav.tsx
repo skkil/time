@@ -136,7 +136,7 @@ export function ProjectNav() {
         <button
           type="button"
           onClick={() => setDialog({ parentId: null })}
-          className="mx-2 rounded-md border border-dashed px-2 py-2 text-left text-xs text-muted-foreground hover:bg-sidebar-accent"
+          className="mx-2 rounded-md border border-dashed px-2 py-2 text-left text-xs text-muted-foreground hover:bg-white/[.06]"
         >
           Add a project to group tasks and time.
         </button>
@@ -238,7 +238,7 @@ function ProjectRow({
 }) {
   return (
     <div
-      className="group/row relative flex h-8 items-center rounded-md hover:bg-sidebar-accent has-[[data-status=active]]:bg-sidebar-accent has-[[data-status=active]]:font-medium"
+      className="group/row relative flex h-8 items-center rounded-md transition-colors hover:bg-white/[.06] has-[[data-status=active]]:bg-white/[.1] has-[[data-status=active]]:font-medium"
       style={{ paddingLeft: node.archived ? 8 : 8 + node.depth * 14 }}
     >
       {hasChildren ? (

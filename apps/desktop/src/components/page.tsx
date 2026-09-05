@@ -36,10 +36,10 @@ export function PageHeader({
   children?: ReactNode;
 }) {
   return (
-    <header className="flex shrink-0 flex-col gap-4 border-b bg-background px-8 pt-6 pb-4">
+    <header className="flex shrink-0 flex-col gap-4 px-8 pt-4 pb-4">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div className="min-w-0">
-          <h1 className="truncate text-[23px] leading-tight font-bold">
+          <h1 className="truncate text-3xl leading-tight font-light tracking-tight">
             {title}
           </h1>
           {meta && <PageMeta items={Array.isArray(meta) ? meta : [meta]} />}

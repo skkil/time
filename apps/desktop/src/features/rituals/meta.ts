@@ -29,7 +29,7 @@ export const RITUALS: Record<
     minutes: '2–5 min',
   },
   evening: {
-    label: 'Evening shutdown',
+    label: 'Check out',
     description: 'See what moved, clear the deck, and set up tomorrow.',
     minutes: '3–7 min',
   },

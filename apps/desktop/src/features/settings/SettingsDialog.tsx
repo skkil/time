@@ -1,4 +1,9 @@
-import { type LucideIcon, PaletteIcon, SunriseIcon } from 'lucide-react';
+import {
+  type LucideIcon,
+  PaletteIcon,
+  SunIcon,
+  SunriseIcon,
+} from 'lucide-react';
 import { type ComponentType, useState } from 'react';
 
 import {
@@ -10,6 +15,7 @@ import {
 
 import { AppearanceSettings } from './AppearanceSettings';
 import { RitualSettings } from './RitualSettings';
+import { TodaySettings } from './TodaySettings';
 
 type Section = {
   id: string;
@@ -28,9 +34,16 @@ const sections: Section[] = [
     content: AppearanceSettings,
   },
   {
+    id: 'today',
+    label: 'Today',
+    description: 'Your name and what the top of Day shows.',
+    icon: SunIcon,
+    content: TodaySettings,
+  },
+  {
     id: 'rituals',
-    label: 'Rituals',
-    description: 'When planning and review open, and which steps they take.',
+    label: 'Calm',
+    description: 'The water, Check out and the weekly review.',
     icon: SunriseIcon,
     content: RitualSettings,
   },

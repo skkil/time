@@ -265,7 +265,7 @@ export function ScheduleView({ week }: { week: DateKey }) {
     >
       <div className="flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="grid shrink-0 grid-cols-[56px_repeat(7,minmax(0,1fr))] border-b bg-background">
+          <div className="grid shrink-0 grid-cols-[56px_repeat(7,minmax(0,1fr))] border-b border-white/10">
             <div />
             {days.map((day) => (
               <DayHeader

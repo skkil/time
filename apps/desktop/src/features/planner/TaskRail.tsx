@@ -104,7 +104,7 @@ export function TaskRail({
   return (
     <aside
       aria-label="Tasks to plan"
-      className="flex w-72 shrink-0 flex-col border-l bg-background"
+      className="flex w-72 shrink-0 flex-col border-l border-white/10 bg-[rgba(6,18,26,.35)] backdrop-blur-xl"
     >
       <div className="grid gap-2 border-b p-3">
         <button

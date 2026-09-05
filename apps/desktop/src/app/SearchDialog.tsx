@@ -1,7 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import {
   CalendarCheckIcon,
-  CalendarDaysIcon,
   CalendarRangeIcon,
   InboxIcon,
   NotebookPenIcon,
@@ -56,16 +55,15 @@ export function SearchDialog({
       icon: CalendarRangeIcon,
       run: () => navigate({ to: '/', search: { view: 'week', week } }),
     },
-    { label: 'Inbox', icon: InboxIcon, run: () => navigate({ to: '/inbox' }) },
     {
-      label: 'Upcoming',
-      icon: CalendarDaysIcon,
-      run: () => navigate({ to: '/upcoming', search: { from: todayKey() } }),
+      label: 'Inbox',
+      icon: InboxIcon,
+      run: () => navigate({ to: '/projects' }),
     },
     {
       label: 'Someday',
       icon: SunsetIcon,
-      run: () => navigate({ to: '/someday' }),
+      run: () => navigate({ to: '/projects/someday' }),
     },
     {
       label: 'Reviews',

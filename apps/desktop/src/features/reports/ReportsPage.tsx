@@ -9,10 +9,7 @@ export function ReportsPage() {
   const week = mondayOf(todayKey());
   return (
     <div className="grid h-full grid-rows-[auto_minmax(0,1fr)]">
-      <nav
-        aria-label="Reports"
-        className="flex gap-6 border-b bg-background px-8"
-      >
+      <nav aria-label="Reports" className="flex gap-6 px-8">
         <Link to="/reports/reviews" className={tab}>
           Reviews
         </Link>
