@@ -33,12 +33,15 @@ import {
 import { useTasks } from '@/features/tasks/api';
 import { cn } from '@/lib/utils';
 
-import { ProjectDialog } from './ProjectDialog';
 import { ProjectDot } from './ProjectDot';
+import { ProjectSheet } from './ProjectSheet';
 import { useArchiveProject, useDeleteProject, useProjectIndex } from './api';
 import { MAX_PROJECT_DEPTH, type ProjectNode } from './tree';
 
 type DialogState = { project?: Project; parentId: Id | null } | null;
+
+const isInactive = (node: ProjectNode) =>
+  node.archived || node.status !== 'active';
 
 export function ProjectNav() {
   const index = useProjectIndex();
@@ -78,7 +81,7 @@ export function ProjectNav() {
   };
 
   const renderNode = (node: ProjectNode) => {
-    const children = node.children.filter((child) => !child.archived);
+    const children = node.children.filter((child) => !isInactive(child));
     const isCollapsed = collapsed.has(node.id);
     return (
       <li key={node.id}>
@@ -97,11 +100,11 @@ export function ProjectNav() {
     );
   };
 
-  const archived = index.flat.filter(
-    (node) =>
-      node.archived &&
-      (node.parentId === null || !index.byId.get(node.parentId)?.archived),
-  );
+  const archived = index.flat.filter((node) => {
+    const parent =
+      node.parentId === null ? undefined : index.byId.get(node.parentId);
+    return isInactive(node) && (!parent || !isInactive(parent));
+  });
 
   return (
     <section
@@ -126,7 +129,7 @@ export function ProjectNav() {
       </div>
 
       <ul className="min-h-0 overflow-y-auto">
-        {index.roots.filter((node) => !node.archived).map(renderNode)}
+        {index.roots.filter((node) => !isInactive(node)).map(renderNode)}
       </ul>
 
       {index.active.length === 0 && (
@@ -152,7 +155,7 @@ export function ProjectNav() {
                 showArchived && 'rotate-90',
               )}
             />
-            Archived ({archived.length})
+            Inactive ({archived.length})
           </button>
           {showArchived && (
             <ul>
@@ -173,7 +176,7 @@ export function ProjectNav() {
         </div>
       )}
 
-      <ProjectDialog
+      <ProjectSheet
         open={dialog !== null}
         onOpenChange={(open) => !open && setDialog(null)}
         project={dialog?.project}

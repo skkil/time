@@ -2,7 +2,7 @@ import {
   CheckCircle2Icon,
   KanbanSquareIcon,
   ListIcon,
-  PencilIcon,
+  SlidersHorizontalIcon,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -16,8 +16,9 @@ import {
 } from '@/components/page';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { ProjectDialog } from '@/features/projects/ProjectDialog';
+import { ProjectBrief } from '@/features/projects/ProjectBrief';
 import { ProjectDot } from '@/features/projects/ProjectDot';
+import { ProjectSheet } from '@/features/projects/ProjectSheet';
 import { useProjectIndex, useSetProjectView } from '@/features/projects/api';
 import { projectPath } from '@/features/projects/tree';
 import { cn } from '@/lib/utils';
@@ -137,13 +138,19 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
                 size="sm"
                 onClick={() => setEditing(true)}
               >
-                <PencilIcon />
-                Edit
+                <SlidersHorizontalIcon />
+                Settings
               </Button>
             )}
           </>
         }
       />
+
+      {project && !archived && (
+        <div className="px-8 pt-4">
+          <ProjectBrief project={project} onEdit={() => setEditing(true)} />
+        </div>
+      )}
 
       {board ? (
         <BoardLayout
@@ -236,7 +243,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
       )}
 
       {project && (
-        <ProjectDialog
+        <ProjectSheet
           open={editing}
           onOpenChange={setEditing}
           project={project}

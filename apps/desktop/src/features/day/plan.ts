@@ -61,7 +61,14 @@ export function useDayPlan(date: DateKey): DayPlan & { loading: boolean } {
   const { data: weekBlocks } = useBlocks(mondayOf(date));
 
   return useMemo(() => {
-    const all = tasks ?? [];
+    const inactive = new Set(
+      (projects ?? [])
+        .filter((project) => project.archived || project.status !== 'active')
+        .map((project) => project.id),
+    );
+    const all = (tasks ?? []).filter(
+      (task) => task.projectId === null || !inactive.has(task.projectId),
+    );
     const blocks = (weekBlocks ?? [])
       .filter((block) => dateKeyOf(block.startAt) === date)
       .sort((a, b) => a.startAt - b.startAt);

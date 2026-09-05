@@ -137,3 +137,10 @@ export function rollUpSeconds(
     });
   return totals.sort((a, b) => b.total - a.total);
 }
+
+export const STATUSES = [
+  { value: 'active', label: 'Active' },
+  { value: 'paused', label: 'Paused' },
+  { value: 'done', label: 'Done' },
+  { value: 'dropped', label: 'Dropped' },
+] as const;
