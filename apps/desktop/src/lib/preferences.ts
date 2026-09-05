@@ -11,7 +11,6 @@ export type WeatherPlace = {
 export type Preferences = {
   zoom: number;
   zenBackdrop: ZenBackdropMode;
-  zenTheme: string;
   profileName: string;
   showDate: boolean;
   showWeekday: boolean;
@@ -23,7 +22,6 @@ export type Preferences = {
 const defaults: Preferences = {
   zoom: 1,
   zenBackdrop: 'motion',
-  zenTheme: 'water',
   profileName: '',
   showDate: true,
   showWeekday: true,

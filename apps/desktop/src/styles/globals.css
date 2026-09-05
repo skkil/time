@@ -246,3 +246,30 @@
     transform: scale(1);
   }
 }
+
+@keyframes sky-drift-a {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(12vw, 8vh, 0) scale(1.15);
+  }
+}
+
+@keyframes sky-drift-b {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.1);
+  }
+  to {
+    transform: translate3d(-14vw, 12vh, 0) scale(0.95);
+  }
+}
+
+@keyframes sky-drift-c {
+  from {
+    transform: translate3d(0, 0, 0) scale(0.95);
+  }
+  to {
+    transform: translate3d(10vw, -10vh, 0) scale(1.12);
+  }
+}

@@ -17,7 +17,6 @@ import {
   STEPS,
   type StepKey,
 } from '@/features/rituals/meta';
-import { ZEN_THEMES } from '@/features/zen/themes';
 import {
   type ZenBackdropMode,
   setPreference,
@@ -52,7 +51,6 @@ export function RitualSettings() {
   const { data: rituals } = useRituals();
   const update = useUpdateRitual();
   const backdrop = usePreference('zenBackdrop');
-  const theme = usePreference('zenTheme');
   const weekly = rituals?.find((ritual) => ritual.kind === 'weekly');
 
   return (
@@ -86,25 +84,10 @@ export function RitualSettings() {
           </SettingRow>
         )}
         <SettingRow
-          label="Zen backdrop"
-          description="The water behind everything. Still uses a single frame."
+          label="Background"
+          description="A sky that follows the time of day. Still stops the drift."
         >
           <div className="flex gap-2">
-            <Select
-              value={theme}
-              onValueChange={(value) => setPreference('zenTheme', value)}
-            >
-              <SelectTrigger size="sm" className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ZEN_THEMES.map((option) => (
-                  <SelectItem key={option.id} value={option.id}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <Select
               value={backdrop}
               onValueChange={(value) =>

@@ -3,18 +3,27 @@ import { useEffect, useState } from 'react';
 import { usePreference } from '@/lib/preferences';
 import { cn } from '@/lib/utils';
 
-import { zenTheme } from './themes';
+import { rgb, skyAt } from './sky';
 
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const GLOWS = [
+  { size: '75vmax', left: '-15%', top: '-20%', drift: 'sky-drift-a 71s' },
+  { size: '65vmax', left: '55%', top: '-10%', drift: 'sky-drift-b 89s' },
+  { size: '70vmax', left: '-10%', top: '45%', drift: 'sky-drift-c 103s' },
+  { size: '60vmax', left: '60%', top: '50%', drift: 'sky-drift-a 97s' },
+];
 
-function useVisible() {
-  const [visible, setVisible] = useState(!document.hidden);
+const hourNow = () => {
+  const now = new Date();
+  return now.getHours() + now.getMinutes() / 60;
+};
+
+function useHour() {
+  const [hour, setHour] = useState(hourNow);
   useEffect(() => {
-    const sync = () => setVisible(!document.hidden);
-    document.addEventListener('visibilitychange', sync);
-    return () => document.removeEventListener('visibilitychange', sync);
+    const id = window.setInterval(() => setHour(hourNow()), 60_000);
+    return () => window.clearInterval(id);
   }, []);
-  return visible;
+  return hour;
 }
 
 export function ZenBackdrop({
@@ -24,40 +33,37 @@ export function ZenBackdrop({
   deep?: boolean;
   className?: string;
 }) {
-  const mode = usePreference('zenBackdrop');
-  const theme = zenTheme(usePreference('zenTheme'));
-  const visible = useVisible();
-  const [loaded, setLoaded] = useState<string | null>(null);
-  const moving = mode === 'motion' && !reducedMotion.matches && visible;
+  const moving = usePreference('zenBackdrop') === 'motion';
+  const sky = skyAt(useHour());
 
   return (
     <div
       aria-hidden
       className={cn('pointer-events-none inset-0 overflow-hidden', className)}
+      style={{
+        background: `linear-gradient(180deg, ${rgb(sky.top)} 0%, ${rgb(sky.bottom)} 100%)`,
+      }}
     >
-      <img
-        src={theme.poster}
-        alt=""
-        className="absolute inset-0 size-full scale-105 object-cover"
-      />
-      {moving && (
-        <img
-          key={theme.id}
-          src={theme.animation}
-          alt=""
-          decoding="async"
-          onLoad={() => setLoaded(theme.animation)}
-          className={cn(
-            'absolute inset-0 size-full scale-105 object-cover transition-opacity duration-[2000ms]',
-            loaded === theme.animation ? 'opacity-100' : 'opacity-0',
-          )}
+      {GLOWS.map((glow, i) => (
+        <span
+          key={i}
+          className="absolute rounded-full motion-reduce:animate-none"
+          style={{
+            width: glow.size,
+            height: glow.size,
+            left: glow.left,
+            top: glow.top,
+            background: `radial-gradient(closest-side, ${rgb(sky.glows[i], 0.85)}, ${rgb(sky.glows[i], 0)})`,
+            animation: moving
+              ? `${glow.drift} ease-in-out infinite alternate`
+              : undefined,
+          }}
         />
-      )}
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,16,24,.72)_0%,rgba(4,16,24,.42)_38%,rgba(4,16,24,.28)_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,16,24,.35)_0%,transparent_22%,transparent_70%,rgba(4,16,24,.55)_100%)]" />
+      ))}
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,8,18,.35)_0%,transparent_45%)]" />
       <div
         className={cn(
-          'absolute inset-0 bg-[rgba(4,16,24,.55)] backdrop-blur-[6px] transition-opacity duration-[1200ms]',
+          'absolute inset-0 bg-[rgba(4,8,18,.45)] transition-opacity duration-[1200ms]',
           deep ? 'opacity-100' : 'opacity-0',
         )}
       />
