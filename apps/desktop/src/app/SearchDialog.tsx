@@ -4,7 +4,6 @@ import {
   CalendarRangeIcon,
   InboxIcon,
   NotebookPenIcon,
-  RepeatIcon,
   SunsetIcon,
   TimerIcon,
 } from 'lucide-react';
@@ -24,7 +23,7 @@ import { projectPath } from '@/features/projects/tree';
 import { PriorityCheck } from '@/features/tasks/PriorityCheck';
 import { useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
-import { mondayOf, todayKey } from '@/lib/time';
+import { mondayOf, shiftKey, todayKey } from '@/lib/time';
 
 export function SearchDialog({
   open,
@@ -66,19 +65,18 @@ export function SearchDialog({
       run: () => navigate({ to: '/projects/someday' }),
     },
     {
-      label: 'Reviews',
+      label: 'Reports',
       icon: NotebookPenIcon,
-      run: () => navigate({ to: '/reports/reviews' }),
+      run: () => navigate({ to: '/reports/weeks' }),
     },
     {
-      label: 'Time report',
+      label: 'Last week',
       icon: TimerIcon,
-      run: () => navigate({ to: '/reports/time', search: { week } }),
-    },
-    {
-      label: 'Habits',
-      icon: RepeatIcon,
-      run: () => navigate({ to: '/reports/habits', search: { week } }),
+      run: () =>
+        navigate({
+          to: '/reports/week/$week',
+          params: { week: shiftKey(week, -7) },
+        }),
     },
   ];
 

@@ -17,6 +17,8 @@ export type Preferences = {
   showWeather: boolean;
   weatherPlace: WeatherPlace | null;
   lastProject: string;
+  weekHabitsOpen: boolean;
+  weekProjectsOpen: boolean;
 };
 
 const defaults: Preferences = {
@@ -28,6 +30,8 @@ const defaults: Preferences = {
   showWeather: true,
   weatherPlace: null,
   lastProject: 'inbox',
+  weekHabitsOpen: false,
+  weekProjectsOpen: false,
 };
 
 const BACKDROP_MODES: ZenBackdropMode[] = ['motion', 'still'];

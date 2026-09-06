@@ -35,6 +35,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
+import { OutcomePicker } from '@/features/review/OutcomePicker';
+import { useWeek } from '@/features/review/api';
 import { useStartTimer, useStopTimer, useTimer } from '@/features/time/api';
 import { useNow } from '@/hooks/use-now';
 import {
@@ -42,6 +44,9 @@ import {
   formatEstimate,
   formatStopwatch,
   fromDateKey,
+  mondayOf,
+  shiftKey,
+  todayKey,
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
@@ -53,6 +58,7 @@ import {
   useMoveTask,
   useSections,
   useSetTaskCompleted,
+  useSetTaskOutcome,
   useSetTasksSomeday,
   useTaskIndex,
   useUpdateTask,
@@ -175,6 +181,7 @@ export function TaskPanel({
       />
 
       <Details task={task} save={save} />
+      <Serves task={task} />
 
       <div className="mt-8 grid min-h-0 max-w-2xl content-start gap-8 overflow-y-auto pr-2">
         {task.nextStep && (
@@ -277,6 +284,33 @@ function Details({
           {part}
         </span>
       ))}
+    </p>
+  );
+}
+
+function Serves({ task }: { task: Task }) {
+  const thisMonday = mondayOf(todayKey());
+  const { data: current } = useWeek(thisMonday);
+  const { data: next } = useWeek(shiftKey(thisMonday, 7));
+  const setOutcome = useSetTaskOutcome();
+  const available =
+    (current?.outcomes.length ?? 0) + (next?.outcomes.length ?? 0) > 0;
+  if (!available && task.outcomeId === null) return null;
+  return (
+    <p className="mt-1.5 text-[15px] text-foreground/45">
+      Serves{' '}
+      <OutcomePicker
+        value={task.outcomeId}
+        onChange={(outcomeId) => setOutcome.mutate({ id: task.id, outcomeId })}
+        trigger={(selected) => (
+          <Phrase set={task.outcomeId !== null}>
+            {selected?.title ??
+              (task.outcomeId !== null
+                ? 'an earlier outcome'
+                : 'no outcome yet')}
+          </Phrase>
+        )}
+      />
     </p>
   );
 }

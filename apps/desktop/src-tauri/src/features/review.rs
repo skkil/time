@@ -99,6 +99,9 @@ pub struct WeekSummary {
     pub reviewed_at: Option<Timestamp>,
     pub outcomes_total: i32,
     pub outcomes_achieved: i32,
+    pub tracked_seconds: Seconds,
+    pub planned_seconds: Seconds,
+    pub tasks_completed: i32,
 }
 
 #[derive(Debug, Serialize, Type)]
@@ -267,24 +270,43 @@ pub fn week(conn: &Connection, date: Date) -> Result<Week> {
     })
 }
 
+pub fn week_summary(conn: &Connection, start: Date) -> Result<WeekSummary> {
+    let (from, to) = (start.start(), start.add_days(7).start());
+    Ok(conn.query_row(
+        "SELECT w.felt, COALESCE(w.step, 0), w.reviewed_at,
+                (SELECT COUNT(*) FROM outcome o WHERE o.week_start = ?1),
+                (SELECT COUNT(*) FROM outcome o WHERE o.week_start = ?1 AND o.status = 'achieved'),
+                (SELECT COALESCE(SUM(ended_at - started_at), 0) FROM time_entry
+                  WHERE started_at >= ?2 AND started_at < ?3),
+                (SELECT COALESCE(SUM(end_at - start_at), 0) FROM time_block
+                  WHERE start_at >= ?2 AND start_at < ?3),
+                (SELECT COUNT(*) FROM task WHERE completed_at >= ?2 AND completed_at < ?3)
+           FROM (SELECT 1) LEFT JOIN week w ON w.start_date = ?1",
+        params![start, from, to],
+        |row| {
+            Ok(WeekSummary {
+                start_date: start,
+                felt: row.get(0)?,
+                step: row.get(1)?,
+                reviewed_at: row.get(2)?,
+                outcomes_total: row.get(3)?,
+                outcomes_achieved: row.get(4)?,
+                tracked_seconds: row.get(5)?,
+                planned_seconds: row.get(6)?,
+                tasks_completed: row.get(7)?,
+            })
+        },
+    )?)
+}
+
 pub fn weeks(conn: &Connection, from: Date, to: Date) -> Result<Vec<WeekSummary>> {
-    let mut stmt = conn.prepare(
-        "SELECT w.start_date, w.felt, w.step, w.reviewed_at,
-                (SELECT COUNT(*) FROM outcome o WHERE o.week_start = w.start_date),
-                (SELECT COUNT(*) FROM outcome o WHERE o.week_start = w.start_date AND o.status = 'achieved')
-           FROM week w WHERE w.start_date >= ?1 AND w.start_date < ?2 ORDER BY w.start_date DESC",
-    )?;
-    let rows = stmt.query_map(params![from.monday(), to], |row| {
-        Ok(WeekSummary {
-            start_date: row.get(0)?,
-            felt: row.get(1)?,
-            step: row.get(2)?,
-            reviewed_at: row.get(3)?,
-            outcomes_total: row.get(4)?,
-            outcomes_achieved: row.get(5)?,
-        })
-    })?;
-    Ok(rows.collect::<rusqlite::Result<_>>()?)
+    let mut summaries = Vec::new();
+    let mut start = to.add_days(-1).monday();
+    while start >= from.monday() {
+        summaries.push(week_summary(conn, start)?);
+        start = start.add_days(-7);
+    }
+    Ok(summaries)
 }
 
 pub fn save_notes(conn: &Connection, date: Date, notes: &WeekNotes) -> Result<()> {
@@ -696,7 +718,7 @@ pub async fn remove_priority(db: State<'_, Db>, id: Id) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::features::tasks;
+    use crate::features::{blocks, tasks, time_entries};
     use crate::types::date;
 
     #[test]
@@ -785,6 +807,45 @@ mod tests {
             let summary = &weeks(conn, monday, monday.add_days(7))?[0];
             assert_eq!(summary.felt, Some(3));
             assert!(summary.reviewed_at.is_some());
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn summarises_tracked_and_planned_time_by_start() {
+        let entry = || time_entries::EntryDetails {
+            description: String::new(),
+            project_id: None,
+            task_id: None,
+        };
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let monday = date("2026-11-02");
+            let task = tasks::create(conn, &tasks::input("Write", None))?;
+            let late_sunday = Timestamp(monday.start().0 - 1800);
+            time_entries::create(conn, &time_entries::EntryInput {
+                details: entry(),
+                started_at: late_sunday,
+                ended_at: Timestamp(late_sunday.0 + 3600),
+            })?;
+            time_entries::create(conn, &time_entries::EntryInput {
+                details: entry(),
+                started_at: Timestamp(monday.start().0 + 3600),
+                ended_at: Timestamp(monday.start().0 + 5400),
+            })?;
+            blocks::create(conn, task.id, &blocks::BlockSpan {
+                start_at: Timestamp(monday.start().0 + 7200),
+                end_at: Timestamp(monday.start().0 + 14400),
+            })?;
+
+            let summaries = weeks(conn, monday.add_days(-7), monday.add_days(7))?;
+            assert_eq!(summaries.len(), 2);
+            assert_eq!(summaries[0].start_date, monday);
+            assert_eq!(summaries[0].tracked_seconds, Seconds(1800));
+            assert_eq!(summaries[0].planned_seconds, Seconds(7200));
+            assert_eq!(summaries[1].tracked_seconds, Seconds(3600));
+            assert_eq!(summaries[1].reviewed_at, None);
             Ok(())
         })
         .unwrap();

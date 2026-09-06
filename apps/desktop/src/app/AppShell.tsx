@@ -17,6 +17,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useHabitSync } from '@/features/habits/api';
 import { RitualProvider } from '@/features/rituals/RitualProvider';
 import { useRitualRunner } from '@/features/rituals/runner-context';
 import { SettingsDialog } from '@/features/settings/SettingsDialog';
@@ -50,6 +51,7 @@ const SPACES: { id: Space; label: string; keys: string }[] = [
 ];
 
 function Canvas() {
+  useHabitSync();
   const { newTask } = useTaskDialog();
   const { active } = useRitualRunner();
   const navigate = useNavigate();
@@ -93,19 +95,23 @@ function Canvas() {
       keys: option.keys,
       run: () => void go(option.id),
     })),
-    { keys: 'Mod+4', run: () => navigate({ to: '/reports/reviews' }) },
+    { keys: 'Mod+4', run: () => navigate({ to: '/reports/weeks' }) },
     ...zoomShortcuts,
   ]);
 
   return (
     <div className="relative h-full overflow-hidden text-foreground">
-      <ZenBackdrop deep={active !== null} className="fixed" />
+      <ZenBackdrop
+        deep={active !== null}
+        dusk={location.pathname.startsWith('/reports')}
+        className="fixed"
+      />
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 grid grid-cols-[1fr_auto_1fr] items-center px-6 pt-5">
         <div className="pointer-events-auto justify-self-start">
           <ProfileMenu
             onSearch={() => setSearching(true)}
             onSettings={() => setSettingsOpen(true)}
-            onReports={() => navigate({ to: '/reports/reviews' })}
+            onReports={() => navigate({ to: '/reports/weeks' })}
             onAdd={() => newTask()}
           />
         </div>

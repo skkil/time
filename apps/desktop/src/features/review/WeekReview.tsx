@@ -32,7 +32,7 @@ import { ClearDeck } from './ClearDeck';
 import { OutcomeCard } from './OutcomeCard';
 import { OutcomePicker } from './OutcomePicker';
 import { OutcomePlanner } from './OutcomePlanner';
-import { QuarterSetup } from './QuarterPanel';
+import { QuarterSetup } from './QuarterSetup';
 import {
   useFinishWeek,
   useQuarter,
@@ -205,7 +205,7 @@ function ReviewFlow({
         <footer className="flex justify-end border-t pt-4">
           <Button
             onClick={() =>
-              onDone ? onDone() : navigate({ to: '/reports/reviews' })
+              onDone ? onDone() : navigate({ to: '/reports/weeks' })
             }
           >
             {onDone ? 'Close' : 'Back to Reviews'}

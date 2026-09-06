@@ -6,16 +6,16 @@ import {
   redirect,
 } from '@tanstack/react-router';
 
-import { HabitsPage } from '@/features/habits/HabitsPage';
 import { MainPage } from '@/features/main/MainPage';
 import { ProjectsSpace } from '@/features/projects/ProjectsSpace';
+import { QuarterPage } from '@/features/reports/QuarterPage';
 import { ReportsPage } from '@/features/reports/ReportsPage';
-import { ReviewHome } from '@/features/review/ReviewHome';
+import { WeekPage } from '@/features/reports/WeekPage';
+import { WeeksList } from '@/features/reports/WeeksList';
 import { WeekReview } from '@/features/review/WeekReview';
 import { ProjectView } from '@/features/tasks/ProjectView';
 import { SomedayPage } from '@/features/tasks/SomedayPage';
-import { TimePage } from '@/features/time/TimePage';
-import { type DateKey, mondayOf, todayKey } from '@/lib/time';
+import { type DateKey, mondayOf, shiftKey, todayKey } from '@/lib/time';
 
 import { AppShell } from './AppShell';
 import { RouteError } from './RouteError';
@@ -136,56 +136,84 @@ const reportsIndexRoute = createRoute({
   getParentRoute: () => reportsRoute,
   path: '/',
   beforeLoad: () => {
-    throw redirect({ to: '/reports/reviews' });
+    throw redirect({ to: '/reports/weeks' });
   },
 });
 
-export const timeRoute = createRoute({
+const weeksRoute = createRoute({
   getParentRoute: () => reportsRoute,
-  path: '/time',
-  validateSearch: validateWeek,
-  component: TimePage,
+  path: '/weeks',
+  component: WeeksList,
 });
 
-export const habitsRoute = createRoute({
+const weekParams = {
+  parse: (params: { week: string }) => ({
+    week: mondayOf(DATE_KEY.test(params.week) ? params.week : todayKey()),
+  }),
+  stringify: (params: { week: DateKey }) => ({ week: params.week }),
+};
+
+export const reportWeekRoute = createRoute({
   getParentRoute: () => reportsRoute,
-  path: '/habits',
-  validateSearch: validateWeek,
-  component: HabitsPage,
+  path: '/week/$week',
+  params: weekParams,
+  component: function ReportWeekRoute() {
+    const { week } = reportWeekRoute.useParams();
+    return <WeekPage key={week} week={week} />;
+  },
 });
 
-const reviewsRoute = createRoute({
+export const reportQuarterRoute = createRoute({
   getParentRoute: () => reportsRoute,
-  path: '/reviews',
-  component: ReviewHome,
+  path: '/quarter/$week',
+  params: weekParams,
+  component: function ReportQuarterRoute() {
+    const { week } = reportQuarterRoute.useParams();
+    return <QuarterPage key={week} week={week} />;
+  },
 });
+
+const lastWeekRedirect = () => {
+  throw redirect({
+    to: '/reports/week/$week',
+    params: { week: shiftKey(mondayOf(todayKey()), -7) },
+  });
+};
+
+const legacyReportRoutes = [
+  createRoute({
+    getParentRoute: () => reportsRoute,
+    path: '/reviews',
+    beforeLoad: () => {
+      throw redirect({ to: '/reports/weeks' });
+    },
+  }),
+  ...(['time', 'habits'] as const).map((page) =>
+    createRoute({
+      getParentRoute: () => reportsRoute,
+      path: `/${page}`,
+      beforeLoad: lastWeekRedirect,
+    }),
+  ),
+];
 
 const legacyRoutes = (['time', 'habits', 'review'] as const).map((page) =>
   createRoute({
     getParentRoute: () => rootRoute,
     path: `/${page}`,
-    beforeLoad: () => {
-      throw redirect(
-        page === 'review'
-          ? { to: '/reports/reviews' }
-          : {
-              to: page === 'time' ? '/reports/time' : '/reports/habits',
-              search: { week: mondayOf(todayKey()) },
-            },
-      );
-    },
+    beforeLoad:
+      page === 'review'
+        ? () => {
+            throw redirect({ to: '/reports/weeks' });
+          }
+        : lastWeekRedirect,
   }),
 );
 
 export const weekReviewRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/review/$week',
-  params: {
-    parse: (params) => ({
-      week: mondayOf(DATE_KEY.test(params.week) ? params.week : todayKey()),
-    }),
-    stringify: (params) => ({ week: params.week }),
-  },
+  params: weekParams,
   component: function WeekReviewRoute() {
     const { week } = weekReviewRoute.useParams();
     return <WeekReview week={week} />;
@@ -206,9 +234,10 @@ const routeTree = rootRoute.addChildren([
   ]),
   reportsRoute.addChildren([
     reportsIndexRoute,
-    timeRoute,
-    habitsRoute,
-    reviewsRoute,
+    weeksRoute,
+    reportWeekRoute,
+    reportQuarterRoute,
+    ...legacyReportRoutes,
   ]),
   ...legacyRoutes,
   weekReviewRoute,

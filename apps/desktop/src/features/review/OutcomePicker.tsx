@@ -1,5 +1,5 @@
 import { CheckIcon, GoalIcon } from 'lucide-react';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 
 import type { Id, Outcome } from '@/bindings';
 import {
@@ -17,10 +17,12 @@ export function OutcomePicker({
   value,
   onChange,
   weeks = [mondayOf(todayKey()), shiftKey(mondayOf(todayKey()), 7)],
+  trigger,
 }: {
   value: Id | null;
   onChange: (value: Id | null) => void;
   weeks?: [DateKey, DateKey] | [DateKey];
+  trigger?: (selected: Outcome | undefined) => ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const { data: first } = useWeek(weeks[0]);
@@ -39,13 +41,16 @@ export function OutcomePicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Chip
-          active={value !== null}
-          icon={<GoalIcon />}
-          onClear={() => onChange(null)}
-        >
-          {selected?.title ?? (value !== null ? 'Earlier outcome' : 'Outcome')}
-        </Chip>
+        {trigger?.(selected) ?? (
+          <Chip
+            active={value !== null}
+            icon={<GoalIcon />}
+            onClear={() => onChange(null)}
+          >
+            {selected?.title ??
+              (value !== null ? 'Earlier outcome' : 'Outcome')}
+          </Chip>
+        )}
       </PopoverTrigger>
       <PopoverContent className="w-72 p-1" align="start">
         {groups.map(
@@ -74,7 +79,7 @@ export function OutcomePicker({
         )}
         {!all.some(choosable) && (
           <p className="px-2 py-2 text-sm text-muted-foreground">
-            No open outcomes to link. Add them on the Review page.
+            No open outcomes to link. Add them in Week.
           </p>
         )}
       </PopoverContent>

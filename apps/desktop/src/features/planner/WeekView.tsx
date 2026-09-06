@@ -11,6 +11,7 @@ import {
   shiftKey,
 } from '@/lib/time';
 
+import { PlanStrip, QuarterLine } from './PlanStrip';
 import { ScheduleView } from './ScheduleView';
 import { useBlocks } from './api';
 
@@ -44,11 +45,13 @@ export function WeekView({ week }: { week: DateKey }) {
           formatWeekRange(week),
           <Stat value={formatDuration(totals.planned)} label="planned" />,
           <Stat value={formatDuration(totals.tracked)} label="tracked" />,
+          <QuarterLine week={week} />,
         ]}
         actions={
           <WeekSwitcher week={week} onChange={(next) => go({ week: next })} />
         }
       />
+      <PlanStrip week={week} />
       <ScheduleView week={week} />
     </Page>
   );

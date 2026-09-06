@@ -42,7 +42,8 @@ export function useHabitSync() {
       return report;
     },
     refetchInterval: SYNC_INTERVAL_MS,
-    staleTime: 60_000,
+    refetchOnWindowFocus: true,
+    staleTime: SYNC_INTERVAL_MS,
   });
 }
 

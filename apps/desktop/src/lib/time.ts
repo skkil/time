@@ -70,6 +70,11 @@ export function formatDuration(seconds: number): string {
   return m === 0 ? `${h}h` : `${h}h ${String(m).padStart(2, '0')}m`;
 }
 
+export function formatHours(seconds: number): string {
+  const hours = Math.round((seconds / HOUR) * 10) / 10;
+  return Number.isInteger(hours) ? String(hours) : hours.toFixed(1);
+}
+
 export function formatStopwatch(seconds: number): string {
   const safe = Math.max(0, Math.floor(seconds));
   const h = Math.floor(safe / HOUR);

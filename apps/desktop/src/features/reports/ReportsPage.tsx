@@ -1,38 +1,41 @@
 import { Link, Outlet } from '@tanstack/react-router';
+import { ArrowLeftIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { mondayOf, todayKey } from '@/lib/time';
-
-const tab =
-  'flex h-9 items-center border-b-2 border-transparent px-1 text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-[status=active]:border-primary data-[status=active]:font-semibold data-[status=active]:text-foreground';
+import { cn } from '@/lib/utils';
 
 export function ReportsPage() {
-  const week = mondayOf(todayKey());
   return (
-    <div className="grid h-full grid-rows-[auto_minmax(0,1fr)]">
-      <nav aria-label="Reports" className="flex gap-6 px-8">
-        <Link to="/reports/reviews" className={tab}>
-          Reviews
-        </Link>
+    <div className="h-full overflow-y-auto">
+      <div className="mx-auto max-w-3xl px-8 pt-2 pb-24">
         <Link
-          to="/reports/time"
-          search={{ week }}
-          className={tab}
-          activeOptions={{ includeSearch: false }}
+          to="/"
+          search={{ view: 'day', week: mondayOf(todayKey()) }}
+          className="inline-flex items-center gap-1.5 text-sm text-foreground/50 hover:text-foreground"
         >
-          Time
+          <ArrowLeftIcon className="size-3.5" />
+          Day
         </Link>
-        <Link
-          to="/reports/habits"
-          search={{ week }}
-          className={tab}
-          activeOptions={{ includeSearch: false }}
-        >
-          Habits
-        </Link>
-      </nav>
-      <div className="min-h-0 overflow-hidden">
         <Outlet />
       </div>
     </div>
+  );
+}
+
+export function ReportSection({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn('grid gap-3', className)}>
+      <h2 className="text-xs tracking-wide text-foreground/45">{title}</h2>
+      {children}
+    </section>
   );
 }

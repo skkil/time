@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { HabitDots } from '@/features/habits/HabitDots';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
 import { useRitualRunner } from '@/features/rituals/runner-context';
@@ -148,6 +149,7 @@ function TodayLine() {
           .filter(Boolean)
           .join(' · ')}
       </p>
+      <HabitDots />
     </header>
   );
 }

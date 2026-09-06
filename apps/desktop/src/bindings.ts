@@ -374,5 +374,8 @@ export type WeekSummary = {
 	reviewedAt: Timestamp | null,
 	outcomesTotal: number,
 	outcomesAchieved: number,
+	trackedSeconds: Seconds,
+	plannedSeconds: Seconds,
+	tasksCompleted: number,
 };
 
