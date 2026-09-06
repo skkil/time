@@ -3,19 +3,14 @@ import type { useSortable } from '@dnd-kit/sortable';
 import {
   CalendarIcon,
   ChevronRightIcon,
-  GitForkIcon,
   GripVerticalIcon,
   IndentDecreaseIcon,
   IndentIncreaseIcon,
   MoreHorizontalIcon,
   PencilIcon,
   PlayIcon,
-  RedoIcon,
-  RepeatIcon,
   StarIcon,
   SunsetIcon,
-  TargetIcon,
-  TimerIcon,
   Trash2Icon,
 } from 'lucide-react';
 
@@ -34,7 +29,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
 import { useStartTimer, useTimer } from '@/features/time/api';
 import { formatDuration, formatEstimate, todayKey } from '@/lib/time';
@@ -52,13 +46,7 @@ import {
   useUpdateTask,
 } from './api';
 import { DuePicker, PriorityFlag } from './fields';
-import {
-  PRIORITIES,
-  dueTone,
-  dueToneClass,
-  formatDate,
-  formatDue,
-} from './meta';
+import { PRIORITIES, formatDate, formatDue } from './meta';
 import { useTaskDialog } from './task-dialog-context';
 
 export type TaskItemProps = {
@@ -112,8 +100,6 @@ export function TaskItem({
   const section = sections?.find((s) => s.id === task.sectionId);
   const parent =
     task.parentId === null ? undefined : tasks.byId.get(task.parentId);
-  const firstLine = task.notes.split('\n')[0];
-  const tone = task.dueDate ? dueTone(task.dueDate, today) : 'later';
   const save = (patch: Partial<ReturnType<typeof taskToInput>>) =>
     update.mutate({ id: task.id, input: { ...taskToInput(task), ...patch } });
 
@@ -122,8 +108,8 @@ export function TaskItem({
       className={cn(
         'group/task relative flex items-start gap-2.5',
         variant === 'row'
-          ? 'border-b py-2 pr-1'
-          : 'mb-2 rounded-lg border bg-card p-2.5 shadow-xs',
+          ? 'border-b border-white/[.06] py-2.5 pr-1'
+          : 'mb-2 rounded-2xl bg-white/[.06] p-3 ring-1 ring-white/10 backdrop-blur-md',
         dragging && 'opacity-40',
       )}
     >
@@ -179,82 +165,31 @@ export function TaskItem({
       >
         <span
           className={cn(
-            'block leading-5 break-words',
-            done && 'text-muted-foreground line-through',
+            'block text-[15px] leading-5 break-words',
+            done && 'text-foreground/40 line-through',
           )}
         >
           {task.title}
         </span>
-        {firstLine && (
-          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-            {firstLine}
-          </span>
-        )}
-        <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground empty:hidden">
-          {children.length > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <GitForkIcon className="size-3" />
-              {finished}/{children.length}
-            </span>
-          )}
-          {task.dueDate && (
-            <span
-              className={cn(
-                'inline-flex items-center gap-1',
-                !done && dueToneClass[tone],
-              )}
-            >
-              {task.recurrence ? (
-                <RepeatIcon className="size-3" />
-              ) : (
-                <CalendarIcon className="size-3" />
-              )}
-              {formatDue(task, today)}
-            </span>
-          )}
-          {task.deadline && (
-            <span
-              className={cn(
-                'inline-flex items-center gap-1',
-                !done && task.deadline < today && 'text-p1',
-              )}
-            >
-              <TargetIcon className="size-3" />
-              {formatDate(task.deadline, today)}
-            </span>
-          )}
-          {(task.estimateMinutes !== null || task.trackedSeconds > 0) && (
-            <span className="inline-flex items-center gap-1">
-              <TimerIcon className="size-3" />
-              {task.trackedSeconds > 0 && formatDuration(task.trackedSeconds)}
-              {task.trackedSeconds > 0 &&
-                task.estimateMinutes !== null &&
-                ' / '}
-              {task.estimateMinutes !== null &&
-                formatEstimate(task.estimateMinutes)}
-            </span>
-          )}
-          {!done && task.rolloverCount >= 2 && (
-            <span
-              className="inline-flex items-center gap-1"
-              title="Pushed to a later day this many times"
-            >
-              <RedoIcon className="size-3" />
-              moved ×{task.rolloverCount}
-            </span>
-          )}
-          {showParent && parent && (
-            <span className="truncate">↳ {parent.title}</span>
-          )}
-          {showPlacement && variant === 'row' && (
-            <span className="ml-auto inline-flex min-w-0 items-center gap-1.5">
-              <span className="truncate">
-                {project?.name ?? 'Inbox'}
-                {section && ` / ${section.name}`}
-              </span>
-              <ProjectDot color={project?.color} />
-            </span>
-          )}
+        <span className="mt-0.5 block truncate text-xs text-foreground/45 empty:hidden">
+          {[
+            task.dueDate &&
+              `${formatDue(task, today)}${task.recurrence ? `, ${task.recurrence}` : ''}`,
+            task.deadline && `due by ${formatDate(task.deadline, today)}`,
+            task.estimateMinutes !== null &&
+              `about ${formatEstimate(task.estimateMinutes)}`,
+            task.trackedSeconds > 0 &&
+              `${formatDuration(task.trackedSeconds)} spent`,
+            children.length > 0 && `${finished} of ${children.length} steps`,
+            task.priority < 4 && `priority ${task.priority}`,
+            !done && task.rolloverCount >= 2 && `moved ${task.rolloverCount}×`,
+            showParent && parent && `in ${parent.title}`,
+            showPlacement &&
+              variant === 'row' &&
+              `${project?.name ?? 'Inbox'}${section ? ` / ${section.name}` : ''}`,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         </span>
       </button>
 

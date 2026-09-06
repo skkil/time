@@ -1,6 +1,6 @@
 # skkil-time (working name; folder: personal-time) · PRODUCT.md
 
-_Updated 2026-11-01 · Stage: idea / pre-validation · **Current spec: spec-v1-2026-10-23.md; shell rework: spec-simple-shell-2026-11-01.md (awaiting approval)**_
+_Updated 2026-11-02 · Stage: idea / pre-validation · **Current specs: spec-v1-2026-10-23.md; shell: spec-simple-shell-2026-11-01.md (built); IA: spec-organize-2026-11-02.md (ready to build)**_
 
 - **Owner context:** solo developer, side project, side-income goal; global English-speaking market first; founder uses Linux.
 - **Job (2026-10-23):** "Let me plan my week in time, then show me honestly what I and my agents actually shipped versus what I intended, without timers and without my data leaving my devices."
@@ -19,6 +19,7 @@ _Updated 2026-11-01 · Stage: idea / pre-validation · **Current spec: spec-v1-2
 - 2026-11-01 (founder): simplify the shell. Main page = Day/Week toggle (top centre); Day shows the running task (timer on) or today's outline; Week shows the timetable. Time, Habits, Review fold into one "Reports" page (full page, calming visual, not corporate). Projects open from a button (drawer, TBD); per-project configuration wanted (research pass). Future tasks added from a separate button/panel. Labels dropped entirely. Zen mode with full WebGL water backdrop, built in small steps. Review mode becomes configurable rituals (morning, evening, sleep, weekly, per-task after-session review); detailed plan required before implementation. Design pass (Rebecca) later.
 - (pending founder, 2026-11-01) usability pivot: Today as the single daily screen with a "Plan today" step; "Clear the deck" replaces the review's "The week" step; outcome carry limit of 2; habits move from streaks to "x of last 14 days" plus skip days. See research/2026-11-01-usable-flow-synthesis.md.
 - 2026-11-02 (founder): IA "plan where you live, look back by period" approved, all three parts incl. habit setup from Week's habit row. Spec: spec-organize-2026-11-02.md. Day/Week carry plan + doing (outcomes, habits, quarter line on Week; habits logged on Day). Reports becomes read-only and organized by period (Week N page, Quarter page) instead of tabs by data type (Time/Habits/Reviews). Rituals are the only bridge between horizons.
+- (pending founder, 2026-11-02) project task model: fixed core (base kind task/event, 5 status categories) + per-project item types, statuses, milestones, saved views, set up from presets (Simple, Software, Course, Writing, Pipeline); no custom fields in v1; build after spec-organize. See research/2026-11-02-project-task-structure.md.
 - (pending founder) beachhead = AI-assisted solo builders; desktop-first; freemium with paid sync; ~$10/mo Plus.
 
 ## Assumptions to validate

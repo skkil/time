@@ -36,7 +36,7 @@ function SheetContent({
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          'fixed inset-y-0 z-50 flex w-80 flex-col bg-popover text-popover-foreground shadow-[0_8px_24px_rgba(26,29,33,.14)] duration-200 outline-none data-open:animate-in data-closed:animate-out',
+          'fixed inset-y-0 z-50 flex w-80 flex-col bg-popover text-popover-foreground shadow-[0_8px_24px_rgba(26,29,33,.14)] backdrop-blur-2xl backdrop-saturate-150 duration-200 outline-none data-open:animate-in data-closed:animate-out',
           side === 'left'
             ? 'left-0 border-r data-open:slide-in-from-left data-closed:slide-out-to-left'
             : 'right-0 border-l data-open:slide-in-from-right data-closed:slide-out-to-right',

@@ -1,14 +1,8 @@
 import { format } from 'date-fns';
-import {
-  CheckIcon,
-  PencilLineIcon,
-  PlayIcon,
-  PlusIcon,
-  SquareIcon,
-} from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-import type { Id, Task } from '@/bindings';
+import type { Id } from '@/bindings';
 import {
   Dialog,
   DialogContent,
@@ -19,19 +13,13 @@ import {
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
 import { useRitualRunner } from '@/features/rituals/runner-context';
-import { useSetTaskCompleted, useTaskIndex } from '@/features/tasks/api';
+import { TaskPanel } from '@/features/tasks/TaskPanel';
+import { useTaskIndex } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
-import { useStartTimer, useStopTimer, useTimer } from '@/features/time/api';
+import { useTimer } from '@/features/time/api';
 import { useNow } from '@/hooks/use-now';
 import { usePreference } from '@/lib/preferences';
-import {
-  formatClockTime,
-  formatDuration,
-  formatEstimate,
-  formatStopwatch,
-  fromDateKey,
-  todayKey,
-} from '@/lib/time';
+import { formatClockTime, fromDateKey, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 import { Leftovers } from './Leftovers';
@@ -315,7 +303,7 @@ function Focus({ taskId }: { taskId: Id | null }) {
   return (
     <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-700 fade-in-0 slide-in-from-bottom-2">
       {task ? (
-        <TaskFocus task={task} />
+        <TaskPanel key={task.id} task={task} />
       ) : (
         <div className="m-auto max-w-sm text-center">
           <p className="text-2xl font-light text-foreground/80">
@@ -326,120 +314,6 @@ function Focus({ taskId }: { taskId: Id | null }) {
           </p>
         </div>
       )}
-    </div>
-  );
-}
-
-function TaskFocus({ task }: { task: Task }) {
-  const { data: timer } = useTimer();
-  const start = useStartTimer();
-  const stop = useStopTimer();
-  const complete = useSetTaskCompleted();
-  const { openTask } = useTaskDialog();
-  const index = useProjectIndex();
-  const running = timer?.taskId === task.id;
-  const now = useNow(1000, running);
-  const project =
-    task.projectId !== null ? index.byId.get(task.projectId) : undefined;
-  const done = task.completedAt !== null;
-
-  const facts = [
-    task.estimateMinutes && `About ${formatEstimate(task.estimateMinutes)}`,
-    task.trackedSeconds > 0 && `${formatDuration(task.trackedSeconds)} so far`,
-    task.deadline && `Due by ${format(fromDateKey(task.deadline), 'd MMM')}`,
-  ].filter(Boolean);
-
-  return (
-    <div className="flex h-full flex-col">
-      <p className="flex items-center gap-2 text-sm text-foreground/60">
-        {project ? (
-          <>
-            <ProjectDot color={project.color} />
-            {project.name}
-          </>
-        ) : (
-          'Inbox'
-        )}
-      </p>
-      <h2
-        className={cn(
-          'mt-4 max-w-2xl text-4xl leading-tight font-light text-balance',
-          done && 'text-foreground/50 line-through',
-        )}
-      >
-        {task.title}
-      </h2>
-      {facts.length > 0 && (
-        <p className="mt-3 text-sm text-foreground/55">{facts.join(' · ')}</p>
-      )}
-
-      <div className="mt-10 grid max-w-2xl gap-8 overflow-y-auto">
-        {task.nextStep && (
-          <div>
-            <p className="text-xs tracking-wide text-foreground/45">
-              Where you left off
-            </p>
-            <p className="mt-1.5 text-lg font-light">{task.nextStep}</p>
-          </div>
-        )}
-        {task.notes && (
-          <p className="text-[15px] leading-relaxed whitespace-pre-line text-foreground/75">
-            {task.notes}
-          </p>
-        )}
-      </div>
-
-      <div className="mt-auto flex flex-wrap items-center gap-3 pt-10">
-        {running ? (
-          <>
-            <span className="text-5xl font-extralight tracking-tight tabular-nums">
-              {formatStopwatch(now - timer.startedAt)}
-            </span>
-            <button
-              type="button"
-              onClick={() => stop.mutate(undefined)}
-              className="ml-4 flex items-center gap-2 rounded-full bg-white/90 px-5 py-2.5 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
-            >
-              <SquareIcon className="size-3.5 fill-current" />
-              Stop
-            </button>
-          </>
-        ) : (
-          !done && (
-            <button
-              type="button"
-              disabled={start.isPending}
-              onClick={() =>
-                start.mutate({
-                  description: task.title,
-                  projectId: task.projectId,
-                  taskId: task.id,
-                })
-              }
-              className="flex items-center gap-2 rounded-full bg-white/90 px-5 py-2.5 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
-            >
-              <PlayIcon className="size-3.5 fill-current" />
-              Begin
-            </button>
-          )
-        )}
-        <button
-          type="button"
-          onClick={() => complete.mutate({ id: task.id, completed: !done })}
-          className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm text-foreground/75 ring-1 ring-white/20 transition-colors hover:bg-white/10 hover:text-foreground"
-        >
-          <CheckIcon className="size-4" strokeWidth={1.5} />
-          {done ? 'Not done' : 'Done'}
-        </button>
-        <button
-          type="button"
-          onClick={() => openTask(task.id)}
-          className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm text-foreground/60 transition-colors hover:bg-white/10 hover:text-foreground"
-        >
-          <PencilLineIcon className="size-4" strokeWidth={1.5} />
-          Edit
-        </button>
-      </div>
     </div>
   );
 }

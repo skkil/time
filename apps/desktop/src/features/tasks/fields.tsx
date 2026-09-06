@@ -292,23 +292,27 @@ export function DuePicker({
 export function DeadlinePicker({
   value,
   onChange,
+  trigger,
 }: {
   value: DateKey | null;
   onChange: (value: DateKey | null) => void;
+  trigger?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const overdue = value !== null && value < todayKey();
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Chip
-          active={value !== null}
-          icon={<TargetIcon className={cn(overdue && 'text-p1')} />}
-          className={cn(overdue && 'text-p1')}
-          onClear={() => onChange(null)}
-        >
-          {value ? formatDate(value) : 'Deadline'}
-        </Chip>
+        {trigger ?? (
+          <Chip
+            active={value !== null}
+            icon={<TargetIcon className={cn(overdue && 'text-p1')} />}
+            className={cn(overdue && 'text-p1')}
+            onClear={() => onChange(null)}
+          >
+            {value ? formatDate(value) : 'Deadline'}
+          </Chip>
+        )}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
@@ -345,21 +349,25 @@ export function PriorityFlag({
 export function PriorityPicker({
   value,
   onChange,
+  trigger,
 }: {
   value: number;
   onChange: (value: number) => void;
+  trigger?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Chip
-          active={value < 4}
-          icon={<PriorityFlag priority={value} />}
-          onClear={() => onChange(4)}
-        >
-          {value < 4 ? `P${value}` : 'Priority'}
-        </Chip>
+        {trigger ?? (
+          <Chip
+            active={value < 4}
+            icon={<PriorityFlag priority={value} />}
+            onClear={() => onChange(4)}
+          >
+            {value < 4 ? `P${value}` : 'Priority'}
+          </Chip>
+        )}
       </PopoverTrigger>
       <PopoverContent className="w-44 p-1" align="start">
         {PRIORITIES.map((priority) => (
@@ -387,9 +395,11 @@ const ESTIMATE_PRESETS = [15, 30, 45, 60, 90, 120, 180];
 export function EstimatePicker({
   value,
   onChange,
+  trigger,
 }: {
   value: number | null;
   onChange: (value: number | null) => void;
+  trigger?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
@@ -404,13 +414,15 @@ export function EstimatePicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Chip
-          active={value !== null}
-          icon={<TimerIcon />}
-          onClear={() => onChange(null)}
-        >
-          {value ? formatEstimate(value) : 'Duration'}
-        </Chip>
+        {trigger ?? (
+          <Chip
+            active={value !== null}
+            icon={<TimerIcon />}
+            onClear={() => onChange(null)}
+          >
+            {value ? formatEstimate(value) : 'Duration'}
+          </Chip>
+        )}
       </PopoverTrigger>
       <PopoverContent className="w-60 p-2" align="start">
         <div className="grid grid-cols-4 gap-1">
@@ -457,10 +469,12 @@ export type Placement = { projectId: Id | null; sectionId: Id | null };
 export function PlacementPicker({
   value,
   onChange,
+  trigger,
   align = 'start',
 }: {
   value: Placement;
   onChange: (value: Placement) => void;
+  trigger?: ReactNode;
   align?: 'start' | 'end';
 }) {
   const index = useProjectIndex();
@@ -493,24 +507,26 @@ export function PlacementPicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="max-w-64 justify-start gap-1.5 font-normal"
-        >
-          {project ? (
-            <ProjectDot color={project.color} />
-          ) : (
-            <InboxIcon className="text-muted-foreground" />
-          )}
-          <span className="truncate">
-            {project?.name ?? 'Inbox'}
-            {section && (
-              <span className="text-muted-foreground"> / {section.name}</span>
+        {trigger ?? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="max-w-64 justify-start gap-1.5 font-normal"
+          >
+            {project ? (
+              <ProjectDot color={project.color} />
+            ) : (
+              <InboxIcon className="text-muted-foreground" />
             )}
-          </span>
-          <ChevronDownIcon className="text-muted-foreground" />
-        </Button>
+            <span className="truncate">
+              {project?.name ?? 'Inbox'}
+              {section && (
+                <span className="text-muted-foreground"> / {section.name}</span>
+              )}
+            </span>
+            <ChevronDownIcon className="text-muted-foreground" />
+          </Button>
+        )}
       </PopoverTrigger>
       <PopoverContent className="w-72 p-0" align={align}>
         <Command>

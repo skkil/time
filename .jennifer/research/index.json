@@ -94,6 +94,20 @@
    "added": "2026-10-23",
    "refreshed": "2026-10-23",
    "stale_days": 120
+  },
+  {
+   "path": "research/2026-11-02-project-task-structure.md",
+   "title": "Task structure inside projects: how much configurability, and of what",
+   "product": "personal-time",
+   "tags": [
+    "projects",
+    "configurability",
+    "task-model",
+    "competitors"
+   ],
+   "added": "2026-11-02",
+   "refreshed": "2026-11-02",
+   "stale_days": 120
   }
  ]
 }
