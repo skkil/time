@@ -1,7 +1,7 @@
 import { CheckIcon } from 'lucide-react';
 import { type FormEvent, type ReactNode, useState } from 'react';
 
-import type { Id, Project, ProjectSettings } from '@/bindings';
+import type { Id, Preset, Project, ProjectSettings } from '@/bindings';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,9 @@ import {
 } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { PresetPicker } from '@/features/workflow/PresetPicker';
+import { WorkflowSettings } from '@/features/workflow/WorkflowSettings';
+import { useApplyPreset } from '@/features/workflow/api';
 import { cn } from '@/lib/utils';
 
 import { ProjectPicker } from './ProjectPicker';
@@ -65,6 +68,7 @@ export function ProjectSheet({
             onDone={() => onOpenChange(false)}
           />
         )}
+        {open && project && <WorkflowSettings project={project} />}
       </SheetContent>
     </Sheet>
   );
@@ -126,6 +130,8 @@ function ProjectForm({
           inOrder: false,
         },
   );
+  const [preset, setPreset] = useState<Preset | null>(null);
+  const applyPreset = useApplyPreset();
   const set = (patch: Partial<ProjectSettings>) =>
     setSettings({ ...settings, ...patch });
 
@@ -154,6 +160,8 @@ function ProjectForm({
             killCriteria: '',
           },
     });
+    if (!project && preset && preset.key !== 'simple')
+      await applyPreset.mutateAsync({ id, preset });
     onDone();
   };
 
@@ -175,6 +183,12 @@ function ProjectForm({
           onChange={(event) => setName(event.target.value)}
         />
       </Field>
+
+      {!project && (
+        <Field label="Set up as">
+          <PresetPicker value={preset} onChange={setPreset} />
+        </Field>
+      )}
 
       <Field label="Kind">
         <ToggleGroup

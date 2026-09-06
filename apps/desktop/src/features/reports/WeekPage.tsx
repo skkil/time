@@ -15,6 +15,7 @@ import { useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { EntryDialog } from '@/features/time/EntryDialog';
 import { useTimeEntries } from '@/features/time/api';
+import { useTypeTime } from '@/features/workflow/api';
 import { FELT_LABELS } from '@/lib/felt';
 import {
   type DateKey,
@@ -36,7 +37,6 @@ import { cn } from '@/lib/utils';
 import { ReportSection } from './ReportsPage';
 import { pickInsight } from './insight';
 import { isHeldBack } from './period';
-import { useTimeByType } from './time-by-type';
 
 export function WeekPage({ week }: { week: DateKey }) {
   const today = todayKey();
@@ -110,7 +110,7 @@ function WeekBody({ week }: { week: DateKey }) {
   const { data: days = [] } = useDays(week, end);
   const { data: habits = [] } = useHabits();
   const { data: habitDays } = useHabitDays(week, end);
-  const byType = useTimeByType(entries);
+  const { data: byType = [] } = useTypeTime(week, end);
   const [habitsOpen, setHabitsOpen] = useState(false);
   const summary = summaries?.[0];
   const outcomes = (data?.outcomes ?? []).filter((o) => o.status !== 'dropped');

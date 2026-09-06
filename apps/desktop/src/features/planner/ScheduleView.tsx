@@ -18,7 +18,13 @@ import {
   useState,
 } from 'react';
 
-import type { Id, Task, TimeBlock, TimeEntry } from '@/bindings';
+import type {
+  EventOccurrence,
+  Id,
+  Task,
+  TimeBlock,
+  TimeEntry,
+} from '@/bindings';
 import {
   Tooltip,
   TooltipContent,
@@ -29,6 +35,7 @@ import { projectColorVar } from '@/features/projects/tree';
 import { useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { useTimeEntries, useTimer } from '@/features/time/api';
+import { useEvents } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
 import {
   type DateKey,
@@ -47,6 +54,7 @@ import {
 import { cn } from '@/lib/utils';
 
 import { BlockCard, type BlockDragData } from './BlockCard';
+import { EventCard } from './EventCard';
 import { type BlockSlot, NewBlockDialog } from './NewBlockDialog';
 import { DraggableTask, type TaskDragData, TaskRail } from './TaskRail';
 import {
@@ -92,6 +100,7 @@ export function ScheduleView({ week }: { week: DateKey }) {
   const days = useMemo(() => weekKeys(week), [week]);
   const today = todayKey();
   const { data: blocks = [] } = useBlocks(week);
+  const { data: events = [] } = useEvents(week, shiftKey(week, 7));
   const { data: entries = [] } = useTimeEntries(
     shiftKey(week, -1),
     shiftKey(week, 7),
@@ -140,7 +149,12 @@ export function ScheduleView({ week }: { week: DateKey }) {
   const dueByDay = useMemo(() => {
     const map = new Map<DateKey, Task[]>();
     for (const task of tasks) {
-      if (task.completedAt !== null || task.dueDate === null) continue;
+      if (
+        task.completedAt !== null ||
+        task.dueDate === null ||
+        task.kind === 'event'
+      )
+        continue;
       map.set(task.dueDate, [...(map.get(task.dueDate) ?? []), task]);
     }
     return map;
@@ -300,6 +314,7 @@ export function ScheduleView({ week }: { week: DateKey }) {
                   isToday={day === today}
                   now={now}
                   blocks={blocks}
+                  events={events}
                   entries={runningEntry ? [...entries, runningEntry] : entries}
                   runningTaskId={timer?.taskId ?? null}
                   preview={preview?.day === day ? preview : null}
@@ -404,6 +419,7 @@ type DayColumnProps = {
   isToday: boolean;
   now: number;
   blocks: TimeBlock[];
+  events: EventOccurrence[];
   entries: TimeEntry[];
   runningTaskId: Id | null;
   preview: Preview | null;
@@ -419,6 +435,7 @@ function DayColumn({
   isToday,
   now,
   blocks,
+  events,
   entries,
   runningTaskId,
   preview,
@@ -447,14 +464,30 @@ function DayColumn({
           ),
         };
       });
-    const lanes = layoutLanes(
-      own.map(({ block, start, end }) => ({ id: block.id, start, end })),
-    );
-    return own.map((item) => ({
-      ...item,
-      ...(lanes.get(item.block.id) ?? { lane: 0, lanes: 1 }),
-    }));
-  }, [blocks, day]);
+    const anchors = events
+      .filter((event) => dateKeyOf(event.startAt) === day)
+      .map((event, i) => {
+        const start = minutesIntoDay(event.startAt);
+        return {
+          event,
+          id: -(i + 1),
+          start,
+          end: Math.min(
+            start + (event.endAt - event.startAt) / 60,
+            DAY_MINUTES,
+          ),
+        };
+      });
+    const lanes = layoutLanes([
+      ...own.map(({ block, start, end }) => ({ id: block.id, start, end })),
+      ...anchors.map(({ id, start, end }) => ({ id, start, end })),
+    ]);
+    const lane = (id: number) => lanes.get(id) ?? { lane: 0, lanes: 1 };
+    return {
+      blocks: own.map((item) => ({ ...item, ...lane(item.block.id) })),
+      events: anchors.map((item) => ({ ...item, ...lane(item.id) })),
+    };
+  }, [blocks, events, day]);
 
   const actual = useMemo(
     () =>
@@ -493,7 +526,17 @@ function DayColumn({
         style={{ right: ACTUAL_STRIP + 2 }}
       >
         <div className="pointer-events-auto">
-          {placed.map(({ block, start, end, lane, lanes }) => (
+          {placed.events.map(({ event, start, end, lane, lanes }) => (
+            <EventCard
+              key={`${event.taskId}-${event.startAt}`}
+              event={event}
+              start={start}
+              end={end}
+              lane={lane}
+              lanes={lanes}
+            />
+          ))}
+          {placed.blocks.map(({ block, start, end, lane, lanes }) => (
             <BlockCard
               key={block.id}
               block={block}

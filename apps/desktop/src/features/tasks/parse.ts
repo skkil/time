@@ -18,7 +18,8 @@ export type TokenKind =
   | 'duration'
   | 'priority'
   | 'project'
-  | 'section';
+  | 'section'
+  | 'type';
 
 export type Token = { kind: TokenKind; start: number; end: number };
 
@@ -26,6 +27,7 @@ export type ParseContext = {
   today: DateKey;
   projects: { id: Id; name: string }[];
   sections: { id: Id; name: string; projectId: Id | null }[];
+  types?: { id: Id; name: string; projectId: Id }[];
   projectId: Id | null;
 };
 
@@ -40,6 +42,7 @@ export type Parsed = {
   priority?: number;
   projectId?: Id | null;
   sectionId?: Id;
+  typeId?: Id;
 };
 
 const DAY = String.raw`(?:monday|mon|tuesday|tue|wednesday|wed|thursday|thu|friday|fri|saturday|sat|sunday|sun)`;
@@ -289,6 +292,19 @@ export function parseQuickAdd(text: string, context: ParseContext): Parsed {
     if (section && free(match.index, end)) {
       tokens.push({ kind: 'section', start: match.index, end });
       result.sectionId = section.id;
+      break;
+    }
+  }
+
+  const types = (context.types ?? []).filter(
+    (type) => type.projectId === projectId,
+  );
+  for (const match of text.matchAll(/(?<=^|\s)\+/g)) {
+    const type = longestName(types, text, match.index + 1);
+    const end = match.index + 1 + (type?.name.length ?? 0);
+    if (type && free(match.index, end)) {
+      tokens.push({ kind: 'type', start: match.index, end });
+      result.typeId = type.id;
       break;
     }
   }

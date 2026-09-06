@@ -19,6 +19,7 @@ export type Preferences = {
   lastProject: string;
   weekHabitsOpen: boolean;
   weekProjectsOpen: boolean;
+  lastViews: Record<string, number>;
 };
 
 const defaults: Preferences = {
@@ -32,6 +33,7 @@ const defaults: Preferences = {
   lastProject: 'inbox',
   weekHabitsOpen: false,
   weekProjectsOpen: false,
+  lastViews: {},
 };
 
 const BACKDROP_MODES: ZenBackdropMode[] = ['motion', 'still'];

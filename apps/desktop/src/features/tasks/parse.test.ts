@@ -71,4 +71,19 @@ describe('parseQuickAdd', () => {
   it('uses the inbox sections when no project is set', () => {
     expect(parse('Idea /Backlog').sectionId).toBe(11);
   });
+
+  it('reads an item type from the target project', () => {
+    const parsed = parseQuickAdd('Fix login +Bug #App', {
+      today: '2026-11-02',
+      projects: [{ id: 7, name: 'App' }],
+      sections: [],
+      types: [
+        { id: 3, name: 'Bug', projectId: 7 },
+        { id: 4, name: 'Bug', projectId: 8 },
+      ],
+      projectId: null,
+    });
+    expect(parsed.typeId).toBe(3);
+    expect(parsed.title).toBe('Fix login');
+  });
 });

@@ -21,6 +21,8 @@ import { ProjectDot } from '@/features/projects/ProjectDot';
 import { ProjectSheet } from '@/features/projects/ProjectSheet';
 import { useProjectIndex, useSetProjectView } from '@/features/projects/api';
 import { projectPath } from '@/features/projects/tree';
+import { Workspace } from '@/features/workflow/Workspace';
+import { useProjectWorkflow } from '@/features/workflow/api';
 import { cn } from '@/lib/utils';
 
 import {
@@ -51,6 +53,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
   const [showCompleted, setShowCompleted] = useState(false);
   const project = projectId === null ? undefined : index.byId.get(projectId);
   const board = project?.view === 'board';
+  const { structured } = useProjectWorkflow(projectId);
 
   const { own, sections, completed, openCount } = useMemo(() => {
     const own = (tasks ?? []).filter((task) => task.projectId === projectId);
@@ -81,6 +84,78 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
   const archived = project?.archived ?? false;
   const unsectioned = topLevel(own, null);
 
+  const sectionList = (
+    <PageBody>
+      <div className="mx-auto max-w-3xl pl-10">
+        <TaskDnd>
+          <TaskList
+            tasks={unsectioned}
+            container={{ projectId, sectionId: null, parentId: null }}
+          />
+          {!archived && (
+            <AddTaskRow defaults={{ projectId, sectionId: null }} />
+          )}
+          {sections.map((section) => {
+            const sectionTasks = topLevel(own, section.id);
+            return (
+              <section key={section.id} aria-label={section.name}>
+                <AddSection onAdd={(name) => addSection(name, section.id)} />
+                <SectionHeader section={section} count={sectionTasks.length} />
+                {!section.collapsed && (
+                  <>
+                    <TaskList
+                      tasks={sectionTasks}
+                      container={{
+                        projectId,
+                        sectionId: section.id,
+                        parentId: null,
+                      }}
+                    />
+                    {!archived && (
+                      <AddTaskRow
+                        defaults={{ projectId, sectionId: section.id }}
+                      />
+                    )}
+                  </>
+                )}
+              </section>
+            );
+          })}
+        </TaskDnd>
+        {!archived && (
+          <AddSection
+            always={sections.length === 0}
+            onAdd={(name) => addSection(name)}
+          />
+        )}
+
+        {openCount === 0 && sections.length === 0 && !isPending && (
+          <EmptyState title={project ? 'Nothing open here.' : 'Inbox zero.'}>
+            {project
+              ? 'Add a task, or split the project into sections.'
+              : 'Tasks without a project land here. Press Q anywhere to add one.'}
+          </EmptyState>
+        )}
+
+        {showCompleted && (
+          <section aria-label="Completed" className="mt-8">
+            <h2 className="mb-1 border-b pb-2 font-sans text-sm font-semibold text-muted-foreground">
+              Completed{' '}
+              <span className="text-xs font-normal">{completed.length}</span>
+            </h2>
+            {completed.length > 0 ? (
+              <FlatTaskList tasks={completed} />
+            ) : (
+              <p className="py-3 text-sm text-muted-foreground">
+                Nothing completed in the last two weeks.
+              </p>
+            )}
+          </section>
+        )}
+      </div>
+    </PageBody>
+  );
+
   return (
     <Page>
       <PageHeader
@@ -103,7 +178,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
         ]}
         actions={
           <>
-            {project && (
+            {project && !structured && (
               <ToggleGroup
                 type="single"
                 variant="outline"
@@ -123,15 +198,17 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
                 </ToggleGroupItem>
               </ToggleGroup>
             )}
-            <Button
-              variant={showCompleted ? 'secondary' : 'outline'}
-              size="sm"
-              aria-pressed={showCompleted}
-              onClick={() => setShowCompleted((value) => !value)}
-            >
-              <CheckCircle2Icon />
-              Completed
-            </Button>
+            {!structured && (
+              <Button
+                variant={showCompleted ? 'secondary' : 'outline'}
+                size="sm"
+                aria-pressed={showCompleted}
+                onClick={() => setShowCompleted((value) => !value)}
+              >
+                <CheckCircle2Icon />
+                Completed
+              </Button>
+            )}
             {project && (
               <Button
                 variant="outline"
@@ -152,7 +229,14 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
         </div>
       )}
 
-      {board ? (
+      {structured && project ? (
+        <Workspace
+          project={project}
+          own={own}
+          sections={sections}
+          sectionList={sectionList}
+        />
+      ) : board ? (
         <BoardLayout
           projectId={projectId}
           own={own}
@@ -162,84 +246,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
           onAddSection={addSection}
         />
       ) : (
-        <PageBody>
-          <div className="mx-auto max-w-3xl pl-10">
-            <TaskDnd>
-              <TaskList
-                tasks={unsectioned}
-                container={{ projectId, sectionId: null, parentId: null }}
-              />
-              {!archived && (
-                <AddTaskRow defaults={{ projectId, sectionId: null }} />
-              )}
-              {sections.map((section) => {
-                const sectionTasks = topLevel(own, section.id);
-                return (
-                  <section key={section.id} aria-label={section.name}>
-                    <AddSection
-                      onAdd={(name) => addSection(name, section.id)}
-                    />
-                    <SectionHeader
-                      section={section}
-                      count={sectionTasks.length}
-                    />
-                    {!section.collapsed && (
-                      <>
-                        <TaskList
-                          tasks={sectionTasks}
-                          container={{
-                            projectId,
-                            sectionId: section.id,
-                            parentId: null,
-                          }}
-                        />
-                        {!archived && (
-                          <AddTaskRow
-                            defaults={{ projectId, sectionId: section.id }}
-                          />
-                        )}
-                      </>
-                    )}
-                  </section>
-                );
-              })}
-            </TaskDnd>
-            {!archived && (
-              <AddSection
-                always={sections.length === 0}
-                onAdd={(name) => addSection(name)}
-              />
-            )}
-
-            {openCount === 0 && sections.length === 0 && !isPending && (
-              <EmptyState
-                title={project ? 'Nothing open here.' : 'Inbox zero.'}
-              >
-                {project
-                  ? 'Add a task, or split the project into sections.'
-                  : 'Tasks without a project land here. Press Q anywhere to add one.'}
-              </EmptyState>
-            )}
-
-            {showCompleted && (
-              <section aria-label="Completed" className="mt-8">
-                <h2 className="mb-1 border-b pb-2 font-sans text-sm font-semibold text-muted-foreground">
-                  Completed{' '}
-                  <span className="text-xs font-normal">
-                    {completed.length}
-                  </span>
-                </h2>
-                {completed.length > 0 ? (
-                  <FlatTaskList tasks={completed} />
-                ) : (
-                  <p className="py-3 text-sm text-muted-foreground">
-                    Nothing completed in the last two weeks.
-                  </p>
-                )}
-              </section>
-            )}
-          </div>
-        </PageBody>
+        sectionList
       )}
 
       {project && (

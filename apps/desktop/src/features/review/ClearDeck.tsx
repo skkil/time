@@ -26,7 +26,8 @@ export function ClearDeck({ nextMonday }: { nextMonday: DateKey }) {
 
   const { inbox, stale, dueProjects, openCounts } = useMemo(() => {
     const open = (tasks ?? []).filter(
-      (task) => task.completedAt === null && !task.someday,
+      (task) =>
+        task.completedAt === null && !task.someday && task.kind !== 'event',
     );
     const counts = new Map<number, number>();
     for (const task of open)
@@ -43,8 +44,9 @@ export function ClearDeck({ nextMonday }: { nextMonday: DateKey }) {
       ),
       stale: open.filter(
         (task) =>
-          task.rolloverCount >= STALE_ROLLOVERS ||
-          (task.dueDate !== null && task.dueDate < cutoff),
+          task.statusCategory !== 'backlog' &&
+          (task.rolloverCount >= STALE_ROLLOVERS ||
+            (task.dueDate !== null && task.dueDate < cutoff)),
       ),
       dueProjects: (projects ?? []).filter((project) =>
         isDueForReview(project, nowSeconds()),

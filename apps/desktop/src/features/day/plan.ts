@@ -22,13 +22,15 @@ export type DayPlan = {
   plannedSeconds: number;
 };
 
-const isOpen = (task: Task) => task.completedAt === null && !task.someday;
+const isOpen = (task: Task) =>
+  task.completedAt === null && !task.someday && task.kind !== 'event';
 
 export function earlierTasks(tasks: Task[], date: DateKey) {
   return tasks
     .filter(
       (task) =>
         isOpen(task) &&
+        task.statusCategory !== 'backlog' &&
         task.dueDate !== null &&
         task.dueDate < date &&
         task.mustOn !== date,

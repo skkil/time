@@ -3,6 +3,7 @@ import { type FormEvent, useMemo, useState } from 'react';
 import type { TaskInput } from '@/bindings';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex, useProjects } from '@/features/projects/api';
+import { useSetTaskType, useWorkflow } from '@/features/workflow/api';
 import { formatEstimate, todayKey } from '@/lib/time';
 
 import { SmartInput } from './SmartInput';
@@ -22,6 +23,8 @@ export function QuickAdd({
   const { data: sections } = useSections();
   const index = useProjectIndex();
   const create = useCreateTask();
+  const { data: workflow } = useWorkflow();
+  const setType = useSetTaskType();
   const [text, setText] = useState('');
 
   const parsed = useMemo(
@@ -30,9 +33,10 @@ export function QuickAdd({
         today: todayKey(),
         projects: (projects ?? []).filter((project) => !project.archived),
         sections: sections ?? [],
+        types: workflow?.types ?? [],
         projectId: initial.projectId,
       }),
-    [text, projects, sections, initial.projectId],
+    [text, projects, sections, workflow, initial.projectId],
   );
 
   const task: TaskInput = {
@@ -57,7 +61,10 @@ export function QuickAdd({
   const project =
     task.projectId === null ? undefined : index.byId.get(task.projectId);
 
+  const type = workflow?.types.find((item) => item.id === parsed.typeId);
+  const needsTime = type?.kind === 'event' && task.dueTime === null;
   const understood = [
+    type && (needsTime ? `${type.name} needs a time` : type.name),
     task.dueDate && formatDue(task),
     task.recurrence,
     task.estimateMinutes && `about ${formatEstimate(task.estimateMinutes)}`,
@@ -66,8 +73,13 @@ export function QuickAdd({
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!task.title) return;
-    create.mutate(task, { onSuccess: onClose });
+    if (!task.title || needsTime) return;
+    create.mutate(task, {
+      onSuccess: (created) => {
+        if (type) setType.mutate({ id: created.id, typeId: type.id });
+        onClose();
+      },
+    });
   };
 
   return (
@@ -97,9 +109,11 @@ export function QuickAdd({
             {part}
           </span>
         ))}
-        <span className="ml-auto text-xs text-foreground/35">
-          tomorrow 3pm · #project · for 1h · Enter to add
-        </span>
+        {!text && (
+          <span className="ml-auto text-xs text-foreground/35">
+            tomorrow 3pm · #project · +type · for 1h · Enter to add
+          </span>
+        )}
       </p>
     </form>
   );

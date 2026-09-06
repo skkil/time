@@ -18,9 +18,10 @@ import { TaskPanel } from '@/features/tasks/TaskPanel';
 import { useTaskIndex } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { useTimer } from '@/features/time/api';
+import { useEvents } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
 import { usePreference } from '@/lib/preferences';
-import { formatClockTime, fromDateKey, todayKey } from '@/lib/time';
+import { formatClockTime, fromDateKey, shiftKey, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 import { Leftovers } from './Leftovers';
@@ -35,11 +36,13 @@ type Moment = {
   start: number | null;
   end: number | null;
   done: boolean;
+  event: boolean;
 };
 
 export function DayCanvas() {
   const today = todayKey();
   const plan = useDayPlan(today);
+  const { data: events = [] } = useEvents(today, shiftKey(today, 1));
   const { data: timer } = useTimer();
   const now = useNow(30_000);
   const [picked, setPicked] = useState<Id | null>(null);
@@ -54,6 +57,17 @@ export function DayCanvas() {
       start: block.startAt,
       end: block.endAt,
       done: block.completed,
+      event: false,
+    }));
+    const anchors = events.map((event) => ({
+      key: `event-${event.taskId}-${event.startAt}`,
+      taskId: event.taskId,
+      title: event.title,
+      projectId: event.projectId,
+      start: event.startAt,
+      end: event.endAt,
+      done: false,
+      event: true,
     }));
     const loose = [...plan.musts, ...plan.due].map((task) => ({
       key: `task-${task.id}`,
@@ -63,9 +77,13 @@ export function DayCanvas() {
       start: null,
       end: null,
       done: task.completedAt !== null,
+      event: false,
     }));
-    return [...timed, ...loose];
-  }, [plan.blocks, plan.musts, plan.due]);
+    return [
+      ...[...timed, ...anchors].sort((a, b) => a.start - b.start),
+      ...loose,
+    ];
+  }, [plan.blocks, plan.musts, plan.due, events]);
 
   const current = moments.find(
     (moment) =>
@@ -223,19 +241,31 @@ function Timeline({
                 className="group relative flex w-full items-start gap-5 py-3 text-left outline-none"
               >
                 <span className="relative mt-1 grid size-[15px] shrink-0 place-items-center">
-                  {live && (
-                    <span className="absolute inset-[-5px] animate-[ping_2.6s_cubic-bezier(0,0,.2,1)_infinite] rounded-full bg-white/25" />
+                  {moment.event ? (
+                    <span
+                      aria-label="Event"
+                      className={cn(
+                        'size-[11px] rotate-45 rounded-[2px] transition-colors duration-500',
+                        past ? 'bg-white/35' : 'bg-white/85',
+                      )}
+                    />
+                  ) : (
+                    <>
+                      {live && (
+                        <span className="absolute inset-[-5px] animate-[ping_2.6s_cubic-bezier(0,0,.2,1)_infinite] rounded-full bg-white/25" />
+                      )}
+                      <span
+                        className={cn(
+                          'size-[15px] rounded-full border transition-all duration-500',
+                          moment.done
+                            ? 'border-white/40 bg-white/40'
+                            : live || focused
+                              ? 'border-white bg-white'
+                              : 'border-white/60 bg-[rgba(8,22,30,.9)] group-hover:border-white',
+                        )}
+                      />
+                    </>
                   )}
-                  <span
-                    className={cn(
-                      'size-[15px] rounded-full border transition-all duration-500',
-                      moment.done
-                        ? 'border-white/40 bg-white/40'
-                        : live || focused
-                          ? 'border-white bg-white'
-                          : 'border-white/60 bg-[rgba(8,22,30,.9)] group-hover:border-white',
-                    )}
-                  />
                 </span>
                 <span className="grid min-w-0 gap-0.5">
                   <span

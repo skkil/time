@@ -31,6 +31,8 @@ import {
 } from '@/components/ui/tooltip';
 import { useProjectIndex } from '@/features/projects/api';
 import { useStartTimer, useTimer } from '@/features/time/api';
+import { TypeIcon } from '@/features/workflow/TypeIcon';
+import { useWorkflowIndex } from '@/features/workflow/api';
 import { formatDuration, formatEstimate, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
@@ -100,6 +102,13 @@ export function TaskItem({
   const section = sections?.find((s) => s.id === task.sectionId);
   const parent =
     task.parentId === null ? undefined : tasks.byId.get(task.parentId);
+  const workflowIndex = useWorkflowIndex();
+  const type =
+    task.typeId === null ? undefined : workflowIndex.types.get(task.typeId);
+  const status =
+    task.statusId === null
+      ? undefined
+      : workflowIndex.statuses.get(task.statusId);
   const save = (patch: Partial<ReturnType<typeof taskToInput>>) =>
     update.mutate({ id: task.id, input: { ...taskToInput(task), ...patch } });
 
@@ -150,13 +159,20 @@ export function TaskItem({
         )}
       </div>
 
-      <PriorityCheck
-        priority={task.priority}
-        checked={done}
-        label={done ? `Reopen ${task.title}` : `Complete ${task.title}`}
-        className="mt-0.5"
-        onToggle={() => complete.mutate({ id: task.id, completed: !done })}
-      />
+      {task.kind === 'event' ? (
+        <span
+          aria-label="Event"
+          className="mt-[5px] ml-[3px] size-[11px] shrink-0 rotate-45 rounded-[2px] bg-white/70"
+        />
+      ) : (
+        <PriorityCheck
+          priority={task.priority}
+          checked={done}
+          label={done ? `Reopen ${task.title}` : `Complete ${task.title}`}
+          className="mt-0.5"
+          onToggle={() => complete.mutate({ id: task.id, completed: !done })}
+        />
+      )}
 
       <button
         type="button"
@@ -165,14 +181,21 @@ export function TaskItem({
       >
         <span
           className={cn(
-            'block text-[15px] leading-5 break-words',
+            'flex items-start gap-1.5 text-[15px] leading-5 break-words',
             done && 'text-foreground/40 line-through',
           )}
         >
-          {task.title}
+          {type && (
+            <TypeIcon
+              icon={type.icon}
+              className="mt-[3px] text-foreground/50"
+            />
+          )}
+          <span className="min-w-0">{task.title}</span>
         </span>
         <span className="mt-0.5 block truncate text-xs text-foreground/45 empty:hidden">
           {[
+            status && variant === 'row' && status.name,
             task.dueDate &&
               `${formatDue(task, today)}${task.recurrence ? `, ${task.recurrence}` : ''}`,
             task.deadline && `due by ${formatDate(task.deadline, today)}`,
@@ -193,7 +216,7 @@ export function TaskItem({
         </span>
       </button>
 
-      {!done && (
+      {!done && task.kind !== 'event' && (
         <div
           className={cn(
             'absolute right-0 flex items-center rounded-md bg-popover opacity-0 group-focus-within/task:opacity-100 group-hover/task:opacity-100 has-[[data-state=open]]:opacity-100',

@@ -11,10 +11,10 @@ import { useState } from 'react';
 import type { Task, TaskInput } from '@/bindings';
 import { cn } from '@/lib/utils';
 
-import { TaskEditor } from './TaskEditor';
 import { TaskItem } from './TaskItem';
 import { useMoveTask, useTaskIndex } from './api';
 import { type Container, containerKey, containerOf } from './container';
+import { useTaskDialog } from './task-dialog-context';
 
 const open = (task: Task) => task.completedAt === null;
 
@@ -177,25 +177,14 @@ export function AddTaskRow({
   defaults: Partial<TaskInput>;
   label?: string;
 }) {
-  const [editing, setEditing] = useState(false);
-  if (editing)
-    return (
-      <TaskEditor
-        defaults={defaults}
-        keepOpen
-        className="my-2"
-        onClose={() => setEditing(false)}
-      />
-    );
+  const { newTask } = useTaskDialog();
   return (
     <button
       type="button"
-      onClick={() => setEditing(true)}
-      className="group/add flex h-9 w-full items-center gap-2.5 rounded-sm text-sm text-muted-foreground outline-offset-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+      onClick={() => newTask(defaults)}
+      className="group/add flex h-9 w-full items-center gap-2.5 rounded-sm text-sm text-foreground/45 outline-offset-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
     >
-      <span className="grid size-[18px] place-items-center rounded-full text-now group-hover/add:bg-now group-hover/add:text-background">
-        <PlusIcon className="size-3.5" strokeWidth={2.5} />
-      </span>
+      <PlusIcon className="size-[18px]" strokeWidth={1.5} />
       {label}
     </button>
   );

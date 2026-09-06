@@ -8,13 +8,7 @@ import {
   SunsetIcon,
   Trash2Icon,
 } from 'lucide-react';
-import {
-  type ComponentProps,
-  type FormEvent,
-  type ReactNode,
-  forwardRef,
-  useState,
-} from 'react';
+import { type FormEvent, type ReactNode, useState } from 'react';
 
 import type { Task, TaskInput } from '@/bindings';
 import {
@@ -38,6 +32,7 @@ import { useProjectIndex } from '@/features/projects/api';
 import { OutcomePicker } from '@/features/review/OutcomePicker';
 import { useWeek } from '@/features/review/api';
 import { useStartTimer, useStopTimer, useTimer } from '@/features/time/api';
+import { EventLine, WorkflowLine } from '@/features/workflow/TaskWorkflow';
 import { useNow } from '@/hooks/use-now';
 import {
   formatDuration,
@@ -50,6 +45,7 @@ import {
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
+import { Dot, Phrase } from './Phrase';
 import {
   EMPTY_TASK,
   taskToInput,
@@ -72,28 +68,6 @@ import {
 } from './fields';
 import { formatDue } from './meta';
 import { useTaskDialog } from './task-dialog-context';
-
-const Phrase = forwardRef<
-  HTMLButtonElement,
-  ComponentProps<'button'> & { set: boolean }
->(function Phrase({ set, className, ...props }, ref) {
-  return (
-    <button
-      ref={ref}
-      type="button"
-      className={cn(
-        '-mx-1 rounded-md px-1 underline-offset-4 transition-colors outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-white/40',
-        set ? 'text-foreground/80' : 'text-foreground/35',
-        className,
-      )}
-      {...props}
-    />
-  );
-});
-
-function Dot() {
-  return <span className="text-foreground/25">·</span>;
-}
 
 export function TaskPanel({
   task,
@@ -181,6 +155,8 @@ export function TaskPanel({
       />
 
       <Details task={task} save={save} />
+      <EventLine task={task} />
+      <WorkflowLine task={task} />
       <Serves task={task} />
 
       <div className="mt-8 grid min-h-0 max-w-2xl content-start gap-8 overflow-y-auto pr-2">
@@ -440,14 +416,16 @@ function Actions({
           </button>
         )
       )}
-      <button
-        type="button"
-        onClick={onToggleDone}
-        className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm text-foreground/75 ring-1 ring-white/20 transition-colors hover:bg-white/10 hover:text-foreground"
-      >
-        <CheckIcon className="size-4" strokeWidth={1.5} />
-        {done ? 'Not done' : 'Done'}
-      </button>
+      {task.kind !== 'event' && (
+        <button
+          type="button"
+          onClick={onToggleDone}
+          className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm text-foreground/75 ring-1 ring-white/20 transition-colors hover:bg-white/10 hover:text-foreground"
+        >
+          <CheckIcon className="size-4" strokeWidth={1.5} />
+          {done ? 'Not done' : 'Done'}
+        </button>
+      )}
     </div>
   );
 }
