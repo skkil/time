@@ -18,8 +18,6 @@ import {
 } from '@/components/ui/dialog';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
-import { useWeek } from '@/features/review/api';
-import { useRituals } from '@/features/rituals/api';
 import { useRitualRunner } from '@/features/rituals/runner-context';
 import { useSetTaskCompleted, useTaskIndex } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
@@ -32,8 +30,6 @@ import {
   formatEstimate,
   formatStopwatch,
   fromDateKey,
-  mondayOf,
-  shiftKey,
   todayKey,
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
@@ -298,19 +294,8 @@ function Timeline({
 
 function CheckOut() {
   const runner = useRitualRunner();
-  const { data: rituals } = useRituals();
-  const lastWeek = shiftKey(mondayOf(todayKey()), -7);
-  const { data: week } = useWeek(lastWeek);
-  const weekly = rituals?.find((ritual) => ritual.kind === 'weekly');
-  const weekday = (new Date().getDay() + 6) % 7;
-  const weeklyDue =
-    weekly?.enabled &&
-    (weekly.weekdays & (1 << weekday)) !== 0 &&
-    week !== undefined &&
-    week.reviewedAt === null;
-
   return (
-    <div className="grid justify-items-start gap-3 pt-2">
+    <div className="pt-2">
       <button
         type="button"
         onClick={() => runner.open('evening')}
@@ -319,15 +304,6 @@ function CheckOut() {
         <span className="size-2 rounded-full bg-white/70 transition-transform duration-500 group-hover:scale-125" />
         Check out
       </button>
-      {weeklyDue && (
-        <button
-          type="button"
-          onClick={() => runner.open('weekly')}
-          className="text-sm text-foreground/55 underline-offset-4 transition-colors hover:text-foreground hover:underline"
-        >
-          Last week isn’t reviewed yet
-        </button>
-      )}
     </div>
   );
 }
