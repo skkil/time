@@ -273,3 +273,12 @@
     transform: translate3d(10vw, -10vh, 0) scale(1.12);
   }
 }
+
+@keyframes checkout-drift {
+  from {
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.12) translate3d(-1.5%, -1%, 0);
+  }
+}

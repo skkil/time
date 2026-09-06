@@ -54,9 +54,13 @@ export function StepHeading({
   children?: ReactNode;
 }) {
   return (
-    <div className="grid gap-1">
-      <h2 className="text-2xl leading-tight font-bold text-balance">{title}</h2>
-      {children && <p className="text-sm text-muted-foreground">{children}</p>}
+    <div className="mb-2 grid justify-items-center gap-2 text-center">
+      <h2 className="text-[30px] leading-tight font-light tracking-tight text-balance">
+        {title}
+      </h2>
+      {children && (
+        <p className="max-w-md text-sm text-muted-foreground">{children}</p>
+      )}
     </div>
   );
 }
