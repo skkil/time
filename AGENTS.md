@@ -44,6 +44,15 @@ memory in `.design/DESIGN.md`.
   once a day unless snoozed (15 min, once). The frontend shows rituals in a
   full-window zen overlay (`features/rituals`, backdrop in `features/zen`,
   WebGL2 water shader with a static fallback; themes carry their own shader).
+- **Item type / Status / Milestone / Saved view** — per-project structure
+  in `features/workflow.rs`. A type is a task or an **event** (happens at a
+  time; never checked off; repeats expand into occurrences via
+  `list_events`; may count as tracked time). Statuses are named freely, each
+  in one fixed category (backlog, todo, active, done, dropped); a closed
+  category and `completed_at` stay in step both ways, and backlog items never
+  count as overdue. Presets (`workflow::presets`) set all four at once;
+  Simple sets none, so a plain project looks as before. Moving a task between
+  projects maps its type by name and its status by category.
 - **Day / Week / Quarter** — a day note and felt rating written by rituals;
   weekly outcomes (≤3 open, linked to tasks via `task.outcome_id`, status
   open/achieved/carried/dropped; carried copies the outcome into next week
@@ -121,6 +130,13 @@ cargo clippy --all-targets
   time,habits}` replaces the old Time, Habits and Review pages;
   `/review/$week` stays. Old routes redirect.
 - Imports use `@/` instead of parent-relative `../` (enforced by ESLint).
+- Routes: `/?view=day|week&week=`, `/projects`, `/projects/someday`,
+  `/projects/$projectId`, `/reports/weeks`, `/reports/week/$week`,
+  `/reports/quarter/$week` (`$week` is a Monday date key), `/review/$week`.
+  Old `/reports/time|habits|reviews`, `/time`, `/habits`, `/review`,
+  `/inbox`, `/today`, `/upcoming`, `/someday`, `/planner` redirect.
+- Habit auto-sync runs from the app shell (start, window focus at most every
+  5 min) and when the Habits window opens.
 
 ## No root-level tooling
 

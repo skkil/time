@@ -6,50 +6,53 @@ Design memory. Read before designing; update when a durable decision changes. So
 - **What it is:** a planner that checks itself. Plan the week as ≤3 outcomes and the day as time blocks; capture what actually happened (desktop, browser, agent sessions) without timers; compare plan with verified results.
 - **Scene:** Min, an AI-assisted solo builder at a Linux or macOS desk, 2-3 Claude Code terminals open (dark) beside the app. Plans Monday morning, closes the day around 18:00. Desk light, long sessions, glances at the tray between tasks.
 - **Job:** When I plan and run my day with agents, I want to see what I meant to do next to what I and my agents verifiably shipped, so I stop fooling myself.
-- **Promise per surface:** Today: "every task has a when." Focus: "one thing, agents wait." Review inbox: "nothing an agent did counts until you say so." Day check-in (inline on Today, optional): "felt first, then reality." Week review: "next week's plan, built from data."
+- **Promise per surface:** Day: "where you are now, with your fixed points marked." Week: "your week on one screen: what matters, and when you'll do it." Projects: "each project works the way that kind of work works, without building a system first." Reports: "your weeks, as they actually went. Read, don't manage." Check out: "close the day, then let it go."
 - **Proof we have:** none yet (pre-validation). All numbers in mocks are sample data and are labelled as such.
 - **Claims we must NOT make:** efficacy claims for time blocking/weekly reviews; anything that reads as reading prompts or agent output (POL-PRIV-02); comparisons with other people.
 - **Category default:** Todoist/Sunsama-style soft pastel lists + Rize-style dashboards of activity scores. **Predictable opposite:** dark hacker terminal aesthetic. Both rejected.
 
-## 2. Direction contract (locked 2026-10-23)
-- **Name:** Departure board, with agent lines (roll seed 025c20089802ae22, C + B mix).
-- **THESIS:** a plan is a timetable; reality is what actually departed. Every block reads *scheduled · actual · status*. Refuses the activity-score dashboard.
-- **OWN-WORLD:** pale stone ground, graphite ink, tabular figures in fixed columns, status cells (dark graphite cells with light text, like board cells), one transit blue for "on time / now / focus", one amber for "moved / attention". Agent sessions are drawn as thin transit lines with station dots for waits.
-- **STORY:** Plan (Today, Board) → Do (Focus, tray) → Verify (Review inbox) → Review (day check-in, guided week review) → next plan.
-- **FIRST VIEWPORT (Today):** left nav 216px; center is the day as a ledger (Scheduled · Actual · Block · Status, one row per block, every row has a status incl. Scheduled/Now); the live Supervise row carries the agent hairlines; free time is a dashed drop row. Right 400px rail: capture field, triggers, backlog outcomes-first; the "When will you do this?" picker expands inline under the task. The calendar grid lives behind the Day/Week toggle.
-- **SIGNATURE MOMENT:** Day check-in (was Day close, removed 2026-11-01; the flip reveal is not built yet). After the felt rating, the status cells flip from "Scheduled" to their actual status, one row after another (60 ms stagger, 240 ms each). Reduced motion: shows end state instantly.
-- **WHAT WE SAID NO TO:** gradients, glows, glass, scores/grades, streak flames, confetti, emoji, mascot (companion layer is P2), cream + serif, mono-as-costume, colored left borders on cards, red for "lost" (shame risk: lost is neutral + dashed).
+## 2. Direction contract (locked 2026-11-02, supersedes the departure board)
+- **Name:** Calm canvas.
+- **THESIS:** one open canvas on a sky that follows the time of day, with frosted glass only where something is held (a task, a window, a board column). Minimal information at a time; calm and capable, never managed, graded or behind. Refuses the boxed Todoist list and the activity-score dashboard.
+- **OWN-WORLD:** a code-drawn sky (linear gradient plus four slow radial glows, stops at 0/5/8/13/17/19.5/22 h, blended with smoothstep in `features/zen/sky.ts`); type and spacing sit directly on it; white ink at stepped opacities; Apple-style glass for panels. No image or video assets in the app; the only video-like asset is the Check out ocean (animated WebP), used nowhere else.
+- **STORY:** Day (do) → Check out (close the day) → Week (plan the week: outcomes, quarter, habits, project hours over the grid) → weekly review → Reports (read back by week and quarter). Projects is the one denser workspace, still on the canvas.
+- **FIRST VIEWPORT (Day):** top-left profile circle (menu: Add, Search, Reports, Settings), top-centre Day · Week · Projects pill. Left column: weekday in light 48px, date · weather, habit dots, then a vertical timeline (tasks as circles, events as small diamonds), Check out at the bottom. Right: the focused task in one glass panel, edited in place.
+- **SIGNATURE MOMENT:** Check out: a full-screen ocean scene behind a frosted box you can almost, but not quite, read through.
+- **WHAT WE SAID NO TO:** boxes and cards as layout, top bar + drawer chrome, side sheets for tasks (a centred glass window instead), coloured priority rings, icon rows on task rows, streaks, scores, grades, percentages of progress, rankings, red overdue counts, confetti, emoji.
 
 ## 3. Tokens
-### Color (Assembly manual, chosen 2026-11-01; contrast checked with palette.py)
-Brick primaries on paper. Each colour has exactly one job, so red never means "now".
-| token | light | dark | role | contrast (text on ground) |
-|---|---|---|---|---|
-| ground | #F5F5F2 | #17191E | app background | |
-| surface | #FFFFFF | #20232A | panels, cards | |
-| line | #E1E1DC | #2F333C | 1px dividers | |
-| ink | #161616 | #F1F1EE | text | 16.6 / 15.5 |
-| ink-2 | #5F5F5A | #A6A8AE | secondary text | 5.9 / 7.4 |
-| blue (primary, now) | #0057B8 | #5C9DFF | actions, focus, now line, active nav, selected | 6.3 / 6.5; white on blue 6.9, dark on blue 6.5 |
-| yellow (today) | #E8B400 | #FFD23F | today only: today column/date, current week cell | ink on yellow 9.4 |
-| red (urgent) | #C8201A | #FF6B5E | P1, overdue, destructive only | 5.2 / 6.3 |
-Projects use the brick set (blue, red, amber, green, teal, plum, olive, graphite). Planner blocks: project tint fill + 3px solid project edge.
+### Color (dark only; `syncColorScheme` always adds `.dark`)
+| token | value | role |
+|---|---|---|
+| background | #0B1220 | under the sky, never seen for long |
+| foreground | #F1F1EE | ink; secondary text is `foreground/45–60`, faint hints `/25–35` |
+| card | white 5% | in-flow glass |
+| popover | rgba(14,22,36,.90) + `backdrop-blur-2xl backdrop-saturate-150` | menus, popovers, dialogs |
+| border / input | white 12% / 14% | hairlines |
+| primary | white 90%, foreground #0B1A22 | the one filled pill per surface (Begin, Continue, Review) |
+| accent / muted | white 9% / 7% | hover and selected fills |
+| now-tint | white 12% | quick-add token highlight |
+| project colours | `--project-*` (8) | dots, block tints, solid event fills; projects own colour, so item types get icons, not colours |
+| p1 | #FF6B5E | urgent and destructive only |
+Status is never colour alone: done is a filled circle with a check, rest is a dash, events are diamonds (Day) or solid blocks (grids), unreviewed is a word in muted text.
 
-Status set: On time (blue tint) · Now (blue fill) · Scheduled (outline) · Moved / Cut short (graphite tint) · Elsewhere (dashed) · Not captured (hatched) · Calendar (plain). Status never by color alone: every status has a word, and lost/not-captured also differ by border style (dashed / hatched).
+### Glass
+- Task window: `rounded-[32px] bg-[rgba(10,18,32,.92)] ring-1 ring-white/10 backdrop-blur-2xl`, centred, 768px wide, ≤680px high.
+- Day focus panel: `rounded-[32px] bg-[rgba(6,18,26,.38)] backdrop-blur-xl`.
+- Quick add: one line, `rounded-[28px] bg-[rgba(10,22,34,.55)]`, top 22%.
+- Workspace: glass only on board columns, calendar days and the table body (`bg-white/[.04] ring-white/[.07]`); everything else on the sky.
+- WebKitGTK may render blur slowly or not at all: every glass surface must stay readable as plain translucency (the alphas above were chosen with blur off).
 
 ### Type
 | role | family | weights | why |
 |---|---|---|---|
-| everything (display, text, numbers) | Hanken Grotesk Variable | 400–700 | one family; sturdy grotesk with clear figures |
-Numbers use the same face with tabular figures (`font-variant-numeric: tabular-nums` on `html`), so columns align without a monospace face. No `font-mono` for times or counts (founder: "why do numbers have a different font"). `font-mono` is only for raw error text. Hangul falls back to Pretendard.
+| everything | Hanken Grotesk Variable | 200–600 | one family; light display sizes (36–48px, 200–300) carry the calm |
+Tabular figures everywhere; Hangul falls back to Pretendard; no `font-mono` for numbers.
 
 ### Shape, space, depth, motion
-- Spacing: 4, 8, 12, 16, 24, 32, 48.
-- Radius: 4 (chips, inputs, status cells) · 6 (rows, blocks, cards) · 10 (popovers, sheets, phone cards).
-- Selected state (everywhere): 2px graphite inset outline on white. Never the primary-button fill.
-- Elevation: only popovers and tray menus (`0 8px 24px rgba(26,29,33,.14)`); everything else flat with 1px lines.
-- Motion: micro 120ms, small 200ms, medium 320ms; ease `cubic-bezier(.16,1,.3,1)`; no ambient motion; the flip reveal is the only orchestrated moment.
-- Icons: inline 1.5px stroke, 16/20px, round caps.
+- Spacing: 4, 8, 12, 16, 24, 32, 48, 64. Radius: full (pills, circles), 12–16 (rows, columns), 28–40 (glass windows).
+- Motion: sky glows drift over 71–103 s, alternate, only when Background is "Moving"; entrances fade/slide 700–1000 ms with 60 ms stagger; state changes 300–500 ms. Reduced motion shows end states.
+- Icons: lucide outline, 1.5 stroke. Item types use a curated set of 24 (`features/workflow/TypeIcon.tsx`).
 
 ## 4. Assets
 Brand marks in `assets/` (code-drawn SVG). None generated. All visuals are code-drawn (timeline, agent lines, charts). Spend: $0.
@@ -65,6 +68,7 @@ Warm host, plain engineer. Second person, short, numbers with units. Never grade
 See `.design/slop-allow.json`: zen-backdrop (gradient + ambient shader, zen mode only), cream-ground (it's the amber status tint, not a ground) and three-up-grid (3 outcomes / 3 verdicts / 3 draft facts are product rules).
 
 ## 8. Decision log
+- 2026-11-02: Calm canvas locked (brief: design-brief-2026-11-02.md). Week gets the plan strip (quarter line, outcomes, habits, project hours, review line) as type on the sky; Reports becomes an archive (weeks list, Week N, Quarter) on a fixed dusk sky; Projects gets presets (Simple, Software, Course, Writing, Pipeline), saved views (list, board, calendar, table) and events. R1–R5 defaults taken: glass only for dense containers, events solid / tasks tinted, type = icon only, collapsed habit and project rows, dusk sky for Reports. Habits and task windows are centred glass windows, not side sheets (founder: "a central modal feels more right, the sidebar panel seems very out-of-design"); project settings stays a side sheet.
 - 2026-11-01: Simple shell (spec-simple-shell). Sidebar replaced by a top bar in dark green chrome (`--chrome` #183A2C light / #132A20 dark, `--chrome-foreground`, `--chrome-muted`, `--chrome-accent`); primary/now/focus moved from transit blue to green (#1F4D3A light, #7CC4A0 dark). User: "make them professional with a dark shade of green, the tasks themselves don't have to be themed, just the things around it". Task rows, priorities and project colours stay neutral and unchanged. Zen mode is the one place for atmosphere: a full-window backdrop (`--zen-sky/shallow/mid/deep`) with an original WebGL2 still-water shader over a static gradient fallback; user: "water only in zen … other zen themes (user configurable) like mountains or forests later". Ritual cards sit on `bg-card/95` above it. This supersedes "no gradients" and "no ambient motion" inside zen only.
 - 2026-10-23: v1.1 pass from IMPROVEMENTS.md + REEVALUATION-SUNSAMA.md. Board cut (nav is now Today, Plan the week, Review inbox, Close the day, Weekly review, Settings; Today shows delegated/draft counts). New: first run (4 steps, step 4 = last 7 days from ActivityWatch + git, reality only), guided Plan the day, Plan the week (quarter priorities, 13-week focused-hours strip, Due/Morning/Afternoon/Evening grid), Capture from anywhere (CLI, /skkil, hotkey), dark Today. Weeks are "Q4 · Week N", not ISO. Rough parts of the day are a valid "when" for any task. Drafts come only from mark_draft_ready or /skkil done; a quiet session is "Probably done?" (dashed, separate group). Drafts show git metadata + Open PR. Weekly review leads with focused hours, then one pattern + one chosen experiment; metrics sit under Details. Day close adds offline-focus confirm, unassigned time, habits (yes/no, no streaks), one line per day; carry-overs are suggestions with Keep. Hard block is opt-in. Close-the-day reminder defaults to after the last block. Codex/Cursor free.
 - 2026-10-23: Critic round 1 (5.5/10: "departure board lives in one table, not the system"). Today rebuilt as the ledger; agent lines moved into the Supervise row; KPI tiles cut to a sentence (Day close) and a ledger table (Week); chips reduced to outcome text + agent glyph; amber restricted to needs-you-now; "Lost" renamed "Elsewhere"; one selected style; Board tubs removed; narration copy cut ~80%; logo became a split-flap cell.
