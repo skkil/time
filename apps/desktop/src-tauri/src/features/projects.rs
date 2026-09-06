@@ -36,6 +36,8 @@ pub struct Project {
     pub review_every_weeks: i32,
     pub last_reviewed_at: Option<Timestamp>,
     pub in_order: bool,
+    pub preset: String,
+    pub milestone_label: String,
 }
 
 #[derive(Debug, Deserialize, Type)]
@@ -61,7 +63,7 @@ pub struct ProjectInput {
 
 const SELECT: &str = "SELECT id, parent_id, name, color, position, archived, view, kind, status,
        outcome, weekly_minutes, target_date, kill_criteria, review_every_weeks, last_reviewed_at,
-       in_order
+       in_order, preset, milestone_label
      FROM project";
 
 fn from_row(row: &Row) -> rusqlite::Result<Project> {
@@ -82,6 +84,8 @@ fn from_row(row: &Row) -> rusqlite::Result<Project> {
         review_every_weeks: row.get(13)?,
         last_reviewed_at: row.get(14)?,
         in_order: row.get(15)?,
+        preset: row.get(16)?,
+        milestone_label: row.get(17)?,
     })
 }
 

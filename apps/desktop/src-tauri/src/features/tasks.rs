@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::State;
 
-use super::{ensure_changed, optional_text, projects, required_text, sections};
+use super::{ensure_changed, optional_text, projects, required_text, sections, workflow};
 use crate::db::Db;
 use crate::error::{Error, Result};
 use crate::recurrence::Rule;
@@ -36,6 +36,14 @@ pub struct Task {
     pub someday: bool,
     pub next_step: String,
     pub must_on: Option<Date>,
+    pub type_id: Option<Id>,
+    pub status_id: Option<Id>,
+    pub milestone_id: Option<Id>,
+    pub location: String,
+    pub counts_as_time: bool,
+    pub status_changed_at: Option<Timestamp>,
+    pub kind: String,
+    pub status_category: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Type)]
@@ -67,7 +75,10 @@ const SELECT: &str = "SELECT t.id, t.title, t.notes, t.project_id, t.section_id,
        t.priority, t.due_date, t.due_time, t.deadline, t.recurrence, t.estimate_minutes,
        t.position, t.completed_at, t.created_at,
        (SELECT COALESCE(SUM(e.ended_at - e.started_at), 0) FROM time_entry e WHERE e.task_id = t.id),
-       t.outcome_id, t.rollover_count, t.someday, t.next_step, t.must_on
+       t.outcome_id, t.rollover_count, t.someday, t.next_step, t.must_on,
+       t.type_id, t.status_id, t.milestone_id, t.location, t.counts_as_time, t.status_changed_at,
+       COALESCE((SELECT ty.kind FROM item_type ty WHERE ty.id = t.type_id), 'task'),
+       (SELECT st.category FROM item_status st WHERE st.id = t.status_id)
      FROM task t";
 
 fn from_row(row: &Row) -> rusqlite::Result<Task> {
@@ -93,6 +104,14 @@ fn from_row(row: &Row) -> rusqlite::Result<Task> {
         someday: row.get(18)?,
         next_step: row.get(19)?,
         must_on: row.get(20)?,
+        type_id: row.get(21)?,
+        status_id: row.get(22)?,
+        milestone_id: row.get(23)?,
+        location: row.get(24)?,
+        counts_as_time: row.get(25)?,
+        status_changed_at: row.get(26)?,
+        kind: row.get(27)?,
+        status_category: row.get(28)?,
     })
 }
 
@@ -296,6 +315,7 @@ pub fn create(conn: &mut Connection, input: &TaskInput) -> Result<Task> {
     )?;
     let id = Id(tx.last_insert_rowid());
     place(&tx, id, valid.container, None)?;
+    workflow::reconcile(&tx)?;
     tx.execute(
         "UPDATE task SET outcome_id = (SELECT p.outcome_id FROM task p WHERE p.id = task.parent_id)
          WHERE id = ?1 AND parent_id IS NOT NULL",
@@ -308,6 +328,9 @@ pub fn create(conn: &mut Connection, input: &TaskInput) -> Result<Task> {
 pub fn update(conn: &mut Connection, id: Id, input: &TaskInput) -> Result<Task> {
     let current = get(conn, id)?;
     let valid = validate(conn, Some(id), input)?;
+    if current.kind == "event" && (input.due_date.is_none() || input.due_time.is_none()) {
+        return Err(Error::invalid("Events need a date and a time."));
+    }
     let tx = conn.transaction()?;
     tx.execute(
         "UPDATE task SET title = ?1, notes = ?2, priority = ?3, due_date = ?4, due_time = ?5,
@@ -332,6 +355,7 @@ pub fn update(conn: &mut Connection, id: Id, input: &TaskInput) -> Result<Task> 
     };
     if previous != valid.container {
         place(&tx, id, valid.container, None)?;
+        workflow::reconcile(&tx)?;
     }
     tx.commit()?;
     get(conn, id)
@@ -348,6 +372,7 @@ pub fn move_to(conn: &mut Connection, id: Id, placement: TaskPlacement) -> Resul
     )?;
     let tx = conn.transaction()?;
     place(&tx, id, container, placement.before)?;
+    workflow::reconcile(&tx)?;
     tx.commit()?;
     get(conn, id)
 }
@@ -374,6 +399,11 @@ pub fn reschedule(conn: &mut Connection, ids: &[Id], due_date: Option<Date>) -> 
 
 pub fn set_completed(conn: &mut Connection, id: Id, completed: bool) -> Result<Task> {
     let task = get(conn, id)?;
+    if task.kind == "event" {
+        return Err(Error::invalid(
+            "Events happen at a time; they can't be checked off.",
+        ));
+    }
     if completed
         && let (Some(rule), Some(due)) = (
             task.recurrence.as_deref().and_then(Rule::parse),
@@ -393,12 +423,14 @@ pub fn set_completed(conn: &mut Connection, id: Id, completed: bool) -> Result<T
         "UPDATE task SET completed_at = ?1 WHERE id = ?2",
         params![completed_at, id],
     )?;
+    workflow::status_for_completion(&tx, id, completed)?;
     if completed {
         for child in descendants(&tx, id)? {
             tx.execute(
                 "UPDATE task SET completed_at = ?1 WHERE id = ?2 AND completed_at IS NULL",
                 params![completed_at, child],
             )?;
+            workflow::status_for_completion(&tx, child, true)?;
         }
     }
     tx.commit()?;

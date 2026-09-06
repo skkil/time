@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::State;
 
-use super::{ensure_changed, optional_text, required_text};
+use super::{ensure_changed, optional_text, required_text, workflow};
 use crate::db::Db;
 use crate::error::{Error, Result};
 use crate::types::{Date, Id, Seconds, Timestamp};
@@ -272,7 +272,8 @@ pub fn week(conn: &Connection, date: Date) -> Result<Week> {
 
 pub fn week_summary(conn: &Connection, start: Date) -> Result<WeekSummary> {
     let (from, to) = (start.start(), start.add_days(7).start());
-    Ok(conn.query_row(
+    let events = workflow::counted_event_seconds(conn, start, start.add_days(7))?;
+    let mut summary = conn.query_row(
         "SELECT w.felt, COALESCE(w.step, 0), w.reviewed_at,
                 (SELECT COUNT(*) FROM outcome o WHERE o.week_start = ?1),
                 (SELECT COUNT(*) FROM outcome o WHERE o.week_start = ?1 AND o.status = 'achieved'),
@@ -296,7 +297,9 @@ pub fn week_summary(conn: &Connection, start: Date) -> Result<WeekSummary> {
                 tasks_completed: row.get(7)?,
             })
         },
-    )?)
+    )?;
+    summary.tracked_seconds = Seconds(summary.tracked_seconds.0 + events);
+    Ok(summary)
 }
 
 pub fn weeks(conn: &Connection, from: Date, to: Date) -> Result<Vec<WeekSummary>> {
@@ -824,20 +827,30 @@ mod tests {
             let monday = date("2026-11-02");
             let task = tasks::create(conn, &tasks::input("Write", None))?;
             let late_sunday = Timestamp(monday.start().0 - 1800);
-            time_entries::create(conn, &time_entries::EntryInput {
-                details: entry(),
-                started_at: late_sunday,
-                ended_at: Timestamp(late_sunday.0 + 3600),
-            })?;
-            time_entries::create(conn, &time_entries::EntryInput {
-                details: entry(),
-                started_at: Timestamp(monday.start().0 + 3600),
-                ended_at: Timestamp(monday.start().0 + 5400),
-            })?;
-            blocks::create(conn, task.id, &blocks::BlockSpan {
-                start_at: Timestamp(monday.start().0 + 7200),
-                end_at: Timestamp(monday.start().0 + 14400),
-            })?;
+            time_entries::create(
+                conn,
+                &time_entries::EntryInput {
+                    details: entry(),
+                    started_at: late_sunday,
+                    ended_at: Timestamp(late_sunday.0 + 3600),
+                },
+            )?;
+            time_entries::create(
+                conn,
+                &time_entries::EntryInput {
+                    details: entry(),
+                    started_at: Timestamp(monday.start().0 + 3600),
+                    ended_at: Timestamp(monday.start().0 + 5400),
+                },
+            )?;
+            blocks::create(
+                conn,
+                task.id,
+                &blocks::BlockSpan {
+                    start_at: Timestamp(monday.start().0 + 7200),
+                    end_at: Timestamp(monday.start().0 + 14400),
+                },
+            )?;
 
             let summaries = weeks(conn, monday.add_days(-7), monday.add_days(7))?;
             assert_eq!(summaries.len(), 2);

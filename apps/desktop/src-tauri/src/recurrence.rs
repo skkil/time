@@ -87,7 +87,7 @@ impl Rule {
         Some(Rule::On(days))
     }
 
-    fn step(&self, from: NaiveDate) -> NaiveDate {
+    pub fn step(&self, from: NaiveDate) -> NaiveDate {
         match self {
             Rule::Days(n) => from + Days::new(u64::from(*n)),
             Rule::Weeks(n) => from + Days::new(7 * u64::from(*n)),

@@ -81,6 +81,31 @@ export const commands = {
 	finishRitual: (id: Id) => __TAURI_INVOKE<RitualRun>("finish_ritual", { id }),
 	skipRitual: (id: Id) => __TAURI_INVOKE<RitualRun>("skip_ritual", { id }),
 	snoozeRitual: (id: Id) => __TAURI_INVOKE<RitualRun>("snooze_ritual", { id }),
+	getWorkflow: () => __TAURI_INVOKE<Workflow>("get_workflow"),
+	listPresets: () => __TAURI_INVOKE<Preset[]>("list_presets"),
+	createItemType: (projectId: Id, input: ItemTypeInput) => __TAURI_INVOKE<Id>("create_item_type", { projectId, input }),
+	updateItemType: (id: Id, input: ItemTypeInput) => __TAURI_INVOKE<null>("update_item_type", { id, input }),
+	deleteItemType: (id: Id, replacement: Id | null) => __TAURI_INVOKE<null>("delete_item_type", { id, replacement }),
+	createItemStatus: (projectId: Id, input: StatusInput) => __TAURI_INVOKE<Id>("create_item_status", { projectId, input }),
+	updateItemStatus: (id: Id, input: StatusInput) => __TAURI_INVOKE<null>("update_item_status", { id, input }),
+	reorderItemStatus: (id: Id, before: Id | null) => __TAURI_INVOKE<null>("reorder_item_status", { id, before }),
+	deleteItemStatus: (id: Id, replacement: Id | null) => __TAURI_INVOKE<null>("delete_item_status", { id, replacement }),
+	createProjectMilestone: (projectId: Id, input: MilestoneInput) => __TAURI_INVOKE<Id>("create_project_milestone", { projectId, input }),
+	updateProjectMilestone: (id: Id, input: MilestoneInput) => __TAURI_INVOKE<null>("update_project_milestone", { id, input }),
+	deleteProjectMilestone: (id: Id) => __TAURI_INVOKE<null>("delete_project_milestone", { id }),
+	setProjectMilestoneLabel: (id: Id, label: string) => __TAURI_INVOKE<null>("set_project_milestone_label", { id, label }),
+	createSavedView: (projectId: Id, input: ViewInput) => __TAURI_INVOKE<Id>("create_saved_view", { projectId, input }),
+	updateSavedView: (id: Id, input: ViewInput) => __TAURI_INVOKE<null>("update_saved_view", { id, input }),
+	deleteSavedView: (id: Id) => __TAURI_INVOKE<null>("delete_saved_view", { id }),
+	applyProjectPreset: (id: Id, preset: Preset) => __TAURI_INVOKE<null>("apply_project_preset", { id, preset }),
+	saveProjectPreset: (id: Id) => __TAURI_INVOKE<string>("save_project_preset", { id }),
+	readPreset: (text: string) => __TAURI_INVOKE<Preset>("read_preset", { text }),
+	setTaskTypeId: (id: Id, typeId: Id | null) => __TAURI_INVOKE<Task>("set_task_type_id", { id, typeId }),
+	setTaskStatusId: (id: Id, statusId: Id) => __TAURI_INVOKE<Task>("set_task_status_id", { id, statusId }),
+	setTaskMilestoneId: (id: Id, milestoneId: Id | null) => __TAURI_INVOKE<Task>("set_task_milestone_id", { id, milestoneId }),
+	setTaskEventDetails: (id: Id, location: string, countsAsTime: boolean) => __TAURI_INVOKE<Task>("set_task_event_details", { id, location, countsAsTime }),
+	listEvents: (from: Date, to: Date) => __TAURI_INVOKE<EventOccurrence[]>("list_events", { from, to }),
+	listTimeByType: (from: Date, to: Date) => __TAURI_INVOKE<TypeTime[]>("list_time_by_type", { from, to }),
 };
 
 /* Types */
@@ -112,6 +137,17 @@ export type EntryInput = {
 } & EntryDetails;
 
 export type Error = { kind: "database"; message: string } | { kind: "invalid"; message: string } | { kind: "notFound"; message: string };
+
+export type EventOccurrence = {
+	taskId: Id,
+	title: string,
+	projectId: Id | null,
+	typeId: Id | null,
+	startAt: Timestamp,
+	endAt: Timestamp,
+	location: string,
+	countsAsTime: boolean,
+};
 
 export type Habit = {
 	id: Id,
@@ -155,7 +191,47 @@ export type HabitInput = {
 
 export type Id = number;
 
+export type ItemStatus = {
+	id: Id,
+	projectId: Id,
+	name: string,
+	category: string,
+	position: number,
+};
+
+export type ItemType = {
+	id: Id,
+	projectId: Id,
+	name: string,
+	icon: string,
+	kind: string,
+	defaultMinutes: number | null,
+	checklist: string,
+	position: number,
+};
+
+export type ItemTypeInput = {
+	name: string,
+	icon: string,
+	kind: string,
+	defaultMinutes: number | null,
+	checklist: string,
+};
+
 export type ManualStatus = "done" | "failed" | "skipped";
+
+export type Milestone = {
+	id: Id,
+	projectId: Id,
+	name: string,
+	date: Date | null,
+	position: number,
+};
+
+export type MilestoneInput = {
+	name: string,
+	date: Date | null,
+};
 
 export type Outcome = {
 	id: Id,
@@ -170,6 +246,16 @@ export type Outcome = {
 };
 
 export type OutcomeStatus = "open" | "achieved" | "carried" | "dropped";
+
+export type Preset = {
+	key: string,
+	name: string,
+	description: string,
+	types: ItemTypeInput[],
+	statuses: StatusInput[],
+	milestoneLabel: string,
+	views: ViewInput[],
+};
 
 export type Priority = {
 	id: Id,
@@ -195,6 +281,8 @@ export type Project = {
 	reviewEveryWeeks: number,
 	lastReviewedAt: Timestamp | null,
 	inOrder: boolean,
+	preset: string,
+	milestoneLabel: string,
 };
 
 export type ProjectInput = {
@@ -261,6 +349,17 @@ export type RunningTimer = {
 	startedAt: Timestamp,
 };
 
+export type SavedView = {
+	id: Id,
+	projectId: Id,
+	name: string,
+	layout: string,
+	groupBy: string,
+	filter: string,
+	sort: string,
+	position: number,
+};
+
 export type Seconds = number;
 
 export type Section = {
@@ -269,6 +368,11 @@ export type Section = {
 	name: string,
 	position: number,
 	collapsed: boolean,
+};
+
+export type StatusInput = {
+	name: string,
+	category: string,
 };
 
 export type SyncReport = {
@@ -300,6 +404,14 @@ export type Task = {
 	someday: boolean,
 	nextStep: string,
 	mustOn: Date | null,
+	typeId: Id | null,
+	statusId: Id | null,
+	milestoneId: Id | null,
+	location: string,
+	countsAsTime: boolean,
+	statusChangedAt: Timestamp | null,
+	kind: string,
+	statusCategory: string | null,
 };
 
 export type TaskInput = {
@@ -352,6 +464,20 @@ export type Tracking = {
 	projectId: Id | null,
 };
 
+export type TypeTime = {
+	name: string,
+	icon: string,
+	seconds: Seconds,
+};
+
+export type ViewInput = {
+	name: string,
+	layout: string,
+	groupBy: string,
+	filter: string,
+	sort: string,
+};
+
 export type Week = {
 	startDate: Date,
 	felt: number | null,
@@ -377,5 +503,12 @@ export type WeekSummary = {
 	trackedSeconds: Seconds,
 	plannedSeconds: Seconds,
 	tasksCompleted: number,
+};
+
+export type Workflow = {
+	types: ItemType[],
+	statuses: ItemStatus[],
+	milestones: Milestone[],
+	views: SavedView[],
 };
 

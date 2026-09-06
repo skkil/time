@@ -9,7 +9,9 @@ use specta_typescript::Typescript;
 use tauri::Manager;
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
 
-use features::{blocks, habits, projects, review, rituals, sections, tasks, time_entries};
+use features::{
+    blocks, habits, projects, review, rituals, sections, tasks, time_entries, workflow,
+};
 
 const BINDINGS_PATH: &str = "../src/bindings.ts";
 
@@ -95,6 +97,31 @@ fn specta_builder() -> Builder<tauri::Wry> {
             rituals::finish_ritual,
             rituals::skip_ritual,
             rituals::snooze_ritual,
+            workflow::get_workflow,
+            workflow::list_presets,
+            workflow::create_item_type,
+            workflow::update_item_type,
+            workflow::delete_item_type,
+            workflow::create_item_status,
+            workflow::update_item_status,
+            workflow::reorder_item_status,
+            workflow::delete_item_status,
+            workflow::create_project_milestone,
+            workflow::update_project_milestone,
+            workflow::delete_project_milestone,
+            workflow::set_project_milestone_label,
+            workflow::create_saved_view,
+            workflow::update_saved_view,
+            workflow::delete_saved_view,
+            workflow::apply_project_preset,
+            workflow::save_project_preset,
+            workflow::read_preset,
+            workflow::set_task_type_id,
+            workflow::set_task_status_id,
+            workflow::set_task_milestone_id,
+            workflow::set_task_event_details,
+            workflow::list_events,
+            workflow::list_time_by_type,
         ])
 }
 
