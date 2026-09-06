@@ -7,12 +7,6 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetTitle,
-} from '@/components/ui/sheet';
 
 import { QuickAdd } from './QuickAdd';
 import { TaskPanel } from './TaskPanel';
@@ -59,21 +53,21 @@ export function TaskDialogProvider({ children }: { children: ReactNode }) {
           )}
         </DialogContent>
       </Dialog>
-      <Sheet
+      <Dialog
         open={task !== undefined}
         onOpenChange={(next) => !next && close()}
       >
-        <SheetContent
-          side="right"
-          className="w-[min(640px,92vw)] border-l-0 bg-[rgba(10,18,32,.94)] p-12 pt-16 shadow-[-30px_0_80px_rgba(0,0,0,.25)] ring-1 ring-white/10 backdrop-blur-2xl"
+        <DialogContent
+          showCloseButton={false}
+          className="flex h-[min(680px,84vh)] flex-col gap-0 rounded-[32px] border-0 bg-[rgba(10,18,32,.92)] p-12 shadow-[0_40px_120px_rgba(0,0,0,.4)] ring-1 ring-white/10 backdrop-blur-2xl sm:max-w-3xl"
         >
-          <SheetTitle className="sr-only">{task?.title ?? 'Task'}</SheetTitle>
-          <SheetDescription className="sr-only">
+          <DialogTitle className="sr-only">{task?.title ?? 'Task'}</DialogTitle>
+          <DialogDescription className="sr-only">
             Edit the task in place.
-          </SheetDescription>
+          </DialogDescription>
           {task && <TaskPanel key={task.id} task={task} />}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </TaskDialogContext>
   );
 }
