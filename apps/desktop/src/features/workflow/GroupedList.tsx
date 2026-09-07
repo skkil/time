@@ -50,9 +50,6 @@ export function GroupedList({
           )}
         </section>
       ))}
-      {shown.length === 0 && (
-        <p className="text-foreground/50">Nothing matches this view.</p>
-      )}
     </div>
   );
 }

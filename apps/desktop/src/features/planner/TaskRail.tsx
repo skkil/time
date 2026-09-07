@@ -128,9 +128,6 @@ export function TaskRail({
         </label>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
-        <p className="mb-3 text-xs text-muted-foreground">
-          Drag a task onto the week to give it a time.
-        </p>
         <RailSection
           title="Due this week"
           tasks={dueSoon}

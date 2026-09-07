@@ -129,14 +129,6 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
           />
         )}
 
-        {openCount === 0 && sections.length === 0 && !isPending && (
-          <EmptyState title={project ? 'Nothing open here.' : 'Inbox zero.'}>
-            {project
-              ? 'Add a task, or split the project into sections.'
-              : 'Tasks without a project land here. Press Q anywhere to add one.'}
-          </EmptyState>
-        )}
-
         {showCompleted && (
           <section aria-label="Completed" className="mt-8">
             <h2 className="mb-1 border-b pb-2 font-sans text-sm font-semibold text-muted-foreground">

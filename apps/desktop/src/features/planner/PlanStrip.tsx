@@ -240,11 +240,6 @@ function OutcomesRow({
         {outcomes.map((outcome) => (
           <OutcomeItem key={outcome.id} outcome={outcome} quarter={quarter} />
         ))}
-        {outcomes.length === 0 && (
-          <span className="text-sm text-foreground/40">
-            Up to 3 outcomes, each a finished result.
-          </span>
-        )}
         {open < MAX_OUTCOMES && <AddOutcome week={week} />}
       </div>
     </Row>
@@ -428,7 +423,7 @@ function HabitsRow({ week }: { week: DateKey }) {
     return (
       <>
         <Row label="Habits" action={edit}>
-          <span className="text-sm text-foreground/40">No habits yet.</span>
+          <span />
         </Row>
         {sheet}
       </>

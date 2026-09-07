@@ -620,11 +620,7 @@ function Views({
       title="Views"
       hint="Saved ways to look at this project. Add and edit them from the tabs above the project."
     >
-      {views.length === 0 ? (
-        <p className="text-sm text-foreground/45">
-          No saved views. Use + next to the project's tabs to add one.
-        </p>
-      ) : (
+      {views.length > 0 && (
         <ul className="grid gap-1">
           {views.map((view) => (
             <li key={view.id} className="flex items-center gap-2 text-sm">

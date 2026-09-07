@@ -78,13 +78,7 @@ export function ProjectBrief({
           </span>
           {project.outcome}
         </p>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          {finite
-            ? 'Add what “done” means, so you’ll know when to stop.'
-            : 'Add the standard you want to keep here.'}
-        </p>
-      )}
+      ) : null}
       <div className="grid gap-1">
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>This week</span>

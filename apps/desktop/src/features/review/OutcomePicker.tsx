@@ -79,7 +79,7 @@ export function OutcomePicker({
         )}
         {!all.some(choosable) && (
           <p className="px-2 py-2 text-sm text-muted-foreground">
-            No open outcomes to link. Add them in Week.
+            No open outcomes
           </p>
         )}
       </PopoverContent>

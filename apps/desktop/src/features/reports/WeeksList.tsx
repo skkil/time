@@ -22,7 +22,7 @@ type Item =
 
 export function WeeksList() {
   const thisMonday = mondayOf(todayKey());
-  const { data: summaries, isPending } = useWeeks(
+  const { data: summaries } = useWeeks(
     shiftKey(thisMonday, -7 * 104),
     thisMonday,
   );
@@ -61,12 +61,6 @@ export function WeeksList() {
         </Link>
         .
       </p>
-      {!isPending && groups.length === 0 && (
-        <p className="mt-12 text-foreground/55">
-          Nothing to look back on yet. Past weeks show up here once they have
-          tracked time, outcomes or finished tasks.
-        </p>
-      )}
       <div className="mt-10 grid gap-10">
         {groups.map((group) => (
           <section key={group.label + group.week} className="grid gap-1">

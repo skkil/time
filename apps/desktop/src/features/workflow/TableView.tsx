@@ -127,16 +127,6 @@ export function TableView({
               ))}
             </tr>
           ))}
-          {rows.length === 0 && (
-            <tr>
-              <td
-                colSpan={columns.length}
-                className="px-3 py-6 text-center text-foreground/45"
-              >
-                Nothing matches this view.
-              </td>
-            </tr>
-          )}
         </tbody>
       </table>
     </div>

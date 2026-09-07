@@ -86,12 +86,6 @@ export function QuarterPage({ week }: { week: DateKey }) {
           </ul>
         </ReportSection>
       )}
-      {!quarter && (
-        <p className="text-foreground/55">
-          No quarter was planned for these weeks. Plan one from the quarter line
-          in Week.
-        </p>
-      )}
 
       <ReportSection title="Weeks">
         <ol className="grid grid-cols-13 gap-1.5">

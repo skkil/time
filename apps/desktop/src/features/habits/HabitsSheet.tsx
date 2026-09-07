@@ -42,7 +42,7 @@ export function HabitsSheet({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { data: habits = [], isPending } = useHabits();
+  const { data: habits = [] } = useHabits();
   const sync = useHabitSync();
   const archive = useArchiveHabit();
   const [dialog, setDialog] = useState<HabitDialogState>(null);
@@ -70,8 +70,8 @@ export function HabitsSheet({
           <div className="flex items-end justify-between gap-4">
             <div>
               <DialogTitle className="text-3xl font-light">Habits</DialogTitle>
-              <DialogDescription className="mt-1 text-sm text-foreground/50">
-                Retiring a habit is a normal ending, not a failure.
+              <DialogDescription className="sr-only">
+                Your habits
               </DialogDescription>
             </div>
             <NewHabitMenu
@@ -84,11 +84,7 @@ export function HabitsSheet({
             syncing={sync.isFetching}
             onRetry={() => sync.refetch()}
           />
-          {habits.length === 0 && !isPending ? (
-            <p className="py-6 text-foreground/55">
-              No habits yet. Build something new, or break a bad habit.
-            </p>
-          ) : (
+          {habits.length > 0 && (
             <ul className="-mx-2 min-h-0 overflow-y-auto">
               {ordered.map((habit) => (
                 <li
