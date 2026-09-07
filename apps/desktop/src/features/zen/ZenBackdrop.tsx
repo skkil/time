@@ -26,20 +26,16 @@ function useHour() {
   return hour;
 }
 
-const DUSK_HOUR = 19.25;
-
 export function ZenBackdrop({
   deep = false,
-  dusk = false,
   className,
 }: {
   deep?: boolean;
-  dusk?: boolean;
   className?: string;
 }) {
   const moving = usePreference('zenBackdrop') === 'motion';
   const hour = useHour();
-  const sky = skyAt(dusk ? DUSK_HOUR : hour);
+  const sky = skyAt(hour);
 
   return (
     <div

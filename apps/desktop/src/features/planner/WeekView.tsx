@@ -7,12 +7,15 @@ import {
   type DateKey,
   formatDuration,
   formatWeekRange,
-  isoWeekNumber,
+  mondayOf,
   shiftKey,
+  todayKey,
 } from '@/lib/time';
 
-import { PlanStrip, QuarterLine } from './PlanStrip';
+import { PlanStrip } from './PlanStrip';
 import { ScheduleView } from './ScheduleView';
+import { WeekPicker } from './WeekPicker';
+import { WeekReflection } from './WeekReflection';
 import { useBlocks } from './api';
 
 export function WeekView({ week }: { week: DateKey }) {
@@ -40,19 +43,25 @@ export function WeekView({ week }: { week: DateKey }) {
   return (
     <Page>
       <PageHeader
-        title={`Week ${isoWeekNumber(week)}`}
+        title={<WeekPicker week={week} onPick={(next) => go({ week: next })} />}
         meta={[
           formatWeekRange(week),
           <Stat value={formatDuration(totals.planned)} label="planned" />,
           <Stat value={formatDuration(totals.tracked)} label="tracked" />,
-          <QuarterLine week={week} />,
         ]}
         actions={
           <WeekSwitcher week={week} onChange={(next) => go({ week: next })} />
         }
       />
       <PlanStrip week={week} />
-      <ScheduleView week={week} />
+      <ScheduleView
+        week={week}
+        aside={
+          week < mondayOf(todayKey()) ? (
+            <WeekReflection key={week} week={week} />
+          ) : undefined
+        }
+      />
     </Page>
   );
 }

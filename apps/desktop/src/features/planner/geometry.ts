@@ -1,10 +1,18 @@
-export const HOUR_HEIGHT = 48;
-export const PX_PER_MINUTE = HOUR_HEIGHT / 60;
 export const SNAP_MINUTES = 15;
 export const DAY_MINUTES = 24 * 60;
 export const DEFAULT_BLOCK_MINUTES = 60;
 export const MIN_BLOCK_MINUTES = 15;
-export const INITIAL_SCROLL_HOUR = 7;
+export const FIT_FROM_HOUR = 7;
+export const FIT_TO_HOUR = 23;
+export const MIN_HOUR_HEIGHT = 28;
+export const MAX_HOUR_HEIGHT = 64;
+
+export const fitHourHeight = (viewportPx: number) =>
+  clamp(
+    Math.floor(viewportPx / (FIT_TO_HOUR - FIT_FROM_HOUR)),
+    MIN_HOUR_HEIGHT,
+    MAX_HOUR_HEIGHT,
+  );
 
 export const snap = (minutes: number) =>
   Math.round(minutes / SNAP_MINUTES) * SNAP_MINUTES;
@@ -12,8 +20,8 @@ export const snap = (minutes: number) =>
 export const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
-export function minutesAtOffset(offsetPx: number): number {
-  return clamp(snap(offsetPx / PX_PER_MINUTE), 0, DAY_MINUTES - SNAP_MINUTES);
+export function minutesAtOffset(offsetPx: number, perMinute: number): number {
+  return clamp(snap(offsetPx / perMinute), 0, DAY_MINUTES - SNAP_MINUTES);
 }
 
 export function placeSpan(startMinutes: number, length: number) {
@@ -57,9 +65,9 @@ export function layoutLanes(intervals: Interval[]): Map<number, Lane> {
   return result;
 }
 
-export function slotAtOffset(offsetPx: number): number {
+export function slotAtOffset(offsetPx: number, perMinute: number): number {
   return clamp(
-    Math.floor(offsetPx / PX_PER_MINUTE / SNAP_MINUTES) * SNAP_MINUTES,
+    Math.floor(offsetPx / perMinute / SNAP_MINUTES) * SNAP_MINUTES,
     0,
     DAY_MINUTES - SNAP_MINUTES,
   );

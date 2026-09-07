@@ -1,13 +1,7 @@
-import { useNavigate } from '@tanstack/react-router';
 import { CheckIcon, ChevronRightIcon, PlusIcon, XIcon } from 'lucide-react';
 import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
 
-import type { Id, Outcome, Priority, Quarter } from '@/bindings';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import type { Id, Outcome } from '@/bindings';
 import { HabitCell } from '@/features/habits/HabitCell';
 import { HabitsSheet } from '@/features/habits/HabitsSheet';
 import {
@@ -20,18 +14,14 @@ import { WEEKDAY_LETTERS } from '@/features/habits/meta';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
 import { descendantIds } from '@/features/projects/tree';
-import { QuarterSetup } from '@/features/review/QuarterSetup';
 import {
   useCreateOutcome,
-  useQuarter,
   useRemoveOutcome,
   useSetOutcomeStatus,
   useUpdateOutcome,
-  useUpdatePriority,
   useWeek,
   useWeeks,
 } from '@/features/review/api';
-import { QUARTER_WEEKS } from '@/features/review/format';
 import { useRitualRunner } from '@/features/rituals/runner-context';
 import { useTimeEntries } from '@/features/time/api';
 import { setPreference, usePreference } from '@/lib/preferences';
@@ -53,96 +43,11 @@ import { useBlocks } from './api';
 
 const MAX_OUTCOMES = 3;
 
-export function QuarterLine({ week }: { week: DateKey }) {
-  const { data: quarter, isPending } = useQuarter(week);
-  const navigate = useNavigate();
-  const [planning, setPlanning] = useState(false);
-  if (isPending) return null;
-  if (!quarter)
-    return (
-      <Popover open={planning} onOpenChange={setPlanning}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            className="text-foreground/45 hover:text-foreground hover:underline"
-          >
-            Plan a quarter
-          </button>
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-[440px] p-0">
-          <QuarterSetup start={week} onDone={() => setPlanning(false)} />
-        </PopoverContent>
-      </Popover>
-    );
-  return (
-    <span className="flex flex-wrap items-baseline gap-x-2">
-      <button
-        type="button"
-        onClick={() =>
-          navigate({ to: '/reports/quarter/$week', params: { week } })
-        }
-        className="text-foreground/70 hover:text-foreground hover:underline"
-      >
-        {quarter.label} · Week {quarter.weekNo} of {QUARTER_WEEKS}
-      </button>
-      {quarter.priorities.map((priority) => (
-        <span key={priority.id} className="flex items-baseline gap-2">
-          <span className="text-foreground/25">·</span>
-          <PriorityTitle priority={priority} />
-        </span>
-      ))}
-    </span>
-  );
-}
-
-function PriorityTitle({ priority }: { priority: Priority }) {
-  const update = useUpdatePriority();
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState(priority.title);
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (title.trim())
-      update.mutate(
-        { id: priority.id, title: title.trim(), note: priority.note },
-        { onSuccess: () => setOpen(false) },
-      );
-  };
-  return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        setTitle(priority.title);
-      }}
-    >
-      <PopoverTrigger asChild>
-        <button type="button" className="hover:text-foreground hover:underline">
-          {priority.title}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-80">
-        <form onSubmit={submit}>
-          <input
-            autoFocus
-            value={title}
-            maxLength={200}
-            aria-label="Priority"
-            className="w-full bg-transparent text-[15px] outline-none"
-            onChange={(event) => setTitle(event.target.value)}
-          />
-          <p className="mt-2 text-xs text-foreground/40">Enter to save</p>
-        </form>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 export function PlanStrip({ week }: { week: DateKey }) {
-  const { data: quarter = null } = useQuarter(week);
   return (
     <div className="grid shrink-0 gap-3 px-8 pb-5">
       <ReviewNudge week={week} />
-      <OutcomesRow week={week} quarter={quarter} />
+      <OutcomesRow week={week} />
       <HabitsRow week={week} />
       <ProjectsRow week={week} />
     </div>
@@ -222,13 +127,7 @@ function ReviewNudge({ week }: { week: DateKey }) {
   );
 }
 
-function OutcomesRow({
-  week,
-  quarter,
-}: {
-  week: DateKey;
-  quarter: Quarter | null;
-}) {
+function OutcomesRow({ week }: { week: DateKey }) {
   const { data } = useWeek(week);
   const outcomes = (data?.outcomes ?? []).filter(
     (outcome) => outcome.status !== 'dropped',
@@ -238,7 +137,7 @@ function OutcomesRow({
     <Row label="Outcomes">
       <div className="flex flex-wrap items-start gap-x-10 gap-y-3">
         {outcomes.map((outcome) => (
-          <OutcomeItem key={outcome.id} outcome={outcome} quarter={quarter} />
+          <OutcomeItem key={outcome.id} outcome={outcome} />
         ))}
         {open < MAX_OUTCOMES && <AddOutcome week={week} />}
       </div>
@@ -246,22 +145,13 @@ function OutcomesRow({
   );
 }
 
-function OutcomeItem({
-  outcome,
-  quarter,
-}: {
-  outcome: Outcome;
-  quarter: Quarter | null;
-}) {
+function OutcomeItem({ outcome }: { outcome: Outcome }) {
   const rename = useUpdateOutcome();
   const remove = useRemoveOutcome();
   const setStatus = useSetOutcomeStatus();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(outcome.title);
   const achieved = outcome.status === 'achieved';
-  const priority = quarter?.priorities.find(
-    (item) => item.id === outcome.priorityId,
-  );
   const share = outcome.tasksTotal ? outcome.tasksDone / outcome.tasksTotal : 0;
 
   const save = () => {
@@ -351,7 +241,6 @@ function OutcomeItem({
                 : 'no tasks linked',
               outcome.trackedSeconds > 0 &&
                 `${formatHours(outcome.trackedSeconds)} h`,
-              priority && `serves ${priority.title}`,
               outcome.timesCarried > 0 && `carried ×${outcome.timesCarried}`,
               outcome.status === 'carried' && 'moved to next week',
             ]

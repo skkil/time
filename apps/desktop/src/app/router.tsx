@@ -8,10 +8,6 @@ import {
 
 import { MainPage } from '@/features/main/MainPage';
 import { ProjectsSpace } from '@/features/projects/ProjectsSpace';
-import { QuarterPage } from '@/features/reports/QuarterPage';
-import { ReportsPage } from '@/features/reports/ReportsPage';
-import { WeekPage } from '@/features/reports/WeekPage';
-import { WeeksList } from '@/features/reports/WeeksList';
 import { WeekReview } from '@/features/review/WeekReview';
 import { ProjectView } from '@/features/tasks/ProjectView';
 import { SomedayPage } from '@/features/tasks/SomedayPage';
@@ -126,25 +122,44 @@ export const projectRoute = createRoute({
   },
 });
 
-export const reportsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/reports',
-  component: ReportsPage,
-});
+const weekOf = (week: DateKey) => ({ view: 'week' as const, week });
 
-const reportsIndexRoute = createRoute({
-  getParentRoute: () => reportsRoute,
-  path: '/',
-  beforeLoad: () => {
-    throw redirect({ to: '/reports/weeks' });
-  },
-});
-
-const weeksRoute = createRoute({
-  getParentRoute: () => reportsRoute,
-  path: '/weeks',
-  component: WeeksList,
-});
+const legacyWeekRoutes = [
+  ...['/reports', '/reports/weeks', '/reports/reviews', '/review'].map((path) =>
+    createRoute({
+      getParentRoute: () => rootRoute,
+      path,
+      beforeLoad: () => {
+        throw redirect({ to: '/', search: weekOf(mondayOf(todayKey())) });
+      },
+    }),
+  ),
+  ...['/reports/time', '/reports/habits', '/time', '/habits'].map((path) =>
+    createRoute({
+      getParentRoute: () => rootRoute,
+      path,
+      beforeLoad: () => {
+        throw redirect({
+          to: '/',
+          search: weekOf(shiftKey(mondayOf(todayKey()), -7)),
+        });
+      },
+    }),
+  ),
+  ...['/reports/week/$week', '/reports/quarter/$week'].map((path) =>
+    createRoute({
+      getParentRoute: () => rootRoute,
+      path,
+      beforeLoad: ({ params }) => {
+        const { week } = params as { week: string };
+        throw redirect({
+          to: '/',
+          search: weekOf(mondayOf(DATE_KEY.test(week) ? week : todayKey())),
+        });
+      },
+    }),
+  ),
+];
 
 const weekParams = {
   parse: (params: { week: string }) => ({
@@ -152,63 +167,6 @@ const weekParams = {
   }),
   stringify: (params: { week: DateKey }) => ({ week: params.week }),
 };
-
-export const reportWeekRoute = createRoute({
-  getParentRoute: () => reportsRoute,
-  path: '/week/$week',
-  params: weekParams,
-  component: function ReportWeekRoute() {
-    const { week } = reportWeekRoute.useParams();
-    return <WeekPage key={week} week={week} />;
-  },
-});
-
-export const reportQuarterRoute = createRoute({
-  getParentRoute: () => reportsRoute,
-  path: '/quarter/$week',
-  params: weekParams,
-  component: function ReportQuarterRoute() {
-    const { week } = reportQuarterRoute.useParams();
-    return <QuarterPage key={week} week={week} />;
-  },
-});
-
-const lastWeekRedirect = () => {
-  throw redirect({
-    to: '/reports/week/$week',
-    params: { week: shiftKey(mondayOf(todayKey()), -7) },
-  });
-};
-
-const legacyReportRoutes = [
-  createRoute({
-    getParentRoute: () => reportsRoute,
-    path: '/reviews',
-    beforeLoad: () => {
-      throw redirect({ to: '/reports/weeks' });
-    },
-  }),
-  ...(['time', 'habits'] as const).map((page) =>
-    createRoute({
-      getParentRoute: () => reportsRoute,
-      path: `/${page}`,
-      beforeLoad: lastWeekRedirect,
-    }),
-  ),
-];
-
-const legacyRoutes = (['time', 'habits', 'review'] as const).map((page) =>
-  createRoute({
-    getParentRoute: () => rootRoute,
-    path: `/${page}`,
-    beforeLoad:
-      page === 'review'
-        ? () => {
-            throw redirect({ to: '/reports/weeks' });
-          }
-        : lastWeekRedirect,
-  }),
-);
 
 export const weekReviewRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -232,14 +190,7 @@ const routeTree = rootRoute.addChildren([
     projectsSomedayRoute,
     projectRoute,
   ]),
-  reportsRoute.addChildren([
-    reportsIndexRoute,
-    weeksRoute,
-    reportWeekRoute,
-    reportQuarterRoute,
-    ...legacyReportRoutes,
-  ]),
-  ...legacyRoutes,
+  ...legacyWeekRoutes,
   weekReviewRoute,
 ]);
 

@@ -124,17 +124,18 @@ cargo clippy --all-targets
   per-device UI preferences through `src/lib/preferences.ts`. New settings
   are a section in `features/settings/SettingsDialog.tsx` built from
   `SettingRow`.
-- Routes: `/` is the main page (`?view=day|week`), with a top bar (Tasks
-  drawer, Day/Week toggle, timer, search, add, Reports, settings). Tasks live
-  in the left drawer (Inbox, Upcoming, Someday, projects). `/reports/{reviews,
-  time,habits}` replaces the old Time, Habits and Review pages;
-  `/review/$week` stays. Old routes redirect.
 - Imports use `@/` instead of parent-relative `../` (enforced by ESLint).
-- Routes: `/?view=day|week&week=`, `/projects`, `/projects/someday`,
-  `/projects/$projectId`, `/reports/weeks`, `/reports/week/$week`,
-  `/reports/quarter/$week` (`$week` is a Monday date key), `/review/$week`.
-  Old `/reports/time|habits|reviews`, `/time`, `/habits`, `/review`,
-  `/inbox`, `/today`, `/upcoming`, `/someday`, `/planner` redirect.
+- Routes: `/?view=day|week&week=` (`week` is a Monday date key),
+  `/projects`, `/projects/someday`, `/projects/$projectId`, `/review/$week`
+  (the first, guided review of a week). There is no Reports page: Week is
+  the record. A past week swaps the task rail for its reflection, and a
+  reviewed week is edited in `ReviewDialog`, never by reopening the guided
+  review. All old `/reports/*`, `/time`, `/habits`, `/review`, `/inbox`,
+  `/today`, `/upcoming`, `/someday`, `/planner` routes redirect.
+- The Week grid fits 07:00–23:00 to the window (`fitHourHeight`); the hour
+  scale is a context (`planner/scale.ts`), so read it with `usePerMinute`
+  instead of a constant. Each day column holds planned blocks and events on
+  the left and tracked time entries in a lane on the right.
 - Habit auto-sync runs from the app shell (start, window focus at most every
   5 min) and when the Habits window opens.
 

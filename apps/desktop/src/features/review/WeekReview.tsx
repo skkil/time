@@ -68,9 +68,9 @@ export function WeekReview({ week }: { week: DateKey }) {
         meta={formatWeekRange(week)}
         actions={
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/reports/reviews">
+            <Link to="/" search={{ view: 'week', week }}>
               <ArrowLeftIcon />
-              Review
+              Week
             </Link>
           </Button>
         }
@@ -96,7 +96,7 @@ export function WeekReviewFlow({
   if (week > mondayOf(todayKey()))
     return (
       <p className="text-sm text-muted-foreground">
-        This week hasn’t started yet. Plan its outcomes from Reports.
+        This week hasn’t started yet.
       </p>
     );
   if (!data || quarter === undefined) return null;
@@ -205,10 +205,15 @@ function ReviewFlow({
         <footer className="flex justify-end border-t pt-4">
           <Button
             onClick={() =>
-              onDone ? onDone() : navigate({ to: '/reports/weeks' })
+              onDone
+                ? onDone()
+                : navigate({
+                    to: '/',
+                    search: { view: 'week', week: week.startDate },
+                  })
             }
           >
-            {onDone ? 'Close' : 'Back to Reviews'}
+            {onDone ? 'Close' : 'Back to the week'}
           </Button>
         </footer>
       )}

@@ -9,6 +9,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import {
+  type ReactNode,
   type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
@@ -34,6 +35,7 @@ import { useProjectIndex } from '@/features/projects/api';
 import { projectColorVar } from '@/features/projects/tree';
 import { useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
+import { EntryDialog } from '@/features/time/EntryDialog';
 import { useTimeEntries, useTimer } from '@/features/time/api';
 import { useEvents } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
@@ -66,13 +68,13 @@ import {
 import {
   DAY_MINUTES,
   DEFAULT_BLOCK_MINUTES,
-  HOUR_HEIGHT,
-  INITIAL_SCROLL_HOUR,
-  PX_PER_MINUTE,
+  FIT_FROM_HOUR,
+  fitHourHeight,
   layoutLanes,
   minutesAtOffset,
   placeSpan,
 } from './geometry';
+import { PerMinute, usePerMinute } from './scale';
 import { type RangeSelection, useRangeSelect } from './use-range-select';
 
 type DragData = TaskDragData | BlockDragData;
@@ -85,7 +87,6 @@ const durationOf = (data: DragData) =>
     : (data.task.estimateMinutes ?? DEFAULT_BLOCK_MINUTES);
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
-const ACTUAL_STRIP = 6;
 
 function clipToDay(day: DateKey, startAt: number, endAt: number): Span | null {
   const dayStart = atMinutes(day, 0);
@@ -96,7 +97,13 @@ function clipToDay(day: DateKey, startAt: number, endAt: number): Span | null {
   return { start: (start - dayStart) / 60, end: (end - dayStart) / 60 };
 }
 
-export function ScheduleView({ week }: { week: DateKey }) {
+export function ScheduleView({
+  week,
+  aside,
+}: {
+  week: DateKey;
+  aside?: ReactNode;
+}) {
   const days = useMemo(() => weekKeys(week), [week]);
   const today = todayKey();
   const { data: blocks = [] } = useBlocks(week);
@@ -116,11 +123,15 @@ export function ScheduleView({ week }: { week: DateKey }) {
   const columns = useRef(new Map<DateKey, HTMLElement>());
   const grabOffset = useRef(0);
   const pointer = useRef<{ x: number; y: number } | null>(null);
+  const [hourHeight, setHourHeight] = useState(48);
+  const perMinute = hourHeight / 60;
+  const [editingEntry, setEditingEntry] = useState<TimeEntry | undefined>();
   const previewRef = useRef<Preview | null>(null);
   const [active, setActive] = useState<DragData | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [slot, setSlot] = useState<BlockSlot | null>(null);
   const range = useRangeSelect({
+    perMinute,
     onSelect: (selected) => setSlot(selected),
     onClick: (day, start) => setSlot({ day, start, end: null }),
   });
@@ -134,10 +145,32 @@ export function ScheduleView({ week }: { week: DateKey }) {
   );
 
   useLayoutEffect(() => {
-    scroller.current?.scrollTo({
-      top: INITIAL_SCROLL_HOUR * HOUR_HEIGHT - HOUR_HEIGHT / 3,
-    });
+    const area = scroller.current;
+    if (!area) return;
+    const fit = () => setHourHeight(fitHourHeight(area.clientHeight));
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(area);
+    return () => observer.disconnect();
   }, []);
+
+  useLayoutEffect(() => {
+    scroller.current?.scrollTo({ top: FIT_FROM_HOUR * hourHeight - 6 });
+  }, [hourHeight]);
+
+  const trackedByDay = useMemo(() => {
+    const totals = new Map<DateKey, number>();
+    for (const day of days)
+      for (const entry of entries) {
+        const span = clipToDay(day, entry.startedAt, entry.endedAt);
+        if (span)
+          totals.set(
+            day,
+            (totals.get(day) ?? 0) + (span.end - span.start) * 60,
+          );
+      }
+    return totals;
+  }, [days, entries]);
 
   const plannedCounts = useMemo(() => {
     const counts = new Map<Id, number>();
@@ -168,31 +201,34 @@ export function ScheduleView({ week }: { week: DateKey }) {
     [],
   );
 
-  const updatePreview = useCallback((data: DragData) => {
-    const at = pointer.current;
-    const viewport = scroller.current?.getBoundingClientRect();
-    let next: Preview | null = null;
-    if (at && viewport && at.y >= viewport.top && at.y <= viewport.bottom) {
-      for (const [day, column] of columns.current) {
-        const rect = column.getBoundingClientRect();
-        if (at.x < rect.left || at.x >= rect.right) continue;
-        const span = placeSpan(
-          minutesAtOffset(at.y - grabOffset.current - rect.top),
-          durationOf(data),
-        );
-        next = { day, ...span };
-        break;
+  const updatePreview = useCallback(
+    (data: DragData) => {
+      const at = pointer.current;
+      const viewport = scroller.current?.getBoundingClientRect();
+      let next: Preview | null = null;
+      if (at && viewport && at.y >= viewport.top && at.y <= viewport.bottom) {
+        for (const [day, column] of columns.current) {
+          const rect = column.getBoundingClientRect();
+          if (at.x < rect.left || at.x >= rect.right) continue;
+          const span = placeSpan(
+            minutesAtOffset(at.y - grabOffset.current - rect.top, perMinute),
+            durationOf(data),
+          );
+          next = { day, ...span };
+          break;
+        }
       }
-    }
-    previewRef.current = next;
-    setPreview((current) =>
-      current?.day === next?.day &&
-      current?.start === next?.start &&
-      current?.end === next?.end
-        ? current
-        : next,
-    );
-  }, []);
+      previewRef.current = next;
+      setPreview((current) =>
+        current?.day === next?.day &&
+        current?.start === next?.start &&
+        current?.end === next?.end
+          ? current
+          : next,
+      );
+    },
+    [perMinute],
+  );
 
   useEffect(() => {
     if (!active) return;
@@ -269,89 +305,100 @@ export function ScheduleView({ week }: { week: DateKey }) {
     : null;
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={pointerWithin}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      onDragCancel={finishDrag}
-      autoScroll={{ threshold: { x: 0, y: 0.15 } }}
-    >
-      <div className="flex min-h-0 flex-1">
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="grid shrink-0 grid-cols-[56px_repeat(7,minmax(0,1fr))] border-b border-white/10">
-            <div />
-            {days.map((day) => (
-              <DayHeader
-                key={day}
-                day={day}
-                today={today}
-                due={dueByDay.get(day) ?? []}
-              />
-            ))}
-          </div>
-
-          <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto">
-            <div
-              className="relative grid grid-cols-[56px_repeat(7,minmax(0,1fr))]"
-              style={{ height: 24 * HOUR_HEIGHT }}
-            >
-              <div className="relative">
-                {HOURS.slice(1).map((hour) => (
-                  <span
-                    key={hour}
-                    className="absolute right-2 -translate-y-1/2 text-[11px] text-muted-foreground"
-                    style={{ top: hour * HOUR_HEIGHT }}
-                  >
-                    {formatMinutesOfDay(hour * 60)}
-                  </span>
-                ))}
-              </div>
+    <PerMinute value={perMinute}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={pointerWithin}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDragCancel={finishDrag}
+        autoScroll={{ threshold: { x: 0, y: 0.15 } }}
+      >
+        <div className="flex min-h-0 flex-1">
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="grid shrink-0 grid-cols-[56px_repeat(7,minmax(0,1fr))] border-b border-white/10">
+              <div />
               {days.map((day) => (
-                <DayColumn
+                <DayHeader
                   key={day}
                   day={day}
-                  isToday={day === today}
-                  now={now}
-                  blocks={blocks}
-                  events={events}
-                  entries={runningEntry ? [...entries, runningEntry] : entries}
-                  runningTaskId={timer?.taskId ?? null}
-                  preview={preview?.day === day ? preview : null}
-                  register={registerColumn}
-                  selection={
-                    range.selection?.day === day ? range.selection : null
-                  }
-                  onEmptyPointerDown={(event) => range.begin(day, event)}
-                  onResize={(block, end) =>
-                    reschedule.mutate({
-                      id: block.id,
-                      span: {
-                        startAt: block.startAt,
-                        endAt: atMinutes(day, end),
-                      },
-                    })
-                  }
-                  onRemove={(block) => removeBlock.mutate(block.id)}
+                  today={today}
+                  due={dueByDay.get(day) ?? []}
+                  tracked={trackedByDay.get(day) ?? 0}
                 />
               ))}
             </div>
+
+            <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto">
+              <div
+                className="relative grid grid-cols-[56px_repeat(7,minmax(0,1fr))]"
+                style={{ height: 24 * hourHeight }}
+              >
+                <div className="relative">
+                  {HOURS.slice(1).map((hour) => (
+                    <span
+                      key={hour}
+                      className="absolute right-2 -translate-y-1/2 text-[11px] text-muted-foreground"
+                      style={{ top: hour * hourHeight }}
+                    >
+                      {formatMinutesOfDay(hour * 60)}
+                    </span>
+                  ))}
+                </div>
+                {days.map((day) => (
+                  <DayColumn
+                    key={day}
+                    day={day}
+                    isToday={day === today}
+                    now={now}
+                    blocks={blocks}
+                    events={events}
+                    entries={
+                      runningEntry ? [...entries, runningEntry] : entries
+                    }
+                    runningTaskId={timer?.taskId ?? null}
+                    preview={preview?.day === day ? preview : null}
+                    register={registerColumn}
+                    selection={
+                      range.selection?.day === day ? range.selection : null
+                    }
+                    onEmptyPointerDown={(event) => range.begin(day, event)}
+                    onResize={(block, end) =>
+                      reschedule.mutate({
+                        id: block.id,
+                        span: {
+                          startAt: block.startAt,
+                          endAt: atMinutes(day, end),
+                        },
+                      })
+                    }
+                    onRemove={(block) => removeBlock.mutate(block.id)}
+                    onOpenEntry={setEditingEntry}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
+
+          {aside ?? <TaskRail week={week} plannedCounts={plannedCounts} />}
         </div>
 
-        <TaskRail week={week} plannedCounts={plannedCounts} />
-      </div>
+        <DragOverlay dropAnimation={null}>
+          {active && !preview && (
+            <div className="pointer-events-none max-w-56 truncate rounded-md border bg-popover px-2.5 py-1.5 text-sm shadow-[0_8px_24px_rgba(26,29,33,.14)]">
+              {active.kind === 'block' ? active.block.title : active.task.title}
+            </div>
+          )}
+        </DragOverlay>
 
-      <DragOverlay dropAnimation={null}>
-        {active && !preview && (
-          <div className="pointer-events-none max-w-56 truncate rounded-md border bg-popover px-2.5 py-1.5 text-sm shadow-[0_8px_24px_rgba(26,29,33,.14)]">
-            {active.kind === 'block' ? active.block.title : active.task.title}
-          </div>
-        )}
-      </DragOverlay>
-
-      <NewBlockDialog slot={slot} onClose={closeSlot} onPick={planTask} />
-    </DndContext>
+        <NewBlockDialog slot={slot} onClose={closeSlot} onPick={planTask} />
+        <EntryDialog
+          open={editingEntry !== undefined}
+          onOpenChange={(next) => !next && setEditingEntry(undefined)}
+          entry={editingEntry}
+        />
+      </DndContext>
+    </PerMinute>
   );
 }
 
@@ -359,10 +406,12 @@ function DayHeader({
   day,
   today,
   due,
+  tracked,
 }: {
   day: DateKey;
   today: DateKey;
   due: Task[];
+  tracked: number;
 }) {
   const { openTask } = useTaskDialog();
   const isToday = day === today;
@@ -387,6 +436,11 @@ function DayHeader({
         >
           {formatDayOfMonth(day)}
         </span>
+        {tracked >= 60 && (
+          <span className="ml-auto text-[11px] text-foreground/50 tabular-nums">
+            {formatDuration(tracked)}
+          </span>
+        )}
       </div>
       <div className="mt-1.5 grid min-h-6 grid-cols-[minmax(0,1fr)] gap-1">
         {visible.map((task) => (
@@ -428,6 +482,7 @@ type DayColumnProps = {
   onEmptyPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
   onResize: (block: TimeBlock, end: number) => void;
   onRemove: (block: TimeBlock) => void;
+  onOpenEntry: (entry: TimeEntry) => void;
 };
 
 function DayColumn({
@@ -444,8 +499,10 @@ function DayColumn({
   onEmptyPointerDown,
   onResize,
   onRemove,
+  onOpenEntry,
 }: DayColumnProps) {
   const index = useProjectIndex();
+  const perMinute = usePerMinute();
   const { setNodeRef, isOver } = useDroppable({ id: `day:${day}` });
 
   useEffect(() => () => register(day, null), [day, register]);
@@ -517,14 +574,10 @@ function DayColumn({
       )}
       style={{
         backgroundImage: `linear-gradient(to bottom, var(--border) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklab, var(--border) 45%, transparent) 1px, transparent 1px)`,
-        backgroundSize: `100% ${HOUR_HEIGHT}px, 100% ${HOUR_HEIGHT / 2}px`,
-        paddingRight: ACTUAL_STRIP + 2,
+        backgroundSize: `100% ${perMinute * 60}px, 100% ${perMinute * 30}px`,
       }}
     >
-      <div
-        className="pointer-events-none absolute inset-y-0 left-0"
-        style={{ right: ACTUAL_STRIP + 2 }}
-      >
+      <div className="pointer-events-none absolute inset-y-0 right-[30%] left-0">
         <div className="pointer-events-auto">
           {placed.events.map(({ event, start, end, lane, lanes }) => (
             <EventCard
@@ -554,8 +607,8 @@ function DayColumn({
           <div
             className="absolute inset-x-0.5 z-20 overflow-hidden rounded-md bg-foreground/15 px-2 py-1 text-[12px]"
             style={{
-              top: selection.start * PX_PER_MINUTE,
-              height: (selection.end - selection.start) * PX_PER_MINUTE - 2,
+              top: selection.start * perMinute,
+              height: (selection.end - selection.start) * perMinute - 2,
             }}
           >
             <span>
@@ -568,8 +621,8 @@ function DayColumn({
           <div
             className="absolute inset-x-0.5 z-20 overflow-hidden rounded-md border-2 border-dashed border-ring bg-now-tint/80 px-2 py-1 text-[12px] text-now"
             style={{
-              top: preview.start * PX_PER_MINUTE,
-              height: (preview.end - preview.start) * PX_PER_MINUTE - 2,
+              top: preview.start * perMinute,
+              height: (preview.end - preview.start) * perMinute - 2,
             }}
           >
             <span>
@@ -580,10 +633,7 @@ function DayColumn({
         )}
       </div>
 
-      <div
-        className="absolute inset-y-0 right-0.5"
-        style={{ width: ACTUAL_STRIP - 2 }}
-      >
+      <div className="pointer-events-none absolute inset-y-0 right-0.5 w-[calc(30%-4px)]">
         {actual.map(({ entry, span }) => {
           const project =
             entry.projectId === null
@@ -592,19 +642,31 @@ function DayColumn({
           return (
             <Tooltip key={entry.id}>
               <TooltipTrigger asChild>
-                <div
-                  className="absolute inset-x-0 rounded-full"
+                <button
+                  type="button"
+                  disabled={entry.id === -1}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onClick={() => onOpenEntry(entry)}
+                  className="pointer-events-auto absolute inset-x-0 overflow-hidden rounded-[5px] px-1 text-left text-[10px] leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                   style={{
-                    top: span.start * PX_PER_MINUTE,
+                    top: span.start * perMinute,
                     height: Math.max(
-                      (span.end - span.start) * PX_PER_MINUTE,
+                      (span.end - span.start) * perMinute - 1,
                       3,
                     ),
-                    background: project
-                      ? projectColorVar(project.color)
-                      : 'var(--muted-foreground)',
+                    background: `color-mix(in oklab, ${
+                      project
+                        ? projectColorVar(project.color)
+                        : 'var(--muted-foreground)'
+                    } 55%, transparent)`,
                   }}
-                />
+                >
+                  {(span.end - span.start) * perMinute >= 24 && (
+                    <span className="block truncate pt-0.5">
+                      {entry.description || project?.name}
+                    </span>
+                  )}
+                </button>
               </TooltipTrigger>
               <TooltipContent side="left">
                 <p>{entry.description || project?.name || 'Tracked time'}</p>
@@ -623,7 +685,7 @@ function DayColumn({
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 z-30 h-0.5 bg-now"
-          style={{ top: minutesIntoDay(now) * PX_PER_MINUTE }}
+          style={{ top: minutesIntoDay(now) * perMinute }}
         >
           <div className="absolute -top-[3px] -left-[4px] size-2 rounded-full bg-now" />
         </div>

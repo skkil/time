@@ -147,7 +147,7 @@ export function HabitsSheet({
             <AlertDialogDescription>
               You ran this {retiring && weeksRun(retiring)}{' '}
               {retiring && weeksRun(retiring) === 1 ? 'week' : 'weeks'}. Its
-              history stays in your reports.
+              history stays in your weeks.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

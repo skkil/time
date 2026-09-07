@@ -3,7 +3,6 @@ import {
   CalendarCheckIcon,
   CalendarRangeIcon,
   InboxIcon,
-  NotebookPenIcon,
   SunsetIcon,
   TimerIcon,
 } from 'lucide-react';
@@ -65,17 +64,12 @@ export function SearchDialog({
       run: () => navigate({ to: '/projects/someday' }),
     },
     {
-      label: 'Reports',
-      icon: NotebookPenIcon,
-      run: () => navigate({ to: '/reports/weeks' }),
-    },
-    {
       label: 'Last week',
       icon: TimerIcon,
       run: () =>
         navigate({
-          to: '/reports/week/$week',
-          params: { week: shiftKey(week, -7) },
+          to: '/',
+          search: { view: 'week', week: shiftKey(week, -7) },
         }),
     },
   ];

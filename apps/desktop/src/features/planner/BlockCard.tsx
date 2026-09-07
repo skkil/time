@@ -30,13 +30,8 @@ import { useStartTimer } from '@/features/time/api';
 import { formatDuration, formatMinutesOfDay } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
-import {
-  DAY_MINUTES,
-  MIN_BLOCK_MINUTES,
-  PX_PER_MINUTE,
-  clamp,
-  snap,
-} from './geometry';
+import { DAY_MINUTES, MIN_BLOCK_MINUTES, clamp, snap } from './geometry';
+import { usePerMinute } from './scale';
 
 export type BlockDragData = {
   kind: 'block';
@@ -96,12 +91,13 @@ export function BlockCard({
     return () => window.clearTimeout(id);
   }, [isDragging]);
 
+  const perMinute = usePerMinute();
   const tint = project
     ? projectColorVar(project.color)
     : 'var(--muted-foreground)';
   const style: CSSProperties = {
-    top: start * PX_PER_MINUTE,
-    height: Math.max(minutes * PX_PER_MINUTE - 2, 14),
+    top: start * perMinute,
+    height: Math.max(minutes * perMinute - 2, 14),
     left: `calc(${(lane / lanes) * 100}% + 2px)`,
     width: `calc(${100 / lanes}% - 4px)`,
     background: `color-mix(in oklab, ${tint} var(--block-tint), var(--card))`,
@@ -119,7 +115,7 @@ export function BlockCard({
   const moveResize = (event: PointerEvent<HTMLDivElement>) => {
     const origin = resizeOrigin.current;
     if (!origin) return;
-    const next = snap(origin.end + (event.clientY - origin.y) / PX_PER_MINUTE);
+    const next = snap(origin.end + (event.clientY - origin.y) / perMinute);
     setResizeEnd(clamp(next, start + MIN_BLOCK_MINUTES, DAY_MINUTES));
   };
 
@@ -130,7 +126,8 @@ export function BlockCard({
     setResizeEnd(null);
   };
 
-  const compact = minutes < 45;
+  const height = minutes * perMinute;
+  const compact = height < 36;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -159,7 +156,7 @@ export function BlockCard({
           <span
             className={cn(
               'text-[13px] leading-tight font-semibold',
-              minutes >= 90 ? 'line-clamp-2' : 'truncate',
+              height >= 72 ? 'line-clamp-2' : 'truncate',
               block.completed && 'line-through',
             )}
           >

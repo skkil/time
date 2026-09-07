@@ -9,9 +9,11 @@ export type RangeSelection = { day: DateKey; start: number; end: number };
 const DRAG_THRESHOLD_PX = 4;
 
 export function useRangeSelect({
+  perMinute,
   onSelect,
   onClick,
 }: {
+  perMinute: number;
   onSelect: (range: RangeSelection) => void;
   onClick: (day: DateKey, minutes: number) => void;
 }) {
@@ -23,7 +25,7 @@ export function useRangeSelect({
     const column = event.currentTarget;
     const startY = event.clientY;
     const slotAt = (clientY: number) =>
-      slotAtOffset(clientY - column.getBoundingClientRect().top);
+      slotAtOffset(clientY - column.getBoundingClientRect().top, perMinute);
     const anchor = slotAt(startY);
     let dragging = false;
     let lastY = startY;

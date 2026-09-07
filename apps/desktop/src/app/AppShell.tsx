@@ -1,11 +1,5 @@
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import {
-  ChartColumnIcon,
-  PlusIcon,
-  SearchIcon,
-  SettingsIcon,
-  UserIcon,
-} from 'lucide-react';
+import { PlusIcon, SearchIcon, SettingsIcon, UserIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import {
@@ -95,23 +89,17 @@ function Canvas() {
       keys: option.keys,
       run: () => void go(option.id),
     })),
-    { keys: 'Mod+4', run: () => navigate({ to: '/reports/weeks' }) },
     ...zoomShortcuts,
   ]);
 
   return (
     <div className="relative h-full overflow-hidden text-foreground">
-      <ZenBackdrop
-        deep={active !== null}
-        dusk={location.pathname.startsWith('/reports')}
-        className="fixed"
-      />
+      <ZenBackdrop deep={active !== null} className="fixed" />
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 grid grid-cols-[1fr_auto_1fr] items-center px-6 pt-5">
         <div className="pointer-events-auto justify-self-start">
           <ProfileMenu
             onSearch={() => setSearching(true)}
             onSettings={() => setSettingsOpen(true)}
-            onReports={() => navigate({ to: '/reports/weeks' })}
             onAdd={() => newTask()}
           />
         </div>
@@ -176,12 +164,10 @@ function SpaceToggle({
 function ProfileMenu({
   onSearch,
   onSettings,
-  onReports,
   onAdd,
 }: {
   onSearch: () => void;
   onSettings: () => void;
-  onReports: () => void;
   onAdd: () => void;
 }) {
   const name = usePreference('profileName').trim();
@@ -213,11 +199,6 @@ function ProfileMenu({
           <DropdownMenuShortcut>{formatShortcut('Mod+K')}</DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={onReports}>
-          <ChartColumnIcon />
-          Reports
-          <DropdownMenuShortcut>{formatShortcut('Mod+4')}</DropdownMenuShortcut>
-        </DropdownMenuItem>
         <DropdownMenuItem onSelect={onSettings}>
           <SettingsIcon />
           Settings
