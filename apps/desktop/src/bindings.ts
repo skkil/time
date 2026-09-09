@@ -106,6 +106,7 @@ export const commands = {
 	setTaskEventDetails: (id: Id, location: string, countsAsTime: boolean) => __TAURI_INVOKE<Task>("set_task_event_details", { id, location, countsAsTime }),
 	listEvents: (from: Date, to: Date) => __TAURI_INVOKE<EventOccurrence[]>("list_events", { from, to }),
 	listTimeByType: (from: Date, to: Date) => __TAURI_INVOKE<TypeTime[]>("list_time_by_type", { from, to }),
+	deleteAllData: () => __TAURI_INVOKE<null>("delete_all_data"),
 };
 
 /* Types */

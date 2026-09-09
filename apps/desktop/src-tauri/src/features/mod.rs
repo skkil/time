@@ -1,4 +1,5 @@
 pub mod blocks;
+pub mod data;
 pub mod habits;
 pub mod projects;
 pub mod review;

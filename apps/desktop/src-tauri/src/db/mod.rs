@@ -42,6 +42,23 @@ impl Db {
     }
 }
 
+pub fn reset(conn: &mut Connection) -> Result<()> {
+    conn.pragma_update(None, "foreign_keys", false)?;
+    let tables = conn
+        .prepare(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
+        )?
+        .query_map([], |row| row.get::<_, String>(0))?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+    let tx = conn.transaction()?;
+    for table in tables {
+        tx.execute_batch(&format!("DROP TABLE \"{table}\""))?;
+    }
+    tx.pragma_update(None, "user_version", 0)?;
+    tx.commit()?;
+    migrate(conn)
+}
+
 fn migrate(conn: &mut Connection) -> Result<()> {
     conn.pragma_update(None, "foreign_keys", false)?;
     let version: i64 = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;

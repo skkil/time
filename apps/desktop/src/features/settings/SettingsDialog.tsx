@@ -1,5 +1,6 @@
 import {
   CalendarRangeIcon,
+  DatabaseIcon,
   type LucideIcon,
   PaletteIcon,
   SunIcon,
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 
 import { AppearanceSettings } from './AppearanceSettings';
+import { DataSettings } from './DataSettings';
 import { RitualSettings } from './RitualSettings';
 import { TodaySettings } from './TodaySettings';
 import { WeekSettings } from './WeekSettings';
@@ -55,6 +57,13 @@ const sections: Section[] = [
     description: 'The water, Check out and the weekly review.',
     icon: SunriseIcon,
     content: RitualSettings,
+  },
+  {
+    id: 'data',
+    label: 'Data',
+    description: 'Everything skkil time keeps on this computer.',
+    icon: DatabaseIcon,
+    content: DataSettings,
   },
 ];
 
