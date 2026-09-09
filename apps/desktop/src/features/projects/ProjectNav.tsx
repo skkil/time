@@ -33,6 +33,7 @@ import {
 import { useTasks } from '@/features/tasks/api';
 import { cn } from '@/lib/utils';
 
+import { NewProjectDialog } from './NewProjectDialog';
 import { ProjectDot } from './ProjectDot';
 import { ProjectSheet } from './ProjectSheet';
 import { useArchiveProject, useDeleteProject, useProjectIndex } from './api';
@@ -176,10 +177,16 @@ export function ProjectNav() {
         </div>
       )}
 
-      <ProjectSheet
-        open={dialog !== null}
+      {dialog?.project && (
+        <ProjectSheet
+          open
+          onOpenChange={(open) => !open && setDialog(null)}
+          project={dialog.project}
+        />
+      )}
+      <NewProjectDialog
+        open={dialog !== null && !dialog.project}
         onOpenChange={(open) => !open && setDialog(null)}
-        project={dialog?.project}
         parentId={dialog?.parentId ?? null}
       />
 

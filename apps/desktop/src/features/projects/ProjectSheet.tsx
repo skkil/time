@@ -1,7 +1,7 @@
 import { CheckIcon } from 'lucide-react';
 import { type FormEvent, type ReactNode, useState } from 'react';
 
-import type { Id, Preset, Project, ProjectSettings } from '@/bindings';
+import type { Id, Project, ProjectSettings } from '@/bindings';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -15,15 +15,12 @@ import {
 } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { PresetPicker } from '@/features/workflow/PresetPicker';
 import { WorkflowSettings } from '@/features/workflow/WorkflowSettings';
-import { useApplyPreset } from '@/features/workflow/api';
 import { cn } from '@/lib/utils';
 
 import { ProjectPicker } from './ProjectPicker';
 import {
   settingsOf,
-  useCreateProject,
   useProjectIndex,
   useUpdateProject,
   useUpdateProjectSettings,
@@ -47,28 +44,25 @@ const CADENCES = [
 type ProjectSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  project?: Project;
-  parentId?: Id | null;
+  project: Project;
 };
 
 export function ProjectSheet({
   open,
   onOpenChange,
   project,
-  parentId = null,
 }: ProjectSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[420px] overflow-y-auto">
         {open && (
           <ProjectForm
-            key={project?.id ?? 'new'}
+            key={project.id}
             project={project}
-            parentId={parentId}
             onDone={() => onOpenChange(false)}
           />
         )}
-        {open && project && <WorkflowSettings project={project} />}
+        {open && <WorkflowSettings project={project} />}
       </SheetContent>
     </Sheet>
   );
@@ -96,61 +90,36 @@ function Field({
 
 function ProjectForm({
   project,
-  parentId,
   onDone,
 }: {
-  project?: Project;
-  parentId: Id | null;
+  project: Project;
   onDone: () => void;
 }) {
   const index = useProjectIndex();
-  const create = useCreateProject();
   const update = useUpdateProject();
   const updateSettings = useUpdateProjectSettings();
-  const [name, setName] = useState(project?.name ?? '');
-  const [parent, setParent] = useState<Id | null>(
-    project?.parentId ?? parentId,
-  );
-  const [color, setColor] = useState<string>(
-    project?.color ??
-      (parent !== null ? index.byId.get(parent)?.color : undefined) ??
-      'blue',
-  );
+  const [name, setName] = useState(project.name);
+  const [parent, setParent] = useState<Id | null>(project.parentId);
+  const [color, setColor] = useState<string>(project.color);
   const [settings, setSettings] = useState<ProjectSettings>(
-    project
-      ? settingsOf(project)
-      : {
-          kind: 'project',
-          status: 'active',
-          outcome: '',
-          weeklyMinutes: null,
-          targetDate: null,
-          killCriteria: '',
-          reviewEveryWeeks: 1,
-          inOrder: false,
-        },
+    settingsOf(project),
   );
-  const [preset, setPreset] = useState<Preset | null>(null);
-  const applyPreset = useApplyPreset();
   const set = (patch: Partial<ProjectSettings>) =>
     setSettings({ ...settings, ...patch });
 
-  const node = project ? index.byId.get(project.id) : undefined;
+  const node = index.byId.get(project.id);
   const blocked = node ? descendantIds(node) : new Set<Id>();
   const height = node ? subtreeHeight(node) : 1;
-  const pending =
-    create.isPending || update.isPending || updateSettings.isPending;
+  const pending = update.isPending || updateSettings.isPending;
   const finite = settings.kind === 'project';
   const parentKind = parent !== null ? index.byId.get(parent)?.kind : undefined;
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     const input = { name, parentId: parent, color };
-    const id = project
-      ? (await update.mutateAsync({ id: project.id, input }), project.id)
-      : (await create.mutateAsync(input)).id;
+    await update.mutateAsync({ id: project.id, input });
     await updateSettings.mutateAsync({
-      id,
+      id: project.id,
       settings: finite
         ? settings
         : {
@@ -160,15 +129,13 @@ function ProjectForm({
             killCriteria: '',
           },
     });
-    if (!project && preset && preset.key !== 'simple')
-      await applyPreset.mutateAsync({ id, preset });
     onDone();
   };
 
   return (
     <form onSubmit={submit} className="grid gap-6 p-6">
       <SheetHeader className="p-0">
-        <SheetTitle>{project ? 'Project settings' : 'New project'}</SheetTitle>
+        <SheetTitle>Project settings</SheetTitle>
         <SheetDescription>
           A project finishes. An area is ongoing, like Health or Admin.
         </SheetDescription>
@@ -177,18 +144,11 @@ function ProjectForm({
       <Field label="Name" htmlFor="project-name">
         <Input
           id="project-name"
-          autoFocus={!project}
           value={name}
           maxLength={120}
           onChange={(event) => setName(event.target.value)}
         />
       </Field>
-
-      {!project && (
-        <Field label="Set up as">
-          <PresetPicker value={preset} onChange={setPreset} />
-        </Field>
-      )}
 
       <Field label="Kind">
         <ToggleGroup
@@ -386,7 +346,7 @@ function ProjectForm({
           Cancel
         </Button>
         <Button type="submit" disabled={!name.trim() || pending}>
-          {project ? 'Save' : 'Create project'}
+          Save
         </Button>
       </div>
     </form>
