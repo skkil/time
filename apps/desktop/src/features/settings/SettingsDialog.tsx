@@ -1,4 +1,5 @@
 import {
+  CalendarRangeIcon,
   type LucideIcon,
   PaletteIcon,
   SunIcon,
@@ -16,6 +17,7 @@ import {
 import { AppearanceSettings } from './AppearanceSettings';
 import { RitualSettings } from './RitualSettings';
 import { TodaySettings } from './TodaySettings';
+import { WeekSettings } from './WeekSettings';
 
 type Section = {
   id: string;
@@ -39,6 +41,13 @@ const sections: Section[] = [
     description: 'Your name and what the top of Day shows.',
     icon: SunIcon,
     content: TodaySettings,
+  },
+  {
+    id: 'week',
+    label: 'Week',
+    description: 'How weeks are laid out.',
+    icon: CalendarRangeIcon,
+    content: WeekSettings,
   },
   {
     id: 'rituals',

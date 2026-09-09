@@ -11,7 +11,13 @@ import { ProjectsSpace } from '@/features/projects/ProjectsSpace';
 import { WeekReview } from '@/features/review/WeekReview';
 import { ProjectView } from '@/features/tasks/ProjectView';
 import { SomedayPage } from '@/features/tasks/SomedayPage';
-import { type DateKey, mondayOf, shiftKey, todayKey } from '@/lib/time';
+import {
+  type DateKey,
+  mondayOf,
+  shiftKey,
+  todayKey,
+  weekStartOf,
+} from '@/lib/time';
 
 import { AppShell } from './AppShell';
 import { RouteError } from './RouteError';
@@ -27,7 +33,7 @@ function validateWeek(search: Record<string, unknown>): WeekSearch {
     typeof search.week === 'string' && DATE_KEY.test(search.week)
       ? search.week
       : todayKey();
-  return { week: mondayOf(week) };
+  return { week: weekStartOf(week) };
 }
 
 const rootRoute = createRootRoute({ component: AppShell });
@@ -48,7 +54,7 @@ const plannerRoute = createRoute({
   beforeLoad: () => {
     throw redirect({
       to: '/',
-      search: { view: 'week', week: mondayOf(todayKey()) },
+      search: { view: 'week', week: weekStartOf(todayKey()) },
     });
   },
 });
@@ -67,7 +73,7 @@ const todayRoute = createRoute({
   beforeLoad: () => {
     throw redirect({
       to: '/',
-      search: { view: 'day', week: mondayOf(todayKey()) },
+      search: { view: 'day', week: weekStartOf(todayKey()) },
     });
   },
 });
@@ -86,7 +92,7 @@ const upcomingRoute = createRoute({
   beforeLoad: () => {
     throw redirect({
       to: '/',
-      search: { view: 'week', week: mondayOf(todayKey()) },
+      search: { view: 'week', week: weekStartOf(todayKey()) },
     });
   },
 });
@@ -130,7 +136,7 @@ const legacyWeekRoutes = [
       getParentRoute: () => rootRoute,
       path,
       beforeLoad: () => {
-        throw redirect({ to: '/', search: weekOf(mondayOf(todayKey())) });
+        throw redirect({ to: '/', search: weekOf(weekStartOf(todayKey())) });
       },
     }),
   ),
@@ -141,7 +147,7 @@ const legacyWeekRoutes = [
       beforeLoad: () => {
         throw redirect({
           to: '/',
-          search: weekOf(shiftKey(mondayOf(todayKey()), -7)),
+          search: weekOf(shiftKey(weekStartOf(todayKey()), -7)),
         });
       },
     }),
@@ -154,7 +160,7 @@ const legacyWeekRoutes = [
         const { week } = params as { week: string };
         throw redirect({
           to: '/',
-          search: weekOf(mondayOf(DATE_KEY.test(week) ? week : todayKey())),
+          search: weekOf(weekStartOf(DATE_KEY.test(week) ? week : todayKey())),
         });
       },
     }),

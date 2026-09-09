@@ -22,7 +22,7 @@ import { projectPath } from '@/features/projects/tree';
 import { PriorityCheck } from '@/features/tasks/PriorityCheck';
 import { useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
-import { mondayOf, shiftKey, todayKey } from '@/lib/time';
+import { shiftKey, todayKey, weekStartOf } from '@/lib/time';
 
 export function SearchDialog({
   open,
@@ -35,7 +35,7 @@ export function SearchDialog({
   const { openTask } = useTaskDialog();
   const { data: tasks } = useTasks();
   const index = useProjectIndex();
-  const week = mondayOf(todayKey());
+  const week = weekStartOf(todayKey());
 
   const go = (run: () => void) => {
     onOpenChange(false);

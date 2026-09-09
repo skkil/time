@@ -7,7 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { type DateKey, mondayOf, shiftKey, todayKey } from '@/lib/time';
+import { type DateKey, shiftKey, todayKey, weekStartOf } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 export function Page({
@@ -82,7 +82,7 @@ export function WeekSwitcher({
   week: DateKey;
   onChange: (week: DateKey) => void;
 }) {
-  const current = mondayOf(todayKey());
+  const current = weekStartOf(todayKey());
   return (
     <div className="flex items-center gap-1">
       <Tooltip>

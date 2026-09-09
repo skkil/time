@@ -8,6 +8,8 @@ import {
   startOfWeek,
 } from 'date-fns';
 
+import { type WeekStart, getPreference } from '@/lib/preferences';
+
 export type DateKey = string;
 
 export const MINUTE = 60;
@@ -29,6 +31,18 @@ export const shiftKey = (key: DateKey, days: number) =>
 
 export const mondayOf = (key: DateKey): DateKey =>
   toDateKey(startOfWeek(fromDateKey(key), { weekStartsOn: 1 }));
+
+export const weekStartOf = (
+  key: DateKey,
+  startsOn: WeekStart = getPreference('weekStartsOn'),
+): DateKey =>
+  toDateKey(startOfWeek(fromDateKey(key), { weekStartsOn: startsOn }));
+
+export const reviewWeekOf = (start: DateKey): DateKey =>
+  mondayOf(shiftKey(start, 3));
+
+export const weekOfMonday = (monday: DateKey): DateKey =>
+  weekStartOf(shiftKey(monday, 3));
 
 export const weekKeys = (monday: DateKey): DateKey[] =>
   Array.from({ length: 7 }, (_, i) => shiftKey(monday, i));

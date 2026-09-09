@@ -10,7 +10,7 @@ import {
 import { useProjectIndex } from '@/features/projects/api';
 import { useTaskIndex } from '@/features/tasks/api';
 import { useNow } from '@/hooks/use-now';
-import { formatStopwatch, mondayOf, todayKey } from '@/lib/time';
+import { formatStopwatch, todayKey, weekStartOf } from '@/lib/time';
 
 import { useStopTimer, useTimer } from './api';
 
@@ -29,7 +29,7 @@ export function TimerPill() {
     <div className="flex h-8 items-center gap-1 rounded-full bg-white/10 pr-1 pl-3 text-foreground backdrop-blur-md">
       <Link
         to="/"
-        search={{ view: 'day', week: mondayOf(todayKey()) }}
+        search={{ view: 'day', week: weekStartOf(todayKey()) }}
         className="flex min-w-0 items-center gap-2 rounded-sm text-xs outline-offset-2 focus-visible:outline-2 focus-visible:outline-foreground"
       >
         <span className="font-semibold">

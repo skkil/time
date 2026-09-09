@@ -21,7 +21,7 @@ import { TimerPill } from '@/features/time/TimerPill';
 import { ZenBackdrop } from '@/features/zen/ZenBackdrop';
 import { getPreference, usePreference } from '@/lib/preferences';
 import { formatShortcut, useShortcuts } from '@/lib/shortcuts';
-import { mondayOf, todayKey } from '@/lib/time';
+import { todayKey, weekStartOf } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import { zoomShortcuts } from '@/lib/zoom';
 
@@ -75,7 +75,7 @@ function Canvas() {
       to: '/',
       search: {
         view: next,
-        week: (onMain && search.week) || mondayOf(todayKey()),
+        week: (onMain && search.week) || weekStartOf(todayKey()),
       },
     });
   };

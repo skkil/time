@@ -21,10 +21,10 @@ import {
   formatDayOfMonth,
   formatWeekRange,
   formatWeekday,
-  mondayOf,
   shiftKey,
   todayKey,
   weekKeys,
+  weekStartOf,
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
@@ -39,7 +39,7 @@ export function CalendarView({
   tasks: Task[];
 }) {
   const today = todayKey();
-  const [week, setWeek] = useState(mondayOf(today));
+  const [week, setWeek] = useState(weekStartOf(today));
   const { data: events = [] } = useEvents(week, shiftKey(week, 7));
   const reschedule = useRescheduleTasks();
   const sensors = useSensors(
@@ -73,10 +73,10 @@ export function CalendarView({
         >
           <ChevronRightIcon className="size-4" />
         </button>
-        {week !== mondayOf(today) && (
+        {week !== weekStartOf(today) && (
           <button
             type="button"
-            onClick={() => setWeek(mondayOf(today))}
+            onClick={() => setWeek(weekStartOf(today))}
             className="ml-1 hover:text-foreground hover:underline"
           >
             This week

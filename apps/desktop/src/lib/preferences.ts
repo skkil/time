@@ -2,6 +2,8 @@ import { useSyncExternalStore } from 'react';
 
 export type ZenBackdropMode = 'motion' | 'still';
 
+export type WeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
 export type WeatherPlace = {
   name: string;
   latitude: number;
@@ -20,6 +22,7 @@ export type Preferences = {
   weekHabitsOpen: boolean;
   weekProjectsOpen: boolean;
   lastViews: Record<string, number>;
+  weekStartsOn: WeekStart;
 };
 
 const defaults: Preferences = {
@@ -34,6 +37,7 @@ const defaults: Preferences = {
   weekHabitsOpen: false,
   weekProjectsOpen: false,
   lastViews: {},
+  weekStartsOn: 1,
 };
 
 const BACKDROP_MODES: ZenBackdropMode[] = ['motion', 'still'];
@@ -49,6 +53,8 @@ function read(): Preferences {
     cache = { ...defaults, ...stored };
     if (!BACKDROP_MODES.includes(cache!.zenBackdrop))
       cache!.zenBackdrop = 'motion';
+    if (![0, 1, 2, 3, 4, 5, 6].includes(cache!.weekStartsOn))
+      cache!.weekStartsOn = 1;
   } catch {
     cache = defaults;
   }

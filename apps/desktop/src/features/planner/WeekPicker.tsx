@@ -14,9 +14,11 @@ import {
   formatHours,
   formatWeekRange,
   isoWeekNumber,
-  mondayOf,
+  reviewWeekOf,
   shiftKey,
   todayKey,
+  weekOfMonday,
+  weekStartOf,
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
@@ -34,7 +36,7 @@ export function WeekPicker({
   onPick: (week: DateKey) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const thisMonday = mondayOf(todayKey());
+  const thisMonday = reviewWeekOf(weekStartOf(todayKey()));
   const { data: summaries } = useWeeks(
     shiftKey(thisMonday, -7 * 104),
     shiftKey(thisMonday, 14),
@@ -138,7 +140,7 @@ function WeekRow({
             ? 'This week'
             : start === shiftKey(thisMonday, 7)
               ? 'Next week'
-              : formatWeekRange(start),
+              : formatWeekRange(weekOfMonday(start)),
           summary.felt && FELT_LABELS[summary.felt - 1],
           summary.outcomesTotal > 0 &&
             `${summary.outcomesAchieved} of ${summary.outcomesTotal} outcomes`,
