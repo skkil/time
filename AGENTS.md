@@ -27,7 +27,8 @@ memory in `.design/DESIGN.md`.
   task moves its date forward instead of closing it.
 - **TimeBlock** — a planned span for a task on the schedule grid.
 - **TimeEntry** — tracked time with optional project/task; a linked task
-  decides the project. The running timer is in memory only.
+  decides the project. The running timer is one row in `running_timer`
+  (migration 008), so it survives a restart; stopping turns it into an entry.
 - **Habit / HabitLog** — Habitify-style habits: `build` (reach a daily goal),
   `quit` (none at all) or `limit` (at most a goal), in times or minutes, with
   repeat days, time of day, area and start date. A habit may have `tracking`

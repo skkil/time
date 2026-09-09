@@ -54,7 +54,7 @@ pub struct RunningTimer {
 pub struct Timer(Mutex<Option<RunningTimer>>);
 
 impl Timer {
-    fn with<T>(&self, run: impl FnOnce(&mut Option<RunningTimer>) -> T) -> T {
+    pub(crate) fn with<T>(&self, run: impl FnOnce(&mut Option<RunningTimer>) -> T) -> T {
         let mut running = self
             .0
             .lock()
@@ -163,6 +163,42 @@ pub fn delete(conn: &Connection, id: Id) -> Result<()> {
     ensure_changed(rows, "Time entry")
 }
 
+pub fn running(conn: &Connection) -> Result<Option<RunningTimer>> {
+    Ok(conn
+        .query_row(
+            "SELECT description, project_id, task_id, started_at FROM running_timer WHERE id = 1",
+            [],
+            |row| {
+                Ok(RunningTimer {
+                    description: row.get(0)?,
+                    project_id: row.get(1)?,
+                    task_id: row.get(2)?,
+                    started_at: row.get(3)?,
+                })
+            },
+        )
+        .optional()?)
+}
+
+fn save_running(conn: &Connection, running: &RunningTimer) -> Result<()> {
+    conn.execute(
+        "INSERT OR REPLACE INTO running_timer (id, description, project_id, task_id, started_at)
+         VALUES (1, ?1, ?2, ?3, ?4)",
+        params![
+            running.description,
+            running.project_id,
+            running.task_id,
+            running.started_at
+        ],
+    )?;
+    Ok(())
+}
+
+fn clear_running(conn: &Connection) -> Result<()> {
+    conn.execute("DELETE FROM running_timer", [])?;
+    Ok(())
+}
+
 fn finish(conn: &Connection, running: RunningTimer) -> Result<Option<TimeEntry>> {
     let ended_at = Timestamp::now();
     let started_at = Timestamp(running.started_at.0.max(ended_at.0 - MAX_ENTRY_SECONDS));
@@ -181,45 +217,42 @@ fn finish(conn: &Connection, running: RunningTimer) -> Result<Option<TimeEntry>>
     create(conn, &input).map(Some)
 }
 
-pub fn start(conn: &Connection, timer: &Timer, details: &EntryDetails) -> Result<RunningTimer> {
+pub fn start(conn: &Connection, details: &EntryDetails) -> Result<RunningTimer> {
     let details = resolve(conn, details)?;
-    timer.with(|running| {
-        if let Some(previous) = running.take() {
-            finish(conn, previous)?;
-        }
-        let next = RunningTimer {
-            description: details.description,
-            project_id: details.project_id,
-            task_id: details.task_id,
-            started_at: Timestamp::now(),
-        };
-        *running = Some(next.clone());
-        Ok(next)
-    })
+    if let Some(previous) = running(conn)? {
+        finish(conn, previous)?;
+    }
+    let next = RunningTimer {
+        description: details.description,
+        project_id: details.project_id,
+        task_id: details.task_id,
+        started_at: Timestamp::now(),
+    };
+    save_running(conn, &next)?;
+    Ok(next)
 }
 
-pub fn edit_running(
-    conn: &Connection,
-    timer: &Timer,
-    details: &EntryDetails,
-) -> Result<RunningTimer> {
+pub fn edit_running(conn: &Connection, details: &EntryDetails) -> Result<RunningTimer> {
     let details = resolve(conn, details)?;
-    timer.with(|running| {
-        let current = running
-            .as_mut()
-            .ok_or_else(|| Error::invalid("No timer is running."))?;
-        current.description = details.description;
-        current.project_id = details.project_id;
-        current.task_id = details.task_id;
-        Ok(current.clone())
-    })
+    let mut current = running(conn)?.ok_or_else(|| Error::invalid("No timer is running."))?;
+    current.description = details.description;
+    current.project_id = details.project_id;
+    current.task_id = details.task_id;
+    save_running(conn, &current)?;
+    Ok(current)
 }
 
-pub fn stop(conn: &Connection, timer: &Timer) -> Result<Option<TimeEntry>> {
-    timer.with(|running| match running.take() {
-        Some(current) => finish(conn, current),
-        None => Ok(None),
-    })
+pub fn stop(conn: &Connection) -> Result<Option<TimeEntry>> {
+    let Some(current) = running(conn)? else {
+        return Ok(None);
+    };
+    let entry = finish(conn, current)?;
+    clear_running(conn)?;
+    Ok(entry)
+}
+
+pub fn discard(conn: &Connection) -> Result<()> {
+    clear_running(conn)
 }
 
 #[tauri::command]
@@ -248,41 +281,32 @@ pub async fn delete_time_entry(db: State<'_, Db>, id: Id) -> Result<()> {
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_timer(timer: State<'_, Timer>) -> Result<Option<RunningTimer>> {
-    Ok(timer.with(|running| running.clone()))
+pub async fn get_timer(db: State<'_, Db>) -> Result<Option<RunningTimer>> {
+    db.call(|conn| running(conn))
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn start_timer(
-    db: State<'_, Db>,
-    timer: State<'_, Timer>,
-    details: EntryDetails,
-) -> Result<RunningTimer> {
-    db.call(|conn| start(conn, &timer, &details))
+pub async fn start_timer(db: State<'_, Db>, details: EntryDetails) -> Result<RunningTimer> {
+    db.call(|conn| start(conn, &details))
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn edit_timer(
-    db: State<'_, Db>,
-    timer: State<'_, Timer>,
-    details: EntryDetails,
-) -> Result<RunningTimer> {
-    db.call(|conn| edit_running(conn, &timer, &details))
+pub async fn edit_timer(db: State<'_, Db>, details: EntryDetails) -> Result<RunningTimer> {
+    db.call(|conn| edit_running(conn, &details))
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn stop_timer(db: State<'_, Db>, timer: State<'_, Timer>) -> Result<Option<TimeEntry>> {
-    db.call(|conn| stop(conn, &timer))
+pub async fn stop_timer(db: State<'_, Db>) -> Result<Option<TimeEntry>> {
+    db.call(|conn| stop(conn))
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn discard_timer(timer: State<'_, Timer>) -> Result<()> {
-    timer.with(|running| *running = None);
-    Ok(())
+pub async fn discard_timer(db: State<'_, Db>) -> Result<()> {
+    db.call(|conn| discard(conn))
 }
 
 #[cfg(test)]
@@ -351,21 +375,51 @@ mod tests {
     #[test]
     fn starting_a_timer_finishes_the_previous_one() {
         let db = Db::in_memory();
-        let timer = Timer::default();
         db.call(|conn| {
-            start(conn, &timer, &details("first", None))?;
-            timer.with(|running| {
-                running.as_mut().unwrap().started_at = Timestamp(Timestamp::now().0 - 600);
-            });
-            start(conn, &timer, &details("second", None))?;
+            start(conn, &details("first", None))?;
+            conn.execute(
+                "UPDATE running_timer SET started_at = ?1",
+                params![Timestamp(Timestamp::now().0 - 600)],
+            )?;
+            start(conn, &details("second", None))?;
 
             let today = Date::today();
             let entries = list(conn, today.add_days(-1), today.add_days(1))?;
             assert_eq!(entries.len(), 1);
             assert_eq!(entries[0].description, "first");
 
-            stop(conn, &timer)?;
-            assert!(timer.with(|running| running.is_none()));
+            stop(conn)?;
+            assert!(running(conn)?.is_none());
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn running_timer_survives_a_restart() {
+        let dir = std::env::temp_dir().join(format!("skkil-timer-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("time.db");
+        Db::open(&path)
+            .unwrap()
+            .call(|conn| start(conn, &details("deep work", None)))
+            .unwrap();
+        let reopened = Db::open(&path).unwrap();
+        let resumed = reopened.call(|conn| running(conn)).unwrap().unwrap();
+        assert_eq!(resumed.description, "deep work");
+        reopened.call(|conn| discard(conn)).unwrap();
+        assert!(reopened.call(|conn| running(conn)).unwrap().is_none());
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn deleting_the_linked_task_keeps_the_timer() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let task = tasks::create(conn, &tasks::input("Draft", None))?;
+            start(conn, &details("", Some(task.id)))?;
+            conn.execute("DELETE FROM task WHERE id = ?1", params![task.id])?;
+            assert_eq!(running(conn)?.unwrap().task_id, None);
             Ok(())
         })
         .unwrap();
