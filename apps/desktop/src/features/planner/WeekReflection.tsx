@@ -1,7 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
+import { CheckIcon } from 'lucide-react';
 import { type ReactNode, useMemo, useState } from 'react';
 
-import type { Id } from '@/bindings';
+import type { Id, Outcome } from '@/bindings';
 import { HabitsSheet } from '@/features/habits/HabitsSheet';
 import { dayLookup, useHabitDays, useHabits } from '@/features/habits/api';
 import { ProjectDot } from '@/features/projects/ProjectDot';
@@ -24,13 +25,21 @@ import {
   shiftKey,
   todayKey,
   weekKeys,
+  weekStartOf,
 } from '@/lib/time';
+import { cn } from '@/lib/utils';
 
 import { ReviewDialog } from './ReviewDialog';
 import { pickInsight } from './insight';
 import { isHeldBack } from './period';
 
-export function WeekReflection({ week }: { week: DateKey }) {
+export function WeekReflection({
+  week,
+  start,
+}: {
+  week: DateKey;
+  start: DateKey;
+}) {
   const today = todayKey();
   const thisMonday = mondayOf(today);
   const navigate = useNavigate();
@@ -46,37 +55,36 @@ export function WeekReflection({ week }: { week: DateKey }) {
   return (
     <aside
       aria-label={`Week ${isoWeekNumber(week)} in review`}
-      className="flex w-80 shrink-0 flex-col border-l border-white/10 bg-[rgba(6,18,26,.35)] backdrop-blur-xl"
+      className="grid w-80 shrink-0 content-start gap-7 overflow-y-auto border-l border-white/10 bg-[rgba(6,18,26,.35)] p-6 backdrop-blur-xl"
     >
-      <div className="grid min-h-0 flex-1 content-start gap-7 overflow-y-auto p-6">
-        {isPending ? null : reviewed ? (
-          <p className="flex items-baseline justify-between text-sm text-foreground/55">
-            <span>
-              {data?.felt
-                ? `Felt ${FELT_LABELS[data.felt - 1].toLowerCase()}`
-                : 'Reviewed'}
-            </span>
-            <button
-              type="button"
-              onClick={() => setEditing(true)}
-              className="text-foreground/80 hover:text-foreground hover:underline"
-            >
-              Edit review
-            </button>
-          </p>
-        ) : (
+      {isPending ? null : reviewed ? (
+        <p className="flex items-baseline justify-between text-sm text-foreground/55">
+          <span>
+            {data?.felt
+              ? `Felt ${FELT_LABELS[data.felt - 1].toLowerCase()}`
+              : 'Reviewed'}
+          </span>
           <button
             type="button"
-            onClick={review}
-            className="w-full rounded-full bg-white/90 px-5 py-2.5 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
+            onClick={() => setEditing(true)}
+            className="text-foreground/80 hover:text-foreground hover:underline"
           >
-            Review week {isoWeekNumber(week)} · about 10 min
+            Edit review
           </button>
-        )}
-        {!isPending && !isHeldBack(week, reviewed, today) && (
-          <Reflection week={week} />
-        )}
-      </div>
+        </p>
+      ) : (
+        <button
+          type="button"
+          onClick={review}
+          className="h-9 w-full rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
+        >
+          Review week {isoWeekNumber(week)} · about 10 min
+        </button>
+      )}
+      {!isPending && <Outcomes outcomes={data?.outcomes ?? []} />}
+      {!isPending && !isHeldBack(week, reviewed, today) && (
+        <Reflection week={week} start={start} />
+      )}
       <ReviewDialog week={week} open={editing} onOpenChange={setEditing} />
     </aside>
   );
@@ -91,19 +99,61 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function Reflection({ week }: { week: DateKey }) {
-  const end = shiftKey(week, 7);
+const OUTCOME_ENDINGS: Record<Outcome['status'], string> = {
+  open: 'not reached',
+  achieved: 'achieved',
+  carried: 'carried on',
+  dropped: 'dropped',
+};
+
+function Outcomes({ outcomes }: { outcomes: Outcome[] }) {
+  if (outcomes.length === 0) return null;
+  return (
+    <Section title="Outcomes">
+      <ul className="grid gap-2 text-sm">
+        {outcomes.map((outcome) => (
+          <li key={outcome.id} className="flex items-start gap-2.5">
+            <span
+              aria-hidden
+              className={cn(
+                'mt-1 grid size-3.5 shrink-0 place-items-center rounded-full',
+                outcome.status === 'achieved'
+                  ? 'bg-white/70 text-[#0b1a22]'
+                  : 'ring-1 ring-white/35',
+              )}
+            >
+              {outcome.status === 'achieved' && (
+                <CheckIcon className="size-2" strokeWidth={3} />
+              )}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-foreground/85">{outcome.title}</span>
+              <span className="text-xs text-foreground/45">
+                {OUTCOME_ENDINGS[outcome.status]}
+                {outcome.tasksTotal > 0 &&
+                  ` · ${outcome.tasksDone} of ${outcome.tasksTotal} tasks`}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  );
+}
+
+function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
+  const end = shiftKey(start, 7);
   const navigate = useNavigate();
   const { openTask } = useTaskDialog();
   const index = useProjectIndex();
   const { data } = useWeek(week);
-  const { data: summaries } = useWeeks(week, end);
-  const { data: entries = [] } = useTimeEntries(week, end);
+  const { data: summaries } = useWeeks(week, shiftKey(week, 7));
+  const { data: entries = [] } = useTimeEntries(start, end);
   const { data: tasks = [] } = useTasks();
-  const { data: days = [] } = useDays(week, end);
+  const { data: days = [] } = useDays(start, end);
   const { data: habits = [] } = useHabits();
-  const { data: habitDays } = useHabitDays(week, end);
-  const { data: byType = [] } = useTypeTime(week, end);
+  const { data: habitDays } = useHabitDays(start, end);
+  const { data: byType = [] } = useTypeTime(start, end);
   const [habitsOpen, setHabitsOpen] = useState(false);
   const summary = summaries?.[0];
   const lookup = useMemo(() => dayLookup(habitDays), [habitDays]);
@@ -137,8 +187,9 @@ function Reflection({ week }: { week: DateKey }) {
   }, [entries, index]);
 
   const habitTotals = habits.map((habit) => {
-    const results = weekKeys(week).map((day) => lookup(habit.id, day));
+    const results = weekKeys(start).map((day) => lookup(habit.id, day));
     return {
+      id: habit.id,
       name: habit.name,
       kind: habit.kind,
       due: results.filter(
@@ -151,7 +202,7 @@ function Reflection({ week }: { week: DateKey }) {
   const finished = tasks.filter(
     (task) =>
       task.completedAt !== null &&
-      dateKeyOf(task.completedAt) >= week &&
+      dateKeyOf(task.completedAt) >= start &&
       dateKeyOf(task.completedAt) < end,
   );
 
@@ -189,7 +240,7 @@ function Reflection({ week }: { week: DateKey }) {
                         to: '/',
                         search: {
                           view: 'week',
-                          week: [end, mondayOf(todayKey())].sort().at(-1)!,
+                          week: [end, weekStartOf(todayKey())].sort().at(-1)!,
                         },
                       })
                 }
@@ -230,6 +281,23 @@ function Reflection({ week }: { week: DateKey }) {
                 .join(' · ')}
             </p>
           )}
+        </Section>
+      )}
+
+      {habitTotals.some((habit) => habit.due > 0) && (
+        <Section title="Habits">
+          <ul className="grid gap-1.5 text-sm">
+            {habitTotals
+              .filter((habit) => habit.due > 0)
+              .map((habit) => (
+                <li key={habit.id} className="flex items-center gap-2">
+                  <span className="flex-1 truncate">{habit.name}</span>
+                  <span className="text-foreground/60 tabular-nums">
+                    {habit.done} of {habit.due}
+                  </span>
+                </li>
+              ))}
+          </ul>
         </Section>
       )}
 

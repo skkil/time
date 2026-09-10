@@ -1,67 +1,81 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { useRef } from 'react';
 
 import { Page, PageHeader, Stat, WeekSwitcher } from '@/components/page';
 import { useTimeEntries } from '@/features/time/api';
+import { usePreference } from '@/lib/preferences';
+import { useShortcuts } from '@/lib/shortcuts';
 import {
   type DateKey,
   formatDuration,
   formatWeekRange,
-  mondayOf,
+  reviewWeekOf,
   shiftKey,
   todayKey,
+  weekOfMonday,
+  weekStartOf,
 } from '@/lib/time';
 
-import { PlanStrip } from './PlanStrip';
 import { ScheduleView } from './ScheduleView';
 import { WeekPicker } from './WeekPicker';
 import { WeekReflection } from './WeekReflection';
 import { useBlocks } from './api';
+import { useWeekSwipe } from './use-week-swipe';
 
 export function WeekView({ week }: { week: DateKey }) {
   const navigate = useNavigate();
-  const { data: blocks = [] } = useBlocks(week);
-  const { data: entries = [] } = useTimeEntries(week, shiftKey(week, 7));
-
-  const totals = useMemo(
-    () => ({
-      planned: blocks.reduce(
-        (sum, block) => sum + block.endAt - block.startAt,
-        0,
-      ),
-      tracked: entries.reduce(
-        (sum, entry) => sum + entry.endedAt - entry.startedAt,
-        0,
-      ),
-    }),
-    [blocks, entries],
+  const startsOn = usePreference('weekStartsOn');
+  const start = weekStartOf(week, startsOn);
+  const reviewWeek = reviewWeekOf(start);
+  const past = start < weekStartOf(todayKey(), startsOn);
+  const body = useRef<HTMLDivElement>(null);
+  const { data: blocks = [] } = useBlocks(start);
+  const { data: entries = [] } = useTimeEntries(start, shiftKey(start, 7));
+  const planned = blocks.reduce(
+    (sum, block) => sum + block.endAt - block.startAt,
+    0,
+  );
+  const tracked = entries.reduce(
+    (sum, entry) => sum + entry.endedAt - entry.startedAt,
+    0,
   );
 
-  const go = (next: { week: string }) =>
-    navigate({ to: '/', search: { view: 'week', ...next } });
+  const go = (next: DateKey) =>
+    navigate({ to: '/', search: { view: 'week', week: next } });
+  const step = (by: 1 | -1) => go(shiftKey(start, 7 * by));
+
+  useWeekSwipe(body, start, step);
+  useShortcuts([
+    { keys: 'Shift+ArrowLeft', run: () => step(-1), idle: true },
+    { keys: 'Shift+ArrowRight', run: () => step(1), idle: true },
+  ]);
 
   return (
     <Page>
       <PageHeader
-        title={<WeekPicker week={week} onPick={(next) => go({ week: next })} />}
+        title={
+          <WeekPicker
+            week={reviewWeek}
+            onPick={(monday) => go(weekOfMonday(monday))}
+          />
+        }
         meta={[
-          formatWeekRange(week),
-          <Stat value={formatDuration(totals.planned)} label="planned" />,
-          <Stat value={formatDuration(totals.tracked)} label="tracked" />,
+          formatWeekRange(start),
+          <Stat value={formatDuration(planned)} label="planned" />,
+          <Stat value={formatDuration(tracked)} label="tracked" />,
         ]}
-        actions={
-          <WeekSwitcher week={week} onChange={(next) => go({ week: next })} />
-        }
+        actions={<WeekSwitcher week={start} onChange={go} />}
       />
-      <PlanStrip week={week} />
-      <ScheduleView
-        week={week}
-        aside={
-          week < mondayOf(todayKey()) ? (
-            <WeekReflection key={week} week={week} />
-          ) : undefined
-        }
-      />
+      <div ref={body} className="flex min-h-0 flex-1 flex-col">
+        <ScheduleView
+          week={start}
+          aside={
+            past ? (
+              <WeekReflection key={start} week={reviewWeek} start={start} />
+            ) : undefined
+          }
+        />
+      </div>
     </Page>
   );
 }

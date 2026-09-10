@@ -16,6 +16,8 @@ import {
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
+import { WeekPlan } from './PlanStrip';
+
 export type TaskDragData = { kind: 'task'; task: Task };
 
 export function DraggableTask({
@@ -104,10 +106,11 @@ export function TaskRail({
 
   return (
     <aside
-      aria-label="Tasks to plan"
-      className="flex w-72 shrink-0 flex-col border-l border-white/10 bg-[rgba(6,18,26,.35)] backdrop-blur-xl"
+      aria-label="Plan the week"
+      className="flex w-72 shrink-0 flex-col overflow-y-auto border-l border-white/10 bg-[rgba(6,18,26,.35)] backdrop-blur-xl"
     >
-      <div className="grid gap-2 border-b p-3">
+      <WeekPlan start={week} />
+      <div className="grid gap-2 p-3">
         <button
           type="button"
           onClick={() => newTask()}
@@ -127,7 +130,7 @@ export function TaskRail({
           />
         </label>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="p-3 pt-1">
         <RailSection
           title="Due this week"
           tasks={dueSoon}

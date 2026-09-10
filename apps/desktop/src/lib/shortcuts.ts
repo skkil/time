@@ -23,7 +23,7 @@ export function matchesShortcut(event: KeyInput, combo: string) {
   const parts = combo.split(/\+(?!$)/);
   const key = parts.pop()!.toLowerCase();
   const mods = new Set(parts.map((part) => part.toLowerCase()));
-  const isSymbol = !/^[a-z0-9]$/.test(key);
+  const isSymbol = key.length === 1 && !/^[a-z0-9]$/.test(key);
   return (
     physicalKey(event) === key &&
     mods.has('mod') === (event.ctrlKey || event.metaKey) &&

@@ -546,19 +546,17 @@ function DayColumn({
     };
   }, [blocks, events, day]);
 
-  const actual = useMemo(
-    () =>
-      entries
-        .map((entry) => ({
-          entry,
-          span: clipToDay(day, entry.startedAt, entry.endedAt),
-        }))
-        .filter(
-          (item): item is { entry: TimeEntry; span: Span } =>
-            item.span !== null,
-        ),
-    [entries, day],
-  );
+  const actual = useMemo(() => {
+    const planned = [...placed.blocks, ...placed.events];
+    return entries.flatMap((entry) => {
+      const span = clipToDay(day, entry.startedAt, entry.endedAt);
+      if (!span) return [];
+      const shared = planned.some(
+        (item) => item.start < span.end && item.end > span.start,
+      );
+      return [{ entry, span, shared }];
+    });
+  }, [entries, day, placed]);
 
   return (
     <div
@@ -633,8 +631,8 @@ function DayColumn({
         )}
       </div>
 
-      <div className="pointer-events-none absolute inset-y-0 right-0.5 w-[calc(30%-4px)]">
-        {actual.map(({ entry, span }) => {
+      <div className="pointer-events-none absolute inset-y-0 right-0.5 left-0.5">
+        {actual.map(({ entry, span, shared }) => {
           const project =
             entry.projectId === null
               ? undefined
@@ -647,7 +645,12 @@ function DayColumn({
                   disabled={entry.id === -1}
                   onPointerDown={(event) => event.stopPropagation()}
                   onClick={() => onOpenEntry(entry)}
-                  className="pointer-events-auto absolute inset-x-0 overflow-hidden rounded-[5px] px-1 text-left text-[10px] leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                  className={cn(
+                    'pointer-events-auto absolute right-0 overflow-hidden rounded-[5px] text-left leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70',
+                    shared
+                      ? 'left-[calc(70%+2px)] px-1 text-[10px]'
+                      : 'left-0 px-2 text-[11px]',
+                  )}
                   style={{
                     top: span.start * perMinute,
                     height: Math.max(

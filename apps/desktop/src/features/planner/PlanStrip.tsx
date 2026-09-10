@@ -1,16 +1,10 @@
-import { CheckIcon, ChevronRightIcon, PlusIcon, XIcon } from 'lucide-react';
+import { CheckIcon, PlusIcon, XIcon } from 'lucide-react';
 import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
 
 import type { Id, Outcome } from '@/bindings';
-import { HabitCell } from '@/features/habits/HabitCell';
 import { HabitsSheet } from '@/features/habits/HabitsSheet';
-import {
-  useHabitDays,
-  useHabits,
-  useSetHabitStatus,
-} from '@/features/habits/api';
+import { useHabitDays, useHabits } from '@/features/habits/api';
 import { dayLookup } from '@/features/habits/api';
-import { WEEKDAY_LETTERS } from '@/features/habits/meta';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
 import { descendantIds } from '@/features/projects/tree';
@@ -24,18 +18,17 @@ import {
 } from '@/features/review/api';
 import { useRitualRunner } from '@/features/rituals/runner-context';
 import { useTimeEntries } from '@/features/time/api';
-import { setPreference, usePreference } from '@/lib/preferences';
 import {
   type DateKey,
-  formatDayOfMonth,
   formatHours,
-  formatWeekday,
   fromDateKey,
   isoWeekNumber,
   mondayOf,
+  reviewWeekOf,
   shiftKey,
   todayKey,
   weekKeys,
+  weekStartOf,
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
@@ -43,59 +36,40 @@ import { useBlocks } from './api';
 
 const MAX_OUTCOMES = 3;
 
-export function PlanStrip({ week }: { week: DateKey }) {
+export function WeekPlan({ start }: { start: DateKey }) {
   return (
-    <div className="grid shrink-0 gap-3 px-8 pb-5">
-      <ReviewNudge week={week} />
-      <OutcomesRow week={week} />
-      <HabitsRow week={week} />
-      <ProjectsRow week={week} />
+    <div className="grid gap-6 border-b border-white/10 p-4 pb-5">
+      <ReviewNudge start={start} />
+      <RailBlock title="Outcomes">
+        <OutcomesList week={reviewWeekOf(start)} />
+      </RailBlock>
+      <ProjectHours start={start} />
+      <HabitsLine start={start} />
     </div>
   );
 }
 
-function Row({
-  label,
-  open,
-  onToggle,
-  children,
+function RailBlock({
+  title,
   action,
+  children,
 }: {
-  label: string;
-  open?: boolean;
-  onToggle?: () => void;
-  children: ReactNode;
+  title: string;
   action?: ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-[96px_1fr_auto] items-start gap-4">
-      {onToggle ? (
-        <button
-          type="button"
-          aria-expanded={open}
-          onClick={onToggle}
-          className="flex items-center gap-1 pt-0.5 text-xs tracking-wide text-foreground/45 hover:text-foreground"
-        >
-          <ChevronRightIcon
-            className={cn(
-              'size-3 transition-transform duration-300',
-              open && 'rotate-90',
-            )}
-          />
-          {label}
-        </button>
-      ) : (
-        <span className="pt-0.5 pl-4 text-xs tracking-wide text-foreground/45">
-          {label}
-        </span>
-      )}
-      <div className="min-w-0">{children}</div>
-      {action ?? <span />}
-    </div>
+    <section className="grid gap-2.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="text-xs tracking-wide text-foreground/45">{title}</h3>
+        {action}
+      </div>
+      {children}
+    </section>
   );
 }
 
-function ReviewNudge({ week }: { week: DateKey }) {
+function ReviewNudge({ start }: { start: DateKey }) {
   const runner = useRitualRunner();
   const thisMonday = mondayOf(todayKey());
   const lastMonday = shiftKey(thisMonday, -7);
@@ -103,7 +77,7 @@ function ReviewNudge({ week }: { week: DateKey }) {
   const weekday = fromDateKey(todayKey()).getDay();
   const last = summaries?.[0];
   if (
-    week !== thisMonday ||
+    start !== weekStartOf(todayKey()) ||
     weekday === 0 ||
     weekday > 3 ||
     !last ||
@@ -114,7 +88,7 @@ function ReviewNudge({ week }: { week: DateKey }) {
   )
     return null;
   return (
-    <p className="pl-4 text-sm text-foreground/55">
+    <p className="text-sm text-foreground/55">
       Week {isoWeekNumber(lastMonday)} isn’t reviewed ·{' '}
       <button
         type="button"
@@ -127,21 +101,24 @@ function ReviewNudge({ week }: { week: DateKey }) {
   );
 }
 
-function OutcomesRow({ week }: { week: DateKey }) {
+function useOutcomes(week: DateKey) {
   const { data } = useWeek(week);
   const outcomes = (data?.outcomes ?? []).filter(
     (outcome) => outcome.status !== 'dropped',
   );
   const open = outcomes.filter((outcome) => outcome.status === 'open').length;
+  return { outcomes, canAdd: open < MAX_OUTCOMES };
+}
+
+function OutcomesList({ week }: { week: DateKey }) {
+  const { outcomes, canAdd } = useOutcomes(week);
   return (
-    <Row label="Outcomes">
-      <div className="flex flex-wrap items-start gap-x-10 gap-y-3">
-        {outcomes.map((outcome) => (
-          <OutcomeItem key={outcome.id} outcome={outcome} />
-        ))}
-        {open < MAX_OUTCOMES && <AddOutcome week={week} />}
-      </div>
-    </Row>
+    <div className="grid gap-3">
+      {outcomes.map((outcome) => (
+        <OutcomeItem key={outcome.id} outcome={outcome} />
+      ))}
+      {canAdd && <AddOutcome week={week} />}
+    </div>
   );
 }
 
@@ -166,7 +143,7 @@ function OutcomeItem({ outcome }: { outcome: Outcome }) {
   };
 
   return (
-    <div className="group flex max-w-xs min-w-48 items-start gap-2.5">
+    <div className="group flex items-start gap-2.5">
       <button
         type="button"
         role="checkbox"
@@ -199,7 +176,7 @@ function OutcomeItem({ outcome }: { outcome: Outcome }) {
             value={title}
             maxLength={200}
             aria-label="Outcome"
-            className="w-full bg-transparent text-[15px] outline-none"
+            className="w-full bg-transparent text-sm outline-none"
             onChange={(event) => setTitle(event.target.value)}
             onBlur={save}
             onKeyDown={(event) => {
@@ -215,7 +192,7 @@ function OutcomeItem({ outcome }: { outcome: Outcome }) {
             type="button"
             onClick={() => setEditing(true)}
             className={cn(
-              'text-left text-[15px] leading-snug hover:underline',
+              'text-left text-sm leading-snug hover:underline',
               achieved && 'text-foreground/50',
             )}
           >
@@ -273,136 +250,63 @@ function AddOutcome({ week }: { week: DateKey }) {
       );
   };
   return (
-    <form onSubmit={submit} className="flex items-center gap-2 pt-0.5">
-      <PlusIcon className="size-3.5 text-foreground/35" />
+    <form onSubmit={submit} className="flex items-center gap-2.5">
+      <PlusIcon className="size-4 text-foreground/35" />
       <input
         value={title}
         maxLength={200}
         aria-label="Add an outcome"
         placeholder="Add an outcome"
-        className="w-44 bg-transparent text-sm outline-none placeholder:text-foreground/35"
+        className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-foreground/35"
         onChange={(event) => setTitle(event.target.value)}
       />
     </form>
   );
 }
 
-function HabitsRow({ week }: { week: DateKey }) {
-  const open = usePreference('weekHabitsOpen');
+function HabitsLine({ start }: { start: DateKey }) {
   const [editing, setEditing] = useState(false);
   const { data: habits = [] } = useHabits();
-  const { data: days } = useHabitDays(week, shiftKey(week, 7));
-  const setStatus = useSetHabitStatus();
+  const { data: days } = useHabitDays(start, shiftKey(start, 7));
   const lookup = useMemo(() => dayLookup(days), [days]);
-  const keys = weekKeys(week);
   const today = todayKey();
-
-  const edit = (
-    <button
-      type="button"
-      onClick={() => setEditing(true)}
-      className="text-xs text-foreground/45 hover:text-foreground hover:underline"
-    >
-      Edit habits
-    </button>
+  const results = habits.flatMap((habit) =>
+    weekKeys(start)
+      .filter((day) => day <= today)
+      .map((day) => lookup(habit.id, day)?.status),
   );
-  const sheet = <HabitsSheet open={editing} onOpenChange={setEditing} />;
-
-  if (habits.length === 0)
-    return (
-      <>
-        <Row label="Habits" action={edit}>
-          <span />
-        </Row>
-        {sheet}
-      </>
-    );
+  const done = results.filter((status) => status === 'done').length;
+  const due = results.filter(
+    (status) => status === 'done' || status === 'failed' || status === 'missed',
+  ).length;
 
   return (
-    <>
-      <Row
-        label="Habits"
-        open={open}
-        onToggle={() => setPreference('weekHabitsOpen', !open)}
-        action={edit}
-      >
-        {open ? (
-          <div className="grid gap-1">
-            {habits.map((habit) => (
-              <div
-                key={habit.id}
-                className="grid grid-cols-[minmax(0,180px)_repeat(7,28px)_auto] items-center gap-x-1.5"
-              >
-                <span className="truncate pr-2 text-sm text-foreground/80">
-                  {habit.name}
-                </span>
-                {keys.map((day) => (
-                  <HabitCell
-                    key={day}
-                    size="sm"
-                    day={lookup(habit.id, day)}
-                    readOnly={day > today}
-                    label={`${habit.name}, ${formatWeekday(day)} ${formatDayOfMonth(day)}`}
-                    onChange={(status) =>
-                      setStatus.mutate({ habitId: habit.id, date: day, status })
-                    }
-                  />
-                ))}
-                <span className="pl-3 text-xs text-foreground/45">
-                  {habit.dueDays > 0 &&
-                    `${habit.doneDays} of last ${habit.dueDays}`}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <ol className="flex gap-5 text-xs">
-            {keys.map((day, i) => {
-              const scheduled = habits
-                .map((habit) => ({ habit, entry: lookup(habit.id, day) }))
-                .filter(({ habit, entry }) =>
-                  day > today
-                    ? habit.startDate <= day && (habit.days >> i) & 1
-                    : entry &&
-                      entry.status !== 'off' &&
-                      entry.status !== 'skipped',
-                );
-              const done = scheduled.filter(
-                ({ entry }) => entry?.status === 'done',
-              ).length;
-              return (
-                <li
-                  key={day}
-                  className={cn(
-                    'flex items-baseline gap-1.5 tabular-nums',
-                    day > today ? 'text-foreground/25' : 'text-foreground/60',
-                    day === today && 'text-foreground',
-                  )}
-                >
-                  <span className="text-foreground/35">
-                    {WEEKDAY_LETTERS[i]}
-                  </span>
-                  {scheduled.length === 0
-                    ? 'rest'
-                    : day > today
-                      ? `${scheduled.length} due`
-                      : `${done}/${scheduled.length}`}
-                </li>
-              );
-            })}
-          </ol>
-        )}
-      </Row>
-      {sheet}
-    </>
+    <RailBlock
+      title="Habits"
+      action={
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="text-xs text-foreground/45 hover:text-foreground hover:underline"
+        >
+          {habits.length ? 'Open' : 'Add'}
+        </button>
+      }
+    >
+      {habits.length > 0 && (
+        <p className="text-sm text-foreground/70 tabular-nums">
+          {due > 0 ? `${done} of ${due} so far` : 'Nothing due yet'}
+        </p>
+      )}
+      <HabitsSheet open={editing} onOpenChange={setEditing} />
+    </RailBlock>
   );
 }
 
-function ProjectsRow({ week }: { week: DateKey }) {
-  const open = usePreference('weekProjectsOpen');
+function ProjectHours({ start }: { start: DateKey }) {
   const index = useProjectIndex();
-  const { data: entries = [] } = useTimeEntries(week, shiftKey(week, 7));
-  const { data: blocks = [] } = useBlocks(week);
+  const { data: entries = [] } = useTimeEntries(start, shiftKey(start, 7));
+  const { data: blocks = [] } = useBlocks(start);
 
   const rows = useMemo(() => {
     const sum = (
@@ -440,52 +344,33 @@ function ProjectsRow({ week }: { week: DateKey }) {
   if (rows.length === 0) return null;
 
   return (
-    <Row
-      label="Projects"
-      open={open}
-      onToggle={() => setPreference('weekProjectsOpen', !open)}
-    >
-      {open ? (
-        <div className="grid gap-2">
-          {rows.map(({ project, target, tracked, planned }) => (
-            <div
-              key={project.id}
-              className="grid grid-cols-[minmax(0,180px)_160px_auto] items-center gap-3 text-sm"
-            >
-              <span className="flex min-w-0 items-center gap-2">
-                <ProjectDot color={project.color} />
-                <span className="truncate">{project.name}</span>
-              </span>
-              <span
-                aria-hidden
-                className="relative h-1 overflow-hidden rounded-full bg-white/10"
-              >
-                <span
-                  className="absolute inset-y-0 left-0 bg-white/20"
-                  style={{ width: `${Math.min(1, planned / target) * 100}%` }}
-                />
-                <span
-                  className="absolute inset-y-0 left-0 bg-white/75"
-                  style={{ width: `${Math.min(1, tracked / target) * 100}%` }}
-                />
-              </span>
+    <RailBlock title="Hours">
+      <ul className="grid gap-2.5">
+        {rows.map(({ project, target, tracked, planned }) => (
+          <li key={project.id} className="grid gap-1.5 text-sm">
+            <span className="flex items-center gap-2">
+              <ProjectDot color={project.color} />
+              <span className="min-w-0 flex-1 truncate">{project.name}</span>
               <span className="text-xs text-foreground/55 tabular-nums">
                 {formatHours(tracked)} / {formatHours(target)} h
-                {planned > 0 && ` · ${formatHours(planned)} h planned`}
               </span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="flex flex-wrap gap-x-5 text-xs text-foreground/60 tabular-nums">
-          {rows.map(({ project, target, tracked }) => (
-            <span key={project.id} className="flex items-center gap-1.5">
-              <ProjectDot color={project.color} />
-              {project.name} {formatHours(tracked)} / {formatHours(target)} h
             </span>
-          ))}
-        </p>
-      )}
-    </Row>
+            <span
+              aria-hidden
+              className="relative h-0.5 overflow-hidden rounded-full bg-white/10"
+            >
+              <span
+                className="absolute inset-y-0 left-0 bg-white/25"
+                style={{ width: `${Math.min(1, planned / target) * 100}%` }}
+              />
+              <span
+                className="absolute inset-y-0 left-0 bg-white/75"
+                style={{ width: `${Math.min(1, tracked / target) * 100}%` }}
+              />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </RailBlock>
   );
 }

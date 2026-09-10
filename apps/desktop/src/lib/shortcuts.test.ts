@@ -43,6 +43,18 @@ describe('matchesShortcut', () => {
     ).toBe(false);
   });
 
+  it('requires shift to match for named keys', () => {
+    expect(
+      matchesShortcut(
+        press('ArrowLeft', 'ArrowLeft', { shiftKey: true }),
+        'Shift+ArrowLeft',
+      ),
+    ).toBe(true);
+    expect(
+      matchesShortcut(press('ArrowLeft', 'ArrowLeft'), 'Shift+ArrowLeft'),
+    ).toBe(false);
+  });
+
   it('ignores shift for symbols, which already encode it', () => {
     expect(
       matchesShortcut(
