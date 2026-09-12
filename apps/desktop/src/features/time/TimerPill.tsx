@@ -26,7 +26,7 @@ export function TimerPill() {
   const project = timer.projectId ? index.byId.get(timer.projectId) : undefined;
 
   return (
-    <div className="flex h-8 items-center gap-1 rounded-full bg-white/10 pr-1 pl-3 text-foreground backdrop-blur-md">
+    <div className="flex h-9 items-center gap-1 rounded-full bg-white/10 pr-1.5 pl-3.5 text-foreground backdrop-blur-md">
       <Link
         to="/"
         search={{ view: 'day', week: weekStartOf(todayKey()) }}

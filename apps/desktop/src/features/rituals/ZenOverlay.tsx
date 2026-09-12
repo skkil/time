@@ -226,7 +226,7 @@ export function ZenOverlay({
         <button
           type="button"
           onClick={next}
-          className="ml-auto flex items-center gap-2 rounded-full bg-white/90 px-6 py-2.5 text-sm font-medium text-[#0b1a22] transition-colors hover:bg-white"
+          className="ml-auto flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#0b1a22] transition-colors hover:bg-white"
         >
           {last ? 'Finish' : 'Continue'}
           {!last && <ArrowRightIcon className="size-4" strokeWidth={1.5} />}

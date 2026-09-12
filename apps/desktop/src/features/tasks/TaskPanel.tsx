@@ -391,7 +391,7 @@ function Actions({
           <button
             type="button"
             onClick={() => stop.mutate(undefined)}
-            className="ml-4 flex items-center gap-2 rounded-full bg-white/90 px-5 py-2.5 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
+            className="ml-4 flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
           >
             <SquareIcon className="size-3.5 fill-current" />
             Stop
@@ -409,7 +409,7 @@ function Actions({
                 taskId: task.id,
               })
             }
-            className="flex items-center gap-2 rounded-full bg-white/90 px-5 py-2.5 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
+            className="flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
           >
             <PlayIcon className="size-3.5 fill-current" />
             Begin

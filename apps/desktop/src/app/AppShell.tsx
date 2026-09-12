@@ -148,7 +148,7 @@ function SpaceToggle({
           title={formatShortcut(option.keys)}
           onClick={() => onChange(option.id)}
           className={cn(
-            'relative h-8 w-24 rounded-full text-sm tracking-wide transition-colors duration-300 outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+            'relative h-7 w-20 rounded-full text-[13px] tracking-wide transition-colors duration-300 outline-none focus-visible:ring-2 focus-visible:ring-white/50',
             option.id === value
               ? 'text-foreground'
               : 'text-foreground/55 hover:text-foreground/85',
@@ -177,7 +177,7 @@ function ProfileMenu({
         <button
           type="button"
           aria-label="Menu"
-          className="grid size-10 place-items-center rounded-full bg-white/10 text-sm font-medium text-foreground ring-1 ring-white/20 backdrop-blur-md transition-colors outline-none hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/60"
+          className="grid size-9 place-items-center rounded-full bg-white/10 text-[13px] font-medium text-foreground ring-1 ring-white/20 backdrop-blur-md transition-colors outline-none hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/60"
         >
           {name ? (
             name[0].toUpperCase()
