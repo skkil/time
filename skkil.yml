@@ -110,6 +110,6 @@ ci:
       format: pnpm prettier --check .
       lint: pnpm lint
       test: pnpm test
-      build: pnpm compile
+      build: pnpm tauri build
       depends_on:
         - core
