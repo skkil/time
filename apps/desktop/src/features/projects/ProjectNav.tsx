@@ -35,7 +35,7 @@ import { cn } from '@/lib/utils';
 
 import { NewProjectDialog } from './NewProjectDialog';
 import { ProjectDot } from './ProjectDot';
-import { ProjectSheet } from './ProjectSheet';
+import { ProjectSettingsDialog } from './ProjectSettingsDialog';
 import { useArchiveProject, useDeleteProject, useProjectIndex } from './api';
 import { MAX_PROJECT_DEPTH, type ProjectNode } from './tree';
 
@@ -178,7 +178,7 @@ export function ProjectNav() {
       )}
 
       {dialog?.project && (
-        <ProjectSheet
+        <ProjectSettingsDialog
           open
           onOpenChange={(open) => !open && setDialog(null)}
           project={dialog.project}

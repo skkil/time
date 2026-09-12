@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ProjectBrief } from '@/features/projects/ProjectBrief';
 import { ProjectDot } from '@/features/projects/ProjectDot';
-import { ProjectSheet } from '@/features/projects/ProjectSheet';
+import { ProjectSettingsDialog } from '@/features/projects/ProjectSettingsDialog';
 import { useProjectIndex, useSetProjectView } from '@/features/projects/api';
 import { projectPath } from '@/features/projects/tree';
 import { Workspace } from '@/features/workflow/Workspace';
@@ -242,7 +242,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
       )}
 
       {project && (
-        <ProjectSheet
+        <ProjectSettingsDialog
           open={editing}
           onOpenChange={setEditing}
           project={project}

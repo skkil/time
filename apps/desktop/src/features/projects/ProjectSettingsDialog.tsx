@@ -4,15 +4,14 @@ import { type FormEvent, type ReactNode, useState } from 'react';
 import type { Id, Project, ProjectSettings } from '@/bindings';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { WorkflowSettings } from '@/features/workflow/WorkflowSettings';
@@ -41,30 +40,32 @@ const CADENCES = [
   { value: 4, label: 'Monthly' },
 ];
 
-type ProjectSheetProps = {
+type ProjectSettingsDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   project: Project;
 };
 
-export function ProjectSheet({
+export function ProjectSettingsDialog({
   open,
   onOpenChange,
   project,
-}: ProjectSheetProps) {
+}: ProjectSettingsDialogProps) {
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[420px] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex h-[min(720px,88vh)] flex-col gap-0 overflow-hidden rounded-[32px] border-0 bg-[rgba(10,18,32,.92)] p-0 shadow-[0_40px_120px_rgba(0,0,0,.4)] ring-1 ring-white/10 backdrop-blur-2xl sm:max-w-xl">
         {open && (
-          <ProjectForm
-            key={project.id}
-            project={project}
-            onDone={() => onOpenChange(false)}
-          />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <ProjectForm
+              key={project.id}
+              project={project}
+              onDone={() => onOpenChange(false)}
+            />
+            <WorkflowSettings project={project} />
+          </div>
         )}
-        {open && <WorkflowSettings project={project} />}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -133,13 +134,15 @@ function ProjectForm({
   };
 
   return (
-    <form onSubmit={submit} className="grid gap-6 p-6">
-      <SheetHeader className="p-0">
-        <SheetTitle>Project settings</SheetTitle>
-        <SheetDescription>
+    <form onSubmit={submit} className="grid gap-6 p-6 pt-10">
+      <div className="grid gap-1.5">
+        <DialogTitle className="text-3xl font-light">
+          Project settings
+        </DialogTitle>
+        <DialogDescription className="text-sm text-foreground/50">
           A project finishes. An area is ongoing, like Health or Admin.
-        </SheetDescription>
-      </SheetHeader>
+        </DialogDescription>
+      </div>
 
       <Field label="Name" htmlFor="project-name">
         <Input
@@ -329,7 +332,7 @@ function ProjectForm({
               className={cn(
                 'grid size-7 place-items-center rounded-full outline-offset-2 transition-transform focus-visible:outline-2 focus-visible:outline-ring',
                 color === option &&
-                  'ring-2 ring-foreground ring-offset-2 ring-offset-popover',
+                  'ring-2 ring-foreground ring-offset-2 ring-offset-[#0a1220]',
               )}
               style={{ background: projectColorVar(option) }}
             >
@@ -341,7 +344,7 @@ function ProjectForm({
         </div>
       </fieldset>
 
-      <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-2 border-t bg-popover px-6 py-3">
+      <div className="sticky bottom-0 z-10 -mx-6 -mb-6 flex justify-end gap-2 border-t border-white/[.07] bg-[#0a1220]/95 px-6 py-3 backdrop-blur-xl">
         <Button type="button" variant="ghost" onClick={onDone}>
           Cancel
         </Button>
