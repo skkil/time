@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useHabitSync } from '@/features/habits/api';
+import { ProjectsNavToggle } from '@/features/projects/ProjectsNavToggle';
 import { RitualProvider } from '@/features/rituals/RitualProvider';
 import { useRitualRunner } from '@/features/rituals/runner-context';
 import { SettingsDialog } from '@/features/settings/SettingsDialog';
@@ -97,15 +98,16 @@ function Canvas() {
       <ZenBackdrop deep={active !== null} className="fixed" />
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 grid grid-cols-[1fr_auto_1fr] items-center px-6 pt-5">
         <div className="pointer-events-auto justify-self-start">
+          {space === 'projects' && <ProjectsNavToggle />}
+        </div>
+        <SpaceToggle value={space} onChange={go} />
+        <div className="pointer-events-auto flex items-center gap-2 justify-self-end">
+          <TimerPill />
           <ProfileMenu
             onSearch={() => setSearching(true)}
             onSettings={() => setSettingsOpen(true)}
             onAdd={() => newTask()}
           />
-        </div>
-        <SpaceToggle value={space} onChange={go} />
-        <div className="pointer-events-auto justify-self-end">
-          <TimerPill />
         </div>
       </header>
       <main className="relative z-10 h-full pt-20">
@@ -186,7 +188,7 @@ function ProfileMenu({
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" sideOffset={10} className="w-56">
+      <DropdownMenuContent align="end" sideOffset={10} className="w-56">
         {name && <DropdownMenuLabel>{name}</DropdownMenuLabel>}
         <DropdownMenuItem onSelect={onAdd}>
           <PlusIcon />

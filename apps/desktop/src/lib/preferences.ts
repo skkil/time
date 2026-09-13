@@ -21,6 +21,7 @@ export type Preferences = {
   lastProject: string;
   weekHabitsOpen: boolean;
   weekProjectsOpen: boolean;
+  projectsNavOpen: boolean;
   lastViews: Record<string, number>;
   weekStartsOn: WeekStart;
 };
@@ -36,6 +37,7 @@ const defaults: Preferences = {
   lastProject: 'inbox',
   weekHabitsOpen: false,
   weekProjectsOpen: false,
+  projectsNavOpen: true,
   lastViews: {},
   weekStartsOn: 1,
 };
