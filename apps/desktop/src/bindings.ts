@@ -12,6 +12,10 @@ export const commands = {
 	updateProjectSettings: (id: Id, settings: ProjectSettings) => __TAURI_INVOKE<Project>("update_project_settings", { id, settings }),
 	markProjectReviewed: (id: Id) => __TAURI_INVOKE<Project>("mark_project_reviewed", { id }),
 	deleteProject: (id: Id) => __TAURI_INVOKE<null>("delete_project", { id }),
+	listOrganizations: () => __TAURI_INVOKE<Organization[]>("list_organizations"),
+	createOrganization: (name: string) => __TAURI_INVOKE<Organization>("create_organization", { name }),
+	renameOrganization: (id: Id, name: string) => __TAURI_INVOKE<Organization>("rename_organization", { id, name }),
+	deleteOrganization: (id: Id) => __TAURI_INVOKE<null>("delete_organization", { id }),
 	listTasks: () => __TAURI_INVOKE<Task[]>("list_tasks"),
 	createTask: (input: TaskInput) => __TAURI_INVOKE<Task>("create_task", { input }),
 	updateTask: (id: Id, input: TaskInput) => __TAURI_INVOKE<Task>("update_task", { id, input }),
@@ -234,6 +238,12 @@ export type MilestoneInput = {
 	date: Date | null,
 };
 
+export type Organization = {
+	id: Id,
+	name: string,
+	position: number,
+};
+
 export type Outcome = {
 	id: Id,
 	title: string,
@@ -273,7 +283,7 @@ export type Project = {
 	position: number,
 	archived: boolean,
 	view: string,
-	kind: string,
+	organizationId: Id | null,
 	status: string,
 	outcome: string,
 	weeklyMinutes: number | null,
@@ -293,7 +303,7 @@ export type ProjectInput = {
 };
 
 export type ProjectSettings = {
-	kind: string,
+	organizationId: Id | null,
 	status: string,
 	outcome: string,
 	weeklyMinutes: number | null,

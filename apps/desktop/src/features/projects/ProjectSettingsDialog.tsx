@@ -17,6 +17,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { WorkflowSettings } from '@/features/workflow/WorkflowSettings';
 import { cn } from '@/lib/utils';
 
+import { OrganizationPicker } from './OrganizationPicker';
 import { ProjectPicker } from './ProjectPicker';
 import {
   settingsOf,
@@ -112,8 +113,6 @@ function ProjectForm({
   const blocked = node ? descendantIds(node) : new Set<Id>();
   const height = node ? subtreeHeight(node) : 1;
   const pending = update.isPending || updateSettings.isPending;
-  const finite = settings.kind === 'project';
-  const parentKind = parent !== null ? index.byId.get(parent)?.kind : undefined;
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -121,14 +120,10 @@ function ProjectForm({
     await update.mutateAsync({ id: project.id, input });
     await updateSettings.mutateAsync({
       id: project.id,
-      settings: finite
-        ? settings
-        : {
-            ...settings,
-            status: settings.status === 'paused' ? 'paused' : 'active',
-            targetDate: null,
-            killCriteria: '',
-          },
+      settings: {
+        ...settings,
+        organizationId: parent === null ? settings.organizationId : null,
+      },
     });
     onDone();
   };
@@ -139,8 +134,8 @@ function ProjectForm({
         <DialogTitle className="text-3xl font-light">
           Project settings
         </DialogTitle>
-        <DialogDescription className="text-sm text-foreground/50">
-          A project finishes. An area is ongoing, like Health or Admin.
+        <DialogDescription className="sr-only">
+          Name, organization, outcome and rhythm of {project.name}.
         </DialogDescription>
       </div>
 
@@ -153,44 +148,29 @@ function ProjectForm({
         />
       </Field>
 
-      <Field label="Kind">
-        <ToggleGroup
-          type="single"
-          variant="outline"
-          size="sm"
-          value={settings.kind}
-          onValueChange={(kind) => kind && set({ kind })}
+      {parent === null && (
+        <Field
+          label="Organization"
+          hint="Who the work is for. Sub-projects follow it."
         >
-          <ToggleGroupItem value="project" className="px-3">
-            Project
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="area"
-            className="px-3"
-            disabled={parentKind === 'project'}
-          >
-            Area
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </Field>
+          <OrganizationPicker
+            value={settings.organizationId}
+            onChange={(organizationId) => set({ organizationId })}
+          />
+        </Field>
+      )}
 
       <Field
-        label={finite ? 'Done when' : 'Standard to keep'}
+        label="Done when"
         htmlFor="project-outcome"
-        hint={
-          finite
-            ? 'One sentence you could check off.'
-            : 'What “fine” looks like here.'
-        }
+        hint="One sentence you could check off. Leave it empty for ongoing work."
       >
         <Textarea
           id="project-outcome"
           rows={2}
           maxLength={500}
           value={settings.outcome}
-          placeholder={
-            finite ? 'Paper submitted to CVPR' : 'Run three times a week'
-          }
+          placeholder="Paper submitted to CVPR"
           onChange={(event) => set({ outcome: event.target.value })}
         />
       </Field>
@@ -216,18 +196,16 @@ function ProjectForm({
             }
           />
         </Field>
-        {finite && (
-          <Field label="Target date" htmlFor="project-target">
-            <Input
-              id="project-target"
-              type="date"
-              value={settings.targetDate ?? ''}
-              onChange={(event) =>
-                set({ targetDate: event.target.value || null })
-              }
-            />
-          </Field>
-        )}
+        <Field label="Target date" htmlFor="project-target">
+          <Input
+            id="project-target"
+            type="date"
+            value={settings.targetDate ?? ''}
+            onChange={(event) =>
+              set({ targetDate: event.target.value || null })
+            }
+          />
+        </Field>
       </div>
 
       <Field label="Status">
@@ -238,10 +216,7 @@ function ProjectForm({
           value={settings.status}
           onValueChange={(status) => status && set({ status })}
         >
-          {STATUSES.filter(
-            (option) =>
-              finite || option.value === 'active' || option.value === 'paused',
-          ).map((option) => (
+          {STATUSES.map((option) => (
             <ToggleGroupItem
               key={option.value}
               value={option.value}
@@ -275,21 +250,19 @@ function ProjectForm({
         </ToggleGroup>
       </Field>
 
-      {finite && (
-        <Field
-          label="Stop if"
-          htmlFor="project-kill"
-          hint="Decide now when you’d drop it. Easier than deciding later."
-        >
-          <Input
-            id="project-kill"
-            maxLength={300}
-            value={settings.killCriteria}
-            placeholder="No reply from the lab by December"
-            onChange={(event) => set({ killCriteria: event.target.value })}
-          />
-        </Field>
-      )}
+      <Field
+        label="Stop if"
+        htmlFor="project-kill"
+        hint="Decide now when you’d drop it. Easier than deciding later."
+      >
+        <Input
+          id="project-kill"
+          maxLength={300}
+          value={settings.killCriteria}
+          placeholder="No reply from the lab by December"
+          onChange={(event) => set({ killCriteria: event.target.value })}
+        />
+      </Field>
 
       <label className="flex items-start gap-3 text-sm">
         <Checkbox
@@ -313,8 +286,7 @@ function ProjectForm({
           className="max-w-none"
           isDisabled={(candidate) =>
             blocked.has(candidate.id) ||
-            candidate.depth + 1 + height > MAX_PROJECT_DEPTH ||
-            (settings.kind === 'area' && candidate.kind === 'project')
+            candidate.depth + 1 + height > MAX_PROJECT_DEPTH
           }
         />
       </Field>

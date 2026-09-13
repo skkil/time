@@ -1,6 +1,7 @@
 pub mod blocks;
 pub mod data;
 pub mod habits;
+pub mod organizations;
 pub mod projects;
 pub mod review;
 pub mod rituals;

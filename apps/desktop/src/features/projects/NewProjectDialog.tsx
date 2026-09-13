@@ -17,11 +17,11 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { PresetPicker } from '@/features/workflow/PresetPicker';
 import { useApplyPreset } from '@/features/workflow/api';
 import { cn } from '@/lib/utils';
 
+import { OrganizationPicker } from './OrganizationPicker';
 import { ProjectPicker } from './ProjectPicker';
 import {
   useCreateProject,
@@ -89,7 +89,7 @@ function NewProjectForm({
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [parent, setParent] = useState<Id | null>(parentId);
-  const [kind, setKind] = useState('project');
+  const [organizationId, setOrganizationId] = useState<Id | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const [preset, setPreset] = useState<Preset | null>(null);
   const [outcome, setOutcome] = useState('');
@@ -98,8 +98,6 @@ function NewProjectForm({
   const [killCriteria, setKillCriteria] = useState('');
 
   const color = picked ?? autoColor(index, parent);
-  const finite = kind === 'project';
-  const parentKind = parent !== null ? index.byId.get(parent)?.kind : undefined;
   const named = name.trim() !== '';
   const pending =
     create.isPending || updateSettings.isPending || applyPreset.isPending;
@@ -114,12 +112,12 @@ function NewProjectForm({
     await updateSettings.mutateAsync({
       id,
       settings: {
-        kind,
+        organizationId: parent === null ? organizationId : null,
         status: 'active',
         outcome,
         weeklyMinutes,
-        targetDate: finite ? targetDate : null,
-        killCriteria: finite ? killCriteria : '',
+        targetDate,
+        killCriteria,
         reviewEveryWeeks: 1,
         inOrder: false,
       },
@@ -167,29 +165,6 @@ function NewProjectForm({
                 className="h-11 border-0 border-b border-white/15 bg-transparent px-0 text-xl shadow-none focus-visible:border-white/40 focus-visible:ring-0 dark:bg-transparent"
               />
             </div>
-            <Field
-              label="Kind"
-              hint="A project finishes. An area is ongoing, like Health or Admin."
-            >
-              <ToggleGroup
-                type="single"
-                variant="outline"
-                size="sm"
-                value={kind}
-                onValueChange={(next) => next && setKind(next)}
-              >
-                <ToggleGroupItem value="project" className="px-3">
-                  Project
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="area"
-                  className="px-3"
-                  disabled={parentKind === 'project'}
-                >
-                  Area
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </Field>
             <Field label="Inside">
               <ProjectPicker
                 value={parent}
@@ -197,11 +172,18 @@ function NewProjectForm({
                 noneLabel="Top level"
                 className="max-w-none"
                 isDisabled={(candidate) =>
-                  candidate.depth + 2 > MAX_PROJECT_DEPTH ||
-                  (kind === 'area' && candidate.kind === 'project')
+                  candidate.depth + 2 > MAX_PROJECT_DEPTH
                 }
               />
             </Field>
+            {parent === null && (
+              <Field label="Organization" hint="Who the work is for.">
+                <OrganizationPicker
+                  value={organizationId}
+                  onChange={setOrganizationId}
+                />
+              </Field>
+            )}
           </>
         )}
 
@@ -212,13 +194,9 @@ function NewProjectForm({
         {step === 2 && (
           <>
             <Field
-              label={finite ? 'Done when' : 'Standard to keep'}
+              label="Done when"
               htmlFor="new-project-outcome"
-              hint={
-                finite
-                  ? 'One sentence you could check off.'
-                  : 'What “fine” looks like here.'
-              }
+              hint="One sentence you could check off. Leave it empty for ongoing work."
             >
               <Textarea
                 id="new-project-outcome"
@@ -226,9 +204,7 @@ function NewProjectForm({
                 rows={2}
                 maxLength={500}
                 value={outcome}
-                placeholder={
-                  finite ? 'Paper submitted to CVPR' : 'Run three times a week'
-                }
+                placeholder="Paper submitted to CVPR"
                 onChange={(event) => setOutcome(event.target.value)}
               />
             </Field>
@@ -250,34 +226,30 @@ function NewProjectForm({
                   }
                 />
               </Field>
-              {finite && (
-                <Field label="Target date" htmlFor="new-project-target">
-                  <Input
-                    id="new-project-target"
-                    type="date"
-                    value={targetDate ?? ''}
-                    onChange={(event) =>
-                      setTargetDate(event.target.value || null)
-                    }
-                  />
-                </Field>
-              )}
-            </div>
-            {finite && (
-              <Field
-                label="Stop if"
-                htmlFor="new-project-kill"
-                hint="Decide now when you’d drop it. Easier than deciding later."
-              >
+              <Field label="Target date" htmlFor="new-project-target">
                 <Input
-                  id="new-project-kill"
-                  maxLength={300}
-                  value={killCriteria}
-                  placeholder="No reply from the lab by December"
-                  onChange={(event) => setKillCriteria(event.target.value)}
+                  id="new-project-target"
+                  type="date"
+                  value={targetDate ?? ''}
+                  onChange={(event) =>
+                    setTargetDate(event.target.value || null)
+                  }
                 />
               </Field>
-            )}
+            </div>
+            <Field
+              label="Stop if"
+              htmlFor="new-project-kill"
+              hint="Decide now when you’d drop it. Easier than deciding later."
+            >
+              <Input
+                id="new-project-kill"
+                maxLength={300}
+                value={killCriteria}
+                placeholder="No reply from the lab by December"
+                onChange={(event) => setKillCriteria(event.target.value)}
+              />
+            </Field>
           </>
         )}
       </div>

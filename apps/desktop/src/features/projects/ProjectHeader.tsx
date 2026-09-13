@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 
 import { ProjectDot } from './ProjectDot';
 import { useProjectIndex } from './api';
+import { useProjectOrganization } from './organizations';
 import { STATUSES, descendantIds, projectPath } from './tree';
 
 const WEEK_SECONDS = 7 * 24 * 3600;
@@ -53,7 +54,7 @@ export function ProjectHeader({
   menu: ReactNode;
 }) {
   const index = useProjectIndex();
-  const finite = project?.kind === 'project';
+  const organization = useProjectOrganization(project?.id);
   const status = STATUSES.find((option) => option.value === project?.status);
 
   return (
@@ -64,6 +65,7 @@ export function ProjectHeader({
           {project?.name ?? 'Inbox'}
         </h1>
         <p className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-sm text-foreground/55">
+          {organization && <span>{organization.name}</span>}
           {project?.parentId != null && (
             <span>In {projectPath(index, project.parentId)}</span>
           )}
@@ -74,7 +76,7 @@ export function ProjectHeader({
           {project && project.status !== 'active' && (
             <span>{status?.label}</span>
           )}
-          {finite && project.targetDate && (
+          {project?.targetDate && (
             <span>
               Target {format(fromDateKey(project.targetDate), 'd MMM')}
             </span>
@@ -87,9 +89,7 @@ export function ProjectHeader({
             onClick={onSettings}
             className="mt-3 max-w-2xl text-left text-[15px] text-foreground/75 outline-none hover:text-foreground focus-visible:underline"
           >
-            <span className="text-foreground/45">
-              {finite ? 'Done when ' : 'Standard '}
-            </span>
+            <span className="text-foreground/45">Done when </span>
             {project.outcome}
           </button>
         )}

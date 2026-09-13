@@ -34,9 +34,11 @@ import { useTasks } from '@/features/tasks/api';
 import { cn } from '@/lib/utils';
 
 import { NewProjectDialog } from './NewProjectDialog';
+import { OrganizationHeading } from './OrganizationHeading';
 import { ProjectDot } from './ProjectDot';
 import { ProjectSettingsDialog } from './ProjectSettingsDialog';
 import { useArchiveProject, useDeleteProject, useProjectIndex } from './api';
+import { useOrganizations } from './organizations';
 import { MAX_PROJECT_DEPTH, type ProjectNode } from './tree';
 
 type DialogState = { project?: Project; parentId: Id | null } | null;
@@ -46,6 +48,7 @@ const isInactive = (node: ProjectNode) =>
 
 export function ProjectNav() {
   const index = useProjectIndex();
+  const organizations = useOrganizations();
   const { data: tasks } = useTasks();
   const [collapsed, setCollapsed] = useState<Set<Id>>(new Set());
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -101,6 +104,19 @@ export function ProjectNav() {
     );
   };
 
+  const roots = index.roots.filter((node) => !isInactive(node));
+  const loose = roots.filter(
+    (node) =>
+      node.organizationId === null ||
+      !organizations.byId.has(node.organizationId),
+  );
+  const grouped = organizations.list
+    .map((organization) => ({
+      organization,
+      nodes: roots.filter((node) => node.organizationId === organization.id),
+    }))
+    .filter(({ nodes }) => nodes.length > 0);
+
   const archived = index.flat.filter((node) => {
     const parent =
       node.parentId === null ? undefined : index.byId.get(node.parentId);
@@ -130,7 +146,13 @@ export function ProjectNav() {
       </div>
 
       <ul className="min-h-0 overflow-y-auto">
-        {index.roots.filter((node) => !isInactive(node)).map(renderNode)}
+        {loose.map(renderNode)}
+        {grouped.map(({ organization, nodes }) => (
+          <li key={organization.id}>
+            <OrganizationHeading organization={organization} />
+            <ul>{nodes.map(renderNode)}</ul>
+          </li>
+        ))}
       </ul>
 
       {index.active.length === 0 && (

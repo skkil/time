@@ -11,11 +11,16 @@ memory in `.design/DESIGN.md`.
 ## Domain model
 
 - **Project** — nested (max depth 3) with a colour, a list/board view, an
-  archived flag and settings: `kind` (project or area; areas never sit inside
-  projects), `status` (active/paused/done/dropped; inactive ones leave Day and
-  the drawer tree), outcome, weekly hours budget, target date, stop-if
-  criteria, review cadence and `in_order`; archiving or deleting cascades to the subtree. `NULL`
-  project means Inbox.
+  archived flag and settings: `organization_id` (who the work is for; only
+  top-level projects carry one and sub-projects follow it), `status`
+  (active/paused/done/dropped; inactive ones leave Day and the drawer tree),
+  outcome, weekly hours budget, target date, stop-if criteria, review cadence
+  and `in_order`; archiving or deleting cascades to the subtree. There are no
+  areas: ongoing work is a project without a target date. `NULL` project
+  means Inbox.
+- **Organization** — a named owner of projects in `features/organizations.rs`
+  (migration 009); deleting one only clears it from its projects. The drawer
+  groups top-level projects under their organization.
 - **Section** — ordered group inside a project (or the Inbox); deleting it
   deletes its tasks.
 - **Task** — Todoist-shaped: title, description (`notes`), project, section,

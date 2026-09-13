@@ -118,7 +118,6 @@ function ProjectCheck({
       { id: project.id, settings: { ...settingsOf(project), ...patch } },
       { onSuccess: () => reviewed.mutate(project.id) },
     );
-  const finite = project.kind === 'project';
 
   return (
     <li className="grid gap-2 px-3 py-2.5">
@@ -127,9 +126,7 @@ function ProjectCheck({
         <span className="min-w-0 flex-1 truncate text-sm font-medium">
           {project.name}
         </span>
-        <span className="text-xs text-muted-foreground">
-          {finite ? 'Project' : 'Area'} · {openTasks} open
-        </span>
+        <span className="text-xs text-muted-foreground">{openTasks} open</span>
       </div>
       {project.outcome && (
         <p className="text-xs text-muted-foreground">
@@ -151,25 +148,21 @@ function ProjectCheck({
         >
           Pause
         </Button>
-        {finite && (
-          <>
-            <Button
-              size="xs"
-              variant="ghost"
-              onClick={() => set({ status: 'done' })}
-            >
-              Close as done
-            </Button>
-            <Button
-              size="xs"
-              variant="ghost"
-              className="text-muted-foreground"
-              onClick={() => set({ status: 'dropped' })}
-            >
-              Drop
-            </Button>
-          </>
-        )}
+        <Button
+          size="xs"
+          variant="ghost"
+          onClick={() => set({ status: 'done' })}
+        >
+          Close as done
+        </Button>
+        <Button
+          size="xs"
+          variant="ghost"
+          className="text-muted-foreground"
+          onClick={() => set({ status: 'dropped' })}
+        >
+          Drop
+        </Button>
         {openTasks === 0 && (
           <Button
             size="xs"
