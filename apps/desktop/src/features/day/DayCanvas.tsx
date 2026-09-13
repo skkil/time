@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import {
   InboxIcon,
   ListTodoIcon,
+  MoonIcon,
   PlayIcon,
   PlusIcon,
   SquareIcon,
@@ -21,6 +22,8 @@ import { ProjectDot } from '@/features/projects/ProjectDot';
 import { ProjectPicker } from '@/features/projects/ProjectPicker';
 import { useProjectIndex } from '@/features/projects/api';
 import { projectColorVar } from '@/features/projects/tree';
+import { useRitualRuns, useRituals } from '@/features/rituals/api';
+import { STEPS } from '@/features/rituals/meta';
 import { useRitualRunner } from '@/features/rituals/runner-context';
 import { TaskPanel } from '@/features/tasks/TaskPanel';
 import { TaskPicker } from '@/features/tasks/TaskPicker';
@@ -57,27 +60,31 @@ import { describeWeather, useWeather } from './weather';
 
 type Moment = {
   key: string;
-  taskId: Id;
+  kind: 'block' | 'event' | 'checkout';
+  taskId: Id | null;
   title: string;
   projectId: Id | null;
   start: number;
   end: number;
   done: boolean;
-  event: boolean;
 };
 
 type Loose = { taskId: Id; title: string; projectId: Id | null; done: boolean };
 
-type Panel = { kind: 'task'; taskId: Id } | { kind: 'focus' };
+type Panel =
+  { kind: 'task'; taskId: Id } | { kind: 'focus' } | { kind: 'checkout' };
 
 const WINDOW_HOURS = 6;
 const ROW = 46;
+const CHECKOUT_MINUTE = 17 * 60 + 30;
 
 export function DayCanvas() {
   const today = todayKey();
   const plan = useDayPlan(today);
   const { data: events = [] } = useEvents(today, shiftKey(today, 1));
   const { data: timer } = useTimer();
+  const { data: rituals } = useRituals();
+  const { data: runs = [] } = useRitualRuns(today, shiftKey(today, 1));
   const { data: logged = [] } = useTimeEntries(today, shiftKey(today, 1));
   const now = useNow(30_000);
   const entries = useMemo<TimeEntry[]>(
@@ -103,6 +110,10 @@ export function DayCanvas() {
   const [chosen, setChosen] = useState<Panel | null | undefined>(undefined);
   const [sorting, setSorting] = useState(false);
 
+  const checkedOutAt =
+    runs.find((run) => run.kind === 'evening' && run.finishedAt !== null)
+      ?.finishedAt ?? null;
+
   const moments = useMemo<Moment[]>(() => {
     const timed = plan.blocks.map((block) => ({
       key: `block-${block.id}`,
@@ -111,8 +122,8 @@ export function DayCanvas() {
       projectId: block.projectId,
       start: block.startAt,
       end: block.endAt,
+      kind: 'block' as const,
       done: block.completed,
-      event: false,
     }));
     const anchors = events.map((event) => ({
       key: `event-${event.taskId}-${event.startAt}`,
@@ -121,11 +132,28 @@ export function DayCanvas() {
       projectId: event.projectId,
       start: event.startAt,
       end: event.endAt,
+      kind: 'event' as const,
       done: false,
-      event: true,
     }));
-    return [...timed, ...anchors].sort((a, b) => a.start - b.start);
-  }, [plan.blocks, events]);
+    const evening = rituals?.find((ritual) => ritual.kind === 'evening');
+    const checkoutAt =
+      checkedOutAt ??
+      Math.max(
+        dayStart(today) + (evening?.atMinute ?? CHECKOUT_MINUTE) * 60,
+        ...plan.blocks.map((block) => block.endAt),
+      );
+    const checkout: Moment = {
+      key: 'checkout',
+      kind: 'checkout',
+      taskId: null,
+      title: checkedOutAt ? 'Checked out' : 'Check out',
+      projectId: null,
+      start: checkoutAt,
+      end: checkoutAt,
+      done: checkedOutAt !== null,
+    };
+    return [...timed, ...anchors, checkout].sort((a, b) => a.start - b.start);
+  }, [plan.blocks, events, checkedOutAt, rituals, today]);
 
   const loose = useMemo<Loose[]>(
     () =>
@@ -165,8 +193,15 @@ export function DayCanvas() {
           entries={entries}
           now={now}
           openId={openId}
+          checkoutOpen={panel?.kind === 'checkout'}
           runningId={timer?.taskId ?? null}
-          onPick={(taskId) => setChosen({ kind: 'task', taskId })}
+          onPick={(moment) =>
+            setChosen(
+              moment.taskId === null
+                ? { kind: 'checkout' }
+                : { kind: 'task', taskId: moment.taskId },
+            )
+          }
         />
         <LooseList
           tasks={loose}
@@ -185,7 +220,6 @@ export function DayCanvas() {
         )}
         <div className="flex items-center gap-3 pt-2">
           <StartFocus onOpen={setChosen} />
-          <CheckOut />
         </div>
       </aside>
 
@@ -196,10 +230,12 @@ export function DayCanvas() {
             if (event.target === event.currentTarget) setChosen(null);
           }}
         >
-          {panel.kind === 'task' ? (
+          {panel.kind === 'task' && (
             <Focus key={panel.taskId} taskId={panel.taskId} />
-          ) : (
-            <FreeFocus />
+          )}
+          {panel.kind === 'focus' && <FreeFocus />}
+          {panel.kind === 'checkout' && (
+            <CheckOutPrompt checkedOutAt={checkedOutAt} />
           )}
         </section>
       )}
@@ -255,6 +291,7 @@ function Thread({
   entries,
   now,
   openId,
+  checkoutOpen,
   runningId,
   onPick,
 }: {
@@ -262,8 +299,9 @@ function Thread({
   entries: TimeEntry[];
   now: number;
   openId: Id | null;
+  checkoutOpen: boolean;
   runningId: Id | null;
-  onPick: (id: Id) => void;
+  onPick: (moment: Moment) => void;
 }) {
   const index = useProjectIndex();
   const today = todayKey();
@@ -330,17 +368,21 @@ function Thread({
           aria-hidden
           className="absolute inset-y-0 left-[55px] w-px bg-white/20"
         />
-        {rows.map(({ moment, start, end }) => (
-          <span
-            key={`span-${moment.key}`}
-            aria-hidden
-            className={cn(
-              'absolute left-[54px] w-[3px] rounded-full',
-              moment.done || moment.end <= now ? 'bg-white/30' : 'bg-white/70',
-            )}
-            style={{ top: start, height: Math.max(end - start, 3) }}
-          />
-        ))}
+        {rows
+          .filter(({ moment }) => moment.kind !== 'checkout')
+          .map(({ moment, start, end }) => (
+            <span
+              key={`span-${moment.key}`}
+              aria-hidden
+              className={cn(
+                'absolute left-[54px] w-[3px] rounded-full',
+                moment.done || moment.end <= now
+                  ? 'bg-white/30'
+                  : 'bg-white/70',
+              )}
+              style={{ top: start, height: Math.max(end - start, 3) }}
+            />
+          ))}
         {entries.map((entry) => {
           const dayOpen = dayStart(today);
           const from = Math.max(0, (entry.startedAt - dayOpen) / 60);
@@ -386,11 +428,15 @@ function Thread({
         </div>
         <ol>
           {rows.map(({ moment, top }) => {
-            const past = moment.end <= now;
+            const past = moment.kind !== 'checkout' && moment.end <= now;
             const live =
-              moment.taskId === runningId ||
-              (moment.start <= now && moment.end > now);
-            const open = moment.taskId === openId;
+              moment.kind === 'block' &&
+              (moment.taskId === runningId ||
+                (moment.start <= now && moment.end > now));
+            const open =
+              moment.kind === 'checkout'
+                ? checkoutOpen
+                : moment.taskId === openId;
             const project =
               moment.projectId !== null
                 ? index.byId.get(moment.projectId)
@@ -403,12 +449,25 @@ function Thread({
               >
                 <button
                   type="button"
-                  onClick={() => onPick(moment.taskId)}
+                  onClick={() => onPick(moment)}
                   aria-current={open ? 'true' : undefined}
                   className="group relative flex w-full items-start gap-4 text-left outline-none"
                 >
                   <span className="relative mt-1 grid size-[15px] shrink-0 place-items-center">
-                    {moment.event ? (
+                    {moment.kind === 'checkout' ? (
+                      <MoonIcon
+                        aria-hidden
+                        strokeWidth={1.5}
+                        className={cn(
+                          'size-[15px] transition-colors duration-500',
+                          open
+                            ? 'fill-white text-white'
+                            : moment.done
+                              ? 'text-white/40'
+                              : 'text-white/70 group-hover:text-white',
+                        )}
+                      />
+                    ) : moment.kind === 'event' ? (
                       <span
                         aria-label="Event"
                         className={cn(
@@ -438,7 +497,10 @@ function Thread({
                     <span
                       className={cn(
                         'truncate text-[15px] transition-colors duration-500',
-                        moment.done && 'text-foreground/40 line-through',
+                        moment.done &&
+                          (moment.kind === 'checkout'
+                            ? 'text-foreground/50'
+                            : 'text-foreground/40 line-through'),
                         !moment.done &&
                           (open
                             ? 'text-foreground'
@@ -451,7 +513,9 @@ function Thread({
                       {moment.title}
                     </span>
                     <span className="flex items-center gap-2 text-xs text-foreground/50">
-                      {`${formatClockTime(moment.start)} – ${formatClockTime(moment.end)}`}
+                      {moment.kind === 'checkout'
+                        ? formatClockTime(moment.start)
+                        : `${formatClockTime(moment.start)} – ${formatClockTime(moment.end)}`}
                       {project && (
                         <>
                           <ProjectDot color={project.color} />
@@ -580,18 +644,44 @@ function StartFocus({ onOpen }: { onOpen: (panel: Panel) => void }) {
   );
 }
 
-function CheckOut() {
+function CheckOutPrompt({ checkedOutAt }: { checkedOutAt: number | null }) {
   const runner = useRitualRunner();
+  const { data: rituals } = useRituals();
+  const steps = (
+    rituals?.find((ritual) => ritual.kind === 'evening')?.steps ?? []
+  ).filter((step): step is keyof typeof STEPS => step in STEPS);
+
   return (
-    <div className="pt-2">
-      <button
-        type="button"
-        onClick={() => runner.open('evening')}
-        className="group flex h-9 items-center gap-2.5 rounded-full bg-white/10 pr-4 pl-3.5 text-sm ring-1 ring-white/20 backdrop-blur-md transition-all duration-500 outline-none hover:bg-white/[.16] hover:ring-white/35 focus-visible:ring-2 focus-visible:ring-white/60"
-      >
-        <span className="size-2 rounded-full bg-white/70 transition-transform duration-500 group-hover:scale-125" />
-        Check out
-      </button>
+    <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-700 fade-in-0 slide-in-from-bottom-2 motion-reduce:animate-none">
+      <p className="text-sm text-foreground/55">End of day</p>
+      <h2 className="mt-2 text-3xl font-light">
+        {checkedOutAt
+          ? `Checked out at ${formatClockTime(checkedOutAt)}`
+          : 'Ready to check out?'}
+      </h2>
+      <p className="mt-3 max-w-md text-foreground/60">
+        Close today in a few quiet steps, then leave it here.
+      </p>
+      {steps.length > 0 && (
+        <ol className="mt-10 grid max-w-md gap-4 text-sm">
+          {steps.map((step) => (
+            <li key={step} className="grid gap-0.5">
+              <span>{STEPS[step].label}</span>
+              <span className="text-foreground/45">{STEPS[step].hint}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+      <div className="mt-auto pt-10">
+        <button
+          type="button"
+          onClick={() => runner.open('evening')}
+          className="flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
+        >
+          <MoonIcon className="size-3.5" strokeWidth={1.75} />
+          {checkedOutAt ? 'Check out again' : 'Begin check out'}
+        </button>
+      </div>
     </div>
   );
 }
