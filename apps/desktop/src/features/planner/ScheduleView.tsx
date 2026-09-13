@@ -56,6 +56,7 @@ import {
 import { cn } from '@/lib/utils';
 
 import { BlockCard, type BlockDragData } from './BlockCard';
+import { DueCard } from './DueCard';
 import { EventCard } from './EventCard';
 import { type BlockSlot, NewBlockDialog } from './NewBlockDialog';
 import { DraggableTask, type TaskDragData, TaskRail } from './TaskRail';
@@ -179,8 +180,12 @@ export function ScheduleView({
     return counts;
   }, [blocks]);
 
-  const dueByDay = useMemo(() => {
-    const map = new Map<DateKey, Task[]>();
+  const { dueByDay, timedByDay } = useMemo(() => {
+    const planned = new Set(
+      blocks.map((block) => `${block.taskId}:${dateKeyOf(block.startAt)}`),
+    );
+    const due = new Map<DateKey, Task[]>();
+    const timed = new Map<DateKey, Task[]>();
     for (const task of tasks) {
       if (
         task.completedAt !== null ||
@@ -188,10 +193,13 @@ export function ScheduleView({
         task.kind === 'event'
       )
         continue;
-      map.set(task.dueDate, [...(map.get(task.dueDate) ?? []), task]);
+      const target = task.dueTime === null ? due : timed;
+      if (target === timed && planned.has(`${task.id}:${task.dueDate}`))
+        continue;
+      target.set(task.dueDate, [...(target.get(task.dueDate) ?? []), task]);
     }
-    return map;
-  }, [tasks]);
+    return { dueByDay: due, timedByDay: timed };
+  }, [tasks, blocks]);
 
   const registerColumn = useCallback(
     (day: DateKey, element: HTMLElement | null) => {
@@ -251,12 +259,11 @@ export function ScheduleView({
     if (!data) return;
     const event = activatorEvent as PointerEvent;
     const card = (event.target as HTMLElement | null)?.closest(
-      '[data-block-id]',
+      '[data-grid-card]',
     );
-    grabOffset.current =
-      data.kind === 'block' && card
-        ? event.clientY - card.getBoundingClientRect().top
-        : 0;
+    grabOffset.current = card
+      ? event.clientY - card.getBoundingClientRect().top
+      : 0;
     pointer.current = { x: event.clientX, y: event.clientY };
     setActive(data);
   };
@@ -353,6 +360,7 @@ export function ScheduleView({
                     now={now}
                     blocks={blocks}
                     events={events}
+                    timed={timedByDay.get(day) ?? []}
                     entries={
                       runningEntry ? [...entries, runningEntry] : entries
                     }
@@ -474,6 +482,7 @@ type DayColumnProps = {
   now: number;
   blocks: TimeBlock[];
   events: EventOccurrence[];
+  timed: Task[];
   entries: TimeEntry[];
   runningTaskId: Id | null;
   preview: Preview | null;
@@ -491,6 +500,7 @@ function DayColumn({
   now,
   blocks,
   events,
+  timed,
   entries,
   runningTaskId,
   preview,
@@ -535,19 +545,33 @@ function DayColumn({
           ),
         };
       });
+    const due = timed.map((task, i) => {
+      const start = task.dueTime ?? 0;
+      return {
+        task,
+        id: -(anchors.length + i + 1),
+        start,
+        end: Math.min(
+          start + (task.estimateMinutes ?? DEFAULT_BLOCK_MINUTES),
+          DAY_MINUTES,
+        ),
+      };
+    });
     const lanes = layoutLanes([
       ...own.map(({ block, start, end }) => ({ id: block.id, start, end })),
       ...anchors.map(({ id, start, end }) => ({ id, start, end })),
+      ...due.map(({ id, start, end }) => ({ id, start, end })),
     ]);
     const lane = (id: number) => lanes.get(id) ?? { lane: 0, lanes: 1 };
     return {
       blocks: own.map((item) => ({ ...item, ...lane(item.block.id) })),
       events: anchors.map((item) => ({ ...item, ...lane(item.id) })),
+      due: due.map((item) => ({ ...item, ...lane(item.id) })),
     };
-  }, [blocks, events, day]);
+  }, [blocks, events, timed, day]);
 
   const actual = useMemo(() => {
-    const planned = [...placed.blocks, ...placed.events];
+    const planned = [...placed.blocks, ...placed.events, ...placed.due];
     return entries.flatMap((entry) => {
       const span = clipToDay(day, entry.startedAt, entry.endedAt);
       if (!span) return [];
@@ -581,6 +605,16 @@ function DayColumn({
             <EventCard
               key={`${event.taskId}-${event.startAt}`}
               event={event}
+              start={start}
+              end={end}
+              lane={lane}
+              lanes={lanes}
+            />
+          ))}
+          {placed.due.map(({ task, start, end, lane, lanes }) => (
+            <DueCard
+              key={task.id}
+              task={task}
               start={start}
               end={end}
               lane={lane}
