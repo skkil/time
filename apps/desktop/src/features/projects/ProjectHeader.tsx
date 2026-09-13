@@ -1,13 +1,9 @@
 import { format } from 'date-fns';
-import { EllipsisIcon } from 'lucide-react';
+import { PlusIcon, SettingsIcon } from 'lucide-react';
 import { type ReactNode, useMemo } from 'react';
 
 import type { Project } from '@/bindings';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
@@ -30,7 +26,7 @@ import { cn } from '@/lib/utils';
 import { ProjectDot } from './ProjectDot';
 import { useProjectIndex } from './api';
 import { useProjectOrganization } from './organizations';
-import { STATUSES, descendantIds, projectPath } from './tree';
+import { STATUSES, descendantIds, projectChain } from './tree';
 
 const WEEK_SECONDS = 7 * 24 * 3600;
 
@@ -42,66 +38,79 @@ export function ProjectHeader({
   views,
   view,
   onView,
+  onAddTask,
   onSettings,
-  menu,
+  viewActions,
 }: {
   project?: Project;
   openCount: number;
   views: ViewOption[];
   view: string;
   onView: (id: string) => void;
+  onAddTask: () => void;
   onSettings: () => void;
-  menu: ReactNode;
+  viewActions?: ReactNode;
 }) {
   const index = useProjectIndex();
   const organization = useProjectOrganization(project?.id);
   const status = STATUSES.find((option) => option.value === project?.status);
+  const trail = [
+    organization?.name,
+    ...(project?.parentId != null
+      ? projectChain(index, project.parentId).map((node) => node.name)
+      : []),
+  ].filter(Boolean);
+
+  const details: ReactNode[] = [
+    `${openCount} open ${openCount === 1 ? 'task' : 'tasks'}`,
+    project?.archived && 'Archived',
+    project && project.status !== 'active' && status?.label,
+    project?.targetDate &&
+      `Target ${format(fromDateKey(project.targetDate), 'd MMM yyyy')}`,
+    project && <WeekHours key="hours" project={project} />,
+  ].filter(Boolean);
 
   return (
-    <header className="flex shrink-0 flex-wrap items-start justify-between gap-x-6 gap-y-3 px-8 pt-4 pb-2">
-      <div className="min-w-0">
-        <h1 className="flex items-center gap-2.5 truncate text-3xl leading-tight font-light tracking-tight">
-          {project && <ProjectDot color={project.color} className="size-2.5" />}
-          {project?.name ?? 'Inbox'}
+    <header className="w-full max-w-[61rem] shrink-0 px-10 pt-4">
+      {trail.length > 0 && (
+        <p className="mb-1 text-sm text-foreground/50">{trail.join(' / ')}</p>
+      )}
+      <div className="flex items-center gap-3">
+        <h1 className="flex min-w-0 flex-1 items-center gap-2.5 text-3xl leading-tight font-light tracking-tight">
+          {project && <ProjectDot color={project.color} className="size-3" />}
+          <span className="truncate">{project?.name ?? 'Inbox'}</span>
         </h1>
-        <p className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-sm text-foreground/55">
-          {organization && <span>{organization.name}</span>}
-          {project?.parentId != null && (
-            <span>In {projectPath(index, project.parentId)}</span>
-          )}
-          <span>
-            <span className="text-foreground">{openCount}</span> open
-          </span>
-          {project?.archived && <span>Archived</span>}
-          {project && project.status !== 'active' && (
-            <span>{status?.label}</span>
-          )}
-          {project?.targetDate && (
-            <span>
-              Target {format(fromDateKey(project.targetDate), 'd MMM')}
-            </span>
-          )}
-          {project && <WeekHours project={project} />}
-        </p>
-        {project?.outcome && (
-          <button
-            type="button"
-            onClick={onSettings}
-            className="mt-3 max-w-2xl text-left text-[15px] text-foreground/75 outline-none hover:text-foreground focus-visible:underline"
-          >
-            <span className="text-foreground/45">Done when </span>
-            {project.outcome}
-          </button>
+        {!project?.archived && (
+          <Button onClick={onAddTask}>
+            <PlusIcon />
+            Add task
+          </Button>
+        )}
+        {project && (
+          <Button variant="outline" onClick={onSettings}>
+            <SettingsIcon />
+            Settings
+          </Button>
         )}
       </div>
+      {project?.outcome && (
+        <p className="mt-2 max-w-3xl text-[15px] text-foreground/80">
+          <span className="text-foreground/50">Goal: </span>
+          {project.outcome}
+        </p>
+      )}
+      <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-foreground/55">
+        {details.map((detail, i) => (
+          <span key={i} className="flex items-center gap-2">
+            {i > 0 && <span aria-hidden>·</span>}
+            {detail}
+          </span>
+        ))}
+      </p>
 
-      <div className="flex items-center gap-2 pt-1">
+      <div className="mt-5 flex min-h-9 items-end gap-6 border-b border-white/10">
         {views.length > 1 && (
-          <div
-            role="tablist"
-            aria-label="Views"
-            className="flex rounded-full bg-white/[.07] p-1 backdrop-blur-md"
-          >
+          <nav role="tablist" aria-label="Views" className="flex gap-5">
             {views.map((option) => (
               <button
                 key={option.id}
@@ -110,31 +119,22 @@ export function ProjectHeader({
                 aria-selected={option.id === view}
                 onClick={() => onView(option.id)}
                 className={cn(
-                  'h-7 rounded-full px-3 text-[13px] tracking-wide transition-colors duration-300 outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+                  '-mb-px border-b-2 pb-2.5 text-sm transition-colors outline-none focus-visible:text-foreground',
                   option.id === view
-                    ? 'bg-white/[.14] text-foreground'
-                    : 'text-foreground/55 hover:text-foreground/85',
+                    ? 'border-foreground font-medium text-foreground'
+                    : 'border-transparent text-foreground/55 hover:text-foreground',
                 )}
               >
                 {option.label}
               </button>
             ))}
+          </nav>
+        )}
+        {viewActions && (
+          <div className="ml-auto flex items-center gap-1 pb-1.5">
+            {viewActions}
           </div>
         )}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label={project ? 'Project options' : 'Inbox options'}
-              className="grid size-9 place-items-center rounded-full text-foreground/70 transition-colors outline-none hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/60"
-            >
-              <EllipsisIcon className="size-[18px]" strokeWidth={1.5} />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" sideOffset={8} className="w-56">
-            {menu}
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </header>
   );
@@ -167,11 +167,12 @@ function WeekHours({ project }: { project: Project }) {
       ? null
       : project.lastReviewedAt + project.reviewEveryWeeks * WEEK_SECONDS;
   const details = [
-    ...byType.map(([name, seconds]) => `${name} ${formatHours(seconds)} h`),
+    ...byType.map(([name, seconds]) => `${name}: ${formatHours(seconds)} h`),
     nextReview === null
-      ? 'Not looked at yet'
-      : `Next look ${format(fromSeconds(nextReview), 'd MMM')}`,
+      ? 'Not reviewed yet'
+      : `Next review ${format(fromSeconds(nextReview), 'd MMM')}`,
   ];
+  const over = budget !== null && tracked > budget;
 
   return (
     <Tooltip>
@@ -180,19 +181,11 @@ function WeekHours({ project }: { project: Project }) {
           tabIndex={0}
           className={cn(
             'rounded-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-white/50',
-            budget !== null && tracked > budget && 'text-attention',
+            over && 'text-attention',
           )}
         >
-          <span
-            className={cn(
-              budget !== null && tracked > budget
-                ? 'text-attention'
-                : 'text-foreground',
-            )}
-          >
-            {formatDuration(tracked)}
-          </span>
-          {budget !== null && ` of ${formatDuration(budget)}`} this week
+          {formatDuration(tracked)}
+          {budget !== null && ` of ${formatDuration(budget)}`} tracked this week
         </span>
       </TooltipTrigger>
       <TooltipContent>

@@ -44,7 +44,7 @@ export function OrganizationHeading({
   return (
     <div className="group/org mt-4 mb-1 flex h-6 items-center px-2">
       <h3
-        className="min-w-0 flex-1 truncate text-xs text-foreground/45"
+        className="min-w-0 flex-1 truncate font-sans text-xs font-semibold text-muted-foreground"
         onDoubleClick={() => setRenaming(true)}
       >
         {organization.name}

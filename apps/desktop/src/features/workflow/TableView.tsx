@@ -73,7 +73,7 @@ export function TableView({
   };
 
   return (
-    <div className="min-h-0 flex-1 overflow-auto px-8 py-4">
+    <div className="min-h-0 flex-1 overflow-auto px-10 py-4">
       <table className="w-full border-separate border-spacing-0 overflow-hidden rounded-2xl bg-white/[.04] text-sm ring-1 ring-white/[.07] backdrop-blur-md">
         <thead>
           <tr>

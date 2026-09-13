@@ -51,7 +51,7 @@ export function GraphView({
   ).length;
 
   return (
-    <div className="min-h-0 flex-1 overflow-auto px-8 py-6">
+    <div className="min-h-0 flex-1 overflow-auto px-10 py-6">
       {unlinked > 0 && (
         <p className="mb-6 text-sm text-foreground/45">
           {unlinked} {unlinked === 1 ? 'task has' : 'tasks have'} no links and
@@ -65,6 +65,25 @@ export function GraphView({
           height={height}
           className="pointer-events-none absolute inset-0 overflow-visible"
         >
+          <defs>
+            {['dim', 'lit'].map((tone) => (
+              <marker
+                key={tone}
+                id={`arrow-${tone}`}
+                viewBox="0 0 8 8"
+                refX="7"
+                refY="4"
+                markerWidth="8"
+                markerHeight="8"
+                orient="auto"
+              >
+                <path
+                  d="M0,0 L8,4 L0,8 z"
+                  className={tone === 'lit' ? 'fill-white/80' : 'fill-white/40'}
+                />
+              </marker>
+            ))}
+          </defs>
           {edges.map(({ from, to }) => {
             const a = place.get(from)!;
             const b = place.get(to)!;
@@ -82,9 +101,10 @@ export function GraphView({
                 fill="none"
                 strokeWidth={lit ? 1.5 : 1}
                 strokeDasharray={settled ? '3 4' : undefined}
+                markerEnd={`url(#arrow-${lit ? 'lit' : 'dim'})`}
                 className={cn(
                   'transition-[stroke] duration-300',
-                  lit ? 'stroke-white/70' : 'stroke-white/20',
+                  lit ? 'stroke-white/80' : 'stroke-white/40',
                 )}
               />
             );
@@ -131,7 +151,7 @@ function GraphNode({
     : task.projectId !== projectId
       ? 'Inbox'
       : waiting
-        ? `waiting on ${task.waitingOn.length}`
+        ? `Waiting on ${task.waitingOn.length} ${task.waitingOn.length === 1 ? 'task' : 'tasks'}`
         : task.dueDate
           ? formatDue(task)
           : null;

@@ -1,14 +1,10 @@
-import { PlusIcon, Settings2Icon, SlidersHorizontalIcon } from 'lucide-react';
+import { CheckIcon, PlusIcon, SlidersHorizontalIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import type { Id, SavedView, Section, Task } from '@/bindings';
 import { EmptyState, Page, PageBody } from '@/components/page';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import {
-  DropdownMenuCheckboxItem,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
 import { ProjectHeader } from '@/features/projects/ProjectHeader';
 import { ProjectSettingsDialog } from '@/features/projects/ProjectSettingsDialog';
 import { useProjectIndex, useSetProjectView } from '@/features/projects/api';
@@ -28,6 +24,7 @@ import {
 import { AddTaskRow, FlatTaskList, TaskList } from './TaskList';
 import { useCreateSection, useSections, useTaskIndex, useTasks } from './api';
 import { TaskDnd } from './dnd';
+import { useTaskDialog } from './task-dialog-context';
 
 const topLevel = (tasks: Task[], sectionId: Id | null) =>
   tasks.filter(
@@ -40,6 +37,7 @@ const topLevel = (tasks: Task[], sectionId: Id | null) =>
 export function ProjectView({ projectId }: { projectId: Id | null }) {
   const { data: tasks, isPending } = useTasks();
   const taskIndex = useTaskIndex();
+  const { newTask } = useTaskDialog();
   const graphViews = usePreference('graphViews');
   const { data: allSections } = useSections();
   const index = useProjectIndex();
@@ -83,8 +81,8 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
   const unsectioned = topLevel(own, null);
 
   const sectionList = (
-    <PageBody>
-      <div className="mx-auto max-w-3xl pl-10">
+    <PageBody className="px-10">
+      <div className="max-w-4xl">
         <TaskDnd>
           <TaskList
             tasks={unsectioned}
@@ -192,39 +190,42 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
           else if (project)
             setView.mutate({ id: project.id, view: id as 'list' | 'board' });
         }}
+        onAddTask={() => newTask({ projectId })}
         onSettings={() => setEditing(true)}
-        menu={
-          <>
-            {!structured && (
-              <DropdownMenuCheckboxItem
-                checked={showCompleted}
-                onCheckedChange={setShowCompleted}
+        viewActions={
+          graph ? null : structured ? (
+            <>
+              {view.id > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewEditor(view)}
+                >
+                  <SlidersHorizontalIcon />
+                  Edit view
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewEditor('new')}
               >
-                Show completed
-              </DropdownMenuCheckboxItem>
-            )}
-            {structured && view.id > 0 && (
-              <DropdownMenuItem onSelect={() => setViewEditor(view)}>
-                <SlidersHorizontalIcon />
-                Edit “{view.name}”
-              </DropdownMenuItem>
-            )}
-            {structured && (
-              <DropdownMenuItem onSelect={() => setViewEditor('new')}>
                 <PlusIcon />
                 New view
-              </DropdownMenuItem>
-            )}
-            {project && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => setEditing(true)}>
-                  <Settings2Icon />
-                  Project settings
-                </DropdownMenuItem>
-              </>
-            )}
-          </>
+              </Button>
+            </>
+          ) : board ? null : (
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-pressed={showCompleted}
+              onClick={() => setShowCompleted((value) => !value)}
+              className={cn(showCompleted && 'bg-muted text-foreground')}
+            >
+              <CheckIcon />
+              {showCompleted ? 'Hide completed' : 'Show completed'}
+            </Button>
+          )
         }
       />
 
@@ -304,7 +305,7 @@ function BoardLayout({
 }) {
   return (
     <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
-      <div className="flex h-full items-start gap-4 px-8 py-5">
+      <div className="flex h-full items-start gap-4 px-10 py-5">
         <TaskDnd>
           {(unsectioned.length > 0 || sections.length === 0) && (
             <BoardColumn

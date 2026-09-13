@@ -63,7 +63,7 @@ export function Workspace({
   ) : spec.groupBy === 'section' && Object.keys(spec.filter).length === 0 ? (
     sectionList
   ) : (
-    <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+    <div className="min-h-0 flex-1 overflow-y-auto px-10 py-6">
       <GroupedList
         groups={groups}
         projectId={project.id}

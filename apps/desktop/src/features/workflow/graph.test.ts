@@ -49,7 +49,7 @@ const index = (tasks: Task[]) => {
 };
 
 describe('dependencyGraph', () => {
-  it('puts each task one column after its latest blocker', () => {
+  it('puts tasks after their latest blocker and starts right before what they hold up', () => {
     const tasks = [
       task({ id: 1, title: 'Copy' }),
       task({ id: 2, title: 'Design' }),
@@ -60,8 +60,8 @@ describe('dependencyGraph', () => {
     const { byId, holding } = index(tasks);
     const { columns, edges } = dependencyGraph(tasks, byId, holding);
     expect(columns.map((column) => column.map((t) => t.id).sort())).toEqual([
-      [1, 2],
-      [3],
+      [2],
+      [1, 3],
       [4],
     ]);
     expect(edges).toHaveLength(3);

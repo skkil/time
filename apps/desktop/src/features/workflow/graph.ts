@@ -52,6 +52,11 @@ export function dependencyGraph(
     return value;
   };
   for (const id of nodes.keys()) depth(id);
+  for (const id of nodes.keys()) {
+    if ((preds.get(id) ?? []).length > 0) continue;
+    const next = (succs.get(id) ?? []).map((to) => layer.get(to)!);
+    if (next.length > 0) layer.set(id, Math.min(...next) - 1);
+  }
 
   const columns: Task[][] = [];
   for (const task of [...nodes.values()].sort(
