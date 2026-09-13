@@ -82,7 +82,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
 
   const sectionList = (
     <PageBody className="px-10">
-      <div className="max-w-4xl">
+      <div>
         <TaskDnd>
           <TaskList
             tasks={unsectioned}

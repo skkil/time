@@ -71,7 +71,7 @@ export function ProjectHeader({
   ].filter(Boolean);
 
   return (
-    <header className="w-full max-w-[61rem] shrink-0 px-10 pt-4">
+    <header className="w-full shrink-0 px-10 pt-4">
       {trail.length > 0 && (
         <p className="mb-1 text-sm text-foreground/50">{trail.join(' / ')}</p>
       )}
