@@ -2,8 +2,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { useEffect, useRef } from 'react';
 
 import type { Task } from '@/bindings';
-import { useProjectIndex } from '@/features/projects/api';
-import { projectColorVar } from '@/features/projects/tree';
+import { priorityTint } from '@/features/tasks/meta';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { formatMinutesOfDay } from '@/lib/time';
 import { cn } from '@/lib/utils';
@@ -25,7 +24,6 @@ export function DueCard({
   lane: number;
   lanes: number;
 }) {
-  const index = useProjectIndex();
   const { openTask } = useTaskDialog();
   const perMinute = usePerMinute();
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -43,11 +41,7 @@ export function DueCard({
     return () => window.clearTimeout(id);
   }, [isDragging]);
 
-  const project =
-    task.projectId === null ? undefined : index.byId.get(task.projectId);
-  const tint = project
-    ? projectColorVar(project.color)
-    : 'var(--muted-foreground)';
+  const tint = priorityTint(task.priority);
   const height = (end - start) * perMinute;
   const compact = height < 36;
 
@@ -65,7 +59,7 @@ export function DueCard({
         listeners?.onKeyDown?.(event);
       }}
       className={cn(
-        'absolute z-10 flex touch-none overflow-hidden rounded-md border border-dashed bg-card/70 px-2 text-left outline-none select-none focus-visible:ring-2 focus-visible:ring-ring',
+        'absolute z-10 flex touch-none overflow-hidden rounded-md border px-2 text-left outline-none select-none focus-visible:ring-2 focus-visible:ring-ring',
         compact ? 'items-center gap-1.5 py-0' : 'flex-col py-1',
         isDragging && 'opacity-40',
       )}
@@ -74,10 +68,12 @@ export function DueCard({
         height: Math.max(height - 2, 14),
         left: `calc(${(lane / lanes) * 100}% + 2px)`,
         width: `calc(${100 / lanes}% - 4px)`,
-        borderColor: tint,
+        background: `color-mix(in oklab, ${tint} var(--block-tint), var(--card))`,
+        borderColor: `color-mix(in oklab, ${tint} var(--block-edge), var(--card))`,
+        borderLeft: `3px solid ${tint}`,
       }}
     >
-      <span className="truncate text-[13px] leading-tight font-medium">
+      <span className="truncate text-[13px] leading-tight font-semibold">
         {task.title}
       </span>
       <span className="truncate text-[11px] leading-tight text-muted-foreground">

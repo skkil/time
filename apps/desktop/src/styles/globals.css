@@ -50,6 +50,7 @@
   --color-p1: var(--p1);
   --color-p2: var(--p2);
   --color-p3: var(--p3);
+  --color-p4: var(--p4);
   --color-due-today: var(--due-today);
 
   --radius-sm: calc(var(--radius) - 2px);
@@ -108,6 +109,7 @@
   --p1: #c8201a;
   --p2: #c26a00;
   --p3: #0057b8;
+  --p4: #5f5f5a;
   --due-today: #1e7a3c;
 
   --block-tint: 20%;
@@ -166,6 +168,7 @@
   --p1: #ff6b5e;
   --p2: #ffa53d;
   --p3: #5c9dff;
+  --p4: #a6a8ae;
   --due-today: #5fd08a;
 
   --block-tint: 32%;

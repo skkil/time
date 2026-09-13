@@ -25,6 +25,7 @@ export type Preferences = {
   lastViews: Record<string, number>;
   graphViews: Record<string, boolean>;
   weekStartsOn: WeekStart;
+  priorityColors: Record<string, string>;
 };
 
 const defaults: Preferences = {
@@ -42,6 +43,7 @@ const defaults: Preferences = {
   lastViews: {},
   graphViews: {},
   weekStartsOn: 1,
+  priorityColors: {},
 };
 
 const BACKDROP_MODES: ZenBackdropMode[] = ['motion', 'still'];
@@ -59,6 +61,8 @@ function read(): Preferences {
       cache!.zenBackdrop = 'motion';
     if (![0, 1, 2, 3, 4, 5, 6].includes(cache!.weekStartsOn))
       cache!.weekStartsOn = 1;
+    if (typeof cache!.priorityColors !== 'object' || !cache!.priorityColors)
+      cache!.priorityColors = {};
   } catch {
     cache = defaults;
   }

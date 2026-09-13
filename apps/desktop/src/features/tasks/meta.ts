@@ -19,6 +19,9 @@ export const priorityColor = (priority: number) =>
         ? 'var(--p3)'
         : undefined;
 
+export const priorityTint = (priority: number) =>
+  `var(--p${Math.min(Math.max(priority, 1), 4)})`;
+
 export type DueTone = 'overdue' | 'today' | 'soon' | 'later';
 
 export function dueTone(date: DateKey, today = todayKey()): DueTone {

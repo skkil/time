@@ -455,6 +455,7 @@ export type TimeBlock = {
 	taskId: Id,
 	title: string,
 	projectId: Id | null,
+	priority: number,
 	completed: boolean,
 	startAt: Timestamp,
 	endAt: Timestamp,

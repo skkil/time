@@ -1,6 +1,7 @@
 import {
   CalendarRangeIcon,
   DatabaseIcon,
+  FlagIcon,
   type LucideIcon,
   PaletteIcon,
   SunIcon,
@@ -17,6 +18,7 @@ import {
 
 import { AppearanceSettings } from './AppearanceSettings';
 import { DataSettings } from './DataSettings';
+import { PrioritySettings } from './PrioritySettings';
 import { RitualSettings } from './RitualSettings';
 import { TodaySettings } from './TodaySettings';
 import { WeekSettings } from './WeekSettings';
@@ -50,6 +52,13 @@ const sections: Section[] = [
     description: 'How weeks are laid out.',
     icon: CalendarRangeIcon,
     content: WeekSettings,
+  },
+  {
+    id: 'priorities',
+    label: 'Priorities',
+    description: 'The colour of each priority on tasks and the week grid.',
+    icon: FlagIcon,
+    content: PrioritySettings,
   },
   {
     id: 'rituals',

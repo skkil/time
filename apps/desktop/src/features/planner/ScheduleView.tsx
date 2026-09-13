@@ -599,7 +599,7 @@ function DayColumn({
         backgroundSize: `100% ${perMinute * 60}px, 100% ${perMinute * 30}px`,
       }}
     >
-      <div className="pointer-events-none absolute inset-y-0 right-[30%] left-0">
+      <div className="pointer-events-none absolute inset-0">
         <div className="pointer-events-auto">
           {placed.events.map(({ event, start, end, lane, lanes }) => (
             <EventCard
@@ -681,9 +681,7 @@ function DayColumn({
                   onClick={() => onOpenEntry(entry)}
                   className={cn(
                     'pointer-events-auto absolute right-0 overflow-hidden rounded-[5px] text-left leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70',
-                    shared
-                      ? 'left-[calc(70%+2px)] px-1 text-[10px]'
-                      : 'left-0 px-2 text-[11px]',
+                    shared ? 'z-10 w-1.5' : 'left-0 px-2 text-[11px]',
                   )}
                   style={{
                     top: span.start * perMinute,
@@ -698,7 +696,7 @@ function DayColumn({
                     } 55%, transparent)`,
                   }}
                 >
-                  {(span.end - span.start) * perMinute >= 24 && (
+                  {!shared && (span.end - span.start) * perMinute >= 24 && (
                     <span className="block truncate pt-0.5">
                       {entry.description || project?.name}
                     </span>

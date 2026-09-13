@@ -11,6 +11,7 @@ import { router } from '@/app/router';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { syncColorScheme } from '@/hooks/use-color-scheme';
+import { syncPriorityColors } from '@/lib/priority-colors';
 import { queryClient } from '@/lib/query';
 import { syncZoom } from '@/lib/zoom';
 
@@ -18,6 +19,7 @@ import './styles/globals.css';
 
 syncColorScheme();
 syncZoom();
+syncPriorityColors();
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>

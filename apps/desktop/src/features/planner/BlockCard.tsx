@@ -23,8 +23,9 @@ import {
 } from '@/components/ui/popover';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
-import { projectColorVar, projectPath } from '@/features/projects/tree';
+import { projectPath } from '@/features/projects/tree';
 import { useSetTaskCompleted } from '@/features/tasks/api';
+import { priorityTint } from '@/features/tasks/meta';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { useStartTimer } from '@/features/time/api';
 import { formatDuration, formatMinutesOfDay } from '@/lib/time';
@@ -92,9 +93,7 @@ export function BlockCard({
   }, [isDragging]);
 
   const perMinute = usePerMinute();
-  const tint = project
-    ? projectColorVar(project.color)
-    : 'var(--muted-foreground)';
+  const tint = priorityTint(block.priority);
   const style: CSSProperties = {
     top: start * perMinute,
     height: Math.max(minutes * perMinute - 2, 14),

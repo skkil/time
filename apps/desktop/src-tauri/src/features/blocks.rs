@@ -18,6 +18,7 @@ pub struct TimeBlock {
     pub task_id: Id,
     pub title: String,
     pub project_id: Option<Id>,
+    pub priority: i32,
     pub completed: bool,
     pub start_at: Timestamp,
     pub end_at: Timestamp,
@@ -30,7 +31,7 @@ pub struct BlockSpan {
     pub end_at: Timestamp,
 }
 
-const SELECT: &str = "SELECT b.id, b.task_id, t.title, t.project_id, t.completed_at IS NOT NULL,
+const SELECT: &str = "SELECT b.id, b.task_id, t.title, t.project_id, t.priority, t.completed_at IS NOT NULL,
        b.start_at, b.end_at
      FROM time_block b JOIN task t ON t.id = b.task_id";
 
@@ -40,9 +41,10 @@ fn from_row(row: &Row) -> rusqlite::Result<TimeBlock> {
         task_id: row.get(1)?,
         title: row.get(2)?,
         project_id: row.get(3)?,
-        completed: row.get(4)?,
-        start_at: row.get(5)?,
-        end_at: row.get(6)?,
+        priority: row.get(4)?,
+        completed: row.get(5)?,
+        start_at: row.get(6)?,
+        end_at: row.get(7)?,
     })
 }
 
