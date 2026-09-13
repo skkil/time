@@ -12,9 +12,11 @@ import {
 import { ProjectHeader } from '@/features/projects/ProjectHeader';
 import { ProjectSettingsDialog } from '@/features/projects/ProjectSettingsDialog';
 import { useProjectIndex, useSetProjectView } from '@/features/projects/api';
+import { GraphView } from '@/features/workflow/GraphView';
 import { ViewEditor } from '@/features/workflow/ViewEditor';
 import { Workspace } from '@/features/workflow/Workspace';
 import { useWorkspaceView } from '@/features/workflow/use-workspace';
+import { setPreference, usePreference } from '@/lib/preferences';
 import { cn } from '@/lib/utils';
 
 import {
@@ -24,7 +26,7 @@ import {
   SectionName,
 } from './SectionHeader';
 import { AddTaskRow, FlatTaskList, TaskList } from './TaskList';
-import { useCreateSection, useSections, useTasks } from './api';
+import { useCreateSection, useSections, useTaskIndex, useTasks } from './api';
 import { TaskDnd } from './dnd';
 
 const topLevel = (tasks: Task[], sectionId: Id | null) =>
@@ -37,6 +39,8 @@ const topLevel = (tasks: Task[], sectionId: Id | null) =>
 
 export function ProjectView({ projectId }: { projectId: Id | null }) {
   const { data: tasks, isPending } = useTasks();
+  const taskIndex = useTaskIndex();
+  const graphViews = usePreference('graphViews');
   const { data: allSections } = useSections();
   const index = useProjectIndex();
   const setView = useSetProjectView();
@@ -142,14 +146,31 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
     </PageBody>
   );
 
-  const viewOptions = structured
-    ? views.map((item) => ({ id: String(item.id), label: item.name }))
-    : project
-      ? [
-          { id: 'list', label: 'List' },
-          { id: 'board', label: 'Board' },
-        ]
-      : [];
+  const linked = own.some(
+    (task) =>
+      task.completedAt === null &&
+      (task.blockedBy.length > 0 ||
+        (taskIndex.holding.get(task.id) ?? []).some(
+          (held) => held.completedAt === null,
+        )),
+  );
+  const graphKey = String(projectId ?? 'inbox');
+  const graph = linked && (graphViews[graphKey] ?? false);
+  const setGraph = (on: boolean) =>
+    setPreference('graphViews', { ...graphViews, [graphKey]: on });
+  const viewOptions = [
+    ...(structured
+      ? views.map((item) => ({ id: String(item.id), label: item.name }))
+      : project
+        ? [
+            { id: 'list', label: 'List' },
+            { id: 'board', label: 'Board' },
+          ]
+        : linked
+          ? [{ id: 'list', label: 'List' }]
+          : []),
+    ...(linked ? [{ id: 'graph', label: 'Graph' }] : []),
+  ];
 
   return (
     <Page>
@@ -157,13 +178,20 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
         project={project}
         openCount={openCount}
         views={viewOptions}
-        view={structured ? String(view.id) : (project?.view ?? 'list')}
-        onView={(id) =>
-          structured
-            ? choose(Number(id))
-            : project &&
-              setView.mutate({ id: project.id, view: id as 'list' | 'board' })
+        view={
+          graph
+            ? 'graph'
+            : structured
+              ? String(view.id)
+              : (project?.view ?? 'list')
         }
+        onView={(id) => {
+          setGraph(id === 'graph');
+          if (id === 'graph') return;
+          if (structured) choose(Number(id));
+          else if (project)
+            setView.mutate({ id: project.id, view: id as 'list' | 'board' });
+        }}
         onSettings={() => setEditing(true)}
         menu={
           <>
@@ -200,7 +228,9 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
         }
       />
 
-      {structured && project ? (
+      {graph ? (
+        <GraphView projectId={projectId} own={own} />
+      ) : structured && project ? (
         <Workspace
           project={project}
           workflow={workflow}
