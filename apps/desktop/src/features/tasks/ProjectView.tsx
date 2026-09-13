@@ -1,28 +1,20 @@
-import {
-  CheckCircle2Icon,
-  KanbanSquareIcon,
-  ListIcon,
-  SlidersHorizontalIcon,
-} from 'lucide-react';
+import { PlusIcon, Settings2Icon, SlidersHorizontalIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-import type { Id, Section, Task } from '@/bindings';
+import type { Id, SavedView, Section, Task } from '@/bindings';
+import { EmptyState, Page, PageBody } from '@/components/page';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import {
-  EmptyState,
-  Page,
-  PageBody,
-  PageHeader,
-  Stat,
-} from '@/components/page';
-import { Button } from '@/components/ui/button';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { ProjectBrief } from '@/features/projects/ProjectBrief';
-import { ProjectDot } from '@/features/projects/ProjectDot';
+  DropdownMenuCheckboxItem,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { ProjectHeader } from '@/features/projects/ProjectHeader';
 import { ProjectSettingsDialog } from '@/features/projects/ProjectSettingsDialog';
 import { useProjectIndex, useSetProjectView } from '@/features/projects/api';
-import { projectPath } from '@/features/projects/tree';
+import { ViewEditor } from '@/features/workflow/ViewEditor';
 import { Workspace } from '@/features/workflow/Workspace';
-import { useProjectWorkflow } from '@/features/workflow/api';
+import { useWorkspaceView } from '@/features/workflow/use-workspace';
 import { cn } from '@/lib/utils';
 
 import {
@@ -51,9 +43,11 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
   const createSection = useCreateSection();
   const [editing, setEditing] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [viewEditor, setViewEditor] = useState<SavedView | 'new' | null>(null);
   const project = projectId === null ? undefined : index.byId.get(projectId);
   const board = project?.view === 'board';
-  const { structured } = useProjectWorkflow(projectId);
+  const { workflow, views, view, choose } = useWorkspaceView(projectId);
+  const { structured } = workflow;
 
   const { own, sections, completed, openCount } = useMemo(() => {
     const own = (tasks ?? []).filter((task) => task.projectId === projectId);
@@ -131,14 +125,14 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
 
         {showCompleted && (
           <section aria-label="Completed" className="mt-8">
-            <h2 className="mb-1 border-b pb-2 font-sans text-sm font-semibold text-muted-foreground">
+            <h2 className="mb-1 border-b border-white/[.07] pb-2 text-sm font-medium text-foreground/50">
               Completed{' '}
               <span className="text-xs font-normal">{completed.length}</span>
             </h2>
             {completed.length > 0 ? (
               <FlatTaskList tasks={completed} />
             ) : (
-              <p className="py-3 text-sm text-muted-foreground">
+              <p className="py-3 text-sm text-foreground/45">
                 Nothing completed in the last two weeks.
               </p>
             )}
@@ -148,82 +142,69 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
     </PageBody>
   );
 
+  const viewOptions = structured
+    ? views.map((item) => ({ id: String(item.id), label: item.name }))
+    : project
+      ? [
+          { id: 'list', label: 'List' },
+          { id: 'board', label: 'Board' },
+        ]
+      : [];
+
   return (
     <Page>
-      <PageHeader
-        title={
-          project ? (
-            <span className="flex items-center gap-2.5">
-              <ProjectDot color={project.color} className="size-2.5" />
-              {project.name}
-            </span>
-          ) : (
-            'Inbox'
-          )
+      <ProjectHeader
+        project={project}
+        openCount={openCount}
+        views={viewOptions}
+        view={structured ? String(view.id) : (project?.view ?? 'list')}
+        onView={(id) =>
+          structured
+            ? choose(Number(id))
+            : project &&
+              setView.mutate({ id: project.id, view: id as 'list' | 'board' })
         }
-        meta={[
-          project?.parentId != null
-            ? `In ${projectPath(index, project.parentId)}`
-            : null,
-          <Stat value={String(openCount)} label="open" />,
-          archived ? 'Archived' : null,
-        ]}
-        actions={
+        onSettings={() => setEditing(true)}
+        menu={
           <>
-            {project && !structured && (
-              <ToggleGroup
-                type="single"
-                variant="outline"
-                size="sm"
-                value={project.view}
-                onValueChange={(view) =>
-                  view && setView.mutate({ id: project.id, view })
-                }
-              >
-                <ToggleGroupItem value="list" aria-label="List layout">
-                  <ListIcon />
-                  List
-                </ToggleGroupItem>
-                <ToggleGroupItem value="board" aria-label="Board layout">
-                  <KanbanSquareIcon />
-                  Board
-                </ToggleGroupItem>
-              </ToggleGroup>
-            )}
             {!structured && (
-              <Button
-                variant={showCompleted ? 'secondary' : 'outline'}
-                size="sm"
-                aria-pressed={showCompleted}
-                onClick={() => setShowCompleted((value) => !value)}
+              <DropdownMenuCheckboxItem
+                checked={showCompleted}
+                onCheckedChange={setShowCompleted}
               >
-                <CheckCircle2Icon />
-                Completed
-              </Button>
+                Show completed
+              </DropdownMenuCheckboxItem>
+            )}
+            {structured && view.id > 0 && (
+              <DropdownMenuItem onSelect={() => setViewEditor(view)}>
+                <SlidersHorizontalIcon />
+                Edit “{view.name}”
+              </DropdownMenuItem>
+            )}
+            {structured && (
+              <DropdownMenuItem onSelect={() => setViewEditor('new')}>
+                <PlusIcon />
+                New view
+              </DropdownMenuItem>
             )}
             {project && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditing(true)}
-              >
-                <SlidersHorizontalIcon />
-                Settings
-              </Button>
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => setEditing(true)}>
+                  <Settings2Icon />
+                  Project settings
+                </DropdownMenuItem>
+              </>
             )}
           </>
         }
       />
 
-      {project && !archived && (
-        <div className="px-8 pt-4">
-          <ProjectBrief project={project} onEdit={() => setEditing(true)} />
-        </div>
-      )}
-
       {structured && project ? (
         <Workspace
           project={project}
+          workflow={workflow}
+          view={view}
           own={own}
           sections={sections}
           sectionList={sectionList}
@@ -239,6 +220,30 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
         />
       ) : (
         sectionList
+      )}
+
+      {project && (
+        <Dialog
+          open={viewEditor !== null}
+          onOpenChange={(open) => !open && setViewEditor(null)}
+        >
+          <DialogContent className="rounded-[28px] border-0 bg-[rgba(10,18,32,.92)] p-8 shadow-[0_40px_120px_rgba(0,0,0,.4)] ring-1 ring-white/10 backdrop-blur-2xl sm:max-w-md">
+            <DialogTitle className="text-xl font-light">
+              {viewEditor === 'new' ? 'New view' : 'Edit view'}
+            </DialogTitle>
+            {viewEditor !== null && (
+              <ViewEditor
+                projectId={project.id}
+                workflow={workflow}
+                view={viewEditor === 'new' ? undefined : viewEditor}
+                onDone={(id) => {
+                  if (id !== undefined) choose(id);
+                  setViewEditor(null);
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       )}
 
       {project && (
@@ -335,13 +340,13 @@ function BoardColumn({
           <SectionName section={section} onDone={() => setRenaming(false)} />
         ) : (
           <h2
-            className="truncate font-sans text-sm font-semibold"
+            className="truncate text-sm font-medium text-foreground/90"
             onDoubleClick={() => section && setRenaming(true)}
           >
             {title}
           </h2>
         )}
-        <span className="text-xs text-muted-foreground">{count}</span>
+        <span className="text-xs text-foreground/40 tabular-nums">{count}</span>
         {section && (
           <div
             className={cn(

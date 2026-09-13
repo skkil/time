@@ -44,7 +44,7 @@ export function SectionName({
       value={name}
       maxLength={120}
       aria-label="Section name"
-      className="min-w-0 flex-1 rounded-sm bg-card px-1.5 py-0.5 font-sans text-sm font-semibold outline-2 outline-ring"
+      className="min-w-0 flex-1 rounded-md bg-white/10 px-1.5 py-0.5 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       onChange={(event) => setName(event.target.value)}
       onBlur={() => {
         if (name.trim() && name !== section.name)
@@ -133,7 +133,7 @@ export function SectionHeader({
   const collapse = useCollapseSection();
   const [renaming, setRenaming] = useState(false);
   return (
-    <div className="group/section relative flex h-9 items-center gap-1.5 border-b">
+    <div className="group/section relative flex h-9 items-center gap-2 border-b border-white/[.07]">
       <button
         type="button"
         aria-label={
@@ -142,7 +142,7 @@ export function SectionHeader({
             : `Collapse ${section.name}`
         }
         aria-expanded={!section.collapsed}
-        className="absolute -left-7 rounded-sm p-0.5 text-muted-foreground hover:text-foreground"
+        className="absolute -left-7 rounded-sm p-0.5 text-foreground/40 hover:text-foreground"
         onClick={() =>
           collapse.mutate({ id: section.id, collapsed: !section.collapsed })
         }
@@ -158,13 +158,13 @@ export function SectionHeader({
         <SectionName section={section} onDone={() => setRenaming(false)} />
       ) : (
         <h2
-          className="truncate font-sans text-sm font-semibold"
+          className="truncate text-sm font-medium text-foreground/90"
           onDoubleClick={() => setRenaming(true)}
         >
           {section.name}
         </h2>
       )}
-      <span className="text-xs text-muted-foreground">{count}</span>
+      <span className="text-xs text-foreground/40 tabular-nums">{count}</span>
       <div className="ml-auto opacity-0 group-focus-within/section:opacity-100 group-hover/section:opacity-100 has-[[data-state=open]]:opacity-100">
         <SectionMenu
           section={section}
@@ -204,22 +204,25 @@ export function AddSection({
           maxLength={120}
           placeholder="Name this section"
           aria-label="Section name"
-          className="h-9 rounded-md border bg-card px-2.5 text-sm font-semibold outline-none focus:border-ring/50"
+          className="h-9 border-0 border-b border-white/15 bg-transparent text-sm font-medium outline-none placeholder:text-foreground/35 focus:border-white/40"
           onChange={(event) => setName(event.target.value)}
           onKeyDown={(event) => event.key === 'Escape' && setEditing(false)}
         />
-        <div className="flex gap-2">
-          <Button type="submit" size="sm" disabled={!name.trim()}>
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            disabled={!name.trim()}
+            className="flex h-8 items-center rounded-full bg-white/90 px-3.5 text-sm font-medium text-[#08161e] transition-colors hover:bg-white disabled:opacity-40"
+          >
             Add section
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            size="sm"
-            variant="secondary"
             onClick={() => setEditing(false)}
+            className="text-sm text-foreground/45 transition-colors hover:text-foreground"
           >
             Cancel
-          </Button>
+          </button>
         </div>
       </form>
     );
@@ -230,7 +233,7 @@ export function AddSection({
       onClick={() => setEditing(true)}
       className={cn(
         'group/add-section my-1 flex h-7 w-full items-center gap-3 text-sm font-medium text-now opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100',
-        always && 'text-muted-foreground opacity-100 hover:text-now',
+        always && 'text-foreground/40 opacity-100 hover:text-now',
       )}
     >
       <span className="h-px flex-1 bg-current opacity-40" />
