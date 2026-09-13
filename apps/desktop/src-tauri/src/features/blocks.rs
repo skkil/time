@@ -31,7 +31,8 @@ pub struct BlockSpan {
     pub end_at: Timestamp,
 }
 
-const SELECT: &str = "SELECT b.id, b.task_id, t.title, t.project_id, t.priority, t.completed_at IS NOT NULL,
+const SELECT: &str =
+    "SELECT b.id, b.task_id, t.title, t.project_id, t.priority, t.completed_at IS NOT NULL,
        b.start_at, b.end_at
      FROM time_block b JOIN task t ON t.id = b.task_id";
 

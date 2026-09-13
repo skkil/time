@@ -190,7 +190,7 @@ export function ScheduleView({
       if (
         task.completedAt !== null ||
         task.dueDate === null ||
-        task.kind === 'event'
+        task.kind !== 'task'
       )
         continue;
       const target = task.dueTime === null ? due : timed;

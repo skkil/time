@@ -46,6 +46,7 @@ pub struct Task {
     pub status_category: Option<String>,
     pub blocked_by: Vec<Id>,
     pub waiting_on: Vec<Id>,
+    pub phase_id: Option<Id>,
 }
 
 #[derive(Debug, Clone, Deserialize, Type)]
@@ -84,7 +85,8 @@ const SELECT: &str = "SELECT t.id, t.title, t.notes, t.project_id, t.section_id,
        (SELECT GROUP_CONCAT(d.blocked_by_id) FROM task_dependency d WHERE d.task_id = t.id),
        (SELECT GROUP_CONCAT(d.blocked_by_id) FROM task_dependency d
           JOIN task b ON b.id = d.blocked_by_id
-         WHERE d.task_id = t.id AND b.completed_at IS NULL)
+         WHERE d.task_id = t.id AND b.completed_at IS NULL),
+       t.phase_id
      FROM task t";
 
 fn ids(list: Option<String>) -> Vec<Id> {
@@ -127,6 +129,7 @@ fn from_row(row: &Row) -> rusqlite::Result<Task> {
         status_category: row.get(28)?,
         blocked_by: ids(row.get(29)?),
         waiting_on: ids(row.get(30)?),
+        phase_id: row.get(31)?,
     })
 }
 

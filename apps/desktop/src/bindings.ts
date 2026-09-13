@@ -112,6 +112,10 @@ export const commands = {
 	setTaskEventDetails: (id: Id, location: string, countsAsTime: boolean) => __TAURI_INVOKE<Task>("set_task_event_details", { id, location, countsAsTime }),
 	listEvents: (from: Date, to: Date) => __TAURI_INVOKE<EventOccurrence[]>("list_events", { from, to }),
 	listTimeByType: (from: Date, to: Date) => __TAURI_INVOKE<TypeTime[]>("list_time_by_type", { from, to }),
+	listRecordPhases: (taskId: Id) => __TAURI_INVOKE<RecordPhase[]>("list_record_phases", { taskId }),
+	setRecordPhaseNotes: (taskId: Id, statusId: Id, notes: string) => __TAURI_INVOKE<null>("set_record_phase_notes", { taskId, statusId, notes }),
+	setTaskPhase: (id: Id, phaseId: Id | null) => __TAURI_INVOKE<Task>("set_task_phase", { id, phaseId }),
+	createPhaseTask: (recordId: Id, phaseId: Id, title: string) => __TAURI_INVOKE<Task>("create_phase_task", { recordId, phaseId, title }),
 	deleteAllData: () => __TAURI_INVOKE<null>("delete_all_data"),
 };
 
@@ -323,6 +327,11 @@ export type Quarter = {
 	priorities: Priority[],
 };
 
+export type RecordPhase = {
+	statusId: Id,
+	notes: string,
+};
+
 export type Ritual = {
 	kind: string,
 	enabled: boolean,
@@ -427,6 +436,7 @@ export type Task = {
 	statusCategory: string | null,
 	blockedBy: Id[],
 	waitingOn: Id[],
+	phaseId: Id | null,
 };
 
 export type TaskInput = {

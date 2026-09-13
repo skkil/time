@@ -167,6 +167,8 @@ export function TaskItem({
           aria-label="Event"
           className="mt-[5px] ml-[3px] size-[11px] shrink-0 rotate-45 rounded-[2px] bg-white/70"
         />
+      ) : task.kind === 'record' ? (
+        <span aria-hidden className="size-[18px] shrink-0" />
       ) : (
         <PriorityCheck
           priority={task.priority}

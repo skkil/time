@@ -298,12 +298,13 @@ function TypeRow({ type, action }: { type: ItemType; action: ReactNode }) {
       <div className="flex flex-wrap items-center gap-2 pl-9 text-xs text-foreground/60">
         <select
           value={type.kind}
-          aria-label="Task or event"
+          aria-label="Kind"
           onChange={(event) => save({ kind: event.target.value })}
           className={field}
         >
           <option value="task">Task</option>
           <option value="event">Event</option>
+          <option value="record">Record (has phases)</option>
         </select>
         <input
           value={minutes}

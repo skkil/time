@@ -4,6 +4,7 @@ pub mod dependencies;
 pub mod habits;
 pub mod organizations;
 pub mod projects;
+pub mod records;
 pub mod review;
 pub mod rituals;
 pub mod sections;

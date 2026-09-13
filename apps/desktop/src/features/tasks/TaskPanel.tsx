@@ -4,12 +4,11 @@ import {
   EllipsisIcon,
   Link2Icon,
   PlayIcon,
-  PlusIcon,
   SquareIcon,
   SunsetIcon,
   Trash2Icon,
 } from 'lucide-react';
-import { type FormEvent, type ReactNode, useRef, useState } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 
 import type { Task, TaskInput } from '@/bindings';
 import {
@@ -30,10 +29,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
+import { PhasePager } from '@/features/records/PhasePager';
 import { OutcomePicker } from '@/features/review/OutcomePicker';
 import { useWeek } from '@/features/review/api';
 import { useStartTimer, useStopTimer, useTimer } from '@/features/time/api';
 import { EventLine, WorkflowLine } from '@/features/workflow/TaskWorkflow';
+import { useProjectWorkflow } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
 import {
   formatDuration,
@@ -48,6 +49,7 @@ import { cn } from '@/lib/utils';
 
 import { Dependencies } from './Dependencies';
 import { Dot, Phrase } from './Phrase';
+import { AddStepForm, StepRow } from './StepRow';
 import {
   EMPTY_TASK,
   taskToInput,
@@ -89,6 +91,8 @@ export function TaskPanel({
   const [notes, setNotes] = useState(task.notes);
   const [waiting, setWaiting] = useState(false);
   const done = task.completedAt !== null;
+  const workflow = useProjectWorkflow(task.projectId);
+  const isRecord = task.kind === 'record' && workflow.statuses.length > 0;
   const project =
     task.projectId === null ? undefined : index.byId.get(task.projectId);
   const section = sections?.find((s) => s.id === task.sectionId);
@@ -175,16 +179,21 @@ export function TaskPanel({
         <textarea
           value={notes}
           aria-label="Notes"
-          placeholder="Notes"
+          placeholder={isRecord ? 'Notes for every phase' : 'Notes'}
           className="field-sizing-content min-h-12 resize-none bg-transparent text-[15px] leading-relaxed text-foreground/80 outline-none placeholder:text-foreground/30"
           onChange={(event) => setNotes(event.target.value)}
           onBlur={() => notes !== task.notes && save({ notes })}
         />
-        <Steps task={task} />
+        {isRecord ? (
+          <PhasePager key={task.id} task={task} />
+        ) : (
+          <Steps task={task} />
+        )}
       </div>
 
       <Actions
         task={task}
+        finishable={task.kind !== 'event' && !isRecord}
         onToggleDone={() => complete.mutate({ id: task.id, completed: !done })}
       />
     </div>
@@ -298,84 +307,36 @@ function Serves({ task }: { task: Task }) {
 function Steps({ task }: { task: Task }) {
   const tasks = useTaskIndex();
   const create = useCreateTask();
-  const complete = useSetTaskCompleted();
-  const [draft, setDraft] = useState('');
   const steps = tasks.children.get(task.id) ?? [];
-
-  const add = (event: FormEvent) => {
-    event.preventDefault();
-    if (!draft.trim()) return;
-    create.mutate({
-      ...EMPTY_TASK,
-      title: draft.trim(),
-      projectId: task.projectId,
-      sectionId: task.sectionId,
-      parentId: task.id,
-    });
-    setDraft('');
-  };
 
   return (
     <section aria-label="Steps" className="grid gap-1">
-      {steps.map((step) => {
-        const finished = step.completedAt !== null;
-        return (
-          <label
-            key={step.id}
-            className="group flex cursor-pointer items-center gap-3 py-1.5"
-          >
-            <button
-              type="button"
-              aria-label={
-                finished ? `Reopen ${step.title}` : `Finish ${step.title}`
-              }
-              onClick={() =>
-                complete.mutate({ id: step.id, completed: !finished })
-              }
-              className={cn(
-                'grid size-[18px] shrink-0 place-items-center rounded-full border transition-colors',
-                finished
-                  ? 'border-white/50 bg-white/50 text-[#0b1a22]'
-                  : 'border-white/40 group-hover:border-white/80',
-              )}
-            >
-              {finished && <CheckIcon className="size-3" strokeWidth={2.5} />}
-            </button>
-            <span
-              className={cn(
-                'text-[15px]',
-                finished
-                  ? 'text-foreground/40 line-through'
-                  : 'text-foreground/85',
-              )}
-            >
-              {step.title}
-            </span>
-          </label>
-        );
-      })}
-      <form onSubmit={add} className="flex items-center gap-3 py-1.5">
-        <PlusIcon
-          className="size-[18px] text-foreground/35"
-          strokeWidth={1.5}
-        />
-        <input
-          value={draft}
-          aria-label="Add a step"
-          placeholder="Add a step"
-          className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-foreground/35"
-          onChange={(event) => setDraft(event.target.value)}
-        />
-      </form>
+      {steps.map((step) => (
+        <StepRow key={step.id} step={step} />
+      ))}
+      <AddStepForm
+        label="Add a step"
+        onAdd={(title) =>
+          create.mutate({
+            ...EMPTY_TASK,
+            title,
+            projectId: task.projectId,
+            sectionId: task.sectionId,
+            parentId: task.id,
+          })
+        }
+      />
     </section>
   );
 }
 
 function Actions({
   task,
+  finishable,
   onToggleDone,
 }: {
   task: Task;
+  finishable: boolean;
   onToggleDone: () => void;
 }) {
   const { data: timer } = useTimer();
@@ -420,7 +381,7 @@ function Actions({
           </button>
         )
       )}
-      {task.kind !== 'event' && (
+      {finishable && (
         <button
           type="button"
           onClick={onToggleDone}

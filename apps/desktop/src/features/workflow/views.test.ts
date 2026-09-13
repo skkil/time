@@ -36,6 +36,7 @@ const task = (patch: Partial<Task>): Task => ({
   statusCategory: null,
   blockedBy: [],
   waitingOn: [],
+  phaseId: null,
   ...patch,
 });
 

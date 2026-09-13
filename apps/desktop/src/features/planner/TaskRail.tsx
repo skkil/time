@@ -91,7 +91,7 @@ export function TaskRail({
     const open = (tasks ?? []).filter(
       (task) =>
         task.completedAt === null &&
-        task.kind !== 'event' &&
+        task.kind === 'task' &&
         (!query || task.title.toLowerCase().includes(query)),
     );
     return {

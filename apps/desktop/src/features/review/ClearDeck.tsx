@@ -27,7 +27,7 @@ export function ClearDeck({ nextMonday }: { nextMonday: DateKey }) {
   const { inbox, stale, dueProjects, openCounts } = useMemo(() => {
     const open = (tasks ?? []).filter(
       (task) =>
-        task.completedAt === null && !task.someday && task.kind !== 'event',
+        task.completedAt === null && !task.someday && task.kind === 'task',
     );
     const counts = new Map<number, number>();
     for (const task of open)

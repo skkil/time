@@ -10,7 +10,7 @@ use crate::recurrence::Rule;
 use crate::types::{Date, Id, Seconds, Timestamp};
 
 pub const CATEGORIES: [&str; 5] = ["backlog", "todo", "active", "done", "dropped"];
-pub const KINDS: [&str; 2] = ["task", "event"];
+pub const KINDS: [&str; 3] = ["task", "event", "record"];
 pub const LAYOUTS: [&str; 4] = ["list", "board", "calendar", "table"];
 pub const GROUPS: [&str; 6] = ["section", "type", "status", "milestone", "date", "none"];
 pub const SORTS: [&str; 6] = ["manual", "date", "deadline", "priority", "title", "created"];
@@ -304,7 +304,7 @@ pub fn presets() -> Vec<Preset> {
             name: "Pipeline".into(),
             description: "Leads moving through stages, with days since each last moved.".into(),
             types: vec![
-                kind_type("Lead", "target", "task", None),
+                kind_type("Lead", "target", "record", None),
                 kind_type("Follow-up", "mail", "task", Some(15)),
                 kind_type("Interview", "briefcase", "event", Some(60)),
             ],
@@ -317,6 +317,29 @@ pub fn presets() -> Vec<Preset> {
             ],
             milestone_label: String::new(),
             views: vec![view("Board", "board", "status", "{}", "manual")],
+        },
+        Preset {
+            key: "job_search".into(),
+            name: "Job search".into(),
+            description: "One record per company, with its own tasks and notes for each phase."
+                .into(),
+            types: vec![
+                kind_type("Application", "briefcase", "record", None),
+                kind_type("Interview", "users", "event", Some(60)),
+            ],
+            statuses: vec![
+                status("To apply", "backlog"),
+                status("Applied", "todo"),
+                status("Interviewing", "active"),
+                status("Offer", "active"),
+                status("Accepted", "done"),
+                status("Closed", "dropped"),
+            ],
+            milestone_label: String::new(),
+            views: vec![
+                view("Board", "board", "status", "{}", "manual"),
+                view("List", "list", "status", "{}", "manual"),
+            ],
         },
     ]
 }
@@ -509,7 +532,7 @@ pub fn create_type(conn: &Connection, project_id: Id, input: &ItemTypeInput) -> 
 pub fn update_type(conn: &Connection, id: Id, input: &ItemTypeInput) -> Result<()> {
     let current = get_type(conn, id)?;
     let input = check_type(input)?;
-    if current.kind == "task" && input.kind == "event" {
+    if current.kind != "event" && input.kind == "event" {
         let untimed: i64 = conn.query_row(
             "SELECT COUNT(*) FROM task WHERE type_id = ?1 AND due_time IS NULL",
             params![id],
@@ -864,6 +887,31 @@ pub(crate) fn reconcile(conn: &Connection) -> Result<()> {
             WHERE n.project_id = task.project_id AND n.name = o.name)
          WHERE type_id IS NOT NULL
            AND (SELECT project_id FROM item_type WHERE id = task.type_id) IS NOT task.project_id",
+        [],
+    )?;
+    conn.execute(
+        "UPDATE OR IGNORE record_phase SET status_id = (
+           SELECT n.id FROM item_status n
+             JOIN item_status o ON o.id = record_phase.status_id
+             JOIN task t ON t.id = record_phase.task_id
+            WHERE n.project_id = t.project_id AND n.name = o.name
+            ORDER BY n.position, n.id LIMIT 1)
+         WHERE (SELECT project_id FROM item_status WHERE id = record_phase.status_id)
+               IS NOT (SELECT project_id FROM task WHERE id = record_phase.task_id)
+           AND EXISTS (
+             SELECT 1 FROM item_status n
+               JOIN item_status o ON o.id = record_phase.status_id
+               JOIN task t ON t.id = record_phase.task_id
+              WHERE n.project_id = t.project_id AND n.name = o.name)",
+        [],
+    )?;
+    conn.execute(
+        "UPDATE task SET phase_id = (
+           SELECT n.id FROM item_status n JOIN item_status o ON o.id = task.phase_id
+            WHERE n.project_id = task.project_id AND n.name = o.name
+            ORDER BY n.position, n.id LIMIT 1)
+         WHERE phase_id IS NOT NULL
+           AND (SELECT project_id FROM item_status WHERE id = task.phase_id) IS NOT task.project_id",
         [],
     )?;
     conn.execute(

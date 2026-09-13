@@ -63,6 +63,14 @@ memory in `.design/DESIGN.md`.
   count as overdue. Presets (`workflow::presets`) set all four at once;
   Simple sets none, so a plain project looks as before. Moving a task between
   projects maps its type by name and its status by category.
+- **Record** — a third type kind (migration 011, `features/records.rs`): a
+  long-lived item with no checkbox whose status is its current **phase**
+  (e.g. one job application per company). Its sub-tasks carry `phase_id`
+  (a status of the same project); `record_phase` holds a note per phase,
+  while the record's own notes are shared by every phase. Moving it maps
+  phases by name. The task window pages phases in a vertical pager
+  (`features/records/PhasePager.tsx`); records stay off Day, Week and the
+  review deck, but their phase tasks are ordinary tasks.
 - **Day / Week / Quarter** — a day note and felt rating written by rituals;
   weekly outcomes (≤3 open, linked to tasks via `task.outcome_id`, status
   open/achieved/carried/dropped; carried copies the outcome into next week
