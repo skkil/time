@@ -12,6 +12,8 @@ export const commands = {
 	updateProjectSettings: (id: Id, settings: ProjectSettings) => __TAURI_INVOKE<Project>("update_project_settings", { id, settings }),
 	markProjectReviewed: (id: Id) => __TAURI_INVOKE<Project>("mark_project_reviewed", { id }),
 	deleteProject: (id: Id) => __TAURI_INVOKE<null>("delete_project", { id }),
+	addTaskDependency: (taskId: Id, blockedById: Id) => __TAURI_INVOKE<Task>("add_task_dependency", { taskId, blockedById }),
+	removeTaskDependency: (taskId: Id, blockedById: Id) => __TAURI_INVOKE<Task>("remove_task_dependency", { taskId, blockedById }),
 	listOrganizations: () => __TAURI_INVOKE<Organization[]>("list_organizations"),
 	createOrganization: (name: string) => __TAURI_INVOKE<Organization>("create_organization", { name }),
 	renameOrganization: (id: Id, name: string) => __TAURI_INVOKE<Organization>("rename_organization", { id, name }),
@@ -423,6 +425,8 @@ export type Task = {
 	statusChangedAt: Timestamp | null,
 	kind: string,
 	statusCategory: string | null,
+	blockedBy: Id[],
+	waitingOn: Id[],
 };
 
 export type TaskInput = {

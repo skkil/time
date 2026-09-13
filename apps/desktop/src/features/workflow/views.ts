@@ -13,6 +13,7 @@ import { type DateKey, mondayOf, shiftKey } from '@/lib/time';
 export type ViewFilter = {
   hideDone?: boolean;
   hideBacklog?: boolean;
+  hideWaiting?: boolean;
   categories?: string[];
   typeIds?: number[];
 };
@@ -72,6 +73,8 @@ export function filterTasks(tasks: Task[], spec: ViewSpec): Task[] {
     if (spec.layout !== 'board' && spec.groupBy !== 'status' && closed(task))
       return false;
     if (filter.hideBacklog && task.statusCategory === 'backlog') return false;
+    if (filter.hideWaiting && task.waitingOn.length > 0 && !closed(task))
+      return false;
     if (
       filter.categories?.length &&
       !filter.categories.includes(task.statusCategory ?? '')

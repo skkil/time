@@ -102,6 +102,9 @@ export function TaskItem({
   const section = sections?.find((s) => s.id === task.sectionId);
   const parent =
     task.parentId === null ? undefined : tasks.byId.get(task.parentId);
+  const waitingOn = done ? [] : task.waitingOn;
+  const firstBlocker =
+    waitingOn.length > 0 ? tasks.byId.get(waitingOn[0]) : undefined;
   const workflowIndex = useWorkflowIndex();
   const type =
     task.typeId === null ? undefined : workflowIndex.types.get(task.typeId);
@@ -183,6 +186,7 @@ export function TaskItem({
           className={cn(
             'flex items-start gap-1.5 text-[15px] leading-5 break-words',
             done && 'text-foreground/40 line-through',
+            waitingOn.length > 0 && 'text-foreground/60',
           )}
         >
           {type && (
@@ -195,6 +199,9 @@ export function TaskItem({
         </span>
         <span className="mt-0.5 block truncate text-xs text-foreground/45 empty:hidden">
           {[
+            waitingOn.length === 1 &&
+              `waiting on ${firstBlocker?.title ?? 'another task'}`,
+            waitingOn.length > 1 && `waiting on ${waitingOn.length} tasks`,
             status && variant === 'row' && status.name,
             task.dueDate &&
               `${formatDue(task, today)}${task.recurrence ? `, ${task.recurrence}` : ''}`,

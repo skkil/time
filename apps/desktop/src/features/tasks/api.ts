@@ -25,15 +25,21 @@ export function useTaskIndex() {
   return useMemo(() => {
     const byId = new Map<Id, Task>();
     const children = new Map<Id, Task[]>();
+    const holding = new Map<Id, Task[]>();
     for (const task of data ?? []) {
       byId.set(task.id, task);
+      for (const blocker of task.blockedBy) {
+        const held = holding.get(blocker) ?? [];
+        held.push(task);
+        holding.set(blocker, held);
+      }
       if (task.parentId !== null) {
         const siblings = children.get(task.parentId) ?? [];
         siblings.push(task);
         children.set(task.parentId, siblings);
       }
     }
-    return { byId, children };
+    return { byId, children, holding };
   }, [data]);
 }
 
@@ -210,6 +216,26 @@ export function useSetTaskOutcome() {
       return cache.refresh();
     },
   });
+}
+
+export function useTaskDependency() {
+  const cache = useTaskCache();
+  const onSuccess = (task: Task) => {
+    cache.replace(task);
+    return cache.refresh();
+  };
+  return {
+    add: useMutation({
+      mutationFn: ({ id, blockedById }: { id: Id; blockedById: Id }) =>
+        commands.addTaskDependency(id, blockedById),
+      onSuccess,
+    }),
+    remove: useMutation({
+      mutationFn: ({ id, blockedById }: { id: Id; blockedById: Id }) =>
+        commands.removeTaskDependency(id, blockedById),
+      onSuccess,
+    }),
+  };
 }
 
 export function useSetTasksSomeday() {

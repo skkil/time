@@ -89,6 +89,7 @@ export function ViewEditor({
   const [sort, setSort] = useState(view?.sort ?? 'manual');
   const [hideDone, setHideDone] = useState(initial.hideDone ?? false);
   const [hideBacklog, setHideBacklog] = useState(initial.hideBacklog ?? false);
+  const [hideWaiting, setHideWaiting] = useState(initial.hideWaiting ?? false);
 
   const groups = [
     { value: 'section', label: 'Section' },
@@ -113,6 +114,7 @@ export function ViewEditor({
         ...initial,
         hideDone: hideDone || undefined,
         hideBacklog: hideBacklog || undefined,
+        hideWaiting: hideWaiting || undefined,
       }),
     };
     if (view)
@@ -157,6 +159,14 @@ export function ViewEditor({
             onChange={(event) => setHideDone(event.target.checked)}
           />
           Hide finished items
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={hideWaiting}
+            onChange={(event) => setHideWaiting(event.target.checked)}
+          />
+          Hide tasks still waiting on others
         </label>
         {hasBacklog && (
           <label className="flex items-center gap-2">

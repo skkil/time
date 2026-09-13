@@ -28,7 +28,11 @@ memory in `.design/DESIGN.md`.
   (1 = highest), due date + optional time, deadline, recurrence, duration
   (`estimate_minutes`), sibling `position`, `rollover_count` (bumped when a
   due task is pushed later), `someday`, `must_on` (≤3 musts per day) and a
-  `next_step` resume note. Completing a repeating
+  `next_step` resume note. Tasks can wait on other tasks
+  (`task_dependency`, migration 010, `features/dependencies.rs`):
+  `blocked_by` lists every link and `waiting_on` the still-open ones, so
+  "blocked" is derived, never stored; loops, self-links and repeating or
+  event blockers are refused. Completing a repeating
   task moves its date forward instead of closing it.
 - **TimeBlock** — a planned span for a task on the schedule grid.
 - **TimeEntry** — tracked time with optional project/task; a linked task

@@ -1,5 +1,6 @@
 pub mod blocks;
 pub mod data;
+pub mod dependencies;
 pub mod habits;
 pub mod organizations;
 pub mod projects;

@@ -2,13 +2,14 @@ import { format } from 'date-fns';
 import {
   CheckIcon,
   EllipsisIcon,
+  Link2Icon,
   PlayIcon,
   PlusIcon,
   SquareIcon,
   SunsetIcon,
   Trash2Icon,
 } from 'lucide-react';
-import { type FormEvent, type ReactNode, useState } from 'react';
+import { type FormEvent, type ReactNode, useRef, useState } from 'react';
 
 import type { Task, TaskInput } from '@/bindings';
 import {
@@ -45,6 +46,7 @@ import {
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
+import { Dependencies } from './Dependencies';
 import { Dot, Phrase } from './Phrase';
 import {
   EMPTY_TASK,
@@ -85,6 +87,7 @@ export function TaskPanel({
   const { openTask } = useTaskDialog();
   const [title, setTitle] = useState(task.title);
   const [notes, setNotes] = useState(task.notes);
+  const [waiting, setWaiting] = useState(false);
   const done = task.completedAt !== null;
   const project =
     task.projectId === null ? undefined : index.byId.get(task.projectId);
@@ -128,7 +131,7 @@ export function TaskPanel({
             </button>
           </>
         )}
-        <MoreMenu task={task} />
+        <MoreMenu task={task} onWait={() => setWaiting(true)} />
       </div>
 
       <textarea
@@ -158,6 +161,7 @@ export function TaskPanel({
       <EventLine task={task} />
       <WorkflowLine task={task} />
       <Serves task={task} />
+      <Dependencies task={task} adding={waiting} onAddingChange={setWaiting} />
 
       <div className="mt-8 grid min-h-0 max-w-2xl content-start gap-8 overflow-y-auto pr-2">
         {task.nextStep && (
@@ -430,7 +434,8 @@ function Actions({
   );
 }
 
-function MoreMenu({ task }: { task: Task }) {
+function MoreMenu({ task, onWait }: { task: Task; onWait: () => void }) {
+  const waitChosen = useRef(false);
   const remove = useDeleteTask();
   const someday = useSetTasksSomeday();
   const [confirming, setConfirming] = useState(false);
@@ -446,7 +451,16 @@ function MoreMenu({ task }: { task: Task }) {
             <EllipsisIcon className="size-4" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent
+          align="end"
+          className="w-52"
+          onCloseAutoFocus={(event) => {
+            if (!waitChosen.current) return;
+            waitChosen.current = false;
+            event.preventDefault();
+            onWait();
+          }}
+        >
           <DropdownMenuItem
             onSelect={() =>
               someday.mutate({ ids: [task.id], someday: !task.someday })
@@ -455,6 +469,12 @@ function MoreMenu({ task }: { task: Task }) {
             <SunsetIcon />
             {task.someday ? 'Bring back' : 'Move to Someday'}
           </DropdownMenuItem>
+          {task.completedAt === null && (
+            <DropdownMenuItem onSelect={() => (waitChosen.current = true)}>
+              <Link2Icon />
+              Wait on another task
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={() => setConfirming(true)}>
             <Trash2Icon />
             Delete

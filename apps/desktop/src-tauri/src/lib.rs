@@ -10,8 +10,8 @@ use tauri::Manager;
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
 
 use features::{
-    blocks, data, habits, organizations, projects, review, rituals, sections, tasks, time_entries,
-    workflow,
+    blocks, data, dependencies, habits, organizations, projects, review, rituals, sections, tasks,
+    time_entries, workflow,
 };
 
 const BINDINGS_PATH: &str = "../src/bindings.ts";
@@ -29,6 +29,8 @@ fn specta_builder() -> Builder<tauri::Wry> {
             projects::update_project_settings,
             projects::mark_project_reviewed,
             projects::delete_project,
+            dependencies::add_task_dependency,
+            dependencies::remove_task_dependency,
             organizations::list_organizations,
             organizations::create_organization,
             organizations::rename_organization,

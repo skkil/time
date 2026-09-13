@@ -34,6 +34,8 @@ const task = (patch: Partial<Task>): Task => ({
   statusChangedAt: null,
   kind: 'task',
   statusCategory: null,
+  blockedBy: [],
+  waitingOn: [],
   ...patch,
 });
 
@@ -66,6 +68,20 @@ describe('views', () => {
     });
     expect(board.map((t) => t.id)).toEqual([1, 2]);
     expect(list.map((t) => t.id)).toEqual([1]);
+  });
+
+  it('hides tasks still waiting on others', () => {
+    const tasks = [
+      task({ id: 1, waitingOn: [3] }),
+      task({ id: 2, blockedBy: [3] }),
+    ];
+    const visible = filterTasks(tasks, {
+      layout: 'list',
+      groupBy: 'none',
+      sort: 'manual',
+      filter: { hideWaiting: true },
+    });
+    expect(visible.map((t) => t.id)).toEqual([2]);
   });
 
   it('filters by status category', () => {

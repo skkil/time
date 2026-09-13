@@ -44,6 +44,8 @@ pub struct Task {
     pub status_changed_at: Option<Timestamp>,
     pub kind: String,
     pub status_category: Option<String>,
+    pub blocked_by: Vec<Id>,
+    pub waiting_on: Vec<Id>,
 }
 
 #[derive(Debug, Clone, Deserialize, Type)]
@@ -78,8 +80,19 @@ const SELECT: &str = "SELECT t.id, t.title, t.notes, t.project_id, t.section_id,
        t.outcome_id, t.rollover_count, t.someday, t.next_step, t.must_on,
        t.type_id, t.status_id, t.milestone_id, t.location, t.counts_as_time, t.status_changed_at,
        COALESCE((SELECT ty.kind FROM item_type ty WHERE ty.id = t.type_id), 'task'),
-       (SELECT st.category FROM item_status st WHERE st.id = t.status_id)
+       (SELECT st.category FROM item_status st WHERE st.id = t.status_id),
+       (SELECT GROUP_CONCAT(d.blocked_by_id) FROM task_dependency d WHERE d.task_id = t.id),
+       (SELECT GROUP_CONCAT(d.blocked_by_id) FROM task_dependency d
+          JOIN task b ON b.id = d.blocked_by_id
+         WHERE d.task_id = t.id AND b.completed_at IS NULL)
      FROM task t";
+
+fn ids(list: Option<String>) -> Vec<Id> {
+    list.iter()
+        .flat_map(|list| list.split(','))
+        .filter_map(|id| id.parse().ok().map(Id))
+        .collect()
+}
 
 fn from_row(row: &Row) -> rusqlite::Result<Task> {
     Ok(Task {
@@ -112,6 +125,8 @@ fn from_row(row: &Row) -> rusqlite::Result<Task> {
         status_changed_at: row.get(26)?,
         kind: row.get(27)?,
         status_category: row.get(28)?,
+        blocked_by: ids(row.get(29)?),
+        waiting_on: ids(row.get(30)?),
     })
 }
 

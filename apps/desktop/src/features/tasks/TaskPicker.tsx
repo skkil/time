@@ -29,7 +29,9 @@ export function TaskCommand({
   onCreate,
   placeholder = 'Find a task',
   autoFocus,
+  exclude,
 }: {
+  exclude?: (task: Task) => boolean;
   value?: Id | null;
   onSelect: (task: Task) => void;
   onCreate?: (title: string) => void;
@@ -40,8 +42,11 @@ export function TaskCommand({
   const index = useProjectIndex();
   const [search, setSearch] = useState('');
   const open = useMemo(
-    () => (tasks ?? []).filter((task) => task.completedAt === null),
-    [tasks],
+    () =>
+      (tasks ?? []).filter(
+        (task) => task.completedAt === null && !exclude?.(task),
+      ),
+    [tasks, exclude],
   );
   const trimmed = search.trim();
 
