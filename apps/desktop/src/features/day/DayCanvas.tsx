@@ -152,8 +152,13 @@ export function DayCanvas() {
   useShortcuts([{ keys: 'Escape', run: () => setChosen(null), idle: true }]);
 
   return (
-    <div className="mx-auto grid h-full w-full max-w-[1180px] grid-cols-[minmax(300px,380px)_minmax(0,1fr)] gap-16 px-24 pb-12">
-      <aside className="flex min-h-0 flex-col pt-6">
+    <div className="mx-auto flex h-full w-full max-w-[1180px] px-24 pb-12">
+      <aside
+        className={cn(
+          'flex min-h-0 shrink-0 flex-col pt-6 transition-[width] duration-700 ease-[cubic-bezier(.16,1,.3,1)] motion-reduce:transition-none',
+          panel ? 'w-[clamp(300px,40%,380px)]' : 'w-full',
+        )}
+      >
         <TodayLine tracked={tracked} />
         <Thread
           moments={moments}
@@ -184,17 +189,20 @@ export function DayCanvas() {
         </div>
       </aside>
 
-      <section
-        className="min-h-0 pt-6"
-        onClick={(event) => {
-          if (event.target === event.currentTarget) setChosen(null);
-        }}
-      >
-        {panel?.kind === 'task' && (
-          <Focus key={panel.taskId} taskId={panel.taskId} />
-        )}
-        {panel?.kind === 'focus' && <FreeFocus />}
-      </section>
+      {panel && (
+        <section
+          className="min-h-0 min-w-0 flex-1 pt-6 pl-16"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setChosen(null);
+          }}
+        >
+          {panel.kind === 'task' ? (
+            <Focus key={panel.taskId} taskId={panel.taskId} />
+          ) : (
+            <FreeFocus />
+          )}
+        </section>
+      )}
 
       <Dialog open={sorting} onOpenChange={setSorting}>
         <DialogContent className="sm:max-w-2xl">
