@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { WorkflowSettings } from '@/features/workflow/WorkflowSettings';
 import { cn } from '@/lib/utils';
@@ -135,7 +134,7 @@ function ProjectForm({
           Project settings
         </DialogTitle>
         <DialogDescription className="sr-only">
-          Name, group, outcome and rhythm of {project.name}.
+          Name, group, dates and rhythm of {project.name}.
         </DialogDescription>
       </div>
 
@@ -159,21 +158,6 @@ function ProjectForm({
           />
         </Field>
       )}
-
-      <Field
-        label="Done when"
-        htmlFor="project-outcome"
-        hint="One sentence you could check off. Leave it empty for ongoing work."
-      >
-        <Textarea
-          id="project-outcome"
-          rows={2}
-          maxLength={500}
-          value={settings.outcome}
-          placeholder="Paper submitted to CVPR"
-          onChange={(event) => set({ outcome: event.target.value })}
-        />
-      </Field>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Hours a week" htmlFor="project-hours">

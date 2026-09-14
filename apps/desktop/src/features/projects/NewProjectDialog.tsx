@@ -16,7 +16,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Textarea } from '@/components/ui/textarea';
 import { PresetPicker } from '@/features/workflow/PresetPicker';
 import { useApplyPreset } from '@/features/workflow/api';
 import { cn } from '@/lib/utils';
@@ -35,7 +34,7 @@ import {
   projectColorVar,
 } from './tree';
 
-const STEPS = ['What is it', 'How it works', 'When it’s done'];
+const STEPS = ['What is it', 'How it works', 'Time and dates'];
 const LAST = STEPS.length - 1;
 
 export function NewProjectDialog({
@@ -97,7 +96,6 @@ function NewProjectForm({
   const [groupId, setGroupId] = useState<Id | null>(initialGroupId);
   const [picked, setPicked] = useState<string | null>(null);
   const [preset, setPreset] = useState<Preset | null>(null);
-  const [outcome, setOutcome] = useState('');
   const [weeklyMinutes, setWeeklyMinutes] = useState<number | null>(null);
   const [targetDate, setTargetDate] = useState<string | null>(null);
   const [killCriteria, setKillCriteria] = useState('');
@@ -119,7 +117,7 @@ function NewProjectForm({
       settings: {
         groupId: parent === null ? groupId : null,
         status: 'active',
-        outcome,
+        outcome: '',
         weeklyMinutes,
         targetDate,
         killCriteria,
@@ -195,25 +193,11 @@ function NewProjectForm({
 
         {step === 2 && (
           <>
-            <Field
-              label="Done when"
-              htmlFor="new-project-outcome"
-              hint="One sentence you could check off. Leave it empty for ongoing work."
-            >
-              <Textarea
-                id="new-project-outcome"
-                autoFocus
-                rows={2}
-                maxLength={500}
-                value={outcome}
-                placeholder="Paper submitted to CVPR"
-                onChange={(event) => setOutcome(event.target.value)}
-              />
-            </Field>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Hours a week" htmlFor="new-project-hours">
                 <Input
                   id="new-project-hours"
+                  autoFocus
                   type="number"
                   min={0}
                   max={80}

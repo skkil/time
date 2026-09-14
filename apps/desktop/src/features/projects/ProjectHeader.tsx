@@ -93,12 +93,6 @@ export function ProjectHeader({
           </Button>
         )}
       </div>
-      {project?.outcome && (
-        <p className="mt-2 max-w-3xl text-[15px] text-foreground/80">
-          <span className="text-foreground/50">Goal: </span>
-          {project.outcome}
-        </p>
-      )}
       <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-foreground/55">
         {details.map((detail, i) => (
           <span key={i} className="flex items-center gap-2">

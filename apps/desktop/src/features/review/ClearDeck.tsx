@@ -128,11 +128,6 @@ function ProjectCheck({
         </span>
         <span className="text-xs text-muted-foreground">{openTasks} open</span>
       </div>
-      {project.outcome && (
-        <p className="text-xs text-muted-foreground">
-          Done when: {project.outcome}
-        </p>
-      )}
       <div className="flex flex-wrap items-center gap-1">
         <Button
           size="xs"
