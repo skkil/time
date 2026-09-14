@@ -17,7 +17,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { WorkflowSettings } from '@/features/workflow/WorkflowSettings';
 import { cn } from '@/lib/utils';
 
-import { OrganizationPicker } from './OrganizationPicker';
+import { GroupPicker } from './GroupPicker';
 import { ProjectPicker } from './ProjectPicker';
 import {
   settingsOf,
@@ -122,7 +122,7 @@ function ProjectForm({
       id: project.id,
       settings: {
         ...settings,
-        organizationId: parent === null ? settings.organizationId : null,
+        groupId: parent === null ? settings.groupId : null,
       },
     });
     onDone();
@@ -135,7 +135,7 @@ function ProjectForm({
           Project settings
         </DialogTitle>
         <DialogDescription className="sr-only">
-          Name, organization, outcome and rhythm of {project.name}.
+          Name, group, outcome and rhythm of {project.name}.
         </DialogDescription>
       </div>
 
@@ -150,12 +150,12 @@ function ProjectForm({
 
       {parent === null && (
         <Field
-          label="Organization"
+          label="Group"
           hint="Who the work is for. Sub-projects follow it."
         >
-          <OrganizationPicker
-            value={settings.organizationId}
-            onChange={(organizationId) => set({ organizationId })}
+          <GroupPicker
+            value={settings.groupId}
+            onChange={(groupId) => set({ groupId })}
           />
         </Field>
       )}

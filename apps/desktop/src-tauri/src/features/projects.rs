@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::State;
 
-use super::{ensure_changed, optional_text, organizations, required_text};
+use super::{ensure_changed, groups, optional_text, required_text};
 use crate::db::Db;
 use crate::error::{Error, Result};
 use crate::types::{Date, Id, Timestamp};
@@ -26,7 +26,7 @@ pub struct Project {
     pub position: i32,
     pub archived: bool,
     pub view: String,
-    pub organization_id: Option<Id>,
+    pub group_id: Option<Id>,
     pub status: String,
     pub outcome: String,
     pub weekly_minutes: Option<i32>,
@@ -42,7 +42,7 @@ pub struct Project {
 #[derive(Debug, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ProjectSettings {
-    pub organization_id: Option<Id>,
+    pub group_id: Option<Id>,
     pub status: String,
     pub outcome: String,
     pub weekly_minutes: Option<i32>,
@@ -61,7 +61,7 @@ pub struct ProjectInput {
 }
 
 const SELECT: &str =
-    "SELECT id, parent_id, name, color, position, archived, view, organization_id, status,
+    "SELECT id, parent_id, name, color, position, archived, view, group_id, status,
        outcome, weekly_minutes, target_date, kill_criteria, review_every_weeks, last_reviewed_at,
        in_order, preset, milestone_label
      FROM project";
@@ -75,7 +75,7 @@ fn from_row(row: &Row) -> rusqlite::Result<Project> {
         position: row.get(4)?,
         archived: row.get(5)?,
         view: row.get(6)?,
-        organization_id: row.get(7)?,
+        group_id: row.get(7)?,
         status: row.get(8)?,
         outcome: row.get(9)?,
         weekly_minutes: row.get(10)?,
@@ -182,7 +182,7 @@ pub fn update(conn: &Connection, id: Id, input: &ProjectInput) -> Result<Project
     let name = validate(conn, input, moving)?;
     conn.execute(
         "UPDATE project SET parent_id = ?1, name = ?2, color = ?3,
-                            organization_id = CASE WHEN ?1 IS NULL THEN organization_id END
+                            group_id = CASE WHEN ?1 IS NULL THEN group_id END
          WHERE id = ?4",
         params![input.parent_id, name, input.color, id],
     )?;
@@ -239,23 +239,23 @@ pub fn update_settings(conn: &Connection, id: Id, settings: &ProjectSettings) ->
     {
         return Err(Error::invalid("Weekly time must be within a week."));
     }
-    if settings.organization_id.is_some() && current.parent_id.is_some() {
+    if settings.group_id.is_some() && current.parent_id.is_some() {
         return Err(Error::invalid(
-            "Sub-projects follow the organization of the project they sit in.",
+            "Sub-projects follow the group of the project they sit in.",
         ));
     }
-    if let Some(organization_id) = settings.organization_id {
-        organizations::get(conn, organization_id)?;
+    if let Some(group_id) = settings.group_id {
+        groups::get(conn, group_id)?;
     }
     let outcome = optional_text(&settings.outcome, "Outcome", 300)?;
     let kill_criteria = optional_text(&settings.kill_criteria, "Stop rule", 300)?;
     conn.execute(
-        "UPDATE project SET organization_id = ?1, status = ?2, outcome = ?3, weekly_minutes = ?4,
+        "UPDATE project SET group_id = ?1, status = ?2, outcome = ?3, weekly_minutes = ?4,
                             target_date = ?5, kill_criteria = ?6, review_every_weeks = ?7,
                             in_order = ?8
          WHERE id = ?9",
         params![
-            settings.organization_id,
+            settings.group_id,
             settings.status,
             outcome,
             settings.weekly_minutes,
@@ -383,9 +383,9 @@ mod tests {
         .unwrap();
     }
 
-    fn settings(organization_id: Option<Id>, status: &str) -> ProjectSettings {
+    fn settings(group_id: Option<Id>, status: &str) -> ProjectSettings {
         ProjectSettings {
-            organization_id,
+            group_id,
             status: status.into(),
             outcome: String::new(),
             weekly_minutes: Some(360),
@@ -397,20 +397,20 @@ mod tests {
     }
 
     #[test]
-    fn organizations_belong_to_top_level_projects() {
+    fn groups_belong_to_top_level_projects() {
         let db = Db::in_memory();
         db.call(|conn| {
-            let acme = organizations::create(conn, "Acme")?;
+            let acme = groups::create(conn, "Acme")?;
             let site = create(conn, &input("Website", None))?;
             let page = create(conn, &input("Landing page", Some(site.id)))?;
             let site = update_settings(conn, site.id, &settings(Some(acme.id), "active"))?;
-            assert_eq!(site.organization_id, Some(acme.id));
+            assert_eq!(site.group_id, Some(acme.id));
             assert!(update_settings(conn, page.id, &settings(Some(acme.id), "active")).is_err());
             assert!(update_settings(conn, site.id, &settings(Some(Id(999)), "active")).is_err());
 
             let other = create(conn, &input("Other", None))?;
             let moved = update(conn, site.id, &input("Website", Some(other.id)))?;
-            assert_eq!(moved.organization_id, None);
+            assert_eq!(moved.group_id, None);
 
             let done = update_settings(conn, page.id, &settings(None, "done"))?;
             assert_eq!(done.weekly_minutes, Some(360));

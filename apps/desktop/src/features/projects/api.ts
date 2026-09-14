@@ -80,7 +80,7 @@ export function useSetProjectView() {
 }
 
 export const settingsOf = (project: Project): ProjectSettings => ({
-  organizationId: project.organizationId,
+  groupId: project.groupId,
   status: project.status,
   outcome: project.outcome,
   weeklyMinutes: project.weeklyMinutes,

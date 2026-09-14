@@ -21,7 +21,7 @@ import { PresetPicker } from '@/features/workflow/PresetPicker';
 import { useApplyPreset } from '@/features/workflow/api';
 import { cn } from '@/lib/utils';
 
-import { OrganizationPicker } from './OrganizationPicker';
+import { GroupPicker } from './GroupPicker';
 import { ProjectPicker } from './ProjectPicker';
 import {
   useCreateProject,
@@ -89,7 +89,7 @@ function NewProjectForm({
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [parent, setParent] = useState<Id | null>(parentId);
-  const [organizationId, setOrganizationId] = useState<Id | null>(null);
+  const [groupId, setGroupId] = useState<Id | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const [preset, setPreset] = useState<Preset | null>(null);
   const [outcome, setOutcome] = useState('');
@@ -112,7 +112,7 @@ function NewProjectForm({
     await updateSettings.mutateAsync({
       id,
       settings: {
-        organizationId: parent === null ? organizationId : null,
+        groupId: parent === null ? groupId : null,
         status: 'active',
         outcome,
         weeklyMinutes,
@@ -177,11 +177,8 @@ function NewProjectForm({
               />
             </Field>
             {parent === null && (
-              <Field label="Organization" hint="Who the work is for.">
-                <OrganizationPicker
-                  value={organizationId}
-                  onChange={setOrganizationId}
-                />
+              <Field label="Group" hint="Projects in a group sit together.">
+                <GroupPicker value={groupId} onChange={setGroupId} />
               </Field>
             )}
           </>

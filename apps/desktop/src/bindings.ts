@@ -14,10 +14,10 @@ export const commands = {
 	deleteProject: (id: Id) => __TAURI_INVOKE<null>("delete_project", { id }),
 	addTaskDependency: (taskId: Id, blockedById: Id) => __TAURI_INVOKE<Task>("add_task_dependency", { taskId, blockedById }),
 	removeTaskDependency: (taskId: Id, blockedById: Id) => __TAURI_INVOKE<Task>("remove_task_dependency", { taskId, blockedById }),
-	listOrganizations: () => __TAURI_INVOKE<Organization[]>("list_organizations"),
-	createOrganization: (name: string) => __TAURI_INVOKE<Organization>("create_organization", { name }),
-	renameOrganization: (id: Id, name: string) => __TAURI_INVOKE<Organization>("rename_organization", { id, name }),
-	deleteOrganization: (id: Id) => __TAURI_INVOKE<null>("delete_organization", { id }),
+	listGroups: () => __TAURI_INVOKE<Group[]>("list_groups"),
+	createGroup: (name: string) => __TAURI_INVOKE<Group>("create_group", { name }),
+	renameGroup: (id: Id, name: string) => __TAURI_INVOKE<Group>("rename_group", { id, name }),
+	deleteGroup: (id: Id) => __TAURI_INVOKE<null>("delete_group", { id }),
 	listTasks: () => __TAURI_INVOKE<Task[]>("list_tasks"),
 	createTask: (input: TaskInput) => __TAURI_INVOKE<Task>("create_task", { input }),
 	updateTask: (id: Id, input: TaskInput) => __TAURI_INVOKE<Task>("update_task", { id, input }),
@@ -160,6 +160,12 @@ export type EventOccurrence = {
 	countsAsTime: boolean,
 };
 
+export type Group = {
+	id: Id,
+	name: string,
+	position: number,
+};
+
 export type Habit = {
 	id: Id,
 	name: string,
@@ -244,12 +250,6 @@ export type MilestoneInput = {
 	date: Date | null,
 };
 
-export type Organization = {
-	id: Id,
-	name: string,
-	position: number,
-};
-
 export type Outcome = {
 	id: Id,
 	title: string,
@@ -289,7 +289,7 @@ export type Project = {
 	position: number,
 	archived: boolean,
 	view: string,
-	organizationId: Id | null,
+	groupId: Id | null,
 	status: string,
 	outcome: string,
 	weeklyMinutes: number | null,
@@ -309,7 +309,7 @@ export type ProjectInput = {
 };
 
 export type ProjectSettings = {
-	organizationId: Id | null,
+	groupId: Id | null,
 	status: string,
 	outcome: string,
 	weeklyMinutes: number | null,

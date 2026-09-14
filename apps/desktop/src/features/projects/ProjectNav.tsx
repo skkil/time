@@ -33,12 +33,12 @@ import {
 import { useTasks } from '@/features/tasks/api';
 import { cn } from '@/lib/utils';
 
+import { GroupHeading } from './GroupHeading';
 import { NewProjectDialog } from './NewProjectDialog';
-import { OrganizationHeading } from './OrganizationHeading';
 import { ProjectDot } from './ProjectDot';
 import { ProjectSettingsDialog } from './ProjectSettingsDialog';
 import { useArchiveProject, useDeleteProject, useProjectIndex } from './api';
-import { useOrganizations } from './organizations';
+import { useGroups } from './groups';
 import { MAX_PROJECT_DEPTH, type ProjectNode } from './tree';
 
 type DialogState = { project?: Project; parentId: Id | null } | null;
@@ -48,7 +48,7 @@ const isInactive = (node: ProjectNode) =>
 
 export function ProjectNav() {
   const index = useProjectIndex();
-  const organizations = useOrganizations();
+  const groups = useGroups();
   const { data: tasks } = useTasks();
   const [collapsed, setCollapsed] = useState<Set<Id>>(new Set());
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -106,14 +106,12 @@ export function ProjectNav() {
 
   const roots = index.roots.filter((node) => !isInactive(node));
   const loose = roots.filter(
-    (node) =>
-      node.organizationId === null ||
-      !organizations.byId.has(node.organizationId),
+    (node) => node.groupId === null || !groups.byId.has(node.groupId),
   );
-  const grouped = organizations.list
-    .map((organization) => ({
-      organization,
-      nodes: roots.filter((node) => node.organizationId === organization.id),
+  const grouped = groups.list
+    .map((group) => ({
+      group,
+      nodes: roots.filter((node) => node.groupId === group.id),
     }))
     .filter(({ nodes }) => nodes.length > 0);
 
@@ -147,9 +145,9 @@ export function ProjectNav() {
 
       <ul className="min-h-0 overflow-y-auto">
         {loose.map(renderNode)}
-        {grouped.map(({ organization, nodes }) => (
-          <li key={organization.id}>
-            <OrganizationHeading organization={organization} />
+        {grouped.map(({ group, nodes }) => (
+          <li key={group.id}>
+            <GroupHeading group={group} />
             <ul>{nodes.map(renderNode)}</ul>
           </li>
         ))}

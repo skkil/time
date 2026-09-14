@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 
 import { ProjectDot } from './ProjectDot';
 import { useProjectIndex } from './api';
-import { useProjectOrganization } from './organizations';
+import { useProjectGroup } from './groups';
 import { STATUSES, descendantIds, projectChain } from './tree';
 
 const WEEK_SECONDS = 7 * 24 * 3600;
@@ -52,10 +52,10 @@ export function ProjectHeader({
   viewActions?: ReactNode;
 }) {
   const index = useProjectIndex();
-  const organization = useProjectOrganization(project?.id);
+  const group = useProjectGroup(project?.id);
   const status = STATUSES.find((option) => option.value === project?.status);
   const trail = [
-    organization?.name,
+    group?.name,
     ...(project?.parentId != null
       ? projectChain(index, project.parentId).map((node) => node.name)
       : []),

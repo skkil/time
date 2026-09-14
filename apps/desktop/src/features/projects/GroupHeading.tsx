@@ -1,7 +1,7 @@
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 
-import type { Organization } from '@/bindings';
+import type { Group } from '@/bindings';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,28 +9,24 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import { useDeleteOrganization, useRenameOrganization } from './organizations';
+import { useDeleteGroup, useRenameGroup } from './groups';
 
-export function OrganizationHeading({
-  organization,
-}: {
-  organization: Organization;
-}) {
-  const rename = useRenameOrganization();
-  const remove = useDeleteOrganization();
+export function GroupHeading({ group }: { group: Group }) {
+  const rename = useRenameGroup();
+  const remove = useDeleteGroup();
   const [renaming, setRenaming] = useState(false);
 
   if (renaming)
     return (
       <input
         autoFocus
-        defaultValue={organization.name}
+        defaultValue={group.name}
         maxLength={80}
-        aria-label="Organization name"
+        aria-label="Group name"
         onBlur={(event) => {
           const name = event.target.value.trim();
-          if (name && name !== organization.name)
-            rename.mutate({ id: organization.id, name });
+          if (name && name !== group.name)
+            rename.mutate({ id: group.id, name });
           setRenaming(false);
         }}
         onKeyDown={(event) => {
@@ -47,13 +43,13 @@ export function OrganizationHeading({
         className="min-w-0 flex-1 truncate font-sans text-xs font-semibold text-muted-foreground"
         onDoubleClick={() => setRenaming(true)}
       >
-        {organization.name}
+        {group.name}
       </h3>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            aria-label={`${organization.name} options`}
+            aria-label={`${group.name} options`}
             className="hidden size-5 place-items-center rounded-sm text-foreground/45 group-hover/org:grid hover:text-foreground focus-visible:grid data-[state=open]:grid"
           >
             <MoreHorizontalIcon className="size-3.5" />
@@ -64,9 +60,9 @@ export function OrganizationHeading({
             <PencilIcon />
             Rename
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => remove.mutate(organization.id)}>
+          <DropdownMenuItem onSelect={() => remove.mutate(group.id)}>
             <Trash2Icon />
-            Remove organization
+            Remove group
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

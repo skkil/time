@@ -1,4 +1,4 @@
-import { Building2Icon, ChevronDownIcon, PlusIcon } from 'lucide-react';
+import { ChevronDownIcon, FoldersIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import type { Id } from '@/bindings';
@@ -15,23 +15,23 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 
-import { useCreateOrganization, useOrganizations } from './organizations';
+import { useCreateGroup, useGroups } from './groups';
 
-export function OrganizationPicker({
+export function GroupPicker({
   value,
   onChange,
 }: {
   value: Id | null;
   onChange: (id: Id | null) => void;
 }) {
-  const organizations = useOrganizations();
-  const create = useCreateOrganization();
+  const groups = useGroups();
+  const create = useCreateGroup();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const selected = value === null ? undefined : organizations.byId.get(value);
+  const selected = value === null ? undefined : groups.byId.get(value);
   const typed = query.trim();
-  const exists = organizations.list.some(
-    (org) => org.name.toLowerCase() === typed.toLowerCase(),
+  const exists = groups.list.some(
+    (group) => group.name.toLowerCase() === typed.toLowerCase(),
   );
 
   const choose = (id: Id | null) => {
@@ -47,7 +47,7 @@ export function OrganizationPicker({
           type="button"
           className="flex h-9 w-full max-w-64 items-center gap-2 rounded-full px-3 text-sm ring-1 ring-white/15 transition-colors outline-none hover:bg-white/[.06] focus-visible:ring-2 focus-visible:ring-white/50"
         >
-          <Building2Icon
+          <FoldersIcon
             className="size-3.5 shrink-0 text-foreground/50"
             strokeWidth={1.5}
           />
@@ -62,7 +62,7 @@ export function OrganizationPicker({
       <PopoverContent className="w-64 p-0" align="start">
         <Command>
           <CommandInput
-            placeholder="Find or add an organization"
+            placeholder="Find or add a group"
             value={query}
             onValueChange={setQuery}
           />
@@ -75,14 +75,14 @@ export function OrganizationPicker({
               >
                 None
               </CommandItem>
-              {organizations.list.map((org) => (
+              {groups.list.map((group) => (
                 <CommandItem
-                  key={org.id}
-                  value={`${org.name} ${org.id}`}
-                  data-checked={value === org.id}
-                  onSelect={() => choose(org.id)}
+                  key={group.id}
+                  value={`${group.name} ${group.id}`}
+                  data-checked={value === group.id}
+                  onSelect={() => choose(group.id)}
                 >
-                  <span className="truncate">{org.name}</span>
+                  <span className="truncate">{group.name}</span>
                 </CommandItem>
               ))}
               {typed && !exists && (
@@ -90,7 +90,9 @@ export function OrganizationPicker({
                   value={`add ${typed}`}
                   disabled={create.isPending}
                   onSelect={() =>
-                    create.mutate(typed, { onSuccess: (org) => choose(org.id) })
+                    create.mutate(typed, {
+                      onSuccess: (group) => choose(group.id),
+                    })
                   }
                 >
                   <PlusIcon />

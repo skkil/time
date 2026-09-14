@@ -40,7 +40,7 @@ export const queryClient = new QueryClient({
 
 export const keys = {
   projects: ['projects'] as const,
-  organizations: ['organizations'] as const,
+  groups: ['groups'] as const,
   tasks: ['tasks'] as const,
   sections: ['sections'] as const,
   blocks: (monday: string) => ['blocks', monday] as const,
