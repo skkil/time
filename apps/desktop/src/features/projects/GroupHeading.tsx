@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -39,11 +40,15 @@ export function GroupHeading({ group }: { group: Group }) {
 
   return (
     <div className="group/org mt-4 mb-1 flex h-6 items-center px-2">
-      <h3
-        className="min-w-0 flex-1 truncate font-sans text-xs font-semibold text-muted-foreground"
-        onDoubleClick={() => setRenaming(true)}
-      >
-        {group.name}
+      <h3 className="min-w-0 flex-1 truncate font-sans text-xs font-semibold text-muted-foreground">
+        <Link
+          to="/projects/groups/$groupId"
+          params={{ groupId: group.id }}
+          onDoubleClick={() => setRenaming(true)}
+          className="rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/40 data-[status=active]:text-foreground"
+        >
+          {group.name}
+        </Link>
       </h3>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

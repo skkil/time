@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-router';
 
 import { MainPage } from '@/features/main/MainPage';
+import { GroupView } from '@/features/projects/GroupView';
 import { ProjectsSpace } from '@/features/projects/ProjectsSpace';
 import { WeekReview } from '@/features/review/WeekReview';
 import { ProjectView } from '@/features/tasks/ProjectView';
@@ -128,6 +129,19 @@ export const projectRoute = createRoute({
   },
 });
 
+export const groupRoute = createRoute({
+  getParentRoute: () => projectsRoute,
+  path: '/groups/$groupId',
+  params: {
+    parse: (params) => ({ groupId: Number(params.groupId) }),
+    stringify: (params) => ({ groupId: String(params.groupId) }),
+  },
+  component: function GroupRoute() {
+    const { groupId } = groupRoute.useParams();
+    return <GroupView key={groupId} groupId={groupId} />;
+  },
+});
+
 const weekOf = (week: DateKey) => ({ view: 'week' as const, week });
 
 const legacyWeekRoutes = [
@@ -194,6 +208,7 @@ const routeTree = rootRoute.addChildren([
   projectsRoute.addChildren([
     projectsInboxRoute,
     projectsSomedayRoute,
+    groupRoute,
     projectRoute,
   ]),
   ...legacyWeekRoutes,

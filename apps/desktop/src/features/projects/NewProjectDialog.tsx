@@ -42,10 +42,12 @@ export function NewProjectDialog({
   open,
   onOpenChange,
   parentId,
+  groupId = null,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   parentId: Id | null;
+  groupId?: Id | null;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -56,6 +58,7 @@ export function NewProjectDialog({
         {open && (
           <NewProjectForm
             parentId={parentId}
+            groupId={groupId}
             onDone={() => onOpenChange(false)}
           />
         )}
@@ -77,9 +80,11 @@ function autoColor(index: ProjectIndex, parent: Id | null) {
 
 function NewProjectForm({
   parentId,
+  groupId: initialGroupId,
   onDone,
 }: {
   parentId: Id | null;
+  groupId: Id | null;
   onDone: () => void;
 }) {
   const index = useProjectIndex();
@@ -89,7 +94,7 @@ function NewProjectForm({
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [parent, setParent] = useState<Id | null>(parentId);
-  const [groupId, setGroupId] = useState<Id | null>(null);
+  const [groupId, setGroupId] = useState<Id | null>(initialGroupId);
   const [picked, setPicked] = useState<string | null>(null);
   const [preset, setPreset] = useState<Preset | null>(null);
   const [outcome, setOutcome] = useState('');

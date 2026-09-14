@@ -67,6 +67,12 @@ function Canvas() {
     if (next === 'projects') {
       const last = getPreference('lastProject');
       if (last === 'someday') return navigate({ to: '/projects/someday' });
+      const groupId = Number(last.replace(/^groups\//, ''));
+      if (last.startsWith('groups/') && Number.isInteger(groupId))
+        return navigate({
+          to: '/projects/groups/$groupId',
+          params: { groupId },
+        });
       const id = Number(last);
       return Number.isInteger(id) && id > 0
         ? navigate({ to: '/projects/$projectId', params: { projectId: id } })
