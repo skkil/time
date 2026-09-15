@@ -26,8 +26,7 @@ tauri-specta = { version = "=2.0.0-rc.26", features = ["derive", "typescript"] }
 ureq = { version = "3.5.0", features = ["json"] }
 
 [profile.release]
-codegen-units = 1
-lto = true
+incremental = true
 opt-level = 3
 panic = "abort"
 strip = true
