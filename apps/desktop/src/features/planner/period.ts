@@ -6,6 +6,12 @@ export const isQuiet = (summary: WeekSummary) =>
   summary.outcomesTotal === 0 &&
   summary.tasksCompleted === 0;
 
+export const isDueInAnotherWeek = (
+  due: DateKey,
+  week: DateKey,
+  today: DateKey,
+) => due >= today && (due < week || due >= shiftKey(week, 7));
+
 export function isHeldBack(week: DateKey, reviewed: boolean, today: DateKey) {
   const thisMonday = mondayOf(today);
   return (

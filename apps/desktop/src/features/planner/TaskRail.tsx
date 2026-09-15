@@ -11,12 +11,12 @@ import {
   type DateKey,
   formatDayLabel,
   formatEstimate,
-  shiftKey,
   todayKey,
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 import { WeekPlan } from './PlanStrip';
+import { isDueInAnotherWeek } from './period';
 
 export type TaskDragData = { kind: 'task'; task: Task };
 
@@ -84,25 +84,23 @@ export function TaskRail({
   const { newTask } = useTaskDialog();
   const { data: tasks } = useTasks();
   const [search, setSearch] = useState('');
-  const weekEnd = shiftKey(week, 7);
 
-  const { dueSoon, rest } = useMemo(() => {
+  const { dueSoon, undated } = useMemo(() => {
     const query = search.trim().toLowerCase();
+    const today = todayKey();
     const open = (tasks ?? []).filter(
       (task) =>
         task.completedAt === null &&
         task.kind === 'task' &&
+        (task.dueDate === null ||
+          !isDueInAnotherWeek(task.dueDate, week, today)) &&
         (!query || task.title.toLowerCase().includes(query)),
     );
     return {
-      dueSoon: open.filter(
-        (task) => task.dueDate !== null && task.dueDate < weekEnd,
-      ),
-      rest: open.filter(
-        (task) => task.dueDate === null || task.dueDate >= weekEnd,
-      ),
+      dueSoon: open.filter((task) => task.dueDate !== null),
+      undated: open.filter((task) => task.dueDate === null),
     };
-  }, [tasks, search, weekEnd]);
+  }, [tasks, search, week]);
 
   return (
     <aside
@@ -137,11 +135,11 @@ export function TaskRail({
           plannedCounts={plannedCounts}
         />
         <RailSection
-          title="Everything else"
-          tasks={rest}
+          title="No due date"
+          tasks={undated}
           plannedCounts={plannedCounts}
         />
-        {dueSoon.length + rest.length === 0 && (
+        {dueSoon.length + undated.length === 0 && (
           <p className="text-sm text-muted-foreground">
             {search ? 'No task matches.' : 'No open tasks.'}
           </p>
