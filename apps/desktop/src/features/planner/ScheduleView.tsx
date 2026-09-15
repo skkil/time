@@ -194,12 +194,15 @@ export function ScheduleView({
       )
         continue;
       const target = task.dueTime === null ? due : timed;
-      if (target === timed && planned.has(`${task.id}:${task.dueDate}`))
-        continue;
+      const placed =
+        target === due
+          ? plannedCounts.has(task.id)
+          : planned.has(`${task.id}:${task.dueDate}`);
+      if (placed) continue;
       target.set(task.dueDate, [...(target.get(task.dueDate) ?? []), task]);
     }
     return { dueByDay: due, timedByDay: timed };
-  }, [tasks, blocks]);
+  }, [tasks, blocks, plannedCounts]);
 
   const registerColumn = useCallback(
     (day: DateKey, element: HTMLElement | null) => {
