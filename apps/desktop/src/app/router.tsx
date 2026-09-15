@@ -9,7 +9,7 @@ import {
 import { MainPage } from '@/features/main/MainPage';
 import { GroupView } from '@/features/projects/GroupView';
 import { ProjectsSpace } from '@/features/projects/ProjectsSpace';
-import { WeekReview } from '@/features/review/WeekReview';
+import { LazyWeekReview } from '@/features/review/LazyWeekReview';
 import { ProjectView } from '@/features/tasks/ProjectView';
 import { SomedayPage } from '@/features/tasks/SomedayPage';
 import {
@@ -194,7 +194,7 @@ export const weekReviewRoute = createRoute({
   params: weekParams,
   component: function WeekReviewRoute() {
     const { week } = weekReviewRoute.useParams();
-    return <WeekReview week={week} />;
+    return <LazyWeekReview week={week} />;
   },
 });
 

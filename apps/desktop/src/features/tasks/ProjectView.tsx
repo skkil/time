@@ -1,11 +1,10 @@
 import { CheckIcon, PlusIcon, SlidersHorizontalIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Suspense, lazy, useMemo, useState } from 'react';
 
 import type { Id, SavedView, Section, Task } from '@/bindings';
 import { EmptyState, Page, PageBody } from '@/components/page';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { ProjectCanvas } from '@/features/projects/ProjectCanvas';
 import { ProjectHeader } from '@/features/projects/ProjectHeader';
 import { ProjectSettingsDialog } from '@/features/projects/ProjectSettingsDialog';
 import { ProjectTimeline } from '@/features/projects/ProjectTimeline';
@@ -33,6 +32,12 @@ import { TaskDnd } from './dnd';
 import { useTaskDialog } from './task-dialog-context';
 
 const PROJECT_TABS: ProjectTab[] = ['graph', 'timeline', 'canvas'];
+
+const ProjectCanvas = lazy(() =>
+  import('@/features/projects/ProjectCanvas').then(({ ProjectCanvas }) => ({
+    default: ProjectCanvas,
+  })),
+);
 
 const topLevel = (tasks: Task[], sectionId: Id | null) =>
   tasks.filter(
@@ -252,7 +257,9 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
       ) : tab === 'timeline' && project ? (
         <ProjectTimeline project={project} own={own} />
       ) : tab === 'canvas' && project ? (
-        <ProjectCanvas projectId={project.id} />
+        <Suspense>
+          <ProjectCanvas projectId={project.id} />
+        </Suspense>
       ) : structured && project ? (
         <Workspace
           project={project}

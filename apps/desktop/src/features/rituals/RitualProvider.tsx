@@ -1,13 +1,16 @@
-import { type ReactNode, useCallback, useState } from 'react';
+import { type ReactNode, Suspense, lazy, useCallback, useState } from 'react';
 
 import { type Id, type Ritual, type RitualRun, commands } from '@/bindings';
 
-import { ZenOverlay } from './ZenOverlay';
 import { useRunActions } from './api';
 import type { RitualKind } from './meta';
 import { RitualContext, type RitualRunner } from './runner-context';
 
 type Active = { ritual: Ritual; run: RitualRun };
+
+const ZenOverlay = lazy(() =>
+  import('./ZenOverlay').then(({ ZenOverlay }) => ({ default: ZenOverlay })),
+);
 
 export function RitualProvider({ children }: { children: ReactNode }) {
   const [active, setActive] = useState<Active | null>(null);
@@ -34,12 +37,14 @@ export function RitualProvider({ children }: { children: ReactNode }) {
     <RitualContext value={runner}>
       {children}
       {active && (
-        <ZenOverlay
-          key={active.run.id}
-          ritual={active.ritual}
-          run={active.run}
-          onClose={() => setActive(null)}
-        />
+        <Suspense>
+          <ZenOverlay
+            key={active.run.id}
+            ritual={active.ritual}
+            run={active.run}
+            onClose={() => setActive(null)}
+          />
+        </Suspense>
       )}
     </RitualContext>
   );
