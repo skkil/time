@@ -1,12 +1,13 @@
-import { Link } from '@tanstack/react-router';
-import { format } from 'date-fns';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { differenceInCalendarDays, format } from 'date-fns';
 import { FoldersIcon, PencilIcon, PlusIcon } from 'lucide-react';
 import { type ReactNode, useMemo, useState } from 'react';
 
-import type { Id, Task, TimeEntry } from '@/bindings';
+import type { Id, Milestone, Task, TimeEntry } from '@/bindings';
 import { Button } from '@/components/ui/button';
 import { useTasks } from '@/features/tasks/api';
 import { useTimeEntries } from '@/features/time/api';
+import { useWorkflow } from '@/features/workflow/api';
 import {
   formatDuration,
   fromDateKey,
@@ -19,8 +20,10 @@ import { cn } from '@/lib/utils';
 
 import { NewProjectDialog } from './NewProjectDialog';
 import { ProjectDot } from './ProjectDot';
+import { Timeline, TimelineLegend, type TimelineRow } from './Timeline';
 import { useProjectIndex } from './api';
 import { useGroups, useRenameGroup } from './groups';
+import { projectMarks, taskMarks } from './timeline-rows';
 import { type ProjectNode, STATUSES, descendantIds } from './tree';
 
 type Summary = {
@@ -29,6 +32,7 @@ type Summary = {
   open: number;
   overdue: number;
   nextDue: string | null;
+  nextDeadline: Task | null;
   tracked: number;
 };
 
@@ -50,16 +54,22 @@ function summarize(
       ids.has(task.projectId),
   );
   const open = own.filter((task) => task.completedAt === null);
-  const dated = open
-    .filter((task) => task.statusCategory !== 'backlog' && task.dueDate)
-    .map((task) => task.dueDate as string)
+  const counted = open.filter((task) => task.statusCategory !== 'backlog');
+  const dueDates = counted
+    .flatMap((task) => (task.dueDate ? [task.dueDate] : []))
     .sort();
+  const deadlines = counted
+    .filter((task) => task.deadline !== null && task.deadline >= today)
+    .sort((a, b) => (a.deadline as string).localeCompare(b.deadline as string));
+  const late = (date: string | null) => date !== null && date < today;
   return {
     node,
     done: own.length - open.length,
     open: open.length,
-    overdue: dated.filter((date) => date < today).length,
-    nextDue: dated.find((date) => date >= today) ?? null,
+    overdue: counted.filter((task) => late(task.dueDate) || late(task.deadline))
+      .length,
+    nextDue: dueDates.find((date) => date >= today) ?? null,
+    nextDeadline: deadlines[0] ?? null,
     tracked: entries
       .filter((entry) => entry.projectId !== null && ids.has(entry.projectId))
       .reduce(
@@ -76,6 +86,8 @@ export function GroupView({ groupId }: { groupId: Id }) {
   const today = todayKey();
   const monday = mondayOf(today);
   const { data: entries } = useTimeEntries(monday, shiftKey(monday, 6));
+  const { data: workflow } = useWorkflow();
+  const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
   const group = groups.byId.get(groupId);
 
@@ -100,6 +112,15 @@ export function GroupView({ groupId }: { groupId: Id }) {
   const open = total((summary) => summary.open);
   const overdue = total((summary) => summary.overdue);
   const tracked = total((summary) => summary.tracked);
+
+  const rows = timelineRows(
+    active.map(({ node }) => node),
+    tasks ?? [],
+    workflow?.milestones ?? [],
+    today,
+    (projectId) =>
+      navigate({ to: '/projects/$projectId', params: { projectId } }),
+  );
 
   const details = [
     `${active.length} active ${active.length === 1 ? 'project' : 'projects'}`,
@@ -139,7 +160,21 @@ export function GroupView({ groupId }: { groupId: Id }) {
             project’s settings.
           </button>
         ) : (
-          <ProjectGrid summaries={active} today={today} />
+          <>
+            {rows.some((row) => row.marks.length > 0) && (
+              <section className="mb-10">
+                <h2 className="mb-3 text-sm font-medium text-foreground/55">
+                  Timeline
+                </h2>
+                <Timeline heading="Project" rows={rows} />
+                <TimelineLegend />
+              </section>
+            )}
+            <h2 className="mb-3 text-sm font-medium text-foreground/55">
+              Projects
+            </h2>
+            <ProjectGrid summaries={active} today={today} />
+          </>
         )}
         {inactive.length > 0 && (
           <section className="mt-10">
@@ -159,6 +194,47 @@ export function GroupView({ groupId }: { groupId: Id }) {
       />
     </div>
   );
+}
+
+function timelineRows(
+  roots: ProjectNode[],
+  tasks: Task[],
+  milestones: Milestone[],
+  today: string,
+  open: (projectId: Id) => void,
+): TimelineRow[] {
+  const rows: TimelineRow[] = [];
+  const visit = (node: ProjectNode, depth: number) => {
+    rows.push({
+      id: String(node.id),
+      label: node.name,
+      color: node.color,
+      depth,
+      marks: [
+        ...tasks
+          .filter(
+            (task) =>
+              task.projectId === node.id &&
+              task.kind !== 'record' &&
+              task.completedAt === null,
+          )
+          .flatMap((task) => taskMarks(task, today)),
+        ...projectMarks(
+          node,
+          milestones.filter((milestone) => milestone.projectId === node.id),
+        ),
+      ],
+      span:
+        node.targetDate && node.targetDate >= today
+          ? { from: today, to: node.targetDate }
+          : undefined,
+      onOpen: () => open(node.id),
+    });
+    for (const child of node.children)
+      if (!isInactive(child)) visit(child, depth + 1);
+  };
+  for (const root of roots) visit(root, 0);
+  return rows;
 }
 
 function GroupTitle({
@@ -235,8 +311,15 @@ function ProjectGrid({
 const dayLabel = (date: string, today: string) =>
   date === today ? 'Today' : format(fromDateKey(date), 'd MMM');
 
+function deadlineLabel(date: string, today: string) {
+  const days = differenceInCalendarDays(fromDateKey(date), fromDateKey(today));
+  const left =
+    days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`;
+  return `${format(fromDateKey(date), 'd MMM')} · ${left}`;
+}
+
 function ProjectCard({ summary, today }: { summary: Summary; today: string }) {
-  const { node, done, open, overdue, nextDue, tracked } = summary;
+  const { node, done, open, overdue, nextDue, nextDeadline, tracked } = summary;
   const status = STATUSES.find((option) => option.value === node.status);
   const total = done + open;
   const budget = node.weeklyMinutes !== null ? node.weeklyMinutes * 60 : null;
@@ -290,14 +373,21 @@ function ProjectCard({ summary, today }: { summary: Summary; today: string }) {
         )}
       </div>
 
-      <p
-        className={cn(
-          'line-clamp-2 min-h-10 text-sm',
-          node.outcome ? 'text-foreground/80' : 'text-foreground/40',
+      <div className="min-h-10 text-sm">
+        <p className="text-xs text-foreground/55">Next deadline</p>
+        {nextDeadline ? (
+          <p className="flex gap-2">
+            <span className="min-w-0 flex-1 truncate">
+              {nextDeadline.title}
+            </span>
+            <span className="shrink-0 text-foreground/70 tabular-nums">
+              {deadlineLabel(nextDeadline.deadline as string, today)}
+            </span>
+          </p>
+        ) : (
+          <p className="text-foreground/40">None</p>
         )}
-      >
-        {node.outcome || 'No goal set'}
-      </p>
+      </div>
 
       <div>
         <div className="mb-1.5 flex justify-between text-xs text-foreground/55">

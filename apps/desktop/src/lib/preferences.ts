@@ -24,6 +24,7 @@ export type Preferences = {
   projectsNavOpen: boolean;
   lastViews: Record<string, number>;
   graphViews: Record<string, boolean>;
+  timelineViews: Record<string, boolean>;
   weekStartsOn: WeekStart;
   priorityColors: Record<string, string>;
 };
@@ -42,6 +43,7 @@ const defaults: Preferences = {
   projectsNavOpen: true,
   lastViews: {},
   graphViews: {},
+  timelineViews: {},
   weekStartsOn: 1,
   priorityColors: {},
 };

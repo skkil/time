@@ -14,14 +14,17 @@ memory in `.design/DESIGN.md`.
   archived flag and settings: `group_id` (only top-level projects carry one and
   sub-projects follow it), `status`
   (active/paused/done/dropped; inactive ones leave Day and the drawer tree),
-  outcome, weekly hours budget, target date, stop-if criteria, review cadence
+  weekly hours budget, target date, stop-if criteria, review cadence
   and `in_order`; archiving or deleting cascades to the subtree. There are no
   areas: ongoing work is a project without a target date. `NULL` project
   means Inbox.
 - **Group** — a named set of top-level projects in `features/groups.rs`
   (table `project_group`, migrations 009 and 012); deleting one only clears
   it from its projects. The drawer lists top-level projects under their
-  group.
+  group; its heading opens the group overview (`/projects/groups/$groupId`,
+  a timeline of every project's due dates, deadlines, milestones and
+  target date, then one card per project). Each project also has a
+  Timeline tab of its dated tasks (`projects/Timeline.tsx`).
 - **Section** — ordered group inside a project (or the Inbox); deleting it
   deletes its tasks.
 - **Task** — Todoist-shaped: title, description (`notes`), project, section,
@@ -145,7 +148,8 @@ cargo clippy --all-targets
   `SettingRow`.
 - Imports use `@/` instead of parent-relative `../` (enforced by ESLint).
 - Routes: `/?view=day|week&week=` (`week` is a Monday date key),
-  `/projects`, `/projects/someday`, `/projects/$projectId`, `/review/$week`
+  `/projects`, `/projects/someday`, `/projects/$projectId`,
+  `/projects/groups/$groupId`, `/review/$week`
   (the first, guided review of a week). There is no Reports page: Week is
   the record. A past week swaps the task rail for its reflection, and a
   reviewed week is edited in `ReviewDialog`, never by reopening the guided
