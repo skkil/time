@@ -1,4 +1,5 @@
 pub mod blocks;
+pub mod canvas;
 pub mod data;
 pub mod dependencies;
 pub mod groups;

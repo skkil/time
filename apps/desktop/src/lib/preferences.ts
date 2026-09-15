@@ -2,6 +2,8 @@ import { useSyncExternalStore } from 'react';
 
 export type ZenBackdropMode = 'motion' | 'still';
 
+export type ProjectTab = 'graph' | 'timeline' | 'canvas';
+
 export type WeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export type WeatherPlace = {
@@ -23,8 +25,7 @@ export type Preferences = {
   weekProjectsOpen: boolean;
   projectsNavOpen: boolean;
   lastViews: Record<string, number>;
-  graphViews: Record<string, boolean>;
-  timelineViews: Record<string, boolean>;
+  projectTabs: Partial<Record<string, ProjectTab>>;
   weekStartsOn: WeekStart;
   priorityColors: Record<string, string>;
 };
@@ -42,8 +43,7 @@ const defaults: Preferences = {
   weekProjectsOpen: false,
   projectsNavOpen: true,
   lastViews: {},
-  graphViews: {},
-  timelineViews: {},
+  projectTabs: {},
   weekStartsOn: 1,
   priorityColors: {},
 };

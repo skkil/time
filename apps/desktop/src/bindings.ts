@@ -18,6 +18,8 @@ export const commands = {
 	createGroup: (name: string) => __TAURI_INVOKE<Group>("create_group", { name }),
 	renameGroup: (id: Id, name: string) => __TAURI_INVOKE<Group>("rename_group", { id, name }),
 	deleteGroup: (id: Id) => __TAURI_INVOKE<null>("delete_group", { id }),
+	getProjectCanvas: (projectId: Id) => __TAURI_INVOKE<ProjectCanvas>("get_project_canvas", { projectId }),
+	saveProjectCanvas: (projectId: Id, content: string) => __TAURI_INVOKE<ProjectCanvas>("save_project_canvas", { projectId, content }),
 	listTasks: () => __TAURI_INVOKE<Task[]>("list_tasks"),
 	createTask: (input: TaskInput) => __TAURI_INVOKE<Task>("create_task", { input }),
 	updateTask: (id: Id, input: TaskInput) => __TAURI_INVOKE<Task>("update_task", { id, input }),
@@ -300,6 +302,12 @@ export type Project = {
 	inOrder: boolean,
 	preset: string,
 	milestoneLabel: string,
+};
+
+export type ProjectCanvas = {
+	projectId: Id,
+	content: string,
+	updatedAt: Timestamp | null,
 };
 
 export type ProjectInput = {

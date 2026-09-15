@@ -25,6 +25,10 @@ memory in `.design/DESIGN.md`.
   a timeline of every project's due dates, deadlines, milestones and
   target date, then one card per project). Each project also has a
   Timeline tab of its dated tasks (`projects/Timeline.tsx`).
+- **Canvas** — one free-form document per project (`project_canvas`,
+  migration 013, `features/canvas.rs`), stored as HTML from the Tiptap
+  editor in `projects/ProjectCanvas.tsx`; autosaves and goes with the
+  project. Shown as the project's Canvas tab.
 - **Section** — ordered group inside a project (or the Inbox); deleting it
   deletes its tasks.
 - **Task** — Todoist-shaped: title, description (`notes`), project, section,

@@ -1,0 +1,134 @@
+.project-canvas {
+  min-height: 100%;
+  outline: none;
+  font-size: 15px;
+  line-height: 1.65;
+  color: color-mix(in oklab, var(--foreground) 90%, transparent);
+
+  & > * + * {
+    margin-top: 0.6em;
+  }
+
+  & h1,
+  & h2,
+  & h3 {
+    color: var(--foreground);
+    line-height: 1.25;
+    margin-top: 1.4em;
+  }
+
+  & h1 {
+    font-size: 1.9em;
+    font-weight: 300;
+    letter-spacing: -0.01em;
+  }
+
+  & h2 {
+    font-size: 1.4em;
+    font-weight: 500;
+  }
+
+  & h3 {
+    font-size: 1.15em;
+    font-weight: 600;
+  }
+
+  & > :first-child {
+    margin-top: 0;
+  }
+
+  & ul,
+  & ol {
+    padding-left: 1.5em;
+  }
+
+  & ul {
+    list-style: disc;
+  }
+
+  & ol {
+    list-style: decimal;
+  }
+
+  & li > p {
+    margin: 0;
+  }
+
+  & ul[data-type='taskList'] {
+    list-style: none;
+    padding-left: 0.2em;
+
+    & li {
+      display: flex;
+      gap: 0.6em;
+      align-items: flex-start;
+    }
+
+    & li > label {
+      margin-top: 0.3em;
+    }
+
+    & li > div {
+      flex: 1;
+    }
+
+    & li[data-checked='true'] > div {
+      color: color-mix(in oklab, var(--foreground) 45%, transparent);
+      text-decoration: line-through;
+    }
+
+    & input[type='checkbox'] {
+      width: 1em;
+      height: 1em;
+      accent-color: var(--now);
+      cursor: pointer;
+    }
+  }
+
+  & blockquote {
+    border-left: 2px solid
+      color-mix(in oklab, var(--foreground) 25%, transparent);
+    padding-left: 1em;
+    color: color-mix(in oklab, var(--foreground) 70%, transparent);
+  }
+
+  & code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  & pre {
+    padding: 0.9em 1.1em;
+    border-radius: 10px;
+    background: rgb(0 0 0 / 0.3);
+    overflow-x: auto;
+
+    & code {
+      padding: 0;
+      background: none;
+    }
+  }
+
+  & a {
+    color: var(--now);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  & hr {
+    border: none;
+    border-top: 1px solid rgb(255 255 255 / 0.12);
+    margin: 1.6em 0;
+  }
+
+  & p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+    color: color-mix(in oklab, var(--foreground) 35%, transparent);
+  }
+}

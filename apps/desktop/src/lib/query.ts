@@ -59,6 +59,7 @@ export const keys = {
   quarter: (monday: string) => ['review', 'quarter', monday] as const,
   rituals: ['rituals'] as const,
   workflow: ['workflow'] as const,
+  canvas: (projectId: number) => ['canvas', projectId] as const,
   recordPhases: (taskId: number) => ['recordPhases', taskId] as const,
   presets: ['presets'] as const,
   events: (from: string, to: string) => ['events', from, to] as const,

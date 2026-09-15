@@ -5,6 +5,7 @@ import type { Id, SavedView, Section, Task } from '@/bindings';
 import { EmptyState, Page, PageBody } from '@/components/page';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { ProjectCanvas } from '@/features/projects/ProjectCanvas';
 import { ProjectHeader } from '@/features/projects/ProjectHeader';
 import { ProjectSettingsDialog } from '@/features/projects/ProjectSettingsDialog';
 import { ProjectTimeline } from '@/features/projects/ProjectTimeline';
@@ -13,7 +14,11 @@ import { GraphView } from '@/features/workflow/GraphView';
 import { ViewEditor } from '@/features/workflow/ViewEditor';
 import { Workspace } from '@/features/workflow/Workspace';
 import { useWorkspaceView } from '@/features/workflow/use-workspace';
-import { setPreference, usePreference } from '@/lib/preferences';
+import {
+  type ProjectTab,
+  setPreference,
+  usePreference,
+} from '@/lib/preferences';
 import { cn } from '@/lib/utils';
 
 import {
@@ -27,6 +32,8 @@ import { useCreateSection, useSections, useTaskIndex, useTasks } from './api';
 import { TaskDnd } from './dnd';
 import { useTaskDialog } from './task-dialog-context';
 
+const PROJECT_TABS: ProjectTab[] = ['graph', 'timeline', 'canvas'];
+
 const topLevel = (tasks: Task[], sectionId: Id | null) =>
   tasks.filter(
     (task) =>
@@ -39,8 +46,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
   const { data: tasks, isPending } = useTasks();
   const taskIndex = useTaskIndex();
   const { newTask } = useTaskDialog();
-  const graphViews = usePreference('graphViews');
-  const timelineViews = usePreference('timelineViews');
+  const projectTabs = usePreference('projectTabs');
   const { data: allSections } = useSections();
   const index = useProjectIndex();
   const setView = useSetProjectView();
@@ -154,17 +160,17 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
           (held) => held.completedAt === null,
         )),
   );
-  const graphKey = String(projectId ?? 'inbox');
-  const graph = linked && (graphViews[graphKey] ?? false);
-  const timeline =
-    project !== undefined && !graph && (timelineViews[graphKey] ?? false);
-  const setSpecial = (id: string) => {
-    setPreference('graphViews', { ...graphViews, [graphKey]: id === 'graph' });
-    setPreference('timelineViews', {
-      ...timelineViews,
-      [graphKey]: id === 'timeline',
-    });
-  };
+  const tabKey = String(projectId ?? 'inbox');
+  const savedTab = projectTabs[tabKey];
+  const tab =
+    savedTab === 'graph'
+      ? linked
+        ? savedTab
+        : undefined
+      : project && savedTab;
+  const graph = tab === 'graph';
+  const setTab = (next: ProjectTab | undefined) =>
+    setPreference('projectTabs', { ...projectTabs, [tabKey]: next });
   const viewOptions = [
     ...(structured
       ? views.map((item) => ({ id: String(item.id), label: item.name }))
@@ -177,7 +183,12 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
           ? [{ id: 'list', label: 'List' }]
           : []),
     ...(linked ? [{ id: 'graph', label: 'Graph' }] : []),
-    ...(project ? [{ id: 'timeline', label: 'Timeline' }] : []),
+    ...(project
+      ? [
+          { id: 'timeline', label: 'Timeline' },
+          { id: 'canvas', label: 'Canvas' },
+        ]
+      : []),
   ];
 
   return (
@@ -187,17 +198,12 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
         openCount={openCount}
         views={viewOptions}
         view={
-          graph
-            ? 'graph'
-            : timeline
-              ? 'timeline'
-              : structured
-                ? String(view.id)
-                : (project?.view ?? 'list')
+          tab ? tab : structured ? String(view.id) : (project?.view ?? 'list')
         }
         onView={(id) => {
-          setSpecial(id);
-          if (id === 'graph' || id === 'timeline') return;
+          if (PROJECT_TABS.includes(id as ProjectTab))
+            return setTab(id as ProjectTab);
+          setTab(undefined);
           if (structured) choose(Number(id));
           else if (project)
             setView.mutate({ id: project.id, view: id as 'list' | 'board' });
@@ -205,7 +211,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
         onAddTask={() => newTask({ projectId })}
         onSettings={() => setEditing(true)}
         viewActions={
-          graph || timeline ? null : structured ? (
+          tab ? null : structured ? (
             <>
               {view.id > 0 && (
                 <Button
@@ -243,8 +249,10 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
 
       {graph ? (
         <GraphView projectId={projectId} own={own} />
-      ) : timeline && project ? (
+      ) : tab === 'timeline' && project ? (
         <ProjectTimeline project={project} own={own} />
+      ) : tab === 'canvas' && project ? (
+        <ProjectCanvas projectId={project.id} />
       ) : structured && project ? (
         <Workspace
           project={project}
