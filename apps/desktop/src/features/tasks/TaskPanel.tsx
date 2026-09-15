@@ -144,7 +144,7 @@ export function TaskPanel({
         rows={1}
         maxLength={500}
         className={cn(
-          'mt-4 field-sizing-content resize-none bg-transparent text-4xl leading-tight font-light text-balance outline-none',
+          'mt-4 field-sizing-content shrink-0 resize-none overflow-hidden bg-transparent text-4xl leading-tight font-light text-balance outline-none',
           done && 'text-foreground/50 line-through',
         )}
         onChange={(event) => setTitle(event.target.value.replace(/\n/g, ''))}
