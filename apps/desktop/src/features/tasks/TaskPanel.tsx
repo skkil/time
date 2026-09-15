@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import {
   CheckIcon,
+  ChevronRightIcon,
   EllipsisIcon,
   Link2Icon,
   PlayIcon,
@@ -88,7 +89,6 @@ export function TaskPanel({
   const { data: sections } = useSections();
   const { openTask } = useTaskDialog();
   const [title, setTitle] = useState(task.title);
-  const [notes, setNotes] = useState(task.notes);
   const [waiting, setWaiting] = useState(false);
   const done = task.completedAt !== null;
   const workflow = useProjectWorkflow(task.projectId);
@@ -176,13 +176,10 @@ export function TaskPanel({
             <p className="mt-1.5 text-lg font-light">{task.nextStep}</p>
           </div>
         )}
-        <textarea
-          value={notes}
-          aria-label="Notes"
-          placeholder={isRecord ? 'Notes for every phase' : 'Notes'}
-          className="field-sizing-content min-h-12 resize-none bg-transparent text-[15px] leading-relaxed text-foreground/80 outline-none placeholder:text-foreground/30"
-          onChange={(event) => setNotes(event.target.value)}
-          onBlur={() => notes !== task.notes && save({ notes })}
+        <Notes
+          saved={task.notes}
+          label={isRecord ? 'Notes for every phase' : 'Notes'}
+          onSave={(notes) => save({ notes })}
         />
         {isRecord ? (
           <PhasePager key={task.id} task={task} />
@@ -196,6 +193,52 @@ export function TaskPanel({
         finishable={task.kind !== 'event' && !isRecord}
         onToggleDone={() => complete.mutate({ id: task.id, completed: !done })}
       />
+    </div>
+  );
+}
+
+function Notes({
+  saved,
+  label,
+  onSave,
+}: {
+  saved: string;
+  label: string;
+  onSave: (notes: string) => void;
+}) {
+  const [notes, setNotes] = useState(saved);
+  const [open, setOpen] = useState(false);
+  const preview = notes.trim().split('\n')[0];
+
+  return (
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+        className="flex min-w-0 items-center gap-2 rounded-sm text-left text-[15px] leading-relaxed text-foreground/45 transition-colors outline-none hover:text-foreground/80 focus-visible:ring-2 focus-visible:ring-white/40"
+      >
+        <ChevronRightIcon
+          className={cn(
+            'size-3.5 shrink-0 transition-transform',
+            open && 'rotate-90',
+          )}
+        />
+        <span className="shrink-0">{label}</span>
+        {!open && preview && (
+          <span className="min-w-0 truncate text-foreground/60">{preview}</span>
+        )}
+      </button>
+      {open && (
+        <textarea
+          autoFocus
+          value={notes}
+          aria-label={label}
+          className="field-sizing-content min-h-12 resize-none bg-transparent pl-5.5 text-[15px] leading-relaxed text-foreground/80 outline-none"
+          onChange={(event) => setNotes(event.target.value)}
+          onBlur={() => notes !== saved && onSave(notes)}
+        />
+      )}
     </div>
   );
 }
