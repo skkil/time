@@ -137,6 +137,8 @@ cargo clippy --all-targets
   `PRAGMA user_version`. Never edit a shipped migration; add a new one.
 - The database is `<app data dir>/com.skkil.time/time.db`. Use a scratch
   `XDG_DATA_HOME` when testing so the real database is never touched.
+- `run()` sets `JSC_useJIT=0` on Linux: JavaScriptCore's JIT costs about 70 MB
+  of web process memory in use and a planner doesn't need its speed.
 
 ### Frontend (`src/`)
 

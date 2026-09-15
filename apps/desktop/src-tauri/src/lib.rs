@@ -147,6 +147,11 @@ fn export_bindings(builder: &Builder<tauri::Wry>) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(target_os = "linux")]
+    unsafe {
+        std::env::set_var("JSC_useJIT", "0");
+    }
+
     let builder = specta_builder();
 
     #[cfg(debug_assertions)]
