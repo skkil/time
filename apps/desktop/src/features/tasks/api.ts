@@ -57,6 +57,14 @@ export const EMPTY_TASK: TaskInput = {
   estimateMinutes: null,
 };
 
+export const stepInput = (parent: Task, title: string): TaskInput => ({
+  ...EMPTY_TASK,
+  title,
+  projectId: parent.projectId,
+  sectionId: parent.sectionId,
+  parentId: parent.id,
+});
+
 export const taskToInput = (task: Task): TaskInput => ({
   title: task.title,
   notes: task.notes,

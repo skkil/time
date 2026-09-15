@@ -52,7 +52,7 @@ import { Dependencies } from './Dependencies';
 import { Dot, Phrase } from './Phrase';
 import { AddStepForm, StepRow } from './StepRow';
 import {
-  EMPTY_TASK,
+  stepInput,
   taskToInput,
   useCreateTask,
   useDeleteTask,
@@ -359,15 +359,7 @@ function Steps({ task }: { task: Task }) {
       ))}
       <AddStepForm
         label="Add a step"
-        onAdd={(title) =>
-          create.mutate({
-            ...EMPTY_TASK,
-            title,
-            projectId: task.projectId,
-            sectionId: task.sectionId,
-            parentId: task.id,
-          })
-        }
+        onAdd={(title) => create.mutate(stepInput(task, title))}
       />
     </section>
   );

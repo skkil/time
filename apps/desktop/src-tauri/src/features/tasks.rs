@@ -675,6 +675,48 @@ mod tests {
     }
 
     #[test]
+    fn deep_subtasks_follow_every_ancestor() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let school = project(conn, "School")?;
+            let work = project(conn, "Work")?;
+            let root = create(conn, &input("Root", Some(school.id)))?;
+            let mut chain = vec![root.id];
+            for depth in 1..=8 {
+                let mut step = input(&format!("Level {depth}"), None);
+                step.parent_id = Some(*chain.last().unwrap());
+                chain.push(create(conn, &step)?.id);
+            }
+            let deepest = *chain.last().unwrap();
+            assert_eq!(get(conn, deepest)?.project_id, Some(school.id));
+
+            let mut cycle = input("Root", Some(school.id));
+            cycle.parent_id = Some(deepest);
+            assert!(update(conn, root.id, &cycle).is_err());
+
+            move_to(
+                conn,
+                root.id,
+                TaskPlacement {
+                    project_id: Some(work.id),
+                    section_id: None,
+                    parent_id: None,
+                    before: None,
+                },
+            )?;
+            assert_eq!(get(conn, deepest)?.project_id, Some(work.id));
+
+            set_completed(conn, root.id, true)?;
+            assert!(get(conn, deepest)?.completed_at.is_some());
+
+            delete(conn, root.id)?;
+            assert!(get(conn, deepest).is_err());
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
     fn subtasks_follow_parent_and_complete_with_it() {
         let db = Db::in_memory();
         db.call(|conn| {

@@ -12,25 +12,29 @@ import type { Task, TaskInput } from '@/bindings';
 import { cn } from '@/lib/utils';
 
 import { TaskItem } from './TaskItem';
-import { useMoveTask, useTaskIndex } from './api';
-import { type Container, containerKey, containerOf } from './container';
+import { useTaskIndex } from './api';
+import {
+  type Container,
+  MAX_INDENTED_DEPTH,
+  containerKey,
+  containerOf,
+} from './container';
 import { useTaskDialog } from './task-dialog-context';
 
 const open = (task: Task) => task.completedAt === null;
 
 function SortableTask({
   task,
-  previous,
   showPlacement,
   variant,
+  depth,
 }: {
   task: Task;
-  previous?: Task;
   showPlacement: boolean;
   variant: 'row' | 'card';
+  depth: number;
 }) {
   const index = useTaskIndex();
-  const move = useMoveTask();
   const [expanded, setExpanded] = useState(true);
   const {
     setNodeRef,
@@ -44,39 +48,6 @@ function SortableTask({
     data: { type: 'task', task },
   });
   const children = (index.children.get(task.id) ?? []).filter(open);
-  const parent =
-    task.parentId === null ? undefined : index.byId.get(task.parentId);
-
-  const indent = previous
-    ? () =>
-        move.mutate({
-          id: task.id,
-          placement: {
-            ...containerOf(task),
-            parentId: previous.id,
-            before: null,
-          },
-        })
-    : undefined;
-
-  const outdent = parent
-    ? () => {
-        const siblings = (
-          parent.parentId === null
-            ? []
-            : (index.children.get(parent.parentId) ?? [])
-        ).filter(open);
-        const after =
-          siblings[siblings.findIndex((t) => t.id === parent.id) + 1];
-        move.mutate({
-          id: task.id,
-          placement: {
-            ...containerOf(parent),
-            before: after?.id ?? null,
-          },
-        });
-      }
-    : undefined;
 
   return (
     <li
@@ -92,8 +63,6 @@ function SortableTask({
         variant={variant}
         expanded={expanded}
         onToggleExpanded={() => setExpanded((value) => !value)}
-        onIndent={indent}
-        onOutdent={outdent}
         dragging={isDragging}
         dragHandle={{
           attributes: attributes,
@@ -104,7 +73,8 @@ function SortableTask({
         <TaskList
           tasks={children}
           container={{ ...containerOf(task), parentId: task.id }}
-          className="ml-7"
+          depth={depth + 1}
+          className={cn(depth < MAX_INDENTED_DEPTH && 'ml-7')}
         />
       )}
     </li>
@@ -116,12 +86,14 @@ export function TaskList({
   container,
   showPlacement = false,
   variant = 'row',
+  depth = 0,
   className,
 }: {
   tasks: Task[];
   container: Container;
   showPlacement?: boolean;
   variant?: 'row' | 'card';
+  depth?: number;
   className?: string;
 }) {
   const key = containerKey(container);
@@ -144,13 +116,13 @@ export function TaskList({
           className,
         )}
       >
-        {tasks.map((task, i) => (
+        {tasks.map((task) => (
           <SortableTask
             key={task.id}
             task={task}
-            previous={tasks[i - 1]}
             showPlacement={showPlacement}
             variant={variant}
+            depth={depth}
           />
         ))}
       </ul>

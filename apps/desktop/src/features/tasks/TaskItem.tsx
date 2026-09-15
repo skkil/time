@@ -4,8 +4,6 @@ import {
   CalendarIcon,
   ChevronRightIcon,
   GripVerticalIcon,
-  IndentDecreaseIcon,
-  IndentIncreaseIcon,
   MoreHorizontalIcon,
   PencilIcon,
   PlayIcon,
@@ -57,8 +55,6 @@ export type TaskItemProps = {
   showParent?: boolean;
   expanded?: boolean;
   onToggleExpanded?: () => void;
-  onIndent?: () => void;
-  onOutdent?: () => void;
   dragHandle?: {
     attributes: DraggableAttributes;
     listeners: ReturnType<typeof useSortable>['listeners'];
@@ -73,8 +69,6 @@ export function TaskItem({
   showParent = false,
   expanded,
   onToggleExpanded,
-  onIndent,
-  onOutdent,
   dragHandle,
   dragging = false,
   variant = 'row',
@@ -309,18 +303,6 @@ export function TaskItem({
                 ))}
               </div>
               <DropdownMenuSeparator />
-              {onIndent && (
-                <DropdownMenuItem onSelect={onIndent}>
-                  <IndentIncreaseIcon />
-                  Make sub-task
-                </DropdownMenuItem>
-              )}
-              {onOutdent && (
-                <DropdownMenuItem onSelect={onOutdent}>
-                  <IndentDecreaseIcon />
-                  Move out of parent
-                </DropdownMenuItem>
-              )}
               <DropdownMenuItem onSelect={() => openTask(task.id)}>
                 <PencilIcon />
                 Edit task

@@ -32,7 +32,8 @@ memory in `.design/DESIGN.md`.
 - **Section** — ordered group inside a project (or the Inbox); deleting it
   deletes its tasks.
 - **Task** — Todoist-shaped: title, description (`notes`), project, section,
-  parent (sub-tasks inherit the parent's project/section), priority 1–4
+  parent (sub-tasks nest to any depth and inherit the parent's project/section;
+  completing, moving or deleting reaches every level), priority 1–4
   (1 = highest), due date + optional time, deadline, recurrence, duration
   (`estimate_minutes`), sibling `position`, `rollover_count` (bumped when a
   due task is pushed later), `someday`, `must_on` (≤3 musts per day) and a

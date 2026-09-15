@@ -9,6 +9,8 @@ export type Container = {
 export type DropData =
   { type: 'task'; task: Task } | { type: 'container'; container: Container };
 
+export const MAX_INDENTED_DEPTH = 6;
+
 export const containerKey = (container: Container) =>
   `c:${container.projectId}:${container.sectionId}:${container.parentId}`;
 
