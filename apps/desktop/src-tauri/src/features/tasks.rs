@@ -8,7 +8,7 @@ use super::{
 };
 use crate::db::Db;
 use crate::error::{Error, Result};
-use crate::recurrence::Rule;
+use crate::recurrence::Recurrence;
 use crate::types::{Date, Id, Seconds, Timestamp};
 
 const MAX_ESTIMATE_MINUTES: i32 = 24 * 60;
@@ -248,12 +248,12 @@ fn validate(conn: &Connection, moving: Option<Id>, input: &TaskInput) -> Result<
     let recurrence = match input.recurrence.as_deref().map(str::trim) {
         None | Some("") => None,
         Some(text) => {
-            let rule = Rule::parse(text)
+            let repeat = Recurrence::parse(text)
                 .ok_or_else(|| Error::invalid(format!("Can't repeat “{text}”.")))?;
             if input.due_date.is_none() {
                 return Err(Error::invalid("Repeating tasks need a date."));
             }
-            Some(rule.to_string())
+            Some(repeat.to_string())
         }
     };
     let container = resolve_container(
@@ -320,7 +320,17 @@ fn place(conn: &Connection, id: Id, container: Container, before: Option<Id>) ->
     Ok(())
 }
 
+fn on_first_occurrence(input: &TaskInput) -> TaskInput {
+    let mut input = input.clone();
+    if let Some(repeat) = input.recurrence.as_deref().and_then(Recurrence::parse) {
+        let first = repeat.first_date(input.due_date.map(|date| date.0), Date::today().0);
+        input.due_date = Some(Date(first));
+    }
+    input
+}
+
 pub fn create(conn: &mut Connection, input: &TaskInput) -> Result<Task> {
+    let input = &on_first_occurrence(input);
     let valid = validate(conn, None, input)?;
     let tx = conn.transaction()?;
     tx.execute(
@@ -431,15 +441,15 @@ pub fn set_completed(conn: &mut Connection, id: Id, completed: bool) -> Result<T
         ));
     }
     if completed
-        && let (Some(rule), Some(due)) = (
-            task.recurrence.as_deref().and_then(Rule::parse),
+        && let (Some(repeat), Some(due)) = (
+            task.recurrence.as_deref().and_then(Recurrence::parse),
             task.due_date,
         )
+        && let Some(next) = repeat.next_after(due.0, Date::today().0)
     {
-        let next = Date(rule.next_after(due.0, Date::today().0));
         conn.execute(
             "UPDATE task SET due_date = ?1 WHERE id = ?2",
-            params![next, id],
+            params![Date(next), id],
         )?;
         stop_timer_within(conn, id)?;
         return get(conn, id);
@@ -631,6 +641,7 @@ mod tests {
     use crate::features::projects::{self, ProjectInput};
     use crate::features::sections;
     use crate::types::date;
+    use chrono::Datelike;
 
     fn project(conn: &Connection, name: &str) -> Result<projects::Project> {
         projects::create(
@@ -672,13 +683,44 @@ mod tests {
             assert!(create(conn, &timed).is_err());
             let mut repeating = input("Run", None);
             repeating.recurrence = Some("every day".into());
-            assert!(create(conn, &repeating).is_err());
+            assert_eq!(create(conn, &repeating)?.due_date, Some(Date::today()));
             repeating.due_date = Some(date("2026-11-02"));
             repeating.recurrence = Some("Daily".into());
             assert_eq!(
                 create(conn, &repeating)?.recurrence.as_deref(),
                 Some("every day")
             );
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn a_new_repeat_starts_on_its_first_occurrence() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let mut task = input("Standup", None);
+            task.recurrence = Some("every mon".into());
+            task.due_time = Some(600);
+            let created = create(conn, &task)?;
+            let due = created.due_date.unwrap();
+            assert_eq!(due.0.weekday(), chrono::Weekday::Mon);
+            assert_eq!(created.due_time, Some(600));
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn a_repeat_closes_after_its_end_date() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let today = Date::today();
+            let mut task = input("Stretch", None);
+            task.due_date = Some(today);
+            task.recurrence = Some(format!("every day ending {today}"));
+            let task = create(conn, &task)?;
+            assert!(set_completed(conn, task.id, true)?.completed_at.is_some());
             Ok(())
         })
         .unwrap();

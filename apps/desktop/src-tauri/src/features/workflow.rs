@@ -6,7 +6,7 @@ use tauri::{Manager, State};
 use super::{ensure_changed, optional_text, projects, required_text, tasks};
 use crate::db::Db;
 use crate::error::{Error, Result};
-use crate::recurrence::Rule;
+use crate::recurrence::Recurrence;
 use crate::types::{Date, Id, Seconds, Timestamp};
 
 pub const CATEGORIES: [&str; 5] = ["backlog", "todo", "active", "done", "dropped"];
@@ -1168,7 +1168,7 @@ pub fn occurrences(conn: &Connection, from: Date, to: Date) -> Result<Vec<EventO
             location,
             counts,
         ) = row?;
-        let rule = recurrence.as_deref().and_then(Rule::parse);
+        let repeat = recurrence.as_deref().and_then(Recurrence::parse);
         let mut day = due;
         while day < to {
             if day >= from {
@@ -1184,8 +1184,8 @@ pub fn occurrences(conn: &Connection, from: Date, to: Date) -> Result<Vec<EventO
                     counts_as_time: counts,
                 });
             }
-            match &rule {
-                Some(rule) => day = Date(rule.step(day.0)),
+            match repeat.as_ref().and_then(|repeat| repeat.following(day.0)) {
+                Some(next) => day = Date(next),
                 None => break,
             }
         }
