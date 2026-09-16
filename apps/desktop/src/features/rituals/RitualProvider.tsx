@@ -1,6 +1,7 @@
 import { type ReactNode, Suspense, lazy, useCallback, useState } from 'react';
 
 import { type Id, type Ritual, type RitualRun, commands } from '@/bindings';
+import { useOnNavigate } from '@/hooks/use-on-navigate';
 
 import { useRunActions } from './api';
 import type { RitualKind } from './meta';
@@ -15,6 +16,7 @@ const ZenOverlay = lazy(() =>
 export function RitualProvider({ children }: { children: ReactNode }) {
   const [active, setActive] = useState<Active | null>(null);
   const actions = useRunActions();
+  useOnNavigate(() => setActive(null));
 
   const open = useCallback(
     async (kind: RitualKind, taskId: Id | null = null) => {

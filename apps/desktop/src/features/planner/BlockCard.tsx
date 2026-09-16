@@ -22,8 +22,10 @@ import {
   PopoverContent,
 } from '@/components/ui/popover';
 import { ProjectDot } from '@/features/projects/ProjectDot';
+import { ProjectLink } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
 import { projectPath } from '@/features/projects/tree';
+import { TaskLink } from '@/features/tasks/TaskLink';
 import { useSetTaskCompleted } from '@/features/tasks/api';
 import { priorityTint } from '@/features/tasks/meta';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
@@ -183,17 +185,25 @@ export function BlockCard({
       <PopoverContent side="right" align="start" className="w-72">
         <div className="grid gap-3">
           <div>
-            <p className="leading-snug font-medium">{block.title}</p>
+            <TaskLink
+              taskId={block.taskId}
+              className="leading-snug font-medium"
+            >
+              {block.title}
+            </TaskLink>
             <p className="mt-1 text-xs text-muted-foreground">
               {formatMinutesOfDay(start)}–
               {formatMinutesOfDay(end % DAY_MINUTES)} ·{' '}
               {formatDuration(minutes * 60)}
             </p>
             {project && (
-              <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <ProjectLink
+                projectId={project.id}
+                className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground"
+              >
                 <ProjectDot color={project.color} />
                 {projectPath(index, project.id)}
-              </p>
+              </ProjectLink>
             )}
           </div>
           <div className="grid grid-cols-2 gap-1.5">

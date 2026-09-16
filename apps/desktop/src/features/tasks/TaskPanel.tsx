@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ProjectDot } from '@/features/projects/ProjectDot';
+import { ProjectJump } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
 import { PhasePager } from '@/features/records/PhasePager';
 import { OutcomePicker } from '@/features/review/OutcomePicker';
@@ -122,6 +123,10 @@ export function TaskPanel({
               )}
             </Phrase>
           }
+        />
+        <ProjectJump
+          projectId={task.projectId}
+          name={project?.name ?? 'Inbox'}
         />
         {parent && (
           <>

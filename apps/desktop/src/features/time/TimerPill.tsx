@@ -1,18 +1,47 @@
 import { Link } from '@tanstack/react-router';
 import { SquareIcon } from 'lucide-react';
 
+import type { Id } from '@/bindings';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { ProjectLink } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
+import { TaskLink } from '@/features/tasks/TaskLink';
 import { useTaskIndex } from '@/features/tasks/api';
 import { useNow } from '@/hooks/use-now';
 import { formatStopwatch, todayKey, weekStartOf } from '@/lib/time';
 
 import { useStopTimer, useTimer } from './api';
+
+const SUBJECT = 'ml-2 block max-w-40 truncate text-xs text-foreground/60';
+
+function TimerSubject({
+  label,
+  taskId,
+  projectId,
+}: {
+  label: string;
+  taskId?: Id;
+  projectId?: Id;
+}) {
+  if (taskId !== undefined)
+    return (
+      <TaskLink taskId={taskId} className={SUBJECT}>
+        {label}
+      </TaskLink>
+    );
+  if (projectId !== undefined)
+    return (
+      <ProjectLink projectId={projectId} className={SUBJECT}>
+        {label}
+      </ProjectLink>
+    );
+  return <span className={SUBJECT}>{label}</span>;
+}
 
 export function TimerPill() {
   const { data: timer } = useTimer();
@@ -35,10 +64,12 @@ export function TimerPill() {
         <span className="font-semibold">
           {formatStopwatch(now - timer.startedAt)}
         </span>
-        <span className="max-w-40 truncate text-foreground/60">
-          {task?.title || timer.description || project?.name || 'Timer'}
-        </span>
       </Link>
+      <TimerSubject
+        label={task?.title || timer.description || project?.name || 'Timer'}
+        taskId={task?.id}
+        projectId={project?.id}
+      />
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

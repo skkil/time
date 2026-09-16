@@ -5,6 +5,7 @@ import { SectionTitle } from '@/components/page';
 import { Button } from '@/components/ui/button';
 import { Leftovers } from '@/features/day/Leftovers';
 import { ProjectDot } from '@/features/projects/ProjectDot';
+import { ProjectLink } from '@/features/projects/ProjectLink';
 import {
   isDueForReview,
   settingsOf,
@@ -122,10 +123,13 @@ function ProjectCheck({
   return (
     <li className="grid gap-2 px-3 py-2.5">
       <div className="flex items-center gap-2">
-        <ProjectDot color={project.color} />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium">
-          {project.name}
-        </span>
+        <ProjectLink
+          projectId={project.id}
+          className="flex flex-1 items-center gap-2 truncate text-sm font-medium"
+        >
+          <ProjectDot color={project.color} />
+          <span className="truncate">{project.name}</span>
+        </ProjectLink>
         <span className="text-xs text-muted-foreground">{openTasks} open</span>
       </div>
       <div className="flex flex-wrap items-center gap-1">

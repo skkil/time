@@ -19,8 +19,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { ProjectJump } from '@/features/projects/ProjectLink';
 import { ProjectPicker } from '@/features/projects/ProjectPicker';
+import { useProjectIndex } from '@/features/projects/api';
+import { TaskJump } from '@/features/tasks/TaskLink';
 import { TaskPicker } from '@/features/tasks/TaskPicker';
+import { useTaskIndex } from '@/features/tasks/api';
 import {
   type DateKey,
   atMinutes,
@@ -88,6 +92,14 @@ function EntryForm({
   const [details, setDetails] = useState<EntryDetails>(
     entry ?? { description: '', projectId: null, taskId: null },
   );
+  const projects = useProjectIndex();
+  const tasks = useTaskIndex();
+  const project =
+    details.projectId === null
+      ? undefined
+      : projects.byId.get(details.projectId);
+  const task =
+    details.taskId === null ? undefined : tasks.byId.get(details.taskId);
   const [day, setDay] = useState(initialDay);
   const [dayOpen, setDayOpen] = useState(false);
   const [startText, setStartText] = useState(
@@ -150,6 +162,7 @@ function EntryForm({
             setDetails({ ...details, projectId, taskId: null })
           }
         />
+        {project && <ProjectJump projectId={project.id} name={project.name} />}
         <TaskPicker
           value={details.taskId}
           onChange={(task) =>
@@ -164,6 +177,7 @@ function EntryForm({
             )
           }
         />
+        {task && <TaskJump taskId={task.id} name={task.title} />}
       </div>
 
       <div className="grid grid-cols-[1fr_auto_auto] items-end gap-3">

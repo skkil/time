@@ -7,6 +7,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useOnNavigate } from '@/hooks/use-on-navigate';
 
 import { TaskPanel } from './TaskPanel';
 import { useTaskIndex } from './api';
@@ -30,6 +31,7 @@ export function TaskDialogProvider({ children }: { children: ReactNode }) {
   );
   const api = useMemo(() => ({ openTask, newTask }), [openTask, newTask]);
   const close = () => setState({ mode: 'closed' });
+  useOnNavigate(close);
   const task = state.mode === 'edit' ? tasks.byId.get(state.id) : undefined;
 
   return (

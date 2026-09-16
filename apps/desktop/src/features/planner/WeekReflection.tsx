@@ -6,6 +6,7 @@ import type { Id, Outcome } from '@/bindings';
 import { HabitsSheet } from '@/features/habits/HabitsSheet';
 import { dayLookup, useHabitDays, useHabits } from '@/features/habits/api';
 import { ProjectDot } from '@/features/projects/ProjectDot';
+import { ProjectLink } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
 import { rootOf } from '@/features/projects/tree';
 import { useDays, useWeek, useWeeks } from '@/features/review/api';
@@ -259,8 +260,13 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
           <ul className="grid gap-1.5 text-sm">
             {projects.top.map((item) => (
               <li key={item.id ?? 'none'} className="flex items-center gap-2">
-                <ProjectDot color={item.color} />
-                <span className="flex-1 truncate">{item.name}</span>
+                <ProjectLink
+                  projectId={item.id}
+                  className="flex flex-1 items-center gap-2 truncate"
+                >
+                  <ProjectDot color={item.color} />
+                  <span className="truncate">{item.name}</span>
+                </ProjectLink>
                 <span className="text-foreground/60 tabular-nums">
                   {formatHours(item.seconds)} h
                 </span>
@@ -292,7 +298,13 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
               .filter((habit) => habit.due > 0)
               .map((habit) => (
                 <li key={habit.id} className="flex items-center gap-2">
-                  <span className="flex-1 truncate">{habit.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setHabitsOpen(true)}
+                    className="min-w-0 flex-1 truncate text-left underline-offset-2 hover:underline"
+                  >
+                    {habit.name}
+                  </button>
                   <span className="text-foreground/60 tabular-nums">
                     {habit.done} of {habit.due}
                   </span>

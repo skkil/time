@@ -158,6 +158,11 @@ cargo clippy --all-targets
 - Keyboard shortcuts go through `useShortcuts` (`src/lib/shortcuts.ts`);
   per-device UI preferences through `src/lib/preferences.ts`. New settings are a
   section in `features/settings/SettingsDialog.tsx` built from `SettingRow`.
+- Any task or project on screen links to its own view: `TaskLink`/`TaskJump` in
+  `features/tasks/TaskLink.tsx`, `ProjectLink`/`ProjectJump` in
+  `features/projects/ProjectLink.tsx`. Use the Jump icon where the name is
+  already a picker or toggle. `useOnNavigate` closes the task window and any
+  ritual when a link changes the route; a ritual keeps its progress.
 - Imports use `@/` instead of parent-relative `../` (enforced by ESLint).
 - Routes: `/?view=day|week&week=` (`week` is a Monday date key), `/projects`,
   `/projects/someday`, `/projects/$projectId`, `/projects/groups/$groupId`,

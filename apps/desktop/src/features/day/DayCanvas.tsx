@@ -19,12 +19,14 @@ import {
 } from '@/components/ui/dialog';
 import { HabitDots } from '@/features/habits/HabitDots';
 import { ProjectDot } from '@/features/projects/ProjectDot';
+import { ProjectJump, ProjectLink } from '@/features/projects/ProjectLink';
 import { ProjectPicker } from '@/features/projects/ProjectPicker';
 import { useProjectIndex } from '@/features/projects/api';
 import { projectColorVar } from '@/features/projects/tree';
 import { useRitualRuns, useRituals } from '@/features/rituals/api';
 import { STEPS } from '@/features/rituals/meta';
 import { useRitualRunner } from '@/features/rituals/runner-context';
+import { TaskJump } from '@/features/tasks/TaskLink';
 import { TaskPanel } from '@/features/tasks/TaskPanel';
 import { TaskPicker } from '@/features/tasks/TaskPicker';
 import { useTaskIndex } from '@/features/tasks/api';
@@ -490,10 +492,10 @@ function Thread({
                       </>
                     )}
                   </span>
-                  <span className="grid min-w-0 gap-0.5">
+                  <span className="min-w-0">
                     <span
                       className={cn(
-                        'truncate text-[15px] transition-colors duration-500',
+                        'block truncate text-[15px] transition-colors duration-500',
                         moment.done &&
                           (moment.kind === 'checkout'
                             ? 'text-foreground/50'
@@ -509,19 +511,22 @@ function Thread({
                     >
                       {moment.title}
                     </span>
-                    <span className="flex items-center gap-2 text-xs text-foreground/50">
-                      {moment.kind === 'checkout'
-                        ? formatClockTime(moment.start)
-                        : `${formatClockTime(moment.start)} – ${formatClockTime(moment.end)}`}
-                      {project && (
-                        <>
-                          <ProjectDot color={project.color} />
-                          <span className="truncate">{project.name}</span>
-                        </>
-                      )}
-                    </span>
                   </span>
                 </button>
+                <p className="flex items-center gap-2 pl-7 text-xs text-foreground/50">
+                  {moment.kind === 'checkout'
+                    ? formatClockTime(moment.start)
+                    : `${formatClockTime(moment.start)} – ${formatClockTime(moment.end)}`}
+                  {project && (
+                    <ProjectLink
+                      projectId={project.id}
+                      className="flex items-center gap-2"
+                    >
+                      <ProjectDot color={project.color} />
+                      <span className="truncate">{project.name}</span>
+                    </ProjectLink>
+                  )}
+                </p>
               </li>
             );
           })}
@@ -736,7 +741,7 @@ function FreeFocus() {
 
       <dl className="mt-10 grid max-w-md grid-cols-[88px_minmax(0,1fr)] items-center gap-x-4 gap-y-3 text-sm">
         <dt className="text-foreground/45">Task</dt>
-        <dd>
+        <dd className="flex min-w-0 items-center gap-2">
           <TaskPicker
             value={timer.taskId}
             onChange={(picked) =>
@@ -757,9 +762,10 @@ function FreeFocus() {
               </button>
             }
           />
+          {task && <TaskJump taskId={task.id} name={task.title} />}
         </dd>
         <dt className="text-foreground/45">Project</dt>
-        <dd>
+        <dd className="flex min-w-0 items-center gap-2">
           <ProjectPicker
             value={timer.projectId}
             onChange={(projectId) =>
@@ -776,6 +782,9 @@ function FreeFocus() {
               </button>
             }
           />
+          {project && (
+            <ProjectJump projectId={project.id} name={project.name} />
+          )}
         </dd>
         <dt className="text-foreground/45">Started</dt>
         <dd className="text-foreground/75 tabular-nums">

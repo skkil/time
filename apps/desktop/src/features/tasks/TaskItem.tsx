@@ -27,6 +27,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { ProjectLink } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
 import { useStartTimer, useTimer } from '@/features/time/api';
 import { TypeIcon } from '@/features/workflow/TypeIcon';
@@ -35,6 +36,7 @@ import { formatDuration, formatEstimate, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 import { PriorityCheck } from './PriorityCheck';
+import { TaskLink } from './TaskLink';
 import {
   taskToInput,
   useDeleteTask,
@@ -173,51 +175,66 @@ export function TaskItem({
         />
       )}
 
-      <button
-        type="button"
-        onClick={() => openTask(task.id)}
-        className="min-w-0 flex-1 rounded-sm text-left outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
-      >
-        <span
-          className={cn(
-            'flex items-start gap-1.5 text-[15px] leading-5 break-words',
-            done && 'text-foreground/40 line-through',
-            waitingOn.length > 0 && 'text-foreground/60',
-          )}
+      <div className="min-w-0 flex-1">
+        <button
+          type="button"
+          onClick={() => openTask(task.id)}
+          className="block w-full min-w-0 rounded-sm text-left outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
         >
-          {type && (
-            <TypeIcon
-              icon={type.icon}
-              className="mt-[3px] text-foreground/50"
-            />
-          )}
-          <span className="min-w-0">{task.title}</span>
-        </span>
-        <span className="mt-0.5 block truncate text-xs text-foreground/45 empty:hidden">
-          {[
-            waitingOn.length === 1 &&
-              `waiting on ${firstBlocker?.title ?? 'another task'}`,
-            waitingOn.length > 1 && `waiting on ${waitingOn.length} tasks`,
-            status && variant === 'row' && status.name,
-            task.dueDate &&
-              `${formatDue(task, today)}${task.recurrence ? `, ${task.recurrence}` : ''}`,
-            task.deadline && `due by ${formatDate(task.deadline, today)}`,
-            task.estimateMinutes !== null &&
-              `about ${formatEstimate(task.estimateMinutes)}`,
-            task.trackedSeconds > 0 &&
-              `${formatDuration(task.trackedSeconds)} spent`,
-            children.length > 0 && `${finished} of ${children.length} steps`,
-            task.priority < 4 && `priority ${task.priority}`,
-            !done && task.rolloverCount >= 2 && `moved ${task.rolloverCount}×`,
-            showParent && parent && `in ${parent.title}`,
-            showPlacement &&
-              variant === 'row' &&
-              `${project?.name ?? 'Inbox'}${section ? ` / ${section.name}` : ''}`,
-          ]
-            .filter(Boolean)
-            .join(' · ')}
-        </span>
-      </button>
+          <span
+            className={cn(
+              'flex items-start gap-1.5 text-[15px] leading-5 break-words',
+              done && 'text-foreground/40 line-through',
+              waitingOn.length > 0 && 'text-foreground/60',
+            )}
+          >
+            {type && (
+              <TypeIcon
+                icon={type.icon}
+                className="mt-[3px] text-foreground/50"
+              />
+            )}
+            <span className="min-w-0">{task.title}</span>
+          </span>
+          <span className="mt-0.5 block truncate text-xs text-foreground/45 empty:hidden">
+            {[
+              waitingOn.length === 1 &&
+                `waiting on ${firstBlocker?.title ?? 'another task'}`,
+              waitingOn.length > 1 && `waiting on ${waitingOn.length} tasks`,
+              status && variant === 'row' && status.name,
+              task.dueDate &&
+                `${formatDue(task, today)}${task.recurrence ? `, ${task.recurrence}` : ''}`,
+              task.deadline && `due by ${formatDate(task.deadline, today)}`,
+              task.estimateMinutes !== null &&
+                `about ${formatEstimate(task.estimateMinutes)}`,
+              task.trackedSeconds > 0 &&
+                `${formatDuration(task.trackedSeconds)} spent`,
+              children.length > 0 && `${finished} of ${children.length} steps`,
+              task.priority < 4 && `priority ${task.priority}`,
+              !done &&
+                task.rolloverCount >= 2 &&
+                `moved ${task.rolloverCount}×`,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </span>
+        </button>
+        {((showParent && parent) || (showPlacement && variant === 'row')) && (
+          <p className="flex min-w-0 gap-1.5 text-xs text-foreground/45">
+            {showParent && parent && (
+              <TaskLink taskId={parent.id} className="truncate">
+                in {parent.title}
+              </TaskLink>
+            )}
+            {showPlacement && variant === 'row' && (
+              <ProjectLink projectId={task.projectId} className="truncate">
+                {project?.name ?? 'Inbox'}
+                {section && ` / ${section.name}`}
+              </ProjectLink>
+            )}
+          </p>
+        )}
+      </div>
 
       {!done && task.kind !== 'event' && (
         <div

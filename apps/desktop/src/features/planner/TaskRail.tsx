@@ -32,6 +32,7 @@ export function DraggableTask({
   className?: string;
 }) {
   const index = useProjectIndex();
+  const { openTask } = useTaskDialog();
   const project =
     task.projectId === null ? undefined : index.byId.get(task.projectId);
   const today = todayKey();
@@ -45,7 +46,8 @@ export function DraggableTask({
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      aria-label={`Drag ${task.title} onto the week`}
+      aria-label={`Open ${task.title}, or drag it onto the week`}
+      onClick={() => openTask(task.id)}
       className={cn(
         'group/rail flex min-w-0 cursor-grab touch-none items-start gap-2 rounded-md border bg-card px-2.5 py-2 text-sm outline-none select-none hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing',
         isDragging && 'opacity-40',

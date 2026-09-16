@@ -1,7 +1,9 @@
 import type { Task } from '@/bindings';
 import { Button } from '@/components/ui/button';
 import { ProjectDot } from '@/features/projects/ProjectDot';
+import { ProjectLink } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
+import { TaskLink } from '@/features/tasks/TaskLink';
 import {
   useDeleteTasks,
   useRescheduleTasks,
@@ -49,10 +51,17 @@ export function Leftovers({
           return (
             <li key={task.id} className="flex items-center gap-3 px-3 py-2">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm">{task.title}</p>
+                <TaskLink taskId={task.id} className="block truncate text-sm">
+                  {task.title}
+                </TaskLink>
                 <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <ProjectDot color={project?.color} />
-                  {project?.name ?? 'Inbox'}
+                  <ProjectLink
+                    projectId={task.projectId}
+                    className="flex items-center gap-2"
+                  >
+                    <ProjectDot color={project?.color} />
+                    {project?.name ?? 'Inbox'}
+                  </ProjectLink>
                   {task.dueDate && (
                     <span>· {formatDate(task.dueDate, today)}</span>
                   )}

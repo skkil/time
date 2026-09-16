@@ -17,8 +17,10 @@ import {
 } from '@/features/habits/api';
 import { useBlocks, useCreateBlock } from '@/features/planner/api';
 import { ProjectDot } from '@/features/projects/ProjectDot';
+import { ProjectLink } from '@/features/projects/ProjectLink';
 import { useProjectIndex, useProjects } from '@/features/projects/api';
 import { useDays, useRateDay, useSaveDayNote } from '@/features/review/api';
+import { TaskJump, TaskLink } from '@/features/tasks/TaskLink';
 import {
   EMPTY_TASK,
   useCreateTask,
@@ -168,7 +170,9 @@ function WhatMovedStep({ ctx }: { ctx: RitualContext }) {
             return (
               <li key={task.id} className="flex items-center gap-2 text-sm">
                 <CheckIcon className="size-4 text-due-today" />
-                <span className="min-w-0 flex-1 truncate">{task.title}</span>
+                <TaskLink taskId={task.id} className="flex-1 truncate">
+                  {task.title}
+                </TaskLink>
                 <ProjectDot color={project?.color} />
               </li>
             );
@@ -185,7 +189,13 @@ function WhatMovedStep({ ctx }: { ctx: RitualContext }) {
               return (
                 <li key={projectId ?? 0} className="flex items-center gap-1.5">
                   <ProjectDot color={project?.color} />
-                  {project?.name ?? 'No project'}{' '}
+                  {project ? (
+                    <ProjectLink projectId={project.id}>
+                      {project.name}
+                    </ProjectLink>
+                  ) : (
+                    'No project'
+                  )}{' '}
                   <span className="text-foreground">
                     {formatDuration(seconds)}
                   </span>
@@ -265,7 +275,7 @@ function PickMustsStep({ ctx }: { ctx: RitualContext }) {
                 ? undefined
                 : index.byId.get(task.projectId);
             return (
-              <li key={task.id}>
+              <li key={task.id} className="flex items-center gap-2">
                 <button
                   type="button"
                   disabled={full}
@@ -298,6 +308,7 @@ function PickMustsStep({ ctx }: { ctx: RitualContext }) {
                     <ProjectDot color={project?.color} />
                   </span>
                 </button>
+                <TaskJump taskId={task.id} name={task.title} />
               </li>
             );
           })}
@@ -345,7 +356,9 @@ function TimeblockStep({ ctx }: { ctx: RitualContext }) {
             key={task.id}
             className="grid gap-2 rounded-md border bg-card p-3"
           >
-            <p className="text-sm font-medium">{task.title}</p>
+            <TaskLink taskId={task.id} className="text-sm font-medium">
+              {task.title}
+            </TaskLink>
             <div className="flex flex-wrap gap-1.5">
               {SLOTS.map((minute) => (
                 <Button
@@ -378,7 +391,12 @@ function TimeblockStep({ ctx }: { ctx: RitualContext }) {
               <span className="w-24 shrink-0">
                 {formatClockTime(block.startAt)}–{formatClockTime(block.endAt)}
               </span>
-              <span className="truncate text-foreground">{block.title}</span>
+              <TaskLink
+                taskId={block.taskId}
+                className="truncate text-foreground"
+              >
+                {block.title}
+              </TaskLink>
             </li>
           ))}
         </ul>

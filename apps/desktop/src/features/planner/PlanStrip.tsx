@@ -6,6 +6,7 @@ import { HabitsSheet } from '@/features/habits/HabitsSheet';
 import { useHabitDays, useHabits } from '@/features/habits/api';
 import { dayLookup } from '@/features/habits/api';
 import { ProjectDot } from '@/features/projects/ProjectDot';
+import { ProjectLink } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
 import { descendantIds } from '@/features/projects/tree';
 import {
@@ -349,8 +350,13 @@ function ProjectHours({ start }: { start: DateKey }) {
         {rows.map(({ project, target, tracked, planned }) => (
           <li key={project.id} className="grid gap-1.5 text-sm">
             <span className="flex items-center gap-2">
-              <ProjectDot color={project.color} />
-              <span className="min-w-0 flex-1 truncate">{project.name}</span>
+              <ProjectLink
+                projectId={project.id}
+                className="flex flex-1 items-center gap-2 truncate"
+              >
+                <ProjectDot color={project.color} />
+                <span className="truncate">{project.name}</span>
+              </ProjectLink>
               <span className="text-xs text-foreground/55 tabular-nums">
                 {formatHours(tracked)} / {formatHours(target)} h
               </span>

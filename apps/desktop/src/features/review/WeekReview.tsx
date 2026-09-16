@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { TaskLink } from '@/features/tasks/TaskLink';
 import { useSetTaskOutcome, useTasks } from '@/features/tasks/api';
 import { FELT_LABELS } from '@/lib/felt';
 import {
@@ -359,7 +360,9 @@ function AlsoFinished({ week, outcomes }: { week: Week; outcomes: Outcome[] }) {
             key={task.id}
             className="flex items-center gap-3 px-4 py-2 text-sm"
           >
-            <span className="min-w-0 flex-1 truncate">{task.title}</span>
+            <TaskLink taskId={task.id} className="flex-1 truncate">
+              {task.title}
+            </TaskLink>
             {outcomes.length > 0 && (
               <OutcomePicker
                 value={null}
