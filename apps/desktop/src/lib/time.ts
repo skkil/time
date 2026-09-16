@@ -53,6 +53,17 @@ export const fromSeconds = (seconds: number) => new Date(seconds * 1000);
 
 export const dayStart = (key: DateKey) => toSeconds(fromDateKey(key));
 
+export const secondsWithin = (
+  entry: { startedAt: number; endedAt: number },
+  from: DateKey,
+  to: DateKey,
+) =>
+  Math.max(
+    0,
+    Math.min(entry.endedAt, dayStart(to)) -
+      Math.max(entry.startedAt, dayStart(from)),
+  );
+
 export const dateKeyOf = (seconds: number): DateKey =>
   toDateKey(fromSeconds(seconds));
 

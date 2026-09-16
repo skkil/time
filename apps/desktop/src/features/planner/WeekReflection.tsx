@@ -22,6 +22,7 @@ import {
   formatWeekday,
   isoWeekNumber,
   mondayOf,
+  secondsWithin,
   shiftKey,
   todayKey,
   weekKeys,
@@ -167,7 +168,7 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
           : (rootOf(index, entry.projectId)?.id ?? null);
       totals.set(
         root,
-        (totals.get(root) ?? 0) + entry.endedAt - entry.startedAt,
+        (totals.get(root) ?? 0) + secondsWithin(entry, start, end),
       );
     }
     const sorted = [...totals.entries()]
@@ -184,7 +185,7 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
       top: sorted.slice(0, 4),
       rest: sorted.slice(4).reduce((sum, item) => sum + item.seconds, 0),
     };
-  }, [entries, index]);
+  }, [entries, index, start, end]);
 
   const habitTotals = habits.map((habit) => {
     const results = weekKeys(start).map((day) => lookup(habit.id, day));

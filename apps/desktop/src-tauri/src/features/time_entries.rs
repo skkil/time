@@ -115,7 +115,7 @@ fn validate_span(started_at: Timestamp, ended_at: Timestamp) -> Result<()> {
 
 pub fn list(conn: &Connection, from: Date, to: Date) -> Result<Vec<TimeEntry>> {
     let mut stmt = conn.prepare(&format!(
-        "{SELECT} WHERE started_at >= ?1 AND started_at < ?2 ORDER BY started_at DESC"
+        "{SELECT} WHERE started_at < ?2 AND ended_at > ?1 ORDER BY started_at DESC"
     ))?;
     let rows = stmt.query_map(params![from.start(), to.start()], from_row)?;
     Ok(rows.collect::<rusqlite::Result<_>>()?)
@@ -251,6 +251,18 @@ pub fn stop(conn: &Connection) -> Result<Option<TimeEntry>> {
     Ok(entry)
 }
 
+pub fn stop_for(conn: &Connection, tasks: &[Id]) -> Result<()> {
+    let tracking = running(conn)?.is_some_and(|current| {
+        current
+            .task_id
+            .is_some_and(|task_id| tasks.contains(&task_id))
+    });
+    if tracking {
+        stop(conn)?;
+    }
+    Ok(())
+}
+
 pub fn discard(conn: &Connection) -> Result<()> {
     clear_running(conn)
 }
@@ -367,6 +379,56 @@ mod tests {
             };
             assert!(create(conn, &backwards).is_err());
             assert!(create(conn, &future).is_err());
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn an_entry_shows_on_every_day_it_spans() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let today = Date::today();
+            let midnight = today.add_days(-1).start().0;
+            create(
+                conn,
+                &EntryInput {
+                    details: details("late night", None),
+                    started_at: Timestamp(midnight - 3600),
+                    ended_at: Timestamp(midnight + 3600),
+                },
+            )?;
+            assert_eq!(list(conn, today.add_days(-2), today.add_days(-1))?.len(), 1);
+            assert_eq!(list(conn, today.add_days(-1), today)?.len(), 1);
+            assert!(list(conn, today, today.add_days(1))?.is_empty());
+            assert!(list(conn, today.add_days(-3), today.add_days(-2))?.is_empty());
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn finishing_a_task_stops_the_timer_tracking_it() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let parent = tasks::create(conn, &tasks::input("Report", None))?;
+            let mut child = tasks::input("Outline", None);
+            child.parent_id = Some(parent.id);
+            let child = tasks::create(conn, &child)?;
+            let other = tasks::create(conn, &tasks::input("Email", None))?;
+            let earlier = Timestamp(Timestamp::now().0 - 600);
+
+            start(conn, &details("", Some(other.id)))?;
+            tasks::set_completed(conn, parent.id, true)?;
+            assert!(running(conn)?.is_some());
+
+            start(conn, &details("", Some(child.id)))?;
+            conn.execute("UPDATE running_timer SET started_at = ?1", params![earlier])?;
+            tasks::set_completed(conn, parent.id, false)?;
+            assert!(running(conn)?.is_some());
+            tasks::set_completed(conn, parent.id, true)?;
+            assert!(running(conn)?.is_none());
+            assert!(tasks::get(conn, child.id)?.tracked_seconds.0 >= 600);
             Ok(())
         })
         .unwrap();

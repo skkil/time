@@ -123,6 +123,8 @@ function useWorkflowMutation<T, R = unknown>(run: (vars: T) => Promise<R>) {
         client.invalidateQueries({ queryKey: keys.tasks }),
         client.invalidateQueries({ queryKey: keys.allEvents }),
         client.invalidateQueries({ queryKey: keys.review }),
+        client.invalidateQueries({ queryKey: keys.timer }),
+        client.invalidateQueries({ queryKey: keys.allEntries }),
       ]),
   });
 }

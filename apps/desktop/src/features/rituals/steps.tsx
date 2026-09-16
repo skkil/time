@@ -39,6 +39,7 @@ import {
   formatEstimate,
   formatMinutesOfDay,
   mondayOf,
+  secondsWithin,
   shiftKey,
   todayKey,
 } from '@/lib/time';
@@ -145,7 +146,8 @@ function WhatMovedStep({ ctx }: { ctx: RitualContext }) {
   for (const entry of entries ?? [])
     byProject.set(
       entry.projectId,
-      (byProject.get(entry.projectId) ?? 0) + entry.endedAt - entry.startedAt,
+      (byProject.get(entry.projectId) ?? 0) +
+        secondsWithin(entry, ctx.date, shiftKey(ctx.date, 1)),
     );
   const total = [...byProject.values()].reduce((sum, value) => sum + value, 0);
 

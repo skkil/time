@@ -1077,6 +1077,7 @@ pub fn set_task_status(conn: &mut Connection, id: Id, status_id: Id) -> Result<t
                SELECT id FROM down)",
             params![now, id],
         )?;
+        tasks::stop_timer_within(&tx, id)?;
     } else if !closing {
         tx.execute(
             "UPDATE task SET completed_at = NULL WHERE id = ?1",

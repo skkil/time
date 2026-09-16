@@ -210,7 +210,12 @@ export function useSetTaskCompleted() {
       return { previous };
     },
     onError: (_error, _vars, context) => cache.restore(context?.previous),
-    onSettled: () => cache.refresh(),
+    onSettled: () =>
+      Promise.all([
+        cache.refresh(),
+        cache.client.invalidateQueries({ queryKey: keys.timer }),
+        cache.client.invalidateQueries({ queryKey: keys.allEntries }),
+      ]),
   });
 }
 

@@ -10,6 +10,7 @@ import {
   formatDuration,
   formatWeekRange,
   reviewWeekOf,
+  secondsWithin,
   shiftKey,
   todayKey,
   weekOfMonday,
@@ -36,7 +37,7 @@ export function WeekView({ week }: { week: DateKey }) {
     0,
   );
   const tracked = entries.reduce(
-    (sum, entry) => sum + entry.endedAt - entry.startedAt,
+    (sum, entry) => sum + secondsWithin(entry, start, shiftKey(start, 7)),
     0,
   );
 

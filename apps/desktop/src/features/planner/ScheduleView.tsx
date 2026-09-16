@@ -109,10 +109,7 @@ export function ScheduleView({
   const today = todayKey();
   const { data: blocks = [] } = useBlocks(week);
   const { data: events = [] } = useEvents(week, shiftKey(week, 7));
-  const { data: entries = [] } = useTimeEntries(
-    shiftKey(week, -1),
-    shiftKey(week, 7),
-  );
+  const { data: entries = [] } = useTimeEntries(week, shiftKey(week, 7));
   const { data: tasks = [] } = useTasks();
   const { data: timer } = useTimer();
   const createBlock = useCreateBlock(week);

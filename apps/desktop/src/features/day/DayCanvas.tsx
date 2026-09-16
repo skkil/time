@@ -49,6 +49,7 @@ import {
   formatStopwatch,
   fromDateKey,
   minutesIntoDay,
+  secondsWithin,
   shiftKey,
   todayKey,
 } from '@/lib/time';
@@ -98,13 +99,7 @@ export function DayCanvas() {
     [logged, timer, now],
   );
   const tracked = entries.reduce(
-    (sum, entry) =>
-      sum +
-      Math.max(
-        0,
-        Math.min(entry.endedAt, dayStart(shiftKey(today, 1))) -
-          Math.max(entry.startedAt, dayStart(today)),
-      ),
+    (sum, entry) => sum + secondsWithin(entry, today, shiftKey(today, 1)),
     0,
   );
   const [chosen, setChosen] = useState<Panel | null | undefined>(undefined);

@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::State;
 
-use super::{ensure_changed, optional_text, projects, required_text, sections, workflow};
+use super::{
+    ensure_changed, optional_text, projects, required_text, sections, time_entries, workflow,
+};
 use crate::db::Db;
 use crate::error::{Error, Result};
 use crate::recurrence::Rule;
@@ -163,6 +165,12 @@ fn descendants(conn: &Connection, id: Id) -> Result<Vec<Id>> {
     )?;
     let rows = stmt.query_map(params![id], |row| row.get(0))?;
     Ok(rows.collect::<rusqlite::Result<_>>()?)
+}
+
+pub fn stop_timer_within(conn: &Connection, id: Id) -> Result<()> {
+    let mut tasks = descendants(conn, id)?;
+    tasks.push(id);
+    time_entries::stop_for(conn, &tasks)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -433,6 +441,7 @@ pub fn set_completed(conn: &mut Connection, id: Id, completed: bool) -> Result<T
             "UPDATE task SET due_date = ?1 WHERE id = ?2",
             params![next, id],
         )?;
+        stop_timer_within(conn, id)?;
         return get(conn, id);
     }
     let tx = conn.transaction()?;
@@ -450,6 +459,7 @@ pub fn set_completed(conn: &mut Connection, id: Id, completed: bool) -> Result<T
             )?;
             workflow::status_for_completion(&tx, child, true)?;
         }
+        stop_timer_within(&tx, id)?;
     }
     tx.commit()?;
     get(conn, id)
