@@ -8,9 +8,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-import { QuickAdd } from './QuickAdd';
 import { TaskPanel } from './TaskPanel';
 import { useTaskIndex } from './api';
+import { QuickAdd } from './quick-add/QuickAdd';
 import { TaskDialogContext } from './task-dialog-context';
 
 type DialogState =

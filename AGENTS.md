@@ -5,51 +5,49 @@ time-blocking, time tracking, habits, and a weekly/quarterly review. All data
 lives in one SQLite file on the user's machine; there is no server and no sync.
 
 Product docs live at the repo root (`IMPROVEMENTS.md`, `OPEN-LOOPS.md`,
-`REEVALUATION-SUNSAMA.md`), the spec under `.jennifer/`, and the design
-memory in `.design/DESIGN.md`.
+`REEVALUATION-SUNSAMA.md`), the spec under `.jennifer/`, and the design memory
+in `.design/DESIGN.md`.
 
 ## Domain model
 
 - **Project** — nested (max depth 3) with a colour, a list/board view, an
   archived flag and settings: `group_id` (only top-level projects carry one and
-  sub-projects follow it), `status`
-  (active/paused/done/dropped; inactive ones leave Day and the drawer tree),
-  weekly hours budget, target date, stop-if criteria, review cadence
-  and `in_order`; archiving or deleting cascades to the subtree. There are no
-  areas: ongoing work is a project without a target date. `NULL` project
-  means Inbox.
-- **Group** — a named set of top-level projects in `features/groups.rs`
-  (table `project_group`, migrations 009 and 012); deleting one only clears
-  it from its projects. The drawer lists top-level projects under their
-  group; its heading opens the group overview (`/projects/groups/$groupId`,
-  a timeline of every project's due dates, deadlines, milestones and
-  target date, then one card per project). Each project also has a
-  Timeline tab of its dated tasks (`projects/Timeline.tsx`).
-- **Canvas** — one free-form document per project (`project_canvas`,
-  migration 013, `features/canvas.rs`), stored as HTML from the Tiptap
-  editor in `projects/ProjectCanvas.tsx`; autosaves and goes with the
-  project. Shown as the project's Canvas tab.
+  sub-projects follow it), `status` (active/paused/done/dropped; inactive ones
+  leave Day and the drawer tree), weekly hours budget, target date, stop-if
+  criteria, review cadence and `in_order`; archiving or deleting cascades to the
+  subtree. There are no areas: ongoing work is a project without a target date.
+  `NULL` project means Inbox.
+- **Group** — a named set of top-level projects in `features/groups.rs` (table
+  `project_group`, migrations 009 and 012); deleting one only clears it from its
+  projects. The drawer lists top-level projects under their group; its heading
+  opens the group overview (`/projects/groups/$groupId`, a timeline of every
+  project's due dates, deadlines, milestones and target date, then one card per
+  project). Each project also has a Timeline tab of its dated tasks
+  (`projects/Timeline.tsx`).
+- **Canvas** — one free-form document per project (`project_canvas`, migration
+  013, `features/canvas.rs`), stored as HTML from the Tiptap editor in
+  `projects/ProjectCanvas.tsx`; autosaves and goes with the project. Shown as
+  the project's Canvas tab.
 - **Section** — ordered group inside a project (or the Inbox); deleting it
   deletes its tasks.
 - **Task** — Todoist-shaped: title, description (`notes`), project, section,
   parent (sub-tasks nest to any depth and inherit the parent's project/section;
-  completing, moving or deleting reaches every level), priority 1–4
-  (1 = highest), due date + optional time, deadline, recurrence, duration
-  (`estimate_minutes`), sibling `position`, `rollover_count` (bumped when a
-  due task is pushed later), `someday`, `must_on` (≤3 musts per day) and a
-  `next_step` resume note. Tasks can wait on other tasks
-  (`task_dependency`, migration 010, `features/dependencies.rs`):
-  `blocked_by` lists every link and `waiting_on` the still-open ones, so
-  "blocked" is derived, never stored; loops, self-links and repeating or
-  event blockers are refused. Completing a repeating
-  task moves its date forward instead of closing it.
+  completing, moving or deleting reaches every level), priority 1–4 (1 =
+  highest), due date + optional time, deadline, recurrence, duration
+  (`estimate_minutes`), sibling `position`, `rollover_count` (bumped when a due
+  task is pushed later), `someday`, `must_on` (≤3 musts per day) and a
+  `next_step` resume note. Tasks can wait on other tasks (`task_dependency`,
+  migration 010, `features/dependencies.rs`): `blocked_by` lists every link and
+  `waiting_on` the still-open ones, so "blocked" is derived, never stored;
+  loops, self-links and repeating or event blockers are refused. Completing a
+  repeating task moves its date forward instead of closing it.
 - **TimeBlock** — a planned span for a task on the schedule grid.
-- **TimeEntry** — tracked time with optional project/task; a linked task
-  decides the project. The running timer is one row in `running_timer`
-  (migration 008), so it survives a restart; stopping turns it into an entry,
-  and finishing a task stops a timer on it or anything nested under it.
-  `list_time_entries` returns every entry overlapping the range, so totals
-  clip with `secondsWithin`.
+- **TimeEntry** — tracked time with optional project/task; a linked task decides
+  the project. The running timer is one row in `running_timer` (migration 008),
+  so it survives a restart; stopping turns it into an entry, and finishing a
+  task stops a timer on it or anything nested under it. `list_time_entries`
+  returns every entry overlapping the range, so totals clip with
+  `secondsWithin`.
 - **Habit / HabitLog** — Habitify-style habits: `build` (reach a daily goal),
   `quit` (none at all) or `limit` (at most a goal), in times or minutes, with
   repeat days, time of day, area and start date. A habit may have `tracking`
@@ -60,37 +58,37 @@ memory in `.design/DESIGN.md`.
   `http://localhost:5600`).
 - **Ritual / RitualRun** — configurable routines in `features/rituals.rs`:
   morning, evening, wind_down, session (after a timer stops) and weekly. Each
-  has one trigger (`first_open`, `at_time`, `end_of_day`,
-  `after_timer_stop`, `manual`), weekdays (Monday = bit 0) and ordered steps
-  from a closed library. `due_ritual(event)` decides what opens; a run fires
-  once a day unless snoozed (15 min, once). The frontend shows rituals in a
-  full-window zen overlay (`features/rituals`, backdrop in `features/zen`,
-  WebGL2 water shader with a static fallback; themes carry their own shader).
-- **Item type / Status / Milestone / Saved view** — per-project structure
-  in `features/workflow.rs`. A type is a task or an **event** (happens at a
-  time; never checked off; repeats expand into occurrences via
-  `list_events`; may count as tracked time). Statuses are named freely, each
-  in one fixed category (backlog, todo, active, done, dropped); a closed
-  category and `completed_at` stay in step both ways, and backlog items never
-  count as overdue. Presets (`workflow::presets`) set all four at once;
-  Simple sets none, so a plain project looks as before. Moving a task between
-  projects maps its type by name and its status by category.
+  has one trigger (`first_open`, `at_time`, `end_of_day`, `after_timer_stop`,
+  `manual`), weekdays (Monday = bit 0) and ordered steps from a closed library.
+  `due_ritual(event)` decides what opens; a run fires once a day unless snoozed
+  (15 min, once). The frontend shows rituals in a full-window zen overlay
+  (`features/rituals`, backdrop in `features/zen`, WebGL2 water shader with a
+  static fallback; themes carry their own shader).
+- **Item type / Status / Milestone / Saved view** — per-project structure in
+  `features/workflow.rs`. A type is a task or an **event** (happens at a time;
+  never checked off; repeats expand into occurrences via `list_events`; may
+  count as tracked time). Statuses are named freely, each in one fixed category
+  (backlog, todo, active, done, dropped); a closed category and `completed_at`
+  stay in step both ways, and backlog items never count as overdue. Presets
+  (`workflow::presets`) set all four at once; Simple sets none, so a plain
+  project looks as before. Moving a task between projects maps its type by name
+  and its status by category.
 - **Record** — a third type kind (migration 011, `features/records.rs`): a
-  long-lived item with no checkbox whose status is its current **phase**
-  (e.g. one job application per company). Its sub-tasks carry `phase_id`
-  (a status of the same project); `record_phase` holds a note per phase,
-  while the record's own notes are shared by every phase. Moving it maps
-  phases by name. The task window pages phases in a vertical pager
-  (`features/records/PhasePager.tsx`); records stay off Day, Week and the
-  review deck, but their phase tasks are ordinary tasks.
+  long-lived item with no checkbox whose status is its current **phase** (e.g.
+  one job application per company). Its sub-tasks carry `phase_id` (a status of
+  the same project); `record_phase` holds a note per phase, while the record's
+  own notes are shared by every phase. Moving it maps phases by name. The task
+  window pages phases in a vertical pager (`features/records/PhasePager.tsx`);
+  records stay off Day, Week and the review deck, but their phase tasks are
+  ordinary tasks.
 - **Day / Week / Quarter** — a day note and felt rating written by rituals;
   weekly outcomes (≤3 open, linked to tasks via `task.outcome_id`, status
-  open/achieved/carried/dropped; carried copies the outcome into next week
-  with its open tasks, at most twice) and a guided weekly review (feel,
-  outcomes, clear the deck, one change, plan, quarter wrap-up; progress in
-  `week.step`, finished at `week.reviewed_at`); quarter priorities over 13
-  weeks. Habits count "x of last 14 days" with planned rest days, no streaks.
-  Specs: `.jennifer/products/personal-time/spec-review-2026-11-01.md` and
+  open/achieved/carried/dropped; carried copies the outcome into next week with
+  its open tasks, at most twice) and a guided weekly review (feel, outcomes,
+  clear the deck, one change, plan, quarter wrap-up; progress in `week.step`,
+  finished at `week.reviewed_at`); quarter priorities over 13 weeks. Habits
+  count "x of last 14 days" with planned rest days, no streaks. Specs:
+  `.jennifer/products/personal-time/spec-review-2026-11-01.md` and
   `spec-simple-shell-2026-11-01.md`.
 
 ## Repository structure
@@ -102,9 +100,9 @@ Multi-app monorepo without a workspace manager:
 Each app is independent with its own package manager and build system.
 
 `skkil.yml` wires the repo into the org CLI (`skkil`): `skkil dev`,
-`skkil doctor`, `skkil ci` (format, lint, test, build for both the Rust core
-and the frontend), and `skkil assets generate`, which renders every app icon
-from `assets/icon.svg`. `icon.icns` is not covered by skkil; regenerate it with
+`skkil doctor`, `skkil ci` (format, lint, test, build for both the Rust core and
+the frontend), and `skkil assets generate`, which renders every app icon from
+`assets/icon.svg`. `icon.icns` is not covered by skkil; regenerate it with
 `pnpm tauri icon` from a 1024px render of the same master.
 
 ## Desktop app (`apps/desktop/`)
@@ -126,11 +124,16 @@ cargo clippy --all-targets
 
 ### Todoist parity
 
-- Quick add parses `tomorrow 3pm`, `next fri`, `Nov 5`, `p1`–`p4`,
-  `#Project`, `/Section`, `every …`, `{deadline}`, `for 1h` in
-  `src/features/tasks/parse.ts` (tests beside it, `pnpm test`).
-- Recurrence rules are parsed and advanced in `src-tauri/src/recurrence.rs`;
-  keep the frontend phrases a subset of what it accepts.
+- Quick add follows Todoist's syntax: dates and times in plain words, `every …`
+  repeats, `{deadline}`, `p1`–`p4`, `#Project`, `/Section`, `+type`, `for 1h`.
+  It lives in `src/features/tasks/quick-add/`; each grammar in `parser/` is a
+  rule table or pattern with tests beside it, and `parser/parse.ts` runs them in
+  order. Clicking a highlighted phrase keeps it as plain text.
+- Repeats are read, advanced and given their first date in
+  `src-tauri/src/recurrence/`: rules in `rule.rs`, matchable days in
+  `pattern.rs`, `every!` and end dates in `mod.rs`. The frontend only claims the
+  phrase. `parser/repeat-phrases.json` is read by both test suites, so a phrase
+  the backend can't store fails the build.
 
 ### Backend (`src-tauri/`)
 
@@ -153,24 +156,22 @@ cargo clippy --all-targets
 - `src/features/<domain>/api.ts` holds the queries and mutations for a domain;
   components live beside it.
 - Keyboard shortcuts go through `useShortcuts` (`src/lib/shortcuts.ts`);
-  per-device UI preferences through `src/lib/preferences.ts`. New settings
-  are a section in `features/settings/SettingsDialog.tsx` built from
-  `SettingRow`.
+  per-device UI preferences through `src/lib/preferences.ts`. New settings are a
+  section in `features/settings/SettingsDialog.tsx` built from `SettingRow`.
 - Imports use `@/` instead of parent-relative `../` (enforced by ESLint).
-- Routes: `/?view=day|week&week=` (`week` is a Monday date key),
-  `/projects`, `/projects/someday`, `/projects/$projectId`,
-  `/projects/groups/$groupId`, `/review/$week`
-  (the first, guided review of a week). There is no Reports page: Week is
-  the record. A past week swaps the task rail for its reflection, and a
-  reviewed week is edited in `ReviewDialog`, never by reopening the guided
+- Routes: `/?view=day|week&week=` (`week` is a Monday date key), `/projects`,
+  `/projects/someday`, `/projects/$projectId`, `/projects/groups/$groupId`,
+  `/review/$week` (the first, guided review of a week). There is no Reports
+  page: Week is the record. A past week swaps the task rail for its reflection,
+  and a reviewed week is edited in `ReviewDialog`, never by reopening the guided
   review. All old `/reports/*`, `/time`, `/habits`, `/review`, `/inbox`,
   `/today`, `/upcoming`, `/someday`, `/planner` routes redirect.
-- The Week grid fits 07:00–23:00 to the window (`fitHourHeight`); the hour
-  scale is a context (`planner/scale.ts`), so read it with `usePerMinute`
-  instead of a constant. Each day column holds planned blocks and events on
-  the left and tracked time entries in a lane on the right.
-- Habit auto-sync runs from the app shell (start, window focus at most every
-  5 min) and when the Habits window opens.
+- The Week grid fits 07:00–23:00 to the window (`fitHourHeight`); the hour scale
+  is a context (`planner/scale.ts`), so read it with `usePerMinute` instead of a
+  constant. Each day column holds planned blocks and events on the left and
+  tracked time entries in a lane on the right.
+- Habit auto-sync runs from the app shell (start, window focus at most every 5
+  min) and when the Habits window opens.
 
 ## No root-level tooling
 

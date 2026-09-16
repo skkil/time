@@ -2,12 +2,13 @@ import { type KeyboardEvent, useRef } from 'react';
 
 import { cn } from '@/lib/utils';
 
-import type { Token } from './parse';
+import type { Token } from './parser/types';
 
 export function SmartInput({
   value,
   tokens,
   onChange,
+  onIgnore,
   onKeyDown,
   placeholder,
   autoFocus,
@@ -16,6 +17,7 @@ export function SmartInput({
   value: string;
   tokens: Token[];
   onChange: (value: string) => void;
+  onIgnore: (phrase: string) => void;
   onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
   placeholder?: string;
   autoFocus?: boolean;
@@ -40,14 +42,19 @@ export function SmartInput({
         aria-hidden
         className={cn(
           shared,
-          'pointer-events-none absolute inset-0 overflow-hidden text-transparent',
+          'pointer-events-none absolute inset-0 z-10 overflow-hidden text-transparent',
         )}
       >
         {segments.map((segment, i) =>
           segment.token ? (
             <mark
               key={i}
-              className="rounded-[3px] bg-now-tint text-transparent shadow-[0_0_0_1px_var(--now-tint)]"
+              title="Click to keep as plain text"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                onIgnore(segment.text);
+              }}
+              className="pointer-events-auto cursor-pointer rounded-[3px] bg-now-tint text-transparent shadow-[0_0_0_1px_var(--now-tint)]"
             >
               {segment.text}
             </mark>

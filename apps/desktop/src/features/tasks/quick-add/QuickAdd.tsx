@@ -3,13 +3,18 @@ import { type FormEvent, useMemo, useState } from 'react';
 import type { TaskInput } from '@/bindings';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex, useProjects } from '@/features/projects/api';
+import { EMPTY_TASK, useCreateTask, useSections } from '@/features/tasks/api';
+import { formatDate, formatDue } from '@/features/tasks/meta';
 import { useSetTaskType, useWorkflow } from '@/features/workflow/api';
-import { formatEstimate, todayKey } from '@/lib/time';
+import {
+  formatEstimate,
+  minutesIntoDay,
+  nowSeconds,
+  todayKey,
+} from '@/lib/time';
 
 import { SmartInput } from './SmartInput';
-import { EMPTY_TASK, useCreateTask, useSections } from './api';
-import { formatDue } from './meta';
-import { parseQuickAdd } from './parse';
+import { parseQuickAdd } from './parser/parse';
 
 export function QuickAdd({
   defaults = {},
@@ -26,17 +31,20 @@ export function QuickAdd({
   const { data: workflow } = useWorkflow();
   const setType = useSetTaskType();
   const [text, setText] = useState('');
+  const [ignored, setIgnored] = useState<ReadonlySet<string>>(new Set());
 
   const parsed = useMemo(
     () =>
       parseQuickAdd(text, {
         today: todayKey(),
+        nowMinutes: minutesIntoDay(nowSeconds()),
+        ignored,
         projects: (projects ?? []).filter((project) => !project.archived),
         sections: sections ?? [],
         types: workflow?.types ?? [],
         projectId: initial.projectId,
       }),
-    [text, projects, sections, workflow, initial.projectId],
+    [text, ignored, projects, sections, workflow, initial.projectId],
   );
 
   const task: TaskInput = {
@@ -67,6 +75,7 @@ export function QuickAdd({
     type && (needsTime ? `${type.name} needs a time` : type.name),
     task.dueDate && formatDue(task),
     task.recurrence,
+    task.deadline && `deadline ${formatDate(task.deadline)}`,
     task.estimateMinutes && `about ${formatEstimate(task.estimateMinutes)}`,
     task.priority < 4 && `priority ${task.priority}`,
   ].filter(Boolean);
@@ -94,6 +103,9 @@ export function QuickAdd({
         placeholder="What’s on your mind?"
         className="text-2xl font-light"
         onChange={setText}
+        onIgnore={(phrase) =>
+          setIgnored((current) => new Set(current).add(phrase.toLowerCase()))
+        }
         onKeyDown={(event) => {
           if (event.key === 'Enter') submit(event);
         }}
@@ -111,7 +123,7 @@ export function QuickAdd({
         ))}
         {!text && (
           <span className="ml-auto text-xs text-foreground/35">
-            tomorrow 3pm · #project · +type · for 1h · Enter to add
+            {'tomorrow 3pm · every mon · {fri} · p1 · #project · Enter to add'}
           </span>
         )}
       </p>

@@ -55,7 +55,7 @@ import {
   formatDue,
   priorityColor,
 } from './meta';
-import { parseDatePhrase } from './parse';
+import { parseDatePhrase } from './quick-add/parser/dates';
 
 type ChipProps = {
   icon: ReactNode;

@@ -4,6 +4,7 @@ import { type ParseContext, parseQuickAdd } from './parse';
 
 const context: ParseContext = {
   today: '2026-11-04',
+  nowMinutes: 10 * 60,
   projects: [
     { id: 1, name: 'Career' },
     { id: 2, name: 'STiTy (SKKAI)' },
@@ -40,10 +41,83 @@ describe('parseQuickAdd', () => {
     const result = parse('Attend lecture every tue at 16:30 for 1h15m');
     expect(result.title).toBe('Attend lecture');
     expect(result.recurrence).toBe('every tue');
-    expect(result.dueDate).toBe('2026-11-10');
+    expect(result.dueDate).toBeUndefined();
     expect(result.dueTime).toBe(16 * 60 + 30);
     expect(result.estimate).toBe(75);
-    expect(parse('Run daily').dueDate).toBe('2026-11-04');
+  });
+
+  it('reads a repeat with a start and end anywhere in the text', () => {
+    const result = parse('Water plants every 14 days 7am starting 1 Dec');
+    expect(result.title).toBe('Water plants');
+    expect(result.recurrence).toBe('every 14 days');
+    expect(result.dueDate).toBe('2026-12-01');
+    expect(result.dueTime).toBe(7 * 60);
+
+    expect(parse('Stretch everyday until nov 20').recurrence).toBe(
+      'everyday ending 2026-11-20',
+    );
+    expect(parse('Stretch everyday from 10 Nov until 20 Nov')).toMatchObject({
+      dueDate: '2026-11-10',
+      recurrence: 'everyday ending 2026-11-20',
+    });
+    expect(parse('Stretch everyday for 3 weeks').recurrence).toBe(
+      'everyday ending 2026-11-25',
+    );
+    expect(parse('Run for 3 weeks').estimate).toBeUndefined();
+  });
+
+  it('keeps a deadline apart from a repeat', () => {
+    expect(parse('Review every 2 days at 12:00 {Feb 28}')).toMatchObject({
+      title: 'Review',
+      recurrence: 'every 2 days',
+      dueTime: 12 * 60,
+      deadline: '2027-02-28',
+    });
+    expect(parse('Ship {next friday}').deadline).toBe('2026-11-13');
+  });
+
+  it('reads a time with no date as the next time it happens', () => {
+    expect(parse('Call 6pm').dueDate).toBe('2026-11-04');
+    expect(parse('Call 9am').dueDate).toBe('2026-11-05');
+    expect(parse('Call in 2 hours')).toMatchObject({
+      dueDate: '2026-11-04',
+      dueTime: 12 * 60,
+    });
+    expect(parse('Call in 15 hours')).toMatchObject({
+      dueDate: '2026-11-05',
+      dueTime: 60,
+    });
+  });
+
+  it('reads a part of the day after a date', () => {
+    expect(parse('Gym tom morning')).toMatchObject({
+      title: 'Gym',
+      dueDate: '2026-11-05',
+      dueTime: 9 * 60,
+    });
+    expect(parse('Gym tomnight').dueTime).toBe(22 * 60);
+    expect(parse('Gym fri evening')).toMatchObject({
+      dueDate: '2026-11-06',
+      dueTime: 19 * 60,
+    });
+    expect(parse('Gym in the afternoon').dueTime).toBe(12 * 60);
+    expect(parse('Morning pages').tokens).toEqual([]);
+  });
+
+  it('reads a person called Tom as a name', () => {
+    expect(parse('Call Tom').title).toBe('Call Tom');
+    expect(parse('Call Tom').dueDate).toBeUndefined();
+    expect(parse('Call Tom tom').dueDate).toBe('2026-11-05');
+  });
+
+  it('leaves dismissed phrases as plain text', () => {
+    const result = parseQuickAdd('Create monthly report', {
+      ...context,
+      ignored: new Set(['monthly']),
+    });
+    expect(result.title).toBe('Create monthly report');
+    expect(result.recurrence).toBeUndefined();
+    expect(result.tokens).toEqual([]);
   });
 
   it('picks the longest matching project and its sections', () => {
@@ -75,6 +149,7 @@ describe('parseQuickAdd', () => {
   it('reads an item type from the target project', () => {
     const parsed = parseQuickAdd('Fix login +Bug #App', {
       today: '2026-11-02',
+      nowMinutes: 0,
       projects: [{ id: 7, name: 'App' }],
       sections: [],
       types: [
