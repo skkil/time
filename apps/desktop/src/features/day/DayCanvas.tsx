@@ -175,65 +175,67 @@ export function DayCanvas() {
   useShortcuts([{ keys: 'Escape', run: () => setChosen(null), idle: true }]);
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-[1180px] px-24 pb-12">
-      <aside
-        className={cn(
-          'flex min-h-0 shrink-0 flex-col pt-6 transition-[width] duration-700 ease-[cubic-bezier(.16,1,.3,1)] motion-reduce:transition-none',
-          panel ? 'w-[clamp(300px,40%,380px)]' : 'w-full',
-        )}
-      >
-        <TodayLine tracked={tracked} />
-        <Thread
-          moments={moments}
-          entries={entries}
-          now={now}
-          openId={openId}
-          checkoutOpen={panel?.kind === 'checkout'}
-          runningId={timer?.taskId ?? null}
-          onPick={(moment) =>
-            setChosen(
-              moment.taskId === null
-                ? { kind: 'checkout' }
-                : { kind: 'task', taskId: moment.taskId },
-            )
-          }
-        />
-        <LooseList
-          tasks={loose}
-          openId={openId}
-          runningId={timer?.taskId ?? null}
-          onPick={(taskId) => setChosen({ kind: 'task', taskId })}
-        />
-        {plan.earlier.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setSorting(true)}
-            className="mb-4 self-start text-sm text-foreground/55 underline-offset-4 transition-colors hover:text-foreground hover:underline"
-          >
-            {plan.earlier.length} left from earlier days
-          </button>
-        )}
-        <div className="flex items-center gap-3 pt-2">
-          <StartFocus onOpen={setChosen} />
-        </div>
-      </aside>
-
-      {panel && (
-        <section
-          className="min-h-0 min-w-0 flex-1 pt-6 pl-16"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) setChosen(null);
-          }}
+    <div className="mx-auto flex h-full w-full max-w-[1180px] flex-col px-24 pt-6 pb-12">
+      <TodayLine tracked={tracked} />
+      <div className="flex min-h-0 flex-1">
+        <aside
+          className={cn(
+            'flex min-h-0 shrink-0 flex-col transition-[width] duration-700 ease-[cubic-bezier(.16,1,.3,1)] motion-reduce:transition-none',
+            panel ? 'w-[clamp(300px,40%,380px)]' : 'w-full',
+          )}
         >
-          {panel.kind === 'task' && (
-            <Focus key={panel.taskId} taskId={panel.taskId} />
+          <Thread
+            moments={moments}
+            entries={entries}
+            now={now}
+            openId={openId}
+            checkoutOpen={panel?.kind === 'checkout'}
+            runningId={timer?.taskId ?? null}
+            onPick={(moment) =>
+              setChosen(
+                moment.taskId === null
+                  ? { kind: 'checkout' }
+                  : { kind: 'task', taskId: moment.taskId },
+              )
+            }
+          />
+          <LooseList
+            tasks={loose}
+            openId={openId}
+            runningId={timer?.taskId ?? null}
+            onPick={(taskId) => setChosen({ kind: 'task', taskId })}
+          />
+          {plan.earlier.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSorting(true)}
+              className="mb-4 self-start text-sm text-foreground/55 underline-offset-4 transition-colors hover:text-foreground hover:underline"
+            >
+              {plan.earlier.length} left from earlier days
+            </button>
           )}
-          {panel.kind === 'focus' && <FreeFocus />}
-          {panel.kind === 'checkout' && (
-            <CheckOutPrompt checkedOutAt={checkedOutAt} />
-          )}
-        </section>
-      )}
+          <div className="flex items-center gap-3 pt-2">
+            <StartFocus onOpen={setChosen} />
+          </div>
+        </aside>
+
+        {panel && (
+          <section
+            className="min-h-0 min-w-0 flex-1 pl-16"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) setChosen(null);
+            }}
+          >
+            {panel.kind === 'task' && (
+              <Focus key={panel.taskId} taskId={panel.taskId} />
+            )}
+            {panel.kind === 'focus' && <FreeFocus />}
+            {panel.kind === 'checkout' && (
+              <CheckOutPrompt checkedOutAt={checkedOutAt} />
+            )}
+          </section>
+        )}
+      </div>
 
       <Dialog open={sorting} onOpenChange={setSorting}>
         <DialogContent className="sm:max-w-2xl">
@@ -396,7 +398,7 @@ function Thread({
               disabled={entry.id === -1}
               onClick={() => setEditing(entry)}
               title={`${label} · ${formatClockTime(entry.startedAt)}–${entry.id === -1 ? 'now' : formatClockTime(entry.endedAt)} · ${formatDuration(entry.endedAt - entry.startedAt)}`}
-              className="absolute right-0 w-24 overflow-hidden rounded-md px-2 text-left text-[11px] leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+              className="absolute right-0 left-16 overflow-hidden rounded-md px-2 text-right text-[11px] leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70"
               style={{
                 top: from * perMinute,
                 height: Math.max(tall - 1, 3),
