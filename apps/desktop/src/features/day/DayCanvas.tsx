@@ -175,7 +175,7 @@ export function DayCanvas() {
       <div className="flex min-h-0 flex-1">
         <aside
           className={cn(
-            'flex min-h-0 shrink-0 flex-col transition-[width] duration-700 ease-[cubic-bezier(.16,1,.3,1)] motion-reduce:transition-none',
+            'flex min-h-0 shrink-0 flex-col transition-[width] duration-200 ease-[cubic-bezier(.16,1,.3,1)] motion-reduce:transition-none',
             panel ? 'w-[clamp(300px,40%,380px)]' : 'w-full',
           )}
         >
@@ -651,7 +651,7 @@ function CheckOutPrompt({ checkedOutAt }: { checkedOutAt: number | null }) {
   ).filter((step): step is keyof typeof STEPS => step in STEPS);
 
   return (
-    <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-700 fade-in-0 slide-in-from-bottom-2 motion-reduce:animate-none">
+    <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-200 fade-in-0 slide-in-from-bottom-2 motion-reduce:animate-none">
       <p className="text-sm text-foreground/55">End of day</p>
       <h2 className="mt-2 text-3xl font-light">
         {checkedOutAt
@@ -691,7 +691,7 @@ function Focus({ taskId }: { taskId: Id }) {
   if (!task) return null;
 
   return (
-    <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-700 fade-in-0 slide-in-from-bottom-2">
+    <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-200 fade-in-0 slide-in-from-bottom-2">
       <TaskPanel key={task.id} task={task} />
     </div>
   );
@@ -718,7 +718,7 @@ function FreeFocus() {
   const task = timer.taskId === null ? undefined : tasks.byId.get(timer.taskId);
 
   return (
-    <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-700 fade-in-0 slide-in-from-bottom-2">
+    <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-200 fade-in-0 slide-in-from-bottom-2">
       <p className="text-sm text-foreground/55">Focusing</p>
       <input
         key={`${timer.startedAt}-${timer.taskId}`}
