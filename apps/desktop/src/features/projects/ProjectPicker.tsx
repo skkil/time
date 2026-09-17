@@ -29,6 +29,7 @@ type ProjectPickerProps = {
   isDisabled?: (node: ProjectNode) => boolean;
   trigger?: ReactNode;
   className?: string;
+  children?: ReactNode;
 };
 
 export function ProjectPicker({
@@ -38,6 +39,7 @@ export function ProjectPicker({
   isDisabled,
   trigger,
   className,
+  children,
 }: ProjectPickerProps) {
   const index = useProjectIndex();
   const [open, setOpen] = useState(false);
@@ -99,6 +101,7 @@ export function ProjectPicker({
                   <span className="truncate">{node.name}</span>
                 </CommandItem>
               ))}
+              {children}
             </CommandGroup>
           </CommandList>
         </Command>

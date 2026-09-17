@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 
 export type ZenBackdropMode = 'motion' | 'still';
 
-export type ProjectTab = 'graph' | 'timeline' | 'focus' | 'canvas';
+export type ProjectTab = 'graph' | 'timeline';
 
 export type WeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -25,7 +25,7 @@ export type Preferences = {
   lastProject: string;
   weekHabitsOpen: boolean;
   weekProjectsOpen: boolean;
-  projectsNavOpen: boolean;
+  projectsSidebarOpen: boolean;
   lastViews: Record<string, number>;
   projectTabs: Partial<Record<string, ProjectTab>>;
   weekStartsOn: WeekStart;
@@ -44,7 +44,7 @@ const defaults: Preferences = {
   lastProject: 'inbox',
   weekHabitsOpen: false,
   weekProjectsOpen: false,
-  projectsNavOpen: true,
+  projectsSidebarOpen: false,
   lastViews: {},
   projectTabs: {},
   weekStartsOn: 1,

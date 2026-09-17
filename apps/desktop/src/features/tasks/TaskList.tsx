@@ -145,16 +145,21 @@ export function FlatTaskList({ tasks }: { tasks: Task[] }) {
 export function AddTaskRow({
   defaults,
   label = 'Add task',
+  className,
 }: {
   defaults: Partial<TaskInput>;
   label?: string;
+  className?: string;
 }) {
   const { newTask } = useTaskDialog();
   return (
     <button
       type="button"
       onClick={() => newTask(defaults)}
-      className="group/add flex h-9 w-full items-center gap-2.5 rounded-sm text-sm text-foreground/45 outline-offset-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+      className={cn(
+        'group/add flex h-9 w-full items-center gap-2.5 rounded-sm text-sm text-foreground/45 outline-offset-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring',
+        className,
+      )}
     >
       <PlusIcon className="size-[18px]" strokeWidth={1.5} />
       {label}

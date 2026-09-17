@@ -1,15 +1,17 @@
-import { CheckIcon, PlusIcon, SlidersHorizontalIcon } from 'lucide-react';
+import { PlusIcon, SlidersHorizontalIcon } from 'lucide-react';
 import { Suspense, lazy, useMemo, useState } from 'react';
 
 import type { Id, SavedView, Section, Task } from '@/bindings';
 import { EmptyState, Page, PageBody } from '@/components/page';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { ProjectContext } from '@/features/projects/ProjectContext';
 import { ProjectFocus } from '@/features/projects/ProjectFocus';
 import { ProjectHeader } from '@/features/projects/ProjectHeader';
 import { ProjectSettingsDialog } from '@/features/projects/ProjectSettingsDialog';
 import { ProjectTimeline } from '@/features/projects/ProjectTimeline';
 import { useProjectIndex, useSetProjectView } from '@/features/projects/api';
+import { nextUp } from '@/features/projects/context';
 import { GraphView } from '@/features/workflow/GraphView';
 import { ViewEditor } from '@/features/workflow/ViewEditor';
 import { Workspace } from '@/features/workflow/Workspace';
@@ -32,7 +34,15 @@ import { useCreateSection, useSections, useTaskIndex, useTasks } from './api';
 import { TaskDnd } from './dnd';
 import { useTaskDialog } from './task-dialog-context';
 
-const PROJECT_TABS: ProjectTab[] = ['graph', 'timeline', 'focus', 'canvas'];
+type ProjectSection = 'tasks' | 'notes' | 'focus';
+
+const PROJECT_SECTIONS: { id: ProjectSection; label: string }[] = [
+  { id: 'tasks', label: 'Tasks' },
+  { id: 'notes', label: 'Notes' },
+  { id: 'focus', label: 'Focus' },
+];
+
+const PROJECT_TABS: ProjectTab[] = ['graph', 'timeline'];
 
 const ProjectCanvas = lazy(() =>
   import('@/features/projects/ProjectCanvas').then(({ ProjectCanvas }) => ({
@@ -58,6 +68,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
   const setView = useSetProjectView();
   const createSection = useCreateSection();
   const [editing, setEditing] = useState(false);
+  const [section, setSection] = useState<ProjectSection>('tasks');
   const [showCompleted, setShowCompleted] = useState(false);
   const [viewEditor, setViewEditor] = useState<SavedView | 'new' | null>(null);
   const project = projectId === null ? undefined : index.byId.get(projectId);
@@ -93,23 +104,30 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
     createSection.mutate({ projectId, name, before });
   const archived = project?.archived ?? false;
   const unsectioned = topLevel(own, null);
+  const next = nextUp(own);
 
   const sectionList = (
-    <PageBody className="px-10">
+    <PageBody className="px-10 pt-4">
       <div>
         <TaskDnd>
           <TaskList
             tasks={unsectioned}
             container={{ projectId, sectionId: null, parentId: null }}
           />
-          {!archived && (
+          {!archived && (sections.length === 0 || unsectioned.length > 0) && (
             <AddTaskRow defaults={{ projectId, sectionId: null }} />
           )}
-          {sections.map((section) => {
+          {sections.map((section, position) => {
             const sectionTasks = topLevel(own, section.id);
             return (
-              <section key={section.id} aria-label={section.name}>
-                <AddSection onAdd={(name) => addSection(name, section.id)} />
+              <section
+                key={section.id}
+                aria-label={section.name}
+                className="group/section"
+              >
+                {(position > 0 || unsectioned.length > 0) && (
+                  <AddSection onAdd={(name) => addSection(name, section.id)} />
+                )}
                 <SectionHeader section={section} count={sectionTasks.length} />
                 {!section.collapsed && (
                   <>
@@ -124,6 +142,11 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
                     {!archived && (
                       <AddTaskRow
                         defaults={{ projectId, sectionId: section.id }}
+                        className={
+                          sectionTasks.length > 0
+                            ? '-mb-5 opacity-0 transition-opacity group-focus-within/section:opacity-100 group-hover/section:opacity-100 focus-visible:opacity-100'
+                            : undefined
+                        }
                       />
                     )}
                   </>
@@ -173,7 +196,9 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
       ? linked
         ? savedTab
         : undefined
-      : project && savedTab;
+      : savedTab === 'timeline' && project
+        ? savedTab
+        : undefined;
   const graph = tab === 'graph';
   const setTab = (next: ProjectTab | undefined) =>
     setPreference('projectTabs', { ...projectTabs, [tabKey]: next });
@@ -189,101 +214,145 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
           ? [{ id: 'list', label: 'List' }]
           : []),
     ...(linked ? [{ id: 'graph', label: 'Graph' }] : []),
-    ...(project
-      ? [
-          { id: 'timeline', label: 'Timeline' },
-          { id: 'focus', label: 'Focus' },
-          { id: 'canvas', label: 'Canvas' },
-        ]
-      : []),
+    ...(project ? [{ id: 'timeline', label: 'Timeline' }] : []),
   ];
+  const layout = tab
+    ? tab
+    : structured
+      ? String(view.id)
+      : (project?.view ?? 'list');
+  const chooseLayout = (id: string) => {
+    if (PROJECT_TABS.includes(id as ProjectTab))
+      return setTab(id as ProjectTab);
+    setTab(undefined);
+    if (structured) choose(Number(id));
+    else if (project)
+      setView.mutate({ id: project.id, view: id as 'list' | 'board' });
+  };
 
   return (
     <Page>
       <ProjectHeader
         project={project}
         openCount={openCount}
-        views={viewOptions}
-        view={
-          tab ? tab : structured ? String(view.id) : (project?.view ?? 'list')
-        }
-        onView={(id) => {
-          if (PROJECT_TABS.includes(id as ProjectTab))
-            return setTab(id as ProjectTab);
-          setTab(undefined);
-          if (structured) choose(Number(id));
-          else if (project)
-            setView.mutate({ id: project.id, view: id as 'list' | 'board' });
-        }}
+        views={project ? PROJECT_SECTIONS : []}
+        view={section}
+        onView={(id) => setSection(id as ProjectSection)}
         onAddTask={() => newTask({ projectId })}
         onSettings={() => setEditing(true)}
-        viewActions={
-          tab ? null : structured ? (
+        next={next}
+        actions={
+          section === 'tasks' ? (
             <>
-              {view.id > 0 && (
+              {viewOptions.length > 1 && (
+                <div
+                  role="group"
+                  aria-label="Task layout"
+                  className="flex gap-1"
+                >
+                  {viewOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      aria-pressed={option.id === layout}
+                      onClick={() => chooseLayout(option.id)}
+                      className={cn(
+                        'h-7 rounded-md px-2.5 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+                        option.id === layout
+                          ? 'bg-white/[.12] text-foreground'
+                          : 'text-foreground/55 hover:text-foreground',
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {tab ? null : structured ? (
+                <>
+                  {view.id > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setViewEditor(view)}
+                    >
+                      <SlidersHorizontalIcon />
+                      Edit view
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setViewEditor('new')}
+                  >
+                    <PlusIcon />
+                    New view
+                  </Button>
+                </>
+              ) : board ? null : (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setViewEditor(view)}
+                  aria-pressed={showCompleted}
+                  onClick={() => setShowCompleted((value) => !value)}
+                  className={cn(
+                    '-mr-2.5 font-normal text-foreground/55',
+                    showCompleted && 'bg-muted text-foreground',
+                  )}
                 >
-                  <SlidersHorizontalIcon />
-                  Edit view
+                  Completed
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setViewEditor('new')}
-              >
-                <PlusIcon />
-                New view
-              </Button>
             </>
-          ) : board ? null : (
-            <Button
-              variant="ghost"
-              size="sm"
-              aria-pressed={showCompleted}
-              onClick={() => setShowCompleted((value) => !value)}
-              className={cn(showCompleted && 'bg-muted text-foreground')}
-            >
-              <CheckIcon />
-              {showCompleted ? 'Hide completed' : 'Show completed'}
-            </Button>
-          )
+          ) : undefined
         }
       />
 
-      {graph ? (
-        <GraphView projectId={projectId} own={own} />
-      ) : tab === 'timeline' && project ? (
-        <ProjectTimeline project={project} own={own} />
-      ) : tab === 'focus' && project ? (
-        <ProjectFocus projectId={project.id} />
-      ) : tab === 'canvas' && project ? (
+      {section === 'notes' && project ? (
         <Suspense>
           <ProjectCanvas projectId={project.id} />
         </Suspense>
-      ) : structured && project ? (
-        <Workspace
-          project={project}
-          workflow={workflow}
-          view={view}
-          own={own}
-          sections={sections}
-          sectionList={sectionList}
-        />
-      ) : board ? (
-        <BoardLayout
-          projectId={projectId}
-          own={own}
-          sections={sections}
-          unsectioned={unsectioned}
-          archived={archived}
-          onAddSection={addSection}
-        />
+      ) : section === 'focus' && project ? (
+        <ProjectFocus projectId={project.id} />
       ) : (
-        sectionList
+        <div className="@container flex min-h-0 flex-1">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            {graph ? (
+              <GraphView projectId={projectId} own={own} />
+            ) : tab === 'timeline' && project ? (
+              <ProjectTimeline project={project} own={own} />
+            ) : structured && project ? (
+              <Workspace
+                project={project}
+                workflow={workflow}
+                view={view}
+                own={own}
+                sections={sections}
+                sectionList={sectionList}
+              />
+            ) : board ? (
+              <BoardLayout
+                projectId={projectId}
+                own={own}
+                sections={sections}
+                unsectioned={unsectioned}
+                archived={archived}
+                onAddSection={addSection}
+              />
+            ) : (
+              sectionList
+            )}
+          </div>
+          {project && !tab && (
+            <ProjectContext
+              project={project}
+              own={own}
+              nextId={next?.id}
+              onOpenNotes={() => setSection('notes')}
+              onOpenFocus={() => setSection('focus')}
+            />
+          )}
+        </div>
       )}
 
       {project && (

@@ -6,7 +6,7 @@ import { formatShortcut } from '@/lib/shortcuts';
 export const PROJECTS_NAV_KEYS = 'Mod+B';
 
 export function ProjectsNavToggle() {
-  const open = usePreference('projectsNavOpen');
+  const open = usePreference('projectsSidebarOpen');
   return (
     <button
       type="button"
@@ -14,7 +14,7 @@ export function ProjectsNavToggle() {
       aria-controls="projects-nav"
       aria-expanded={open}
       title={formatShortcut(PROJECTS_NAV_KEYS)}
-      onClick={() => setPreference('projectsNavOpen', !open)}
+      onClick={() => setPreference('projectsSidebarOpen', !open)}
       className="grid size-9 animate-in place-items-center rounded-full text-foreground/70 transition-colors duration-500 fade-in-0 outline-none hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/60 motion-reduce:animate-none"
     >
       <PanelLeftIcon className="size-[18px]" strokeWidth={1.5} />

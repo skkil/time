@@ -164,7 +164,9 @@ export function SectionHeader({
           {section.name}
         </h2>
       )}
-      <span className="text-xs text-foreground/40 tabular-nums">{count}</span>
+      {count > 0 && (
+        <span className="text-xs text-foreground/40 tabular-nums">{count}</span>
+      )}
       <div className="ml-auto opacity-0 group-focus-within/section:opacity-100 group-hover/section:opacity-100 has-[[data-state=open]]:opacity-100">
         <SectionMenu
           section={section}

@@ -22,12 +22,12 @@ in `.design/DESIGN.md`.
   projects. The drawer lists top-level projects under their group; its heading
   opens the group overview (`/projects/groups/$groupId`, a timeline of every
   project's due dates, deadlines, milestones and target date, then one card per
-  project). Each project also has a Timeline tab of its dated tasks
+  project). Each project also has a Timeline layout of its dated tasks
   (`projects/Timeline.tsx`).
 - **Canvas** — one free-form document per project (`project_canvas`, migration
   013, `features/canvas.rs`), stored as HTML from the Tiptap editor in
   `projects/ProjectCanvas.tsx`; autosaves and goes with the project. Shown as
-  the project's Canvas tab.
+  the project's Notes tab, with its first lines in the side panel.
 - **Section** — ordered group inside a project (or the Inbox); deleting it
   deletes its tasks.
 - **Task** — Todoist-shaped: title, description (`notes`), project, section,
@@ -159,6 +159,12 @@ cargo clippy --all-targets
   `cargo test`. Do not edit it; change the Rust types instead.
 - `src/features/<domain>/api.ts` holds the queries and mutations for a domain;
   components live beside it.
+- A project page always opens on Tasks, with Notes and Focus beside it. List,
+  Board, saved views, Graph and Timeline are layouts of Tasks, and the last
+  layout is remembered per project. `projects/ProjectContext.tsx` is the side
+  panel (after the next task, this week, notes), fed by pure helpers in
+  `projects/context.ts`. The sidebar is hidden by default (Mod+B); the project
+  name is the switcher.
 - Keyboard shortcuts go through `useShortcuts` (`src/lib/shortcuts.ts`);
   per-device UI preferences through `src/lib/preferences.ts`. New settings are a
   section in `features/settings/SettingsDialog.tsx` built from `SettingRow`.

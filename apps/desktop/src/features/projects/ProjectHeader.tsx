@@ -1,36 +1,81 @@
-import { format } from 'date-fns';
-import { PlusIcon, SettingsIcon } from 'lucide-react';
-import { type ReactNode, useMemo } from 'react';
+import { Link, useNavigate } from '@tanstack/react-router';
+import {
+  ChevronDownIcon,
+  PlusIcon,
+  SettingsIcon,
+  SunsetIcon,
+} from 'lucide-react';
+import { type ReactNode, useState } from 'react';
 
-import type { Project } from '@/bindings';
+import type { Project, Task } from '@/bindings';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { useTimeEntries } from '@/features/time/api';
-import { useProjectTypeTime } from '@/features/workflow/use-workspace';
-import {
-  formatDuration,
-  formatHours,
-  fromDateKey,
-  fromSeconds,
-  mondayOf,
-  nowSeconds,
-  shiftKey,
-  todayKey,
-} from '@/lib/time';
+import { CommandItem } from '@/components/ui/command';
+import { TaskLink } from '@/features/tasks/TaskLink';
+import { formatDue } from '@/features/tasks/meta';
 import { cn } from '@/lib/utils';
 
+import { NewProjectDialog } from './NewProjectDialog';
 import { ProjectDot } from './ProjectDot';
+import { ProjectLink } from './ProjectLink';
+import { ProjectPicker } from './ProjectPicker';
 import { useProjectIndex } from './api';
 import { useProjectGroup } from './groups';
-import { STATUSES, descendantIds, projectChain } from './tree';
-
-const WEEK_SECONDS = 7 * 24 * 3600;
+import { STATUSES, projectChain } from './tree';
 
 export type ViewOption = { id: string; label: string };
+
+function ProjectSwitcher({ project }: { project?: Project }) {
+  const navigate = useNavigate();
+  const [creating, setCreating] = useState(false);
+
+  return (
+    <>
+      <ProjectPicker
+        value={project?.id ?? null}
+        noneLabel="Inbox"
+        onChange={(id) =>
+          id === null
+            ? navigate({ to: '/projects' })
+            : navigate({
+                to: '/projects/$projectId',
+                params: { projectId: id },
+              })
+        }
+        trigger={
+          <button
+            type="button"
+            aria-label={`Switch project, now ${project?.name ?? 'Inbox'}`}
+            className="group/switch flex max-w-full items-center gap-2.5 rounded-md outline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
+          >
+            {project && <ProjectDot color={project.color} className="size-3" />}
+            <span className="truncate">{project?.name ?? 'Inbox'}</span>
+            <ChevronDownIcon
+              className="size-5 shrink-0 text-foreground/45 transition-colors group-hover/switch:text-foreground"
+              strokeWidth={1.5}
+            />
+          </button>
+        }
+      >
+        <CommandItem
+          value="Someday"
+          onSelect={() => navigate({ to: '/projects/someday' })}
+        >
+          <SunsetIcon className="text-muted-foreground" />
+          Someday
+        </CommandItem>
+        <CommandItem value="New project" onSelect={() => setCreating(true)}>
+          <PlusIcon className="text-muted-foreground" />
+          New project
+        </CommandItem>
+      </ProjectPicker>
+      <NewProjectDialog
+        open={creating}
+        onOpenChange={setCreating}
+        parentId={null}
+      />
+    </>
+  );
+}
 
 export function ProjectHeader({
   project,
@@ -40,7 +85,8 @@ export function ProjectHeader({
   onView,
   onAddTask,
   onSettings,
-  viewActions,
+  next,
+  actions,
 }: {
   project?: Project;
   openCount: number;
@@ -49,36 +95,59 @@ export function ProjectHeader({
   onView: (id: string) => void;
   onAddTask: () => void;
   onSettings: () => void;
-  viewActions?: ReactNode;
+  next?: Task;
+  actions?: ReactNode;
 }) {
   const index = useProjectIndex();
   const group = useProjectGroup(project?.id);
   const status = STATUSES.find((option) => option.value === project?.status);
-  const trail = [
-    group?.name,
-    ...(project?.parentId != null
-      ? projectChain(index, project.parentId).map((node) => node.name)
-      : []),
-  ].filter(Boolean);
+  const parents =
+    project?.parentId != null ? projectChain(index, project.parentId) : [];
 
   const details: ReactNode[] = [
+    next && (
+      <TaskLink
+        key="next"
+        taskId={next.id}
+        label={`Open ${next.title}`}
+        className="max-w-xl truncate text-base text-foreground"
+      >
+        Next: {next.title}
+        {next.dueDate && `, ${formatDue(next)}`}
+      </TaskLink>
+    ),
     `${openCount} open ${openCount === 1 ? 'task' : 'tasks'}`,
     project?.archived && 'Archived',
     project && project.status !== 'active' && status?.label,
-    project?.targetDate &&
-      `Target ${format(fromDateKey(project.targetDate), 'd MMM yyyy')}`,
-    project && <WeekHours key="hours" project={project} />,
   ].filter(Boolean);
 
   return (
     <header className="w-full shrink-0 px-10 pt-4">
-      {trail.length > 0 && (
-        <p className="mb-1 text-sm text-foreground/50">{trail.join(' / ')}</p>
+      {(group || parents.length > 0) && (
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-1 flex flex-wrap gap-1.5 text-sm text-foreground/55"
+        >
+          {group && (
+            <Link
+              to="/projects/groups/$groupId"
+              params={{ groupId: group.id }}
+              className="rounded-sm outline-offset-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              {group.name}
+            </Link>
+          )}
+          {parents.map((node, position) => (
+            <span key={node.id} className="flex gap-1.5">
+              {(group || position > 0) && <span aria-hidden>/</span>}
+              <ProjectLink projectId={node.id}>{node.name}</ProjectLink>
+            </span>
+          ))}
+        </nav>
       )}
       <div className="flex items-center gap-3">
-        <h1 className="flex min-w-0 flex-1 items-center gap-2.5 text-3xl leading-tight font-light tracking-tight">
-          {project && <ProjectDot color={project.color} className="size-3" />}
-          <span className="truncate">{project?.name ?? 'Inbox'}</span>
+        <h1 className="min-w-0 flex-1 text-3xl leading-tight font-light tracking-tight">
+          <ProjectSwitcher project={project} />
         </h1>
         {!project?.archived && (
           <Button onClick={onAddTask}>
@@ -102,91 +171,40 @@ export function ProjectHeader({
         ))}
       </p>
 
-      <div className="mt-5 flex min-h-9 items-end gap-6 border-b border-white/10">
-        {views.length > 1 && (
-          <nav role="tablist" aria-label="Views" className="flex gap-5">
-            {views.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                role="tab"
-                aria-selected={option.id === view}
-                onClick={() => onView(option.id)}
-                className={cn(
-                  '-mb-px border-b-2 pb-2.5 text-sm transition-colors outline-none focus-visible:text-foreground',
-                  option.id === view
-                    ? 'border-foreground font-medium text-foreground'
-                    : 'border-transparent text-foreground/55 hover:text-foreground',
-                )}
-              >
-                {option.label}
-              </button>
-            ))}
-          </nav>
-        )}
-        {viewActions && (
-          <div className="ml-auto flex items-center gap-1 pb-1.5">
-            {viewActions}
-          </div>
-        )}
-      </div>
-    </header>
-  );
-}
-
-function WeekHours({ project }: { project: Project }) {
-  const index = useProjectIndex();
-  const monday = mondayOf(todayKey());
-  const { data: entries } = useTimeEntries(monday, shiftKey(monday, 6));
-  const byType = useProjectTypeTime(project.id);
-
-  const tracked = useMemo(() => {
-    const node = index.byId.get(project.id);
-    const ids = node ? descendantIds(node) : new Set([project.id]);
-    const now = nowSeconds();
-    return (entries ?? [])
-      .filter((entry) => entry.projectId !== null && ids.has(entry.projectId))
-      .reduce(
-        (sum, entry) => sum + (Math.min(entry.endedAt, now) - entry.startedAt),
-        0,
-      );
-  }, [entries, index, project.id]);
-
-  const budget =
-    project.weeklyMinutes !== null ? project.weeklyMinutes * 60 : null;
-  if (tracked === 0 && budget === null) return null;
-
-  const nextReview =
-    project.lastReviewedAt === null
-      ? null
-      : project.lastReviewedAt + project.reviewEveryWeeks * WEEK_SECONDS;
-  const details = [
-    ...byType.map(([name, seconds]) => `${name}: ${formatHours(seconds)} h`),
-    nextReview === null
-      ? 'Not reviewed yet'
-      : `Next review ${format(fromSeconds(nextReview), 'd MMM')}`,
-  ];
-  const over = budget !== null && tracked > budget;
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span
-          tabIndex={0}
-          className={cn(
-            'rounded-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-white/50',
-            over && 'text-attention',
+      {(views.length > 1 || actions) && (
+        <div className="mt-4 flex flex-wrap items-end gap-x-6 gap-y-2 border-b border-white/10">
+          {views.length > 1 && (
+            <nav
+              role="tablist"
+              aria-label="Project sections"
+              className="flex gap-5"
+            >
+              {views.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={option.id === view}
+                  onClick={() => onView(option.id)}
+                  className={cn(
+                    '-mb-px border-b-2 pb-2.5 text-sm transition-colors outline-none focus-visible:text-foreground',
+                    option.id === view
+                      ? 'border-foreground font-medium text-foreground'
+                      : 'border-transparent text-foreground/55 hover:text-foreground',
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </nav>
           )}
-        >
-          {formatDuration(tracked)}
-          {budget !== null && ` of ${formatDuration(budget)}`} tracked this week
-        </span>
-      </TooltipTrigger>
-      <TooltipContent>
-        {details.map((line) => (
-          <div key={line}>{line}</div>
-        ))}
-      </TooltipContent>
-    </Tooltip>
+          {actions && (
+            <div className="ml-auto flex items-center gap-3 pb-1.5">
+              {actions}
+            </div>
+          )}
+        </div>
+      )}
+    </header>
   );
 }

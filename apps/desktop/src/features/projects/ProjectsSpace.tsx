@@ -15,11 +15,11 @@ const listLink =
 
 export function ProjectsSpace() {
   const { data: tasks } = useTasks();
-  const open = usePreference('projectsNavOpen');
+  const open = usePreference('projectsSidebarOpen');
   useShortcuts([
     {
       keys: PROJECTS_NAV_KEYS,
-      run: () => setPreference('projectsNavOpen', !open),
+      run: () => setPreference('projectsSidebarOpen', !open),
     },
   ]);
   const pathname = useRouterState({
