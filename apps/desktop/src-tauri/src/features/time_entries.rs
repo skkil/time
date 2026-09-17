@@ -24,6 +24,15 @@ pub struct TimeEntry {
     pub ended_at: Timestamp,
 }
 
+#[derive(Debug, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct TrackedEntry {
+    #[serde(flatten)]
+    pub entry: TimeEntry,
+    pub task_title: Option<String>,
+    pub task_completed: bool,
+}
+
 #[derive(Debug, Clone, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct EntryDetails {
@@ -77,6 +86,19 @@ fn from_row(row: &Row) -> rusqlite::Result<TimeEntry> {
     })
 }
 
+const SELECT_TRACKED: &str = "SELECT e.id, e.description, e.project_id, e.task_id, e.started_at,
+       e.ended_at, t.title, t.completed_at IS NOT NULL
+     FROM time_entry e
+     LEFT JOIN task t ON t.id = e.task_id";
+
+fn tracked_from_row(row: &Row) -> rusqlite::Result<TrackedEntry> {
+    Ok(TrackedEntry {
+        entry: from_row(row)?,
+        task_title: row.get(6)?,
+        task_completed: row.get(7)?,
+    })
+}
+
 fn get(conn: &Connection, id: Id) -> Result<TimeEntry> {
     conn.query_row(&format!("{SELECT} WHERE id = ?1"), params![id], from_row)
         .optional()?
@@ -118,6 +140,37 @@ pub fn list(conn: &Connection, from: Date, to: Date) -> Result<Vec<TimeEntry>> {
         "{SELECT} WHERE started_at < ?2 AND ended_at > ?1 ORDER BY started_at DESC"
     ))?;
     let rows = stmt.query_map(params![from.start(), to.start()], from_row)?;
+    Ok(rows.collect::<rusqlite::Result<_>>()?)
+}
+
+pub fn list_for_task(conn: &Connection, task_id: Id) -> Result<Vec<TrackedEntry>> {
+    let mut stmt = conn.prepare(&format!(
+        "WITH RECURSIVE down(id) AS (
+           SELECT ?1
+           UNION ALL
+           SELECT child.id FROM task child JOIN down ON child.parent_id = down.id
+         )
+         {SELECT_TRACKED}
+         WHERE e.task_id IN (SELECT id FROM down)
+         ORDER BY e.started_at DESC"
+    ))?;
+    let rows = stmt.query_map(params![task_id], tracked_from_row)?;
+    Ok(rows.collect::<rusqlite::Result<_>>()?)
+}
+
+pub fn list_for_project(conn: &Connection, project_id: Id) -> Result<Vec<TrackedEntry>> {
+    let mut stmt = conn.prepare(&format!(
+        "WITH RECURSIVE down(id) AS (
+           SELECT ?1
+           UNION ALL
+           SELECT child.id FROM project child JOIN down ON child.parent_id = down.id
+         )
+         {SELECT_TRACKED}
+         WHERE CASE WHEN e.task_id IS NULL THEN e.project_id ELSE t.project_id END
+               IN (SELECT id FROM down)
+         ORDER BY e.started_at DESC"
+    ))?;
+    let rows = stmt.query_map(params![project_id], tracked_from_row)?;
     Ok(rows.collect::<rusqlite::Result<_>>()?)
 }
 
@@ -271,6 +324,18 @@ pub fn discard(conn: &Connection) -> Result<()> {
 #[specta::specta]
 pub async fn list_time_entries(db: State<'_, Db>, from: Date, to: Date) -> Result<Vec<TimeEntry>> {
     db.call(|conn| list(conn, from, to))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_task_entries(db: State<'_, Db>, task_id: Id) -> Result<Vec<TrackedEntry>> {
+    db.call(move |conn| list_for_task(conn, task_id))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_project_entries(db: State<'_, Db>, project_id: Id) -> Result<Vec<TrackedEntry>> {
+    db.call(move |conn| list_for_project(conn, project_id))
 }
 
 #[tauri::command]
@@ -472,6 +537,94 @@ mod tests {
         reopened.call(|conn| discard(conn)).unwrap();
         assert!(reopened.call(|conn| running(conn)).unwrap().is_none());
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    fn track(conn: &Connection, details: &EntryDetails, started_at: i64) -> TimeEntry {
+        create(
+            conn,
+            &EntryInput {
+                details: details.clone(),
+                started_at: Timestamp(started_at),
+                ended_at: Timestamp(started_at + 600),
+            },
+        )
+        .unwrap()
+    }
+
+    fn project(conn: &Connection, name: &str, parent_id: Option<Id>) -> Result<Id> {
+        let input = projects::ProjectInput {
+            name: name.into(),
+            parent_id,
+            color: "plum".into(),
+        };
+        Ok(projects::create(conn, &input)?.id)
+    }
+
+    fn entry_ids(entries: &[TrackedEntry]) -> Vec<Id> {
+        entries.iter().map(|tracked| tracked.entry.id).collect()
+    }
+
+    #[test]
+    fn a_task_lists_its_own_and_nested_entries_done_or_not() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let parent = tasks::create(conn, &tasks::input("Essay", None))?;
+            let mut step = tasks::input("Outline", None);
+            step.parent_id = Some(parent.id);
+            let step = tasks::create(conn, &step)?;
+            let other = tasks::create(conn, &tasks::input("Other", None))?;
+            let own = track(conn, &details("", Some(parent.id)), 1_000);
+            let nested = track(conn, &details("", Some(step.id)), 2_000);
+            track(conn, &details("", Some(other.id)), 3_000);
+
+            tasks::set_completed(conn, parent.id, true)?;
+            let listed = list_for_task(conn, parent.id)?;
+            assert_eq!(entry_ids(&listed), vec![nested.id, own.id]);
+            assert_eq!(listed[0].task_title.as_deref(), Some("Outline"));
+            assert!(listed.iter().all(|tracked| tracked.task_completed));
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn a_project_lists_its_subtree_and_follows_moved_tasks() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let parent = project(conn, "Parent", None)?;
+            let child = project(conn, "Child", Some(parent))?;
+            let elsewhere = project(conn, "Elsewhere", None)?;
+            let task = tasks::create(conn, &tasks::input("Moved", Some(child)))?;
+            let free = EntryDetails {
+                description: "Reading".into(),
+                project_id: Some(parent),
+                task_id: None,
+            };
+            let free = track(conn, &free, 1_000);
+            let linked = track(conn, &details("", Some(task.id)), 2_000);
+            assert_eq!(
+                entry_ids(&list_for_project(conn, parent)?),
+                vec![linked.id, free.id]
+            );
+
+            tasks::move_to(
+                conn,
+                task.id,
+                tasks::TaskPlacement {
+                    project_id: Some(elsewhere),
+                    section_id: None,
+                    parent_id: None,
+                    before: None,
+                },
+            )?;
+            assert_eq!(entry_ids(&list_for_project(conn, parent)?), vec![free.id]);
+            assert_eq!(
+                entry_ids(&list_for_project(conn, elsewhere)?),
+                vec![linked.id]
+            );
+            Ok(())
+        })
+        .unwrap();
     }
 
     #[test]

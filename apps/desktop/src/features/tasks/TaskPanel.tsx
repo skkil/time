@@ -52,6 +52,7 @@ import { cn } from '@/lib/utils';
 import { Dependencies } from './Dependencies';
 import { Dot, Phrase } from './Phrase';
 import { AddStepForm, StepRow } from './StepRow';
+import { TaskFocus } from './TaskFocus';
 import {
   stepInput,
   taskToInput,
@@ -191,6 +192,7 @@ export function TaskPanel({
         ) : (
           <Steps task={task} />
         )}
+        <TaskFocus taskId={task.id} />
       </div>
 
       <Actions

@@ -550,6 +550,12 @@ pub async fn list_tasks(db: State<'_, Db>) -> Result<Vec<Task>> {
 
 #[tauri::command]
 #[specta::specta]
+pub async fn get_task(db: State<'_, Db>, id: Id) -> Result<Task> {
+    db.call(move |conn| get(conn, id))
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn create_task(db: State<'_, Db>, input: TaskInput) -> Result<Task> {
     db.call(|conn| create(conn, &input))
 }

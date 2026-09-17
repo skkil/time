@@ -24,7 +24,7 @@ import { ProjectPicker } from '@/features/projects/ProjectPicker';
 import { useProjectIndex } from '@/features/projects/api';
 import { TaskJump } from '@/features/tasks/TaskLink';
 import { TaskPicker } from '@/features/tasks/TaskPicker';
-import { useTaskIndex } from '@/features/tasks/api';
+import { useTask } from '@/features/tasks/api';
 import {
   type DateKey,
   atMinutes,
@@ -93,13 +93,11 @@ function EntryForm({
     entry ?? { description: '', projectId: null, taskId: null },
   );
   const projects = useProjectIndex();
-  const tasks = useTaskIndex();
   const project =
     details.projectId === null
       ? undefined
       : projects.byId.get(details.projectId);
-  const task =
-    details.taskId === null ? undefined : tasks.byId.get(details.taskId);
+  const task = useTask(details.taskId);
   const [day, setDay] = useState(initialDay);
   const [dayOpen, setDayOpen] = useState(false);
   const [startText, setStartText] = useState(
@@ -155,7 +153,7 @@ function EntryForm({
         />
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <ProjectPicker
           value={details.projectId}
           onChange={(projectId) =>

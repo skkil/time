@@ -20,6 +20,17 @@ export function useSections() {
   return useQuery({ queryKey: keys.sections, queryFn: commands.listSections });
 }
 
+export function useTask(id: Id | null) {
+  const { byId } = useTaskIndex();
+  const listed = id === null ? undefined : byId.get(id);
+  const { data: unlisted } = useQuery({
+    queryKey: keys.task(id ?? 0),
+    queryFn: () => commands.getTask(id ?? 0),
+    enabled: id !== null && listed === undefined,
+  });
+  return listed ?? (id === null ? undefined : unlisted);
+}
+
 export function useTaskIndex() {
   const { data } = useTasks();
   return useMemo(() => {

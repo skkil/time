@@ -10,7 +10,7 @@ import {
 import { useOnNavigate } from '@/hooks/use-on-navigate';
 
 import { TaskPanel } from './TaskPanel';
-import { useTaskIndex } from './api';
+import { useTask } from './api';
 import { QuickAdd } from './quick-add/QuickAdd';
 import { TaskDialogContext } from './task-dialog-context';
 
@@ -21,7 +21,6 @@ type DialogState =
 
 export function TaskDialogProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DialogState>({ mode: 'closed' });
-  const tasks = useTaskIndex();
 
   const openTask = useCallback((id: Id) => setState({ mode: 'edit', id }), []);
   const newTask = useCallback(
@@ -32,7 +31,7 @@ export function TaskDialogProvider({ children }: { children: ReactNode }) {
   const api = useMemo(() => ({ openTask, newTask }), [openTask, newTask]);
   const close = () => setState({ mode: 'closed' });
   useOnNavigate(close);
-  const task = state.mode === 'edit' ? tasks.byId.get(state.id) : undefined;
+  const task = useTask(state.mode === 'edit' ? state.id : null);
 
   return (
     <TaskDialogContext value={api}>

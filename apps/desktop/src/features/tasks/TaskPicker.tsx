@@ -21,7 +21,7 @@ import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
 import { formatEstimate } from '@/lib/time';
 
-import { useTasks } from './api';
+import { useTask, useTasks } from './api';
 
 export function TaskCommand({
   value,
@@ -112,10 +112,8 @@ export function TaskPicker({
   onChange: (task: Task | null) => void;
   trigger?: ReactNode;
 }) {
-  const { data: tasks } = useTasks();
   const [open, setOpen] = useState(false);
-  const selected =
-    value === null ? undefined : tasks?.find((task) => task.id === value);
+  const selected = useTask(value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

@@ -21,6 +21,7 @@ export const commands = {
 	getProjectCanvas: (projectId: Id) => __TAURI_INVOKE<ProjectCanvas>("get_project_canvas", { projectId }),
 	saveProjectCanvas: (projectId: Id, content: string) => __TAURI_INVOKE<ProjectCanvas>("save_project_canvas", { projectId, content }),
 	listTasks: () => __TAURI_INVOKE<Task[]>("list_tasks"),
+	getTask: (id: Id) => __TAURI_INVOKE<Task>("get_task", { id }),
 	createTask: (input: TaskInput) => __TAURI_INVOKE<Task>("create_task", { input }),
 	updateTask: (id: Id, input: TaskInput) => __TAURI_INVOKE<Task>("update_task", { id, input }),
 	moveTask: (id: Id, placement: TaskPlacement) => __TAURI_INVOKE<Task>("move_task", { id, placement }),
@@ -43,6 +44,8 @@ export const commands = {
 	rescheduleBlock: (id: Id, span: BlockSpan) => __TAURI_INVOKE<TimeBlock>("reschedule_block", { id, span }),
 	deleteBlock: (id: Id) => __TAURI_INVOKE<null>("delete_block", { id }),
 	listTimeEntries: (from: Date, to: Date) => __TAURI_INVOKE<TimeEntry[]>("list_time_entries", { from, to }),
+	listTaskEntries: (taskId: Id) => __TAURI_INVOKE<TrackedEntry[]>("list_task_entries", { taskId }),
+	listProjectEntries: (projectId: Id) => __TAURI_INVOKE<TrackedEntry[]>("list_project_entries", { projectId }),
 	createTimeEntry: (input: EntryInput) => __TAURI_INVOKE<TimeEntry>("create_time_entry", { input }),
 	updateTimeEntry: (id: Id, input: EntryInput) => __TAURI_INVOKE<TimeEntry>("update_time_entry", { id, input }),
 	deleteTimeEntry: (id: Id) => __TAURI_INVOKE<null>("delete_time_entry", { id }),
@@ -489,6 +492,11 @@ export type TimeEntry = {
 };
 
 export type Timestamp = number;
+
+export type TrackedEntry = {
+	taskTitle: string | null,
+	taskCompleted: boolean,
+} & TimeEntry;
 
 export type TrackerState = "notNeeded" | "connected" | "unreachable";
 

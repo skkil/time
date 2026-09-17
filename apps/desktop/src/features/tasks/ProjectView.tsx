@@ -5,6 +5,7 @@ import type { Id, SavedView, Section, Task } from '@/bindings';
 import { EmptyState, Page, PageBody } from '@/components/page';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { ProjectFocus } from '@/features/projects/ProjectFocus';
 import { ProjectHeader } from '@/features/projects/ProjectHeader';
 import { ProjectSettingsDialog } from '@/features/projects/ProjectSettingsDialog';
 import { ProjectTimeline } from '@/features/projects/ProjectTimeline';
@@ -31,7 +32,7 @@ import { useCreateSection, useSections, useTaskIndex, useTasks } from './api';
 import { TaskDnd } from './dnd';
 import { useTaskDialog } from './task-dialog-context';
 
-const PROJECT_TABS: ProjectTab[] = ['graph', 'timeline', 'canvas'];
+const PROJECT_TABS: ProjectTab[] = ['graph', 'timeline', 'focus', 'canvas'];
 
 const ProjectCanvas = lazy(() =>
   import('@/features/projects/ProjectCanvas').then(({ ProjectCanvas }) => ({
@@ -191,6 +192,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
     ...(project
       ? [
           { id: 'timeline', label: 'Timeline' },
+          { id: 'focus', label: 'Focus' },
           { id: 'canvas', label: 'Canvas' },
         ]
       : []),
@@ -256,6 +258,8 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
         <GraphView projectId={projectId} own={own} />
       ) : tab === 'timeline' && project ? (
         <ProjectTimeline project={project} own={own} />
+      ) : tab === 'focus' && project ? (
+        <ProjectFocus projectId={project.id} />
       ) : tab === 'canvas' && project ? (
         <Suspense>
           <ProjectCanvas projectId={project.id} />

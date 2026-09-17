@@ -47,7 +47,11 @@ in `.design/DESIGN.md`.
   so it survives a restart; stopping turns it into an entry, and finishing a
   task stops a timer on it or anything nested under it. `list_time_entries`
   returns every entry overlapping the range, so totals clip with
-  `secondsWithin`.
+  `secondsWithin`. `list_task_entries` (with sub-tasks) and
+  `list_project_entries` (with sub-projects, following a linked task's current
+  project) return the whole history, shown as Focus in the task window and as a
+  project's Focus tab. `list_tasks` leaves out tasks closed over two weeks ago,
+  so `useTask` fetches those on demand.
 - **Habit / HabitLog** — Habitify-style habits: `build` (reach a daily goal),
   `quit` (none at all) or `limit` (at most a goal), in times or minutes, with
   repeat days, time of day, area and start date. A habit may have `tracking`

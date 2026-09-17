@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 
 export type ZenBackdropMode = 'motion' | 'still';
 
-export type ProjectTab = 'graph' | 'timeline' | 'canvas';
+export type ProjectTab = 'graph' | 'timeline' | 'focus' | 'canvas';
 
 export type WeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 

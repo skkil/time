@@ -16,6 +16,20 @@ export function useTimeEntries(from: DateKey, to: DateKey) {
   });
 }
 
+export function useTaskEntries(taskId: Id) {
+  return useQuery({
+    queryKey: keys.taskEntries(taskId),
+    queryFn: () => commands.listTaskEntries(taskId),
+  });
+}
+
+export function useProjectEntries(projectId: Id) {
+  return useQuery({
+    queryKey: keys.projectEntries(projectId),
+    queryFn: () => commands.listProjectEntries(projectId),
+  });
+}
+
 export function useTimer() {
   return useQuery({
     queryKey: keys.timer,
