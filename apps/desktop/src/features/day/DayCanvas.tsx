@@ -65,8 +65,8 @@ import { describeWeather, useWeather } from './weather';
 
 type Moment = {
   key: string;
-  kind: 'block' | 'event' | 'checkout';
-  taskId: Id | null;
+  kind: 'block' | 'event';
+  taskId: Id;
   title: string;
   projectId: Id | null;
   start: number;
@@ -81,14 +81,12 @@ type Panel =
 
 const WINDOW_HOURS = 6;
 const ROW = 46;
-const CHECKOUT_MINUTE = 17 * 60 + 30;
 
 export function DayCanvas() {
   const today = todayKey();
   const plan = useDayPlan(today);
   const { data: events = [] } = useEvents(today, shiftKey(today, 1));
   const { data: timer } = useTimer();
-  const { data: rituals } = useRituals();
   const { data: runs = [] } = useRitualRuns(today, shiftKey(today, 1));
   const { data: logged = [] } = useTimeEntries(today, shiftKey(today, 1));
   const now = useNow(30_000);
@@ -134,25 +132,8 @@ export function DayCanvas() {
       kind: 'event' as const,
       done: false,
     }));
-    const evening = rituals?.find((ritual) => ritual.kind === 'evening');
-    const checkoutAt =
-      checkedOutAt ??
-      Math.max(
-        dayStart(today) + (evening?.atMinute ?? CHECKOUT_MINUTE) * 60,
-        ...plan.blocks.map((block) => block.endAt),
-      );
-    const checkout: Moment = {
-      key: 'checkout',
-      kind: 'checkout',
-      taskId: null,
-      title: checkedOutAt ? 'Checked out' : 'Check out',
-      projectId: null,
-      start: checkoutAt,
-      end: checkoutAt,
-      done: checkedOutAt !== null,
-    };
-    return [...timed, ...anchors, checkout].sort((a, b) => a.start - b.start);
-  }, [plan.blocks, events, checkedOutAt, rituals, today]);
+    return [...timed, ...anchors].sort((a, b) => a.start - b.start);
+  }, [plan.blocks, events]);
 
   const loose = useMemo<Loose[]>(
     () =>
@@ -180,7 +161,17 @@ export function DayCanvas() {
 
   return (
     <div className="mx-auto flex h-full w-full max-w-[1180px] flex-col px-24 pt-6 pb-12">
-      <TodayLine tracked={tracked} />
+      <div className="flex items-end justify-between gap-6 pb-10">
+        <TodayLine tracked={tracked} />
+        <div className="flex shrink-0 items-center gap-2">
+          <StartFocus onOpen={setChosen} />
+          <CheckOut
+            done={checkedOutAt !== null}
+            open={panel?.kind === 'checkout'}
+            onToggle={(open) => setChosen(open ? { kind: 'checkout' } : null)}
+          />
+        </div>
+      </div>
       <div className="flex min-h-0 flex-1">
         <aside
           className={cn(
@@ -193,15 +184,8 @@ export function DayCanvas() {
             entries={entries}
             now={now}
             openId={openId}
-            checkoutOpen={panel?.kind === 'checkout'}
             runningId={timer?.taskId ?? null}
-            onPick={(moment) =>
-              setChosen(
-                moment.taskId === null
-                  ? { kind: 'checkout' }
-                  : { kind: 'task', taskId: moment.taskId },
-              )
-            }
+            onPick={(taskId) => setChosen({ kind: 'task', taskId })}
           />
           <LooseList
             tasks={loose}
@@ -218,9 +202,6 @@ export function DayCanvas() {
               {plan.earlier.length} left from earlier days
             </button>
           )}
-          <div className="flex items-center gap-3 pt-2">
-            <StartFocus onOpen={setChosen} />
-          </div>
         </aside>
 
         {panel && (
@@ -265,7 +246,7 @@ function TodayLine({ tracked }: { tracked: number }) {
   const date = fromDateKey(todayKey());
 
   return (
-    <header className="grid animate-in gap-1 pb-10 duration-1000 fade-in-0 slide-in-from-bottom-1">
+    <header className="grid animate-in gap-1 duration-1000 fade-in-0 slide-in-from-bottom-1">
       {showWeekday && (
         <h1 className="text-5xl font-light tracking-tight">
           {format(date, 'EEEE')}
@@ -292,7 +273,6 @@ function Thread({
   entries,
   now,
   openId,
-  checkoutOpen,
   runningId,
   onPick,
 }: {
@@ -300,9 +280,8 @@ function Thread({
   entries: TimeEntry[];
   now: number;
   openId: Id | null;
-  checkoutOpen: boolean;
   runningId: Id | null;
-  onPick: (moment: Moment) => void;
+  onPick: (taskId: Id) => void;
 }) {
   const index = useProjectIndex();
   const today = todayKey();
@@ -384,21 +363,17 @@ function Thread({
           aria-hidden
           className="absolute inset-y-0 left-[55px] w-px bg-white/20"
         />
-        {rows
-          .filter(({ moment }) => moment.kind !== 'checkout')
-          .map(({ moment, start, end }) => (
-            <span
-              key={`span-${moment.key}`}
-              aria-hidden
-              className={cn(
-                'absolute left-[54px] w-[3px] rounded-full',
-                moment.done || moment.end <= now
-                  ? 'bg-white/30'
-                  : 'bg-white/70',
-              )}
-              style={{ top: start, height: Math.max(end - start, 3) }}
-            />
-          ))}
+        {rows.map(({ moment, start, end }) => (
+          <span
+            key={`span-${moment.key}`}
+            aria-hidden
+            className={cn(
+              'absolute left-[54px] w-[3px] rounded-full',
+              moment.done || moment.end <= now ? 'bg-white/30' : 'bg-white/70',
+            )}
+            style={{ top: start, height: Math.max(end - start, 3) }}
+          />
+        ))}
         {entries.map((entry) => {
           const dayOpen = dayStart(today);
           const from = Math.max(0, (entry.startedAt - dayOpen) / 60);
@@ -444,15 +419,12 @@ function Thread({
         </div>
         <ol>
           {rows.map(({ moment, top }) => {
-            const past = moment.kind !== 'checkout' && moment.end <= now;
+            const past = moment.end <= now;
             const live =
               moment.kind === 'block' &&
               (moment.taskId === runningId ||
                 (moment.start <= now && moment.end > now));
-            const open =
-              moment.kind === 'checkout'
-                ? checkoutOpen
-                : moment.taskId === openId;
+            const open = moment.taskId === openId;
             const project =
               moment.projectId !== null
                 ? index.byId.get(moment.projectId)
@@ -465,25 +437,12 @@ function Thread({
               >
                 <button
                   type="button"
-                  onClick={() => onPick(moment)}
+                  onClick={() => onPick(moment.taskId)}
                   aria-current={open ? 'true' : undefined}
                   className="group relative flex w-full items-start gap-4 text-left outline-none"
                 >
                   <span className="relative mt-1 grid size-[15px] shrink-0 place-items-center">
-                    {moment.kind === 'checkout' ? (
-                      <MoonIcon
-                        aria-hidden
-                        strokeWidth={1.5}
-                        className={cn(
-                          'size-[15px] transition-colors duration-500',
-                          open
-                            ? 'fill-white text-white'
-                            : moment.done
-                              ? 'text-white/40'
-                              : 'text-white/70 group-hover:text-white',
-                        )}
-                      />
-                    ) : moment.kind === 'event' ? (
+                    {moment.kind === 'event' ? (
                       <span
                         aria-label="Event"
                         className={cn(
@@ -513,10 +472,7 @@ function Thread({
                     <span
                       className={cn(
                         'block truncate text-[15px] transition-colors duration-500',
-                        moment.done &&
-                          (moment.kind === 'checkout'
-                            ? 'text-foreground/50'
-                            : 'text-foreground/40 line-through'),
+                        moment.done && 'text-foreground/40 line-through',
                         !moment.done &&
                           (open
                             ? 'text-foreground'
@@ -531,9 +487,7 @@ function Thread({
                   </span>
                 </button>
                 <p className="flex items-center gap-2 pl-7 text-xs text-foreground/50">
-                  {moment.kind === 'checkout'
-                    ? formatClockTime(moment.start)
-                    : `${formatClockTime(moment.start)} – ${formatClockTime(moment.end)}`}
+                  {`${formatClockTime(moment.start)} – ${formatClockTime(moment.end)}`}
                   {project && (
                     <ProjectLink
                       projectId={project.id}
@@ -638,7 +592,7 @@ function StartFocus({ onOpen }: { onOpen: (panel: Panel) => void }) {
       <button
         type="button"
         onClick={() => onOpen({ kind: 'focus' })}
-        className="flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] tabular-nums transition-colors hover:bg-white"
+        className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] tabular-nums transition-colors hover:bg-white"
       >
         <span className="size-2 rounded-full bg-[#08161e]" />
         {formatStopwatch(now - timer.startedAt)}
@@ -655,10 +609,36 @@ function StartFocus({ onOpen }: { onOpen: (panel: Panel) => void }) {
           { onSuccess: () => onOpen({ kind: 'focus' }) },
         )
       }
-      className="flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
+      className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
     >
       <PlayIcon className="size-3.5 fill-current" />
       Start focus
+    </button>
+  );
+}
+
+function CheckOut({
+  done,
+  open,
+  onToggle,
+}: {
+  done: boolean;
+  open: boolean;
+  onToggle: (open: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={open}
+      onClick={() => onToggle(!open)}
+      className={cn(
+        'flex h-9 items-center gap-2 rounded-full px-4 text-sm ring-1 ring-white/20 transition-colors hover:bg-white/15 hover:text-foreground',
+        open && 'bg-white/15',
+        done && !open ? 'text-foreground/60' : 'text-foreground',
+      )}
+    >
+      <MoonIcon className="size-3.5" strokeWidth={1.75} />
+      {done ? 'Checked out' : 'Check out'}
     </button>
   );
 }
@@ -682,7 +662,7 @@ function CheckOutPrompt({ checkedOutAt }: { checkedOutAt: number | null }) {
         Close today in a few quiet steps, then leave it here.
       </p>
       {steps.length > 0 && (
-        <ol className="mt-10 grid max-w-md gap-4 text-sm">
+        <ol className="mt-10 grid min-h-0 max-w-md flex-1 content-start gap-4 overflow-y-auto text-sm">
           {steps.map((step) => (
             <li key={step} className="grid gap-0.5">
               <span>{STEPS[step].label}</span>
@@ -691,7 +671,7 @@ function CheckOutPrompt({ checkedOutAt }: { checkedOutAt: number | null }) {
           ))}
         </ol>
       )}
-      <div className="mt-auto pt-10">
+      <div className="shrink-0 pt-6">
         <button
           type="button"
           onClick={() => runner.open('evening')}
