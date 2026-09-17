@@ -24,7 +24,7 @@ user research.
   - Done when: Drop, Delete, Done, Discard timer and moving a block or task each
     offer Undo for at least 5 seconds, and `Ctrl+Z` triggers the latest one
     outside text fields.
-- [ ] **3. Add export and backup.** Settings → Data offers only Delete all data.
+- [x] **3. Add export and backup.** Settings → Data offers only Delete all data.
   - Where: `apps/desktop/src/features/settings/DataSettings.tsx`.
   - Done when: the user can export the whole database to a chosen file and
     restore from one, the restored data opens correctly, and the delete dialog

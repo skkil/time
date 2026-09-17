@@ -124,6 +124,8 @@ export const commands = {
 	setRecordPhaseNotes: (taskId: Id, statusId: Id, notes: string) => __TAURI_INVOKE<null>("set_record_phase_notes", { taskId, statusId, notes }),
 	setTaskPhase: (id: Id, phaseId: Id | null) => __TAURI_INVOKE<Task>("set_task_phase", { id, phaseId }),
 	createPhaseTask: (recordId: Id, phaseId: Id, title: string) => __TAURI_INVOKE<Task>("create_phase_task", { recordId, phaseId, title }),
+	exportData: () => __TAURI_INVOKE<string | null>("export_data"),
+	importData: () => __TAURI_INVOKE<boolean>("import_data"),
 	deleteAllData: () => __TAURI_INVOKE<null>("delete_all_data"),
 };
 

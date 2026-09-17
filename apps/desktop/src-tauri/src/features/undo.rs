@@ -46,6 +46,10 @@ impl UndoLog {
         run(&mut log)
     }
 
+    pub fn clear(&self) {
+        self.with(|log| log.snapshots.clear());
+    }
+
     fn keep(&self, snapshot: TaskSnapshot) -> Id {
         self.with(|log| {
             log.next += 1;
@@ -68,7 +72,7 @@ impl UndoLog {
 
 fn read(conn: &Connection, table: &'static str, filter: &str) -> Result<Rows> {
     let mut stmt = conn.prepare(&format!("SELECT * FROM {table} WHERE {filter}"))?;
-    let columns: Vec<String> = stmt.column_names().into_iter().map(str::to_owned).collect();
+    let columns: Vec<String> = stmt.column_names().map(str::to_owned).collect();
     let width = columns.len();
     let values = stmt
         .query_map([], |row| (0..width).map(|index| row.get(index)).collect())?

@@ -141,6 +141,8 @@ fn specta_builder() -> Builder<tauri::Wry> {
             records::set_record_phase_notes,
             records::set_task_phase,
             records::create_phase_task,
+            data::export_data,
+            data::import_data,
             data::delete_all_data,
         ])
 }
@@ -165,6 +167,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             builder.mount_events(app);

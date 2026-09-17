@@ -1,9 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { commands } from '@/bindings';
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -19,22 +21,79 @@ import { SettingRow } from './SettingRow';
 
 const CONFIRM = 'delete';
 
+function reopen() {
+  window.location.replace('#/');
+  window.location.reload();
+}
+
 export function DataSettings() {
   const [typed, setTyped] = useState('');
+  const backup = useMutation({
+    mutationFn: () => commands.exportData(),
+    onSuccess: (path) => {
+      if (path) toast.success(`Backup saved to ${path}`);
+    },
+  });
+  const restore = useMutation({
+    mutationFn: () => commands.importData(),
+    onSuccess: (restored) => {
+      if (restored) reopen();
+    },
+  });
   const wipe = useMutation({
     mutationFn: () => commands.deleteAllData(),
     onSuccess: () => {
       localStorage.clear();
-      window.location.replace('#/');
-      window.location.reload();
+      reopen();
     },
   });
 
   return (
     <div>
       <SettingRow
+        label="Export a backup"
+        description="Saves all projects, tasks, time, habits and reviews to a file you choose."
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={backup.isPending}
+          onClick={() => backup.mutate()}
+        >
+          Export
+        </Button>
+      </SettingRow>
+      <SettingRow
+        label="Restore from a backup"
+        description="Replaces the data on this computer with a backup file."
+      >
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" size="sm" disabled={restore.isPending}>
+              Restore
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Restore from a backup?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Everything here is replaced by the file you pick. A copy of the
+                current data is saved as time-before-restore.db in the app’s
+                data folder first.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep my data</AlertDialogCancel>
+              <AlertDialogAction onClick={() => restore.mutate()}>
+                Choose a file
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </SettingRow>
+      <SettingRow
         label="Delete all data"
-        description="Projects, tasks, time, habits, reviews and settings on this computer. This can’t be undone."
+        description="Projects, tasks, time, habits, reviews and settings on this computer. Export a backup first if you may want them back."
       >
         <AlertDialog onOpenChange={() => setTyped('')}>
           <AlertDialogTrigger asChild>
@@ -47,8 +106,8 @@ export function DataSettings() {
               <AlertDialogTitle>Delete everything?</AlertDialogTitle>
               <AlertDialogDescription>
                 Every project, task, tracked hour, habit and review is removed,
-                and settings go back to their defaults. There is no backup. Type
-                “{CONFIRM}” to confirm.
+                and settings go back to their defaults. Only a backup you
+                exported can bring them back. Type “{CONFIRM}” to confirm.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <Input

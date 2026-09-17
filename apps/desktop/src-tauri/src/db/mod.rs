@@ -1,7 +1,9 @@
 use std::path::Path;
 use std::sync::Mutex;
+use std::time::Duration;
 
 use rusqlite::Connection;
+use rusqlite::backup::Backup;
 
 use crate::error::{Error, Result};
 
@@ -62,6 +64,38 @@ pub fn reset(conn: &mut Connection) -> Result<()> {
     tx.pragma_update(None, "user_version", 0)?;
     tx.commit()?;
     migrate(conn)
+}
+
+pub fn prepare_backup(backup: &mut Connection) -> Result<()> {
+    let not_a_backup = || Error::invalid("That file isn't a skkil time backup.");
+    let version: i64 = backup
+        .pragma_query_value(None, "user_version", |row| row.get(0))
+        .map_err(|_| not_a_backup())?;
+    if version as usize > MIGRATIONS.len() {
+        return Err(Error::invalid(
+            "That backup comes from a newer version of skkil time.",
+        ));
+    }
+    let tables: i64 = backup
+        .query_row(
+            "SELECT COUNT(*) FROM sqlite_master
+             WHERE type = 'table' AND name IN ('project', 'task', 'time_entry')",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|_| not_a_backup())?;
+    let intact: String = backup
+        .query_row("PRAGMA integrity_check", [], |row| row.get(0))
+        .map_err(|_| not_a_backup())?;
+    if tables != 3 || intact != "ok" {
+        return Err(not_a_backup());
+    }
+    migrate(backup)
+}
+
+pub fn replace_with(conn: &mut Connection, backup: &Connection) -> Result<()> {
+    Backup::new(backup, conn)?.run_to_completion(1024, Duration::ZERO, None)?;
+    Ok(())
 }
 
 fn migrate(conn: &mut Connection) -> Result<()> {
