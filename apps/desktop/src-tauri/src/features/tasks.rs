@@ -154,7 +154,7 @@ pub fn list(conn: &Connection) -> Result<Vec<Task>> {
     Ok(rows.collect::<rusqlite::Result<_>>()?)
 }
 
-fn descendants(conn: &Connection, id: Id) -> Result<Vec<Id>> {
+pub(crate) fn descendants(conn: &Connection, id: Id) -> Result<Vec<Id>> {
     let mut stmt = conn.prepare(
         "WITH RECURSIVE down(id) AS (
            SELECT id FROM task WHERE parent_id = ?1

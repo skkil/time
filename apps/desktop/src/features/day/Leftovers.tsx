@@ -7,6 +7,7 @@ import { TaskLink } from '@/features/tasks/TaskLink';
 import {
   useDeleteTasks,
   useRescheduleTasks,
+  useSetTaskCompleted,
   useSetTasksSomeday,
 } from '@/features/tasks/api';
 import { formatDate } from '@/features/tasks/meta';
@@ -27,9 +28,13 @@ export function Leftovers({
   const reschedule = useRescheduleTasks();
   const someday = useSetTasksSomeday();
   const drop = useDeleteTasks();
+  const skip = useSetTaskCompleted();
   const index = useProjectIndex();
   const today = todayKey();
   const ids = tasks.map((task) => task.id);
+  const oneOffIds = tasks
+    .filter((task) => task.recurrence === null)
+    .map((task) => task.id);
   const label = targetLabel ?? (target === today ? 'Today' : 'Tomorrow');
   const later = shiftKey(target, 1);
 
@@ -91,23 +96,39 @@ export function Leftovers({
                     {target === today ? 'Tomorrow' : 'Day after'}
                   </Button>
                 )}
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  onClick={() =>
-                    someday.mutate({ ids: [task.id], someday: true })
-                  }
-                >
-                  Someday
-                </Button>
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  className="text-muted-foreground"
-                  onClick={() => drop.mutate([task.id])}
-                >
-                  Drop
-                </Button>
+                {task.recurrence === null ? (
+                  <>
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      onClick={() =>
+                        someday.mutate({ ids: [task.id], someday: true })
+                      }
+                    >
+                      Someday
+                    </Button>
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      className="text-muted-foreground"
+                      onClick={() => drop.mutate([task.id])}
+                    >
+                      Drop
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    className="text-muted-foreground"
+                    title="Skip this one and keep the repeat"
+                    onClick={() =>
+                      skip.mutate({ id: task.id, completed: true })
+                    }
+                  >
+                    Skip
+                  </Button>
+                )}
               </div>
             </li>
           );
@@ -123,13 +144,15 @@ export function Leftovers({
           >
             {label}
           </Button>
-          <Button
-            size="xs"
-            variant="ghost"
-            onClick={() => someday.mutate({ ids, someday: true })}
-          >
-            Someday
-          </Button>
+          {oneOffIds.length > 0 && (
+            <Button
+              size="xs"
+              variant="ghost"
+              onClick={() => someday.mutate({ ids: oneOffIds, someday: true })}
+            >
+              Someday
+            </Button>
+          )}
         </div>
       )}
     </div>

@@ -50,7 +50,7 @@ pub struct EntryInput {
     pub ended_at: Timestamp,
 }
 
-#[derive(Debug, Clone, Serialize, Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct RunningTimer {
     pub description: String,
@@ -320,6 +320,16 @@ pub fn discard(conn: &Connection) -> Result<()> {
     clear_running(conn)
 }
 
+pub fn restore_running(conn: &Connection, timer: &RunningTimer) -> Result<RunningTimer> {
+    if running(conn)?.is_some() {
+        return Err(Error::invalid(
+            "Another timer is running, so this can't be undone.",
+        ));
+    }
+    save_running(conn, timer)?;
+    Ok(timer.clone())
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn list_time_entries(db: State<'_, Db>, from: Date, to: Date) -> Result<Vec<TimeEntry>> {
@@ -378,6 +388,12 @@ pub async fn edit_timer(db: State<'_, Db>, details: EntryDetails) -> Result<Runn
 #[specta::specta]
 pub async fn stop_timer(db: State<'_, Db>) -> Result<Option<TimeEntry>> {
     db.call(|conn| stop(conn))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn restore_timer(db: State<'_, Db>, timer: RunningTimer) -> Result<RunningTimer> {
+    db.call(|conn| restore_running(conn, &timer))
 }
 
 #[tauri::command]

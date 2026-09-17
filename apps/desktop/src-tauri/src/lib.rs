@@ -11,7 +11,7 @@ use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
 
 use features::{
     blocks, canvas, data, dependencies, groups, habits, projects, records, review, rituals,
-    sections, tasks, time_entries, workflow,
+    sections, tasks, time_entries, undo, workflow,
 };
 
 const BINDINGS_PATH: &str = "../src/bindings.ts";
@@ -50,6 +50,8 @@ fn specta_builder() -> Builder<tauri::Wry> {
             tasks::set_task_next_step,
             tasks::delete_tasks,
             tasks::delete_task,
+            undo::capture_tasks,
+            undo::restore_tasks,
             sections::list_sections,
             sections::create_section,
             sections::rename_section,
@@ -71,6 +73,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
             time_entries::edit_timer,
             time_entries::stop_timer,
             time_entries::discard_timer,
+            time_entries::restore_timer,
             habits::list_habits,
             habits::create_habit,
             habits::update_habit,
@@ -169,6 +172,7 @@ pub fn run() {
             std::fs::create_dir_all(&dir)?;
             app.manage(db::Db::open(&dir.join("time.db"))?);
             app.manage(time_entries::Timer::default());
+            app.manage(undo::UndoLog::default());
             Ok(())
         })
         .run(tauri::generate_context!())

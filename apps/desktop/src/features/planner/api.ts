@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type BlockSpan, type Id, type TimeBlock, commands } from '@/bindings';
 import { keys } from '@/lib/query';
 import { type DateKey, shiftKey } from '@/lib/time';
+import { offerUndo, quoted } from '@/lib/undo';
 
 export function useBlocks(monday: DateKey) {
   return useQuery({
@@ -58,6 +59,17 @@ export function useRescheduleBlock(monday: DateKey) {
       );
       return { previous };
     },
+    onSuccess: (block, _vars, context) => {
+      const before = context.previous?.find(({ id }) => id === block.id);
+      if (!before) return;
+      offerUndo(`Moved ${quoted(block.title)}`, async () => {
+        await commands.rescheduleBlock(block.id, {
+          startAt: before.startAt,
+          endAt: before.endAt,
+        });
+        await cache.settle();
+      });
+    },
     onError: (_error, _vars, context) => cache.restore(context?.previous),
     onSettled: () => cache.settle(),
   });
@@ -71,6 +83,17 @@ export function useDeleteBlock(monday: DateKey) {
       const previous = await cache.freeze();
       cache.update((blocks) => blocks.filter((block) => block.id !== id));
       return { previous };
+    },
+    onSuccess: (_result, id, context) => {
+      const block = context.previous?.find((candidate) => candidate.id === id);
+      if (!block) return;
+      offerUndo(`Removed the block for ${quoted(block.title)}`, async () => {
+        await commands.createBlock(block.taskId, {
+          startAt: block.startAt,
+          endAt: block.endAt,
+        });
+        await cache.settle();
+      });
     },
     onError: (_error, _id, context) => cache.restore(context?.previous),
     onSettled: () => cache.settle(),

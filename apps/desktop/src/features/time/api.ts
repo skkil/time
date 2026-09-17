@@ -4,10 +4,12 @@ import {
   type EntryDetails,
   type EntryInput,
   type Id,
+  type RunningTimer,
   commands,
 } from '@/bindings';
 import { keys } from '@/lib/query';
 import type { DateKey } from '@/lib/time';
+import { offerUndo } from '@/lib/undo';
 
 export function useTimeEntries(from: DateKey, to: DateKey) {
   return useQuery({
@@ -86,7 +88,16 @@ export function useDiscardTimer() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: () => commands.discardTimer(),
-    onSuccess: () => client.setQueryData(keys.timer, null),
+    onMutate: () => ({
+      timer: client.getQueryData<RunningTimer | null>(keys.timer),
+    }),
+    onSuccess: (_result, _vars, { timer }) => {
+      client.setQueryData(keys.timer, null);
+      if (!timer) return;
+      offerUndo('Session discarded', async () => {
+        client.setQueryData(keys.timer, await commands.restoreTimer(timer));
+      });
+    },
   });
 }
 

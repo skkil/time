@@ -23,6 +23,7 @@ import { ZenBackdrop } from '@/features/zen/ZenBackdrop';
 import { getPreference, usePreference } from '@/lib/preferences';
 import { formatShortcut, useShortcuts } from '@/lib/shortcuts';
 import { todayKey, weekStartOf } from '@/lib/time';
+import { undoLatest } from '@/lib/undo';
 import { cn } from '@/lib/utils';
 import { zoomShortcuts } from '@/lib/zoom';
 
@@ -92,6 +93,7 @@ function Canvas() {
     { keys: 'Q', run: newTask, idle: true },
     { keys: 'Mod+N', run: newTask },
     { keys: 'Mod+,', run: () => setSettingsOpen(true) },
+    { keys: 'Mod+Z', run: () => void undoLatest(), outsideFields: true },
     ...SPACES.map((option) => ({
       keys: option.keys,
       run: () => void go(option.id),

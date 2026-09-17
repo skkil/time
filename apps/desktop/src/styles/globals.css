@@ -193,6 +193,10 @@
 }
 
 @layer base {
+  [data-sonner-toaster] {
+    pointer-events: auto;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }

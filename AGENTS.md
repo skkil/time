@@ -165,6 +165,10 @@ cargo clippy --all-targets
   panel (after the next task, this week, notes), fed by pure helpers in
   `projects/context.ts`. The sidebar is hidden by default (Mod+B); the project
   name is the switcher.
+- Destructive and scheduling mutations offer Undo through `offerUndo`
+  (`src/lib/undo.ts`, also Mod+Z outside text fields). Task changes restore a
+  backend snapshot (`features/undo.rs`, `capture_tasks`/`restore_tasks`) kept in
+  memory, so a task returns with its steps, blocks, links and history.
 - Keyboard shortcuts go through `useShortcuts` (`src/lib/shortcuts.ts`);
   per-device UI preferences through `src/lib/preferences.ts`. New settings are a
   section in `features/settings/SettingsDialog.tsx` built from `SettingRow`.

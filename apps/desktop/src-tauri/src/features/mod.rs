@@ -11,6 +11,7 @@ pub mod rituals;
 pub mod sections;
 pub mod tasks;
 pub mod time_entries;
+pub mod undo;
 pub mod workflow;
 
 use crate::error::{Error, Result};

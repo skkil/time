@@ -4,6 +4,7 @@ export type Shortcut = {
   keys: string | string[];
   run: () => void;
   idle?: boolean;
+  outsideFields?: boolean;
 };
 
 type KeyInput = Pick<
@@ -59,9 +60,10 @@ export function useShortcuts(shortcuts: Shortcut[]) {
   const onKey = useEffectEvent((event: KeyboardEvent) => {
     if (event.defaultPrevented || event.isComposing) return;
     const shortcut = shortcuts.find(
-      ({ keys, idle }) =>
+      ({ keys, idle, outsideFields }) =>
         [keys].flat().some((combo) => matchesShortcut(event, combo)) &&
-        (!idle || isIdle(event)),
+        (!idle || isIdle(event)) &&
+        (!outsideFields || !isTyping(event.target)),
     );
     if (!shortcut) return;
     event.preventDefault();
