@@ -34,7 +34,7 @@ import { formatDuration, formatMinutesOfDay } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 import { DAY_MINUTES, MIN_BLOCK_MINUTES, clamp, snap } from './geometry';
-import { usePerMinute } from './scale';
+import { useTimeScale } from './scale';
 
 export type BlockDragData = {
   kind: 'block';
@@ -94,11 +94,11 @@ export function BlockCard({
     return () => window.clearTimeout(id);
   }, [isDragging]);
 
-  const perMinute = usePerMinute();
+  const scale = useTimeScale();
   const tint = priorityTint(block.priority);
   const style: CSSProperties = {
-    top: start * perMinute,
-    height: Math.max(minutes * perMinute - 2, 14),
+    top: scale.top(start),
+    height: Math.max(scale.extent(start, start + minutes) - 2, 14),
     left: `calc(${(lane / lanes) * 100}% + 2px)`,
     width: `calc(${100 / lanes}% - 4px)`,
     background: `color-mix(in oklab, ${tint} var(--block-tint), var(--card))`,
@@ -116,7 +116,9 @@ export function BlockCard({
   const moveResize = (event: PointerEvent<HTMLDivElement>) => {
     const origin = resizeOrigin.current;
     if (!origin) return;
-    const next = snap(origin.end + (event.clientY - origin.y) / perMinute);
+    const next = snap(
+      scale.minuteAt(scale.top(origin.end) + event.clientY - origin.y),
+    );
     setResizeEnd(clamp(next, start + MIN_BLOCK_MINUTES, DAY_MINUTES));
   };
 
@@ -127,7 +129,7 @@ export function BlockCard({
     setResizeEnd(null);
   };
 
-  const height = minutes * perMinute;
+  const height = scale.extent(start, start + minutes);
   const compact = height < 36;
 
   return (

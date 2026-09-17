@@ -39,6 +39,7 @@ import { EntryDialog } from '@/features/time/EntryDialog';
 import { useTimeEntries, useTimer } from '@/features/time/api';
 import { useEvents } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
+import { usePreference } from '@/lib/preferences';
 import {
   type DateKey,
   atMinutes,
@@ -70,12 +71,16 @@ import {
   DAY_MINUTES,
   DEFAULT_BLOCK_MINUTES,
   FIT_FROM_HOUR,
-  fitHourHeight,
   layoutLanes,
   minutesAtOffset,
   placeSpan,
 } from './geometry';
-import { PerMinute, usePerMinute } from './scale';
+import { TimeScaleContext, useTimeScale } from './scale';
+import {
+  type ScaleSegment,
+  createTimeScale,
+  fitHourHeight,
+} from './time-scale';
 import { type RangeSelection, useRangeSelect } from './use-range-select';
 
 type DragData = TaskDragData | BlockDragData;
@@ -86,8 +91,6 @@ const durationOf = (data: DragData) =>
   data.kind === 'block'
     ? data.duration
     : (data.task.estimateMinutes ?? DEFAULT_BLOCK_MINUTES);
-
-const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 
 function clipToDay(day: DateKey, startAt: number, endAt: number): Span | null {
   const dayStart = atMinutes(day, 0);
@@ -121,15 +124,19 @@ export function ScheduleView({
   const columns = useRef(new Map<DateKey, HTMLElement>());
   const grabOffset = useRef(0);
   const pointer = useRef<{ x: number; y: number } | null>(null);
-  const [hourHeight, setHourHeight] = useState(48);
-  const perMinute = hourHeight / 60;
+  const sleep = usePreference('sleep');
+  const [viewport, setViewport] = useState(0);
+  const scale = useMemo(
+    () => createTimeScale(fitHourHeight(viewport, sleep), sleep),
+    [viewport, sleep],
+  );
   const [editingEntry, setEditingEntry] = useState<TimeEntry | undefined>();
   const previewRef = useRef<Preview | null>(null);
   const [active, setActive] = useState<DragData | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [slot, setSlot] = useState<BlockSlot | null>(null);
   const range = useRangeSelect({
-    perMinute,
+    scale,
     onSelect: (selected) => setSlot(selected),
     onClick: (day, start) => setSlot({ day, start, end: null }),
   });
@@ -145,7 +152,7 @@ export function ScheduleView({
   useLayoutEffect(() => {
     const area = scroller.current;
     if (!area) return;
-    const fit = () => setHourHeight(fitHourHeight(area.clientHeight));
+    const fit = () => setViewport(area.clientHeight);
     fit();
     const observer = new ResizeObserver(fit);
     observer.observe(area);
@@ -153,8 +160,8 @@ export function ScheduleView({
   }, []);
 
   useLayoutEffect(() => {
-    scroller.current?.scrollTo({ top: FIT_FROM_HOUR * hourHeight - 6 });
-  }, [hourHeight]);
+    scroller.current?.scrollTo({ top: scale.top(FIT_FROM_HOUR * 60) - 6 });
+  }, [scale]);
 
   const trackedByDay = useMemo(() => {
     const totals = new Map<DateKey, number>();
@@ -219,7 +226,7 @@ export function ScheduleView({
           const rect = column.getBoundingClientRect();
           if (at.x < rect.left || at.x >= rect.right) continue;
           const span = placeSpan(
-            minutesAtOffset(at.y - grabOffset.current - rect.top, perMinute),
+            minutesAtOffset(at.y - grabOffset.current - rect.top, scale),
             durationOf(data),
           );
           next = { day, ...span };
@@ -235,7 +242,7 @@ export function ScheduleView({
           : next,
       );
     },
-    [perMinute],
+    [scale],
   );
 
   useEffect(() => {
@@ -312,7 +319,7 @@ export function ScheduleView({
     : null;
 
   return (
-    <PerMinute value={perMinute}>
+    <TimeScaleContext value={scale}>
       <DndContext
         sensors={sensors}
         collisionDetection={pointerWithin}
@@ -339,16 +346,16 @@ export function ScheduleView({
             <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto">
               <div
                 className="relative grid grid-cols-[56px_repeat(7,minmax(0,1fr))]"
-                style={{ height: 24 * hourHeight }}
+                style={{ height: scale.height }}
               >
                 <div className="relative">
-                  {HOURS.slice(1).map((hour) => (
+                  {scale.marks.map((minute) => (
                     <span
-                      key={hour}
+                      key={minute}
                       className="absolute right-2 -translate-y-1/2 text-[11px] text-muted-foreground"
-                      style={{ top: hour * hourHeight }}
+                      style={{ top: scale.top(minute) }}
                     >
-                      {formatMinutesOfDay(hour * 60)}
+                      {formatMinutesOfDay(minute)}
                     </span>
                   ))}
                 </div>
@@ -406,7 +413,7 @@ export function ScheduleView({
           entry={editingEntry}
         />
       </DndContext>
-    </PerMinute>
+    </TimeScaleContext>
   );
 }
 
@@ -494,6 +501,31 @@ type DayColumnProps = {
   onOpenEntry: (entry: TimeEntry) => void;
 };
 
+function GridBand({ segment }: { segment: ScaleSegment }) {
+  const { from, top, height, perMinute, compact } = segment;
+  if (compact)
+    return (
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bg-black/25"
+        style={{ top, height }}
+      />
+    );
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0"
+      style={{
+        top,
+        height,
+        backgroundImage: `linear-gradient(to bottom, var(--border) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklab, var(--border) 45%, transparent) 1px, transparent 1px)`,
+        backgroundSize: `100% ${perMinute * 60}px, 100% ${perMinute * 30}px`,
+        backgroundPositionY: `${-(from % 60) * perMinute}px, ${-(from % 30) * perMinute}px`,
+      }}
+    />
+  );
+}
+
 function DayColumn({
   day,
   isToday,
@@ -512,7 +544,7 @@ function DayColumn({
   onOpenEntry,
 }: DayColumnProps) {
   const index = useProjectIndex();
-  const perMinute = usePerMinute();
+  const scale = useTimeScale();
   const { setNodeRef, isOver } = useDroppable({ id: `day:${day}` });
 
   useEffect(() => () => register(day, null), [day, register]);
@@ -594,11 +626,10 @@ function DayColumn({
         isToday && 'bg-today-tint/50',
         isOver && 'bg-accent/60',
       )}
-      style={{
-        backgroundImage: `linear-gradient(to bottom, var(--border) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklab, var(--border) 45%, transparent) 1px, transparent 1px)`,
-        backgroundSize: `100% ${perMinute * 60}px, 100% ${perMinute * 30}px`,
-      }}
     >
+      {scale.segments.map((segment) => (
+        <GridBand key={segment.from} segment={segment} />
+      ))}
       <div className="pointer-events-none absolute inset-0">
         <div className="pointer-events-auto">
           {placed.events.map(({ event, start, end, lane, lanes }) => (
@@ -639,8 +670,8 @@ function DayColumn({
           <div
             className="absolute inset-x-0.5 z-20 overflow-hidden rounded-md bg-foreground/15 px-2 py-1 text-[12px]"
             style={{
-              top: selection.start * perMinute,
-              height: (selection.end - selection.start) * perMinute - 2,
+              top: scale.top(selection.start),
+              height: scale.extent(selection.start, selection.end) - 2,
             }}
           >
             <span>
@@ -653,8 +684,8 @@ function DayColumn({
           <div
             className="absolute inset-x-0.5 z-20 overflow-hidden rounded-md border-2 border-dashed border-ring bg-now-tint/80 px-2 py-1 text-[12px] text-now"
             style={{
-              top: preview.start * perMinute,
-              height: (preview.end - preview.start) * perMinute - 2,
+              top: scale.top(preview.start),
+              height: scale.extent(preview.start, preview.end) - 2,
             }}
           >
             <span>
@@ -684,11 +715,8 @@ function DayColumn({
                     shared ? 'z-10 w-1.5' : 'left-0 px-2 text-[11px]',
                   )}
                   style={{
-                    top: span.start * perMinute,
-                    height: Math.max(
-                      (span.end - span.start) * perMinute - 1,
-                      3,
-                    ),
+                    top: scale.top(span.start),
+                    height: Math.max(scale.extent(span.start, span.end) - 1, 3),
                     background: `color-mix(in oklab, ${
                       project
                         ? projectColorVar(project.color)
@@ -696,7 +724,7 @@ function DayColumn({
                     } 55%, transparent)`,
                   }}
                 >
-                  {!shared && (span.end - span.start) * perMinute >= 24 && (
+                  {!shared && scale.extent(span.start, span.end) >= 24 && (
                     <span className="block truncate pt-0.5">
                       {entry.description || project?.name}
                     </span>
@@ -720,7 +748,7 @@ function DayColumn({
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 z-30 h-0.5 bg-now"
-          style={{ top: minutesIntoDay(now) * perMinute }}
+          style={{ top: scale.top(minutesIntoDay(now)) }}
         >
           <div className="absolute -top-[3px] -left-[4px] size-2 rounded-full bg-now" />
         </div>

@@ -12,6 +12,7 @@ import {
 } from '@/lib/preferences';
 
 import { SettingRow } from './SettingRow';
+import { SleepSettings } from './SleepSettings';
 
 const DAYS: { value: WeekStart; label: string }[] = [
   { value: 1, label: 'Monday' },
@@ -50,6 +51,7 @@ export function WeekSettings() {
           </SelectContent>
         </Select>
       </SettingRow>
+      <SleepSettings />
     </div>
   );
 }

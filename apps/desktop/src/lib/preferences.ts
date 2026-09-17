@@ -12,6 +12,8 @@ export type WeatherPlace = {
   longitude: number;
 };
 
+export type SleepWindow = { start: number; end: number };
+
 export type Preferences = {
   zoom: number;
   zenBackdrop: ZenBackdropMode;
@@ -27,6 +29,7 @@ export type Preferences = {
   lastViews: Record<string, number>;
   projectTabs: Partial<Record<string, ProjectTab>>;
   weekStartsOn: WeekStart;
+  sleep: SleepWindow | null;
   priorityColors: Record<string, string>;
 };
 
@@ -45,6 +48,7 @@ const defaults: Preferences = {
   lastViews: {},
   projectTabs: {},
   weekStartsOn: 1,
+  sleep: null,
   priorityColors: {},
 };
 

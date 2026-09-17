@@ -175,10 +175,13 @@ cargo clippy --all-targets
   and a reviewed week is edited in `ReviewDialog`, never by reopening the guided
   review. All old `/reports/*`, `/time`, `/habits`, `/review`, `/inbox`,
   `/today`, `/upcoming`, `/someday`, `/planner` routes redirect.
-- The Week grid fits 07:00–23:00 to the window (`fitHourHeight`); the hour scale
-  is a context (`planner/scale.ts`), so read it with `usePerMinute` instead of a
-  constant. Each day column holds planned blocks and events on the left and
-  tracked time entries in a lane on the right.
+- The Week grid fits 07:00–23:00 to the window. With sleep hours set (the
+  `sleep` preference), Week fits all 24 hours and Day keeps them scrollable,
+  with sleep shrunk to a strip. Positions come from a `TimeScale`
+  (`planner/time-scale.ts`, a context in `planner/scale.ts`), so read it with
+  `useTimeScale` and never multiply minutes by a constant. Each day column holds
+  planned blocks and events on the left and tracked time entries in a lane on
+  the right.
 - Habit auto-sync runs from the app shell (start, window focus at most every 5
   min) and when the Habits window opens.
 

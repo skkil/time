@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { HabitDots } from '@/features/habits/HabitDots';
+import { createTimeScale } from '@/features/planner/time-scale';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { ProjectJump, ProjectLink } from '@/features/projects/ProjectLink';
 import { ProjectPicker } from '@/features/projects/ProjectPicker';
@@ -48,6 +49,7 @@ import {
   dayStart,
   formatClockTime,
   formatDuration,
+  formatMinutesOfDay,
   formatStopwatch,
   fromDateKey,
   minutesIntoDay,
@@ -307,9 +309,13 @@ function Thread({
   const [editing, setEditing] = useState<TimeEntry>();
   const scroller = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
+  const sleep = usePreference('sleep');
   const hourHeight = Math.max(48, height / WINDOW_HOURS);
-  const perMinute = hourHeight / 60;
-  const nowTop = minutesIntoDay(now) * perMinute;
+  const scale = useMemo(
+    () => createTimeScale(hourHeight, sleep),
+    [hourHeight, sleep],
+  );
+  const nowTop = scale.top(minutesIntoDay(now));
 
   useEffect(() => {
     const element = scroller.current;
@@ -338,29 +344,39 @@ function Thread({
       top: number;
     }[] = [];
     for (const moment of moments) {
-      const start = Math.max(0, (moment.start - dayOpen) / 60) * perMinute;
-      const end = Math.min(24 * 60, (moment.end - dayOpen) / 60) * perMinute;
+      const start = scale.top(Math.max(0, (moment.start - dayOpen) / 60));
+      const end = scale.top(Math.min(24 * 60, (moment.end - dayOpen) / 60));
       const previous = placed.at(-1);
       const top = previous ? Math.max(start, previous.top + ROW) : start;
       placed.push({ moment, start, end, top });
     }
     return placed;
-  }, [moments, perMinute, today]);
+  }, [moments, scale, today]);
 
   return (
     <div
       ref={scroller}
       className="relative no-scrollbar min-h-0 flex-1 overflow-y-auto [mask-image:linear-gradient(180deg,transparent,#000_24px,#000_calc(100%-24px),transparent)] pr-2"
     >
-      <div className="relative" style={{ height: 24 * hourHeight }}>
-        {Array.from({ length: 23 }, (_, i) => i + 1).map((hour) => (
+      <div className="relative" style={{ height: scale.height }}>
+        {scale.segments
+          .filter((segment) => segment.compact)
+          .map(({ from, top, height }) => (
+            <span
+              key={from}
+              aria-hidden
+              className="absolute inset-x-0 rounded-sm bg-black/20"
+              style={{ top, height }}
+            />
+          ))}
+        {scale.marks.map((minute) => (
           <span
-            key={hour}
+            key={minute}
             aria-hidden
             className="absolute left-0 w-10 -translate-y-1/2 text-[11px] text-foreground/35"
-            style={{ top: hour * hourHeight }}
+            style={{ top: scale.top(minute) }}
           >
-            {String(hour).padStart(2, '0')}:00
+            {formatMinutesOfDay(minute)}
           </span>
         ))}
         <span
@@ -387,7 +403,7 @@ function Thread({
           const from = Math.max(0, (entry.startedAt - dayOpen) / 60);
           const to = Math.min(24 * 60, (entry.endedAt - dayOpen) / 60);
           if (to <= from) return null;
-          const tall = (to - from) * perMinute;
+          const tall = scale.extent(from, to);
           const project =
             entry.projectId === null
               ? undefined
@@ -402,7 +418,7 @@ function Thread({
               title={`${label} · ${formatClockTime(entry.startedAt)}–${entry.id === -1 ? 'now' : formatClockTime(entry.endedAt)} · ${formatDuration(entry.endedAt - entry.startedAt)}`}
               className="absolute right-0 left-16 overflow-hidden rounded-md px-2 text-right text-[11px] leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70"
               style={{
-                top: from * perMinute,
+                top: scale.top(from),
                 height: Math.max(tall - 1, 3),
                 background: `color-mix(in oklab, ${
                   project

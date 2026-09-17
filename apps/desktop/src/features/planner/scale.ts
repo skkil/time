@@ -1,5 +1,7 @@
 import { createContext, useContext } from 'react';
 
-export const PerMinute = createContext(48 / 60);
+import { type TimeScale, createTimeScale } from './time-scale';
 
-export const usePerMinute = () => useContext(PerMinute);
+export const TimeScaleContext = createContext<TimeScale>(createTimeScale(48));
+
+export const useTimeScale = () => useContext(TimeScaleContext);

@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 
 import type { TaskDragData } from './TaskRail';
 import { DAY_MINUTES } from './geometry';
-import { usePerMinute } from './scale';
+import { useTimeScale } from './scale';
 
 export function DueCard({
   task,
@@ -25,7 +25,7 @@ export function DueCard({
   lanes: number;
 }) {
   const { openTask } = useTaskDialog();
-  const perMinute = usePerMinute();
+  const scale = useTimeScale();
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `due-slot:${task.id}`,
     data: { kind: 'task', task } satisfies TaskDragData,
@@ -42,7 +42,7 @@ export function DueCard({
   }, [isDragging]);
 
   const tint = priorityTint(task.priority);
-  const height = (end - start) * perMinute;
+  const height = scale.extent(start, end);
   const compact = height < 36;
 
   return (
@@ -64,7 +64,7 @@ export function DueCard({
         isDragging && 'opacity-40',
       )}
       style={{
-        top: start * perMinute,
+        top: scale.top(start),
         height: Math.max(height - 2, 14),
         left: `calc(${(lane / lanes) * 100}% + 2px)`,
         width: `calc(${100 / lanes}% - 4px)`,
