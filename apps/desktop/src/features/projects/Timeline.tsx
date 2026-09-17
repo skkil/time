@@ -1,6 +1,6 @@
 import { differenceInCalendarDays, format } from 'date-fns';
 import { FlagIcon } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 
 import {
   type DateKey,
@@ -86,7 +86,7 @@ export function Timeline({
 
   const initialScroll = x(today) - 7 * DAY;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (scroller.current) scroller.current.scrollLeft = initialScroll;
   }, [initialScroll]);
 

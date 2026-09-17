@@ -7,7 +7,7 @@ import {
   PlusIcon,
   SquareIcon,
 } from 'lucide-react';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import type { EntryDetails, Id, TimeEntry } from '@/bindings';
 import {
@@ -317,9 +317,10 @@ function Thread({
   );
   const nowTop = scale.top(minutesIntoDay(now));
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = scroller.current;
     if (!element) return;
+    setHeight(element.clientHeight);
     const observer = new ResizeObserver(([entry]) =>
       setHeight(entry.contentRect.height),
     );
@@ -435,11 +436,11 @@ function Thread({
         })}
         <div
           aria-hidden
-          className="pointer-events-none absolute right-0 left-[51px] flex items-center"
+          className="pointer-events-none absolute right-0 left-[51.5px] flex -translate-y-1/2 items-center"
           style={{ top: nowTop }}
         >
-          <span className="size-2 -translate-y-1/2 rounded-full bg-white" />
-          <span className="h-px flex-1 -translate-y-1/2 bg-gradient-to-r from-white/70 to-transparent" />
+          <span className="size-2 rounded-full bg-white" />
+          <span className="h-px flex-1 bg-gradient-to-r from-white/70 to-transparent" />
         </div>
         <ol>
           {rows.map(({ moment, top }) => {
