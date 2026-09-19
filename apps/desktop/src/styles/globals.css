@@ -193,6 +193,12 @@
 }
 
 @layer base {
+  html[data-idle] *,
+  html[data-idle] *::before,
+  html[data-idle] *::after {
+    animation-play-state: paused !important;
+  }
+
   [data-sonner-toaster] {
     pointer-events: auto;
   }

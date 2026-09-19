@@ -60,9 +60,13 @@ user research.
       notification code or plugin.
   - Done when: a timed task fires a desktop notification at its time, it can be
     turned off in Settings, and clicking it opens the task.
-- [ ] **10. Reduce idle CPU.** The real instance used about 37% of a core plus
+- [x] **10. Reduce idle CPU.** The real instance used about 37% of a core plus
       about 10% in WebKit while hidden and unfocused, in one 20-second sample,
       with about 930 MB of memory.
+  - Fixed 2026-11-08: the four drifting sky glows repainted the window
+    continuously. Animations now pause while the window is hidden or
+    unfocused. Under Xvfb, unfocused: app 4.0% → 0.0%, WebKit 16% → 0.2% over 3
+    minutes. Memory was not addressed.
   - Done when: the cause is found, animation stops while the window is hidden,
     and idle CPU while hidden is near 0%. Remeasure over several minutes.
 

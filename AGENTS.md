@@ -198,6 +198,9 @@ cargo clippy --all-targets
   `useTimeScale` and never multiply minutes by a constant. Each day column holds
   planned blocks and events on the left and tracked time entries in a lane on
   the right.
+- `syncIdle` (`src/lib/idle.ts`) sets `html[data-idle]` while the window is
+  hidden or unfocused, which pauses every CSS animation. Keep new looping
+  animations in CSS so they inherit this.
 - Habit auto-sync runs from the app shell (start, window focus at most every 5
   min) and when the Habits window opens.
 
