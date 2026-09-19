@@ -46,7 +46,7 @@ user research.
   - Where: `apps/desktop/src/features/day/DayCanvas.tsx`.
   - Done when: a task with a due time appears on the timeline at that time, and
     Day and Week agree.
-- [ ] **7. Stop Quick Add corrupting titles.** "Weekly review every friday at
+- [x] **7. Stop Quick Add corrupting titles.** "Weekly review every friday at
       5pm for 30m" saves as "review every".
   - Where: `apps/desktop/src/features/tasks/quick-add/parser/repeats.ts`.
   - Done when: that phrase saves as "Weekly review" repeating every Friday at

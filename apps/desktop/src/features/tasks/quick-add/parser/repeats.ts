@@ -27,11 +27,13 @@ const EVERY_BODY = [
   String.raw`(?:${DAY_TERM})(?:${LIST_JOIN}(?:${DAY_TERM}))*`,
 ].join('|');
 
-export const REPEAT_PATTERN = [
+export const REPEAT_PHRASE_PATTERN = [
   String.raw`(?:every|ev)!?\s+(?:${EVERY_BODY})`,
   String.raw`after\s+\d+\s+(?:day|week|month|year)s?`,
-  'everyday|daily|weekly|monthly|quarterly|yearly|annually',
 ].join('|');
+
+export const REPEAT_WORD_PATTERN =
+  'everyday|daily|weekly|monthly|quarterly|yearly|annually';
 
 export const REPEAT_START_PATTERN = String.raw`(?:starting(?:\s+on)?|from)\s+(?<date>${DATE_PATTERN})`;
 

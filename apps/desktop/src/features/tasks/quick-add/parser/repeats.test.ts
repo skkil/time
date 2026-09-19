@@ -3,14 +3,15 @@ import { describe, expect, it } from 'vitest';
 import { parseQuickAdd } from './parse';
 import REPEAT_PHRASES from './repeat-phrases.json';
 
-const repeat = (text: string) =>
-  parseQuickAdd(`Task ${text}`, {
-    today: '2026-11-04',
-    nowMinutes: 600,
-    projects: [],
-    sections: [],
-    projectId: null,
-  });
+const context = {
+  today: '2026-11-04',
+  nowMinutes: 600,
+  projects: [],
+  sections: [],
+  projectId: null,
+};
+
+const repeat = (text: string) => parseQuickAdd(`Task ${text}`, context);
 
 describe('repeat phrases', () => {
   it.each(REPEAT_PHRASES)('claims "%s" whole', (phrase) => {
@@ -26,6 +27,20 @@ describe('repeat phrases', () => {
     });
     expect(repeat('every fri at noon').dueTime).toBe(12 * 60);
     expect(repeat('every 3rd friday 8pm').dueTime).toBe(20 * 60);
+  });
+
+  it('keeps a repeat word in the title when a later phrase is the rule', () => {
+    const result = parseQuickAdd(
+      'Weekly review every friday at 5pm for 30m',
+      context,
+    );
+    expect(result).toMatchObject({
+      title: 'Weekly review',
+      recurrence: 'every friday',
+      dueTime: 17 * 60,
+      estimate: 30,
+    });
+    expect(parseQuickAdd('Daily standup', context).recurrence).toBe('daily');
   });
 
   it('leaves repeats it cannot store in the title', () => {

@@ -6,8 +6,9 @@ import { DURATION_PATTERN, parseDuration } from './durations';
 import { claimEntity } from './entities';
 import {
   REPEAT_END_PATTERN,
-  REPEAT_PATTERN,
+  REPEAT_PHRASE_PATTERN,
   REPEAT_START_PATTERN,
+  REPEAT_WORD_PATTERN,
   normalizeRepeat,
   repeatEnd,
   withEnd,
@@ -40,10 +41,13 @@ export function parseQuickAdd(text: string, context: ParseContext): Parsed {
     return result.deadline !== undefined;
   });
 
-  scanner.claim(REPEAT_PATTERN, 'repeat', (match) => {
+  const claimRepeat = (match: RegExpExecArray) => {
     result.recurrence = normalizeRepeat(match[0]);
     return true;
-  });
+  };
+  scanner.claim(REPEAT_PHRASE_PATTERN, 'repeat', claimRepeat);
+  if (!result.recurrence)
+    scanner.claim(REPEAT_WORD_PATTERN, 'repeat', claimRepeat);
 
   if (result.recurrence) {
     const repeat = result.recurrence;
