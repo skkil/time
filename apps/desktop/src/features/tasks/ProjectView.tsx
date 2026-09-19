@@ -5,6 +5,7 @@ import type { Id, SavedView, Section, Task } from '@/bindings';
 import { EmptyState, Page, PageBody } from '@/components/page';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { NewProjectDialog } from '@/features/projects/NewProjectDialog';
 import { ProjectContext } from '@/features/projects/ProjectContext';
 import { ProjectFocus } from '@/features/projects/ProjectFocus';
 import { ProjectHeader } from '@/features/projects/ProjectHeader';
@@ -155,6 +156,9 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
             );
           })}
         </TaskDnd>
+        {!archived && openCount === 0 && sections.length === 0 && (
+          <EmptyProject inbox={projectId === null} />
+        )}
         {!archived && (
           <AddSection
             always={sections.length === 0}
@@ -503,5 +507,40 @@ function BoardColumn({
         {!archived && <AddTaskRow defaults={{ projectId, sectionId }} />}
       </div>
     </section>
+  );
+}
+
+function EmptyProject({ inbox }: { inbox: boolean }) {
+  const index = useProjectIndex();
+  const [creating, setCreating] = useState(false);
+  if (!inbox)
+    return (
+      <EmptyState className="mt-4" title="No tasks in this project yet.">
+        Add the first one above, or press Q from anywhere.
+      </EmptyState>
+    );
+  return (
+    <EmptyState
+      className="mt-4"
+      title="Your Inbox is empty."
+      action={
+        index.active.length === 0 && (
+          <>
+            <Button size="sm" onClick={() => setCreating(true)}>
+              New project
+            </Button>
+            <NewProjectDialog
+              open={creating}
+              onOpenChange={setCreating}
+              parentId={null}
+            />
+          </>
+        )
+      }
+    >
+      Tasks you add without a project land here.
+      {index.active.length === 0 &&
+        ' Projects keep related tasks together; start one when you have a goal with several steps.'}
+    </EmptyState>
   );
 }

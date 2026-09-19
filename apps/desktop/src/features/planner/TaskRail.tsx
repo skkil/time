@@ -143,7 +143,9 @@ export function TaskRail({
         />
         {dueSoon.length + undated.length === 0 && (
           <p className="text-sm text-muted-foreground">
-            {search ? 'No task matches.' : 'No open tasks.'}
+            {search
+              ? 'No task matches.'
+              : 'No open tasks. Add one with New task, then drag it onto a day to plan when you’ll do it.'}
           </p>
         )}
       </div>

@@ -72,11 +72,11 @@ user research.
 
 ## P1: First run
 
-- [ ] **11. Add a first-run path.** There is no onboarding or sample data, and
+- [x] **11. Add a first-run path.** There is no onboarding or sample data, and
       empty Day, Week and Projects give no guidance.
   - Done when: a new user sees how to add a first task on an empty Day, and each
     empty screen says what belongs there with one action.
-- [ ] **12. Show projects when Projects opens.** It opens Inbox with the sidebar
+- [x] **12. Show projects when Projects opens.** It opens Inbox with the sidebar
       hidden, so no projects are visible.
   - Done when: a user with projects can see them straight after clicking
     Projects.

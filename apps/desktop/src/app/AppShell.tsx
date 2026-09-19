@@ -20,7 +20,7 @@ import { TaskDialogProvider } from '@/features/tasks/TaskDialog';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { TimerPill } from '@/features/time/TimerPill';
 import { ZenBackdrop } from '@/features/zen/ZenBackdrop';
-import { getPreference, usePreference } from '@/lib/preferences';
+import { getPreference, setPreference, usePreference } from '@/lib/preferences';
 import { formatShortcut, useShortcuts } from '@/lib/shortcuts';
 import { todayKey, weekStartOf } from '@/lib/time';
 import { undoLatest } from '@/lib/undo';
@@ -75,9 +75,13 @@ function Canvas() {
           params: { groupId },
         });
       const id = Number(last);
-      return Number.isInteger(id) && id > 0
-        ? navigate({ to: '/projects/$projectId', params: { projectId: id } })
-        : navigate({ to: '/projects' });
+      if (Number.isInteger(id) && id > 0)
+        return navigate({
+          to: '/projects/$projectId',
+          params: { projectId: id },
+        });
+      setPreference('projectsSidebarOpen', true);
+      return navigate({ to: '/projects' });
     }
     return navigate({
       to: '/',

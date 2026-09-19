@@ -104,6 +104,11 @@ export function AnyTimeList({
           );
         })}
       </ul>
+      {rows.length === 0 && earlier.length === 0 && (
+        <p className="pb-1 text-sm text-foreground/70">
+          Nothing planned for today. Add a task, or press Q from anywhere.
+        </p>
+      )}
       <div className="flex items-center gap-4 pt-1.5 text-sm text-foreground/60">
         <button
           type="button"
@@ -111,7 +116,7 @@ export function AnyTimeList({
           className="flex items-center gap-2 transition-colors hover:text-foreground"
         >
           <PlusIcon className="size-4" strokeWidth={1.5} />
-          Add
+          {rows.length === 0 ? 'Add a task for today' : 'Add'}
         </button>
         {earlier.length > 0 && (
           <button
