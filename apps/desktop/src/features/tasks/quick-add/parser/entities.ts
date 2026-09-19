@@ -33,3 +33,15 @@ export function claimEntity<T extends { name: string }>(
   }
   return undefined;
 }
+
+export function unclaimedName(scanner: Scanner, sigil: string) {
+  const { text, tokens } = scanner;
+  const marker = new RegExp(`(?<=^|\\s)\\${sigil}(\\S+)`, 'g');
+  for (const match of text.matchAll(marker)) {
+    const claimed = tokens.some(
+      (token) => match.index >= token.start && match.index < token.end,
+    );
+    if (!claimed) return match[1];
+  }
+  return undefined;
+}

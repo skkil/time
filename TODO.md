@@ -76,10 +76,10 @@ user research.
       hidden, so no projects are visible.
   - Done when: a user with projects can see them straight after clicking
     Projects.
-- [ ] **13. Confirm Quick Add results.** Undated tasks such as "buy milk" vanish
+- [x] **13. Confirm Quick Add results.** Undated tasks such as "buy milk" vanish
       after adding.
   - Done when: a message names the task and where it went, with a link to it.
-- [ ] **14. Add an "add another" mode to Quick Add.** Enter closes it, and
+- [x] **14. Add an "add another" mode to Quick Add.** Enter closes it, and
       further typing goes to the page.
   - Done when: a modifier key or toggle keeps it open and focused for the next
     task.
@@ -88,18 +88,18 @@ user research.
 
 ## P1: Quick Add
 
-- [ ] **16. Flag unknown projects.** `#Bills` stays in the title silently when
+- [x] **16. Flag unknown projects.** `#Bills` stays in the title silently when
       no such project exists.
   - Done when: the user can create the project or see a warning before saving.
-- [ ] **17. Parse "yesterday" and handle near-miss dates.** "yesterday" stays in
+- [x] **17. Parse "yesterday" and handle near-miss dates.** "yesterday" stays in
       the title, and "next fryday" gives no hint.
   - Done when: "yesterday" sets the date, and common typos are parsed or
     suggested.
-- [ ] **18. Stop losing repeated tokens.** "p1 p2 tomorrow every" saved the
+- [x] **18. Stop losing repeated tokens.** "p1 p2 tomorrow every" saved the
       title "p2 every" with priority 1.
   - Done when: only the matched token is consumed, and the rest stays in the
     title as typed.
-- [ ] **19. Support Korean dates and times.** The parser has no Korean grammar,
+- [x] **19. Support Korean dates and times.** The parser has no Korean grammar,
       so "내일 오후 3시" stays in the title.
   - Done when: common Korean date and time phrases parse, with tests beside the
     parser.

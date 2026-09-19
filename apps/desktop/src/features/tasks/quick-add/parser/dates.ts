@@ -15,9 +15,11 @@ import {
   toDateKey,
 } from '@/lib/time';
 
+import { KOREAN_DATE_RULES } from './korean';
 import { type PhraseRule, ruleTable } from './rules';
 import {
   DAY,
+  LOOSE_DAY,
   MONTH,
   NTH,
   monthIndex,
@@ -121,8 +123,12 @@ const holiday =
 const BASE_RULES: DateRule[] = [
   { pattern: 'today|tod', resolve: (_, today) => today },
   {
-    pattern: 'tomorrow|tmrw|tmr|tom',
+    pattern: 'tomorrow|tomorow|tommorow|tommorrow|tmrw|tmr|tom',
     resolve: (_, today) => shiftKey(today, 1),
+  },
+  {
+    pattern: 'yesterday|yesturday|yday',
+    resolve: (_, today) => shiftKey(today, -1),
   },
   {
     pattern: String.raw`next\s+week`,
@@ -167,7 +173,7 @@ const BASE_RULES: DateRule[] = [
       upcomingNthWeekday(today, nth, day, month),
   },
   {
-    pattern: String.raw`(next\s+|on\s+)?(${DAY})`,
+    pattern: String.raw`(next\s+|on\s+)?(${LOOSE_DAY})`,
     resolve: ([, prefix, day], today) => {
       const index = weekdayIndex(day);
       if (!prefix?.toLowerCase().startsWith('next'))
@@ -213,6 +219,7 @@ const BASE_RULES: DateRule[] = [
     resolve: ([, day], today) => dayOfMonth(today, Number(day)),
     phraseOnly: true,
   },
+  ...KOREAN_DATE_RULES,
 ];
 
 const base = ruleTable(BASE_RULES);

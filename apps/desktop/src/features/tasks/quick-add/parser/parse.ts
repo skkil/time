@@ -3,7 +3,7 @@ import { shiftKey } from '@/lib/time';
 
 import { DATE_PATTERN, parseDatePhrase } from './dates';
 import { DURATION_PATTERN, parseDuration } from './durations';
-import { claimEntity } from './entities';
+import { claimEntity, unclaimedName } from './entities';
 import {
   REPEAT_END_PATTERN,
   REPEAT_PHRASE_PATTERN,
@@ -73,14 +73,15 @@ export function parseQuickAdd(text: string, context: ParseContext): Parsed {
   });
 
   scanner.claim(RELATIVE_TIME_PATTERN, 'time', (match) => {
-    const offset = relativeMinutes(match[1], match[2]);
+    const { count, unit, koCount, koUnit } = match.groups ?? {};
+    const offset = relativeMinutes(count ?? koCount, unit ?? koUnit);
     const later = laterToday(nowMinutes, offset);
     result.dueDate = shiftKey(today, later.days);
     result.dueTime = later.minutes;
     return true;
   });
 
-  scanner.claim(DATE_WITH_DAY_PART, 'date', (match) => {
+  const claimDate = (match: RegExpExecArray) => {
     if (PERSON_NAMED_TOM.test(match[0])) return false;
     const dayPart = match.groups?.dayPart;
     const phrase = dayPart ? match[0].slice(0, -dayPart.length) : match[0];
@@ -89,7 +90,10 @@ export function parseQuickAdd(text: string, context: ParseContext): Parsed {
     result.dueDate ??= date;
     if (dayPart) result.dueTime ??= dayPartMinutes(dayPart);
     return true;
-  });
+  };
+  scanner.claim(DATE_WITH_DAY_PART, 'date', claimDate);
+  if (!result.tokens.some((token) => token.kind === 'date'))
+    scanner.claim(DATE_PATTERN, 'date', claimDate);
 
   scanner.claim('p([1-4])', 'priority', (match) => {
     result.priority = Number(match[1]);
@@ -101,6 +105,7 @@ export function parseQuickAdd(text: string, context: ParseContext): Parsed {
     ...context.projects,
   ]);
   if (project) result.projectId = project.id;
+  else result.unknownProject = unclaimedName(scanner, '#');
 
   const projectId = project ? project.id : context.projectId;
   const section = claimEntity(

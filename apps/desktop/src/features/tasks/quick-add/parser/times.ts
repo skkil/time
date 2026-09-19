@@ -1,3 +1,8 @@
+import {
+  KOREAN_DAY_PARTS,
+  KOREAN_RELATIVE_TIME_PATTERN,
+  KOREAN_TIME_RULES,
+} from './korean';
 import { type PhraseRule, ruleTable } from './rules';
 
 const NOON = 12 * 60;
@@ -8,6 +13,7 @@ const DAY_PARTS: Record<string, number> = {
   afternoon: NOON,
   evening: 19 * 60,
   night: 22 * 60,
+  ...KOREAN_DAY_PARTS,
 };
 
 export const DAY_PART = Object.keys(DAY_PARTS).join('|');
@@ -46,6 +52,7 @@ const RULES: PhraseRule<number, void>[] = [
     pattern: String.raw`in\s+the\s+(${DAY_PART})`,
     resolve: ([, part]) => dayPartMinutes(part),
   },
+  ...KOREAN_TIME_RULES,
 ];
 
 const times = ruleTable(RULES);
@@ -55,10 +62,13 @@ export const TIME_PATTERN = times.pattern;
 export const parseTimePhrase = (phrase: string) =>
   times.parse(phrase, undefined);
 
-export const RELATIVE_TIME_PATTERN = String.raw`in\s+(\d+)\s+(hour|hr|minute|min)s?`;
+export const RELATIVE_TIME_PATTERN = [
+  String.raw`in\s+(?<count>\d+)\s+(?<unit>hour|hr|minute|min)s?`,
+  KOREAN_RELATIVE_TIME_PATTERN,
+].join('|');
 
 export function relativeMinutes(count: string, unit: string) {
-  const perUnit = unit.toLowerCase().startsWith('h') ? 60 : 1;
+  const perUnit = /^(?:h|시간)/i.test(unit) ? 60 : 1;
   return Number(count) * perUnit;
 }
 

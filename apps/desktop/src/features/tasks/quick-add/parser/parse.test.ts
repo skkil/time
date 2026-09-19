@@ -37,6 +37,37 @@ describe('parseQuickAdd', () => {
     expect(parse('Deploy 2026-12-01').dueDate).toBe('2026-12-01');
   });
 
+  it('reads yesterday and common misspellings', () => {
+    expect(parse('Send invoice yesterday')).toMatchObject({
+      title: 'Send invoice',
+      dueDate: '2026-11-03',
+    });
+    expect(parse('Pay rent next fryday').dueDate).toBe('2026-11-13');
+    expect(parse('Pay rent wensday').dueDate).toBe('2026-11-11');
+    expect(parse('Pay rent tommorow').dueDate).toBe('2026-11-05');
+  });
+
+  it('consumes only the matched token and keeps the rest as typed', () => {
+    expect(parse('p1 p2 tomorrow every')).toMatchObject({
+      title: 'p2 every',
+      priority: 1,
+      dueDate: '2026-11-05',
+    });
+    expect(parse('tomorrow today sync')).toMatchObject({
+      title: 'today sync',
+      dueDate: '2026-11-05',
+    });
+  });
+
+  it('names a project it could not find', () => {
+    expect(parse('Pay #Bills tomorrow')).toMatchObject({
+      title: 'Pay #Bills',
+      unknownProject: 'Bills',
+    });
+    expect(parse('Pay #Career').unknownProject).toBeUndefined();
+    expect(parse('Pay rent').unknownProject).toBeUndefined();
+  });
+
   it('reads repeats with a first occurrence', () => {
     const result = parse('Attend lecture every tue at 16:30 for 1h15m');
     expect(result.title).toBe('Attend lecture');

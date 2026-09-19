@@ -34,6 +34,7 @@ export type Parsed = {
   estimate?: number;
   priority?: number;
   projectId?: Id | null;
+  unknownProject?: string;
   sectionId?: Id;
   typeId?: Id;
 };
