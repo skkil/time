@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::State;
 
-use super::ensure_changed;
+use super::{ensure_changed, read_setting, write_setting};
 use crate::db::Db;
 use crate::error::{Error, Result};
 use crate::types::{Date, Id, Timestamp};
@@ -198,13 +198,7 @@ pub fn update(conn: &Connection, kind: &str, input: &RitualInput) -> Result<Ritu
 }
 
 pub fn planning_time(conn: &Connection) -> Result<Option<String>> {
-    Ok(conn
-        .query_row(
-            "SELECT value FROM setting WHERE key = ?1",
-            params![PLANNING_SETTING],
-            |row| row.get(0),
-        )
-        .optional()?)
+    read_setting(conn, PLANNING_SETTING)
 }
 
 pub fn set_planning_time(conn: &mut Connection, time: &str) -> Result<Vec<Ritual>> {
@@ -212,11 +206,7 @@ pub fn set_planning_time(conn: &mut Connection, time: &str) -> Result<Vec<Ritual
         return Err(Error::invalid("Plan in the morning or the evening."));
     }
     let tx = conn.transaction()?;
-    tx.execute(
-        "INSERT INTO setting (key, value) VALUES (?1, ?2)
-         ON CONFLICT (key) DO UPDATE SET value = excluded.value",
-        params![PLANNING_SETTING, time],
-    )?;
+    write_setting(&tx, PLANNING_SETTING, time)?;
     tx.execute(
         "UPDATE ritual SET enabled = (kind = ?1) WHERE kind IN ('morning', 'evening')",
         params![time],

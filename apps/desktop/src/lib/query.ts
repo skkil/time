@@ -69,6 +69,7 @@ export const keys = {
   allEvents: ['events'] as const,
   typeTime: (from: string, to: string) => ['typeTime', from, to] as const,
   planningTime: ['rituals', 'planningTime'] as const,
+  reminders: ['reminders'] as const,
   ritualRuns: (from: string, to: string) =>
     ['rituals', 'runs', from, to] as const,
 };

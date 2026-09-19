@@ -56,7 +56,7 @@ user research.
       1200×820, Continue sits at y=817–849 of 820, with no scroll hint.
   - Done when: Back and Continue stay visible at any list length, and the list
     scrolls inside the card.
-- [ ] **9. Add reminders.** Nothing alerts the user at a due time. There is no
+- [x] **9. Add reminders.** Nothing alerts the user at a due time. There is no
       notification code or plugin.
   - Done when: a timed task fires a desktop notification at its time, it can be
     turned off in Settings, and clicking it opens the task.

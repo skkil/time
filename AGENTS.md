@@ -151,6 +151,9 @@ cargo clippy --all-targets
 - Settings → Data exports with `VACUUM INTO` and restores through SQLite's backup
   API after staging, validating and migrating the file (`features/data.rs`); the
   current data is kept as `time-before-restore.db`.
+- Reminders run on a backend thread (`features/reminders.rs`, every 20 s). A
+  timed task fires once per date and time through `task.reminded_for`; only
+  Linux reports the click, which emits `open-task`.
 - `run()` sets `JSC_useJIT=0` on Linux: JavaScriptCore's JIT costs about 70 MB
   of web process memory in use and a planner doesn't need its speed.
 

@@ -1,4 +1,11 @@
-import { type ReactNode, useCallback, useMemo, useState } from 'react';
+import { listen } from '@tauri-apps/api/event';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import type { Id, TaskInput } from '@/bindings';
 import {
@@ -31,6 +38,12 @@ export function TaskDialogProvider({ children }: { children: ReactNode }) {
   const api = useMemo(() => ({ openTask, newTask }), [openTask, newTask]);
   const close = () => setState({ mode: 'closed' });
   useOnNavigate(close);
+  useEffect(() => {
+    const unlisten = listen<Id>('open-task', ({ payload }) =>
+      openTask(payload),
+    );
+    return () => void unlisten.then((stop) => stop());
+  }, [openTask]);
   const task = useTask(state.mode === 'edit' ? state.id : null);
 
   return (

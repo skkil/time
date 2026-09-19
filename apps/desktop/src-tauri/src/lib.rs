@@ -10,8 +10,8 @@ use tauri::Manager;
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
 
 use features::{
-    blocks, canvas, data, dependencies, groups, habits, projects, records, review, rituals,
-    sections, tasks, time_entries, undo, workflow,
+    blocks, canvas, data, dependencies, groups, habits, projects, records, reminders, review,
+    rituals, sections, tasks, time_entries, undo, workflow,
 };
 
 const BINDINGS_PATH: &str = "../src/bindings.ts";
@@ -141,6 +141,8 @@ fn specta_builder() -> Builder<tauri::Wry> {
             records::set_record_phase_notes,
             records::set_task_phase,
             records::create_phase_task,
+            reminders::get_reminders_enabled,
+            reminders::set_reminders_enabled,
             data::export_data,
             data::import_data,
             data::delete_all_data,
@@ -176,6 +178,7 @@ pub fn run() {
             app.manage(db::Db::open(&dir.join("time.db"))?);
             app.manage(time_entries::Timer::default());
             app.manage(undo::UndoLog::default());
+            reminders::start(app.handle().clone());
             Ok(())
         })
         .run(tauri::generate_context!())

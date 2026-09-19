@@ -1,4 +1,5 @@
 import {
+  BellIcon,
   CalendarRangeIcon,
   DatabaseIcon,
   FlagIcon,
@@ -19,6 +20,7 @@ import {
 import { AppearanceSettings } from './AppearanceSettings';
 import { DataSettings } from './DataSettings';
 import { PrioritySettings } from './PrioritySettings';
+import { ReminderSettings } from './ReminderSettings';
 import { RitualSettings } from './RitualSettings';
 import { TodaySettings } from './TodaySettings';
 import { WeekSettings } from './WeekSettings';
@@ -52,6 +54,13 @@ const sections: Section[] = [
     description: 'How weeks and the hours of the day are laid out.',
     icon: CalendarRangeIcon,
     content: WeekSettings,
+  },
+  {
+    id: 'reminders',
+    label: 'Reminders',
+    description: 'Alerts for tasks with a time.',
+    icon: BellIcon,
+    content: ReminderSettings,
   },
   {
     id: 'priorities',
