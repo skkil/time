@@ -1,5 +1,11 @@
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { PlusIcon, SearchIcon, SettingsIcon, UserIcon } from 'lucide-react';
+import {
+  KeyboardIcon,
+  PlusIcon,
+  SearchIcon,
+  SettingsIcon,
+  UserIcon,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import {
@@ -28,6 +34,7 @@ import { cn } from '@/lib/utils';
 import { zoomShortcuts } from '@/lib/zoom';
 
 import { SearchDialog } from './SearchDialog';
+import { ShortcutSheet } from './ShortcutSheet';
 
 export function AppShell() {
   return (
@@ -53,6 +60,7 @@ function Canvas() {
   const navigate = useNavigate();
   const [searching, setSearching] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const location = useRouterState({ select: (state) => state.location });
   const search = location.search as { view?: string; week?: string };
   const onMain = location.pathname === '/';
@@ -98,6 +106,7 @@ function Canvas() {
     { keys: 'Mod+N', run: newTask },
     { keys: 'Mod+,', run: () => setSettingsOpen(true) },
     { keys: 'Mod+Z', run: () => void undoLatest(), outsideFields: true },
+    { keys: ['?', 'F1'], run: () => setSheetOpen(true), idle: true },
     ...SPACES.map((option) => ({
       keys: option.keys,
       run: () => void go(option.id),
@@ -118,6 +127,7 @@ function Canvas() {
           <ProfileMenu
             onSearch={() => setSearching(true)}
             onSettings={() => setSettingsOpen(true)}
+            onShortcuts={() => setSheetOpen(true)}
             onAdd={() => newTask()}
           />
         </div>
@@ -127,6 +137,7 @@ function Canvas() {
       </main>
       <SearchDialog open={searching} onOpenChange={setSearching} />
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <ShortcutSheet open={sheetOpen} onOpenChange={setSheetOpen} />
     </div>
   );
 }
@@ -178,10 +189,12 @@ function SpaceToggle({
 function ProfileMenu({
   onSearch,
   onSettings,
+  onShortcuts,
   onAdd,
 }: {
   onSearch: () => void;
   onSettings: () => void;
+  onShortcuts: () => void;
   onAdd: () => void;
 }) {
   const name = usePreference('profileName').trim();
@@ -211,6 +224,11 @@ function ProfileMenu({
           <SearchIcon />
           Search
           <DropdownMenuShortcut>{formatShortcut('Mod+K')}</DropdownMenuShortcut>
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onShortcuts}>
+          <KeyboardIcon />
+          Keyboard shortcuts
+          <DropdownMenuShortcut>?</DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onSettings}>

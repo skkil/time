@@ -87,7 +87,7 @@ user research.
       further typing goes to the page.
   - Done when: a modifier key or toggle keeps it open and focused for the next
     task.
-- [ ] **15. Add a shortcut sheet.** `?` and `F1` do nothing.
+- [x] **15. Add a shortcut sheet.** `?` and `F1` do nothing.
   - Done when: `?` opens a list of all shortcuts, outside text fields.
 
 ## P1: Quick Add
