@@ -27,7 +27,7 @@ export function PriorityCheck({
         onToggle();
       }}
       className={cn(
-        'group/check grid size-[18px] shrink-0 place-items-center rounded-full border outline-offset-2 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-ring',
+        'group/check relative grid size-[18px] shrink-0 place-items-center rounded-full border outline-offset-2 transition-colors duration-300 after:absolute after:-inset-1.5 focus-visible:outline-2 focus-visible:outline-ring',
         checked
           ? 'border-white/50 bg-white/50 text-[#0b1a22]'
           : 'border-white/40 hover:border-white/80',

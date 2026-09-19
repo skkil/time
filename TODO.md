@@ -32,16 +32,16 @@ user research.
 
 ## P0: Daily loop
 
-- [ ] **4. Make Time and Repeat reachable in the date picker.** From the Day
+- [x] **4. Make Time and Repeat reachable in the date picker.** From the Day
       task panel the popover runs to y=927 in an 820px window and can't scroll.
   - Repro: Day → open a task → click its date.
   - Done when: the whole popover is reachable at the default 1200×820 window
     from every place it opens.
-- [ ] **5. Make Day circles complete tasks.** They look like checkboxes but only
+- [x] **5. Make Day circles complete tasks.** They look like checkboxes but only
       select the row.
   - Done when: clicking the circle completes the task, clicking the title opens
     it, and the row gives visible feedback.
-- [ ] **6. Show timed tasks at their time on Day.** "Call dentist today 8pm"
+- [x] **6. Show timed tasks at their time on Day.** "Call dentist today 8pm"
       lands in "Any time today" with no time, while Week shows it at 20:00.
   - Where: `apps/desktop/src/features/day/DayCanvas.tsx`.
   - Done when: a task with a due time appears on the timeline at that time, and
@@ -110,14 +110,14 @@ user research.
       sense on hover.
   - Done when: each is identifiable without hovering, or it moves out of Day
     (see item 49).
-- [ ] **21. Fix the "Any time today" overflow.** With 6 or more tasks the list
+- [x] **21. Fix the "Any time today" overflow.** With 6 or more tasks the list
       clips a row and Add scrolls out of view.
   - Done when: Add stays reachable and no row is cut off at 1200×820.
 - [ ] **22. Make overdue visible.** Overdue work is a faint "N left from earlier
       days", and overdue dates look normal in the task panel.
   - Done when: overdue dates are visually distinct everywhere, and the Day entry
     point meets the contrast target in item 42, in neutral wording.
-- [ ] **23. Give finished tasks feedback.** Completed tasks disappear from Day.
+- [x] **23. Give finished tasks feedback.** Completed tasks disappear from Day.
   - Done when: a finished task stays briefly as done, and today's finished tasks
     can be found on Day.
 

@@ -187,7 +187,7 @@ export function DuePicker({
           </Chip>
         )}
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-0" align="start">
+      <PopoverContent className="w-64 p-0" side="right" align="center">
         <form
           className="border-b p-2"
           onSubmit={(event) => {

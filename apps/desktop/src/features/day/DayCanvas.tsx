@@ -1,15 +1,7 @@
 import { format } from 'date-fns';
-import {
-  InboxIcon,
-  ListTodoIcon,
-  MoonIcon,
-  PlayIcon,
-  PlusIcon,
-  SquareIcon,
-} from 'lucide-react';
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import type { EntryDetails, Id, TimeEntry } from '@/bindings';
+import type { Id, Task, TimeEntry } from '@/bindings';
 import {
   Dialog,
   DialogContent,
@@ -18,69 +10,36 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { HabitDots } from '@/features/habits/HabitDots';
-import { createTimeScale } from '@/features/planner/time-scale';
-import { ProjectDot } from '@/features/projects/ProjectDot';
-import { ProjectJump, ProjectLink } from '@/features/projects/ProjectLink';
-import { ProjectPicker } from '@/features/projects/ProjectPicker';
-import { useProjectIndex } from '@/features/projects/api';
-import { projectColorVar } from '@/features/projects/tree';
-import { useRitualRuns, useRituals } from '@/features/rituals/api';
-import { STEPS } from '@/features/rituals/meta';
-import { useRitualRunner } from '@/features/rituals/runner-context';
-import { TaskJump } from '@/features/tasks/TaskLink';
+import { useRitualRuns } from '@/features/rituals/api';
 import { TaskPanel } from '@/features/tasks/TaskPanel';
-import { TaskPicker } from '@/features/tasks/TaskPicker';
 import { useTaskIndex } from '@/features/tasks/api';
-import { useTaskDialog } from '@/features/tasks/task-dialog-context';
-import { EntryDialog } from '@/features/time/EntryDialog';
-import {
-  useDiscardTimer,
-  useEditTimer,
-  useStartTimer,
-  useStopTimer,
-  useTimeEntries,
-  useTimer,
-} from '@/features/time/api';
+import { useTimeEntries, useTimer } from '@/features/time/api';
 import { useEvents } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
 import { usePreference } from '@/lib/preferences';
 import { useShortcuts } from '@/lib/shortcuts';
 import {
   dayStart,
-  formatClockTime,
   formatDuration,
-  formatMinutesOfDay,
-  formatStopwatch,
   fromDateKey,
-  minutesIntoDay,
   secondsWithin,
   shiftKey,
   todayKey,
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
+import { AnyTimeList } from './AnyTimeList';
+import { CheckOut, CheckOutPrompt } from './CheckOut';
+import { DayThread, type Moment } from './DayThread';
+import { FreeFocus, StartFocus } from './FreeFocus';
 import { Leftovers } from './Leftovers';
 import { useDayPlan } from './plan';
 import { describeWeather, useWeather } from './weather';
 
-type Moment = {
-  key: string;
-  kind: 'block' | 'event';
-  taskId: Id;
-  title: string;
-  projectId: Id | null;
-  start: number;
-  end: number;
-  done: boolean;
-};
-
-type Loose = { taskId: Id; title: string; projectId: Id | null; done: boolean };
-
 type Panel =
   { kind: 'task'; taskId: Id } | { kind: 'focus' } | { kind: 'checkout' };
 
-const WINDOW_HOURS = 6;
-const ROW = 46;
+const isTimed = (task: Task) => task.dueTime !== null;
 
 export function DayCanvas() {
   const today = todayKey();
@@ -116,9 +75,11 @@ export function DayCanvas() {
       key: `block-${block.id}`,
       taskId: block.taskId,
       title: block.title,
+      priority: block.priority,
       projectId: block.projectId,
       start: block.startAt,
       end: block.endAt,
+      showEnd: true,
       kind: 'block' as const,
       done: block.completed,
     }));
@@ -126,24 +87,42 @@ export function DayCanvas() {
       key: `event-${event.taskId}-${event.startAt}`,
       taskId: event.taskId,
       title: event.title,
+      priority: 4,
       projectId: event.projectId,
       start: event.startAt,
       end: event.endAt,
+      showEnd: true,
       kind: 'event' as const,
       done: false,
     }));
-    return [...timed, ...anchors].sort((a, b) => a.start - b.start);
-  }, [plan.blocks, events]);
+    const finishedHere = plan.doneToday.filter(
+      (task) => task.dueDate === today,
+    );
+    const due = [...plan.musts, ...plan.due, ...finishedHere]
+      .filter(isTimed)
+      .map((task) => {
+        const start = dayStart(today) + task.dueTime! * 60;
+        return {
+          key: `due-${task.id}`,
+          taskId: task.id,
+          title: task.title,
+          priority: task.priority,
+          projectId: task.projectId,
+          start,
+          end: start + (task.estimateMinutes ?? 0) * 60,
+          showEnd: task.estimateMinutes !== null,
+          kind: 'due' as const,
+          done: task.completedAt !== null,
+        };
+      });
+    return [...timed, ...anchors, ...due].sort((a, b) => a.start - b.start);
+  }, [plan.blocks, plan.musts, plan.due, plan.doneToday, events, today]);
 
-  const loose = useMemo<Loose[]>(
-    () =>
-      [...plan.musts, ...plan.due].map((task) => ({
-        taskId: task.id,
-        title: task.title,
-        projectId: task.projectId,
-        done: task.completedAt !== null,
-      })),
-    [plan.musts, plan.due],
+  const blocked = new Set(plan.blocks.map((block) => block.taskId));
+  const anyTime = [...plan.musts, ...plan.due].filter((task) => !isTimed(task));
+  const finished = plan.doneToday.filter(
+    (task) =>
+      !blocked.has(task.id) && !(isTimed(task) && task.dueDate === today),
   );
 
   const running: Panel | null = timer
@@ -164,7 +143,7 @@ export function DayCanvas() {
       <div className="flex items-end justify-between gap-6 pb-10">
         <TodayLine tracked={tracked} />
         <div className="flex shrink-0 items-center gap-2">
-          <StartFocus onOpen={setChosen} />
+          <StartFocus onOpen={() => setChosen({ kind: 'focus' })} />
           <CheckOut
             done={checkedOutAt !== null}
             open={panel?.kind === 'checkout'}
@@ -179,7 +158,7 @@ export function DayCanvas() {
             panel ? 'w-[clamp(300px,40%,380px)]' : 'w-full',
           )}
         >
-          <Thread
+          <DayThread
             moments={moments}
             entries={entries}
             now={now}
@@ -187,8 +166,9 @@ export function DayCanvas() {
             runningId={timer?.taskId ?? null}
             onPick={(taskId) => setChosen({ kind: 'task', taskId })}
           />
-          <LooseList
-            tasks={loose}
+          <AnyTimeList
+            tasks={anyTime}
+            finished={finished}
             openId={openId}
             runningId={timer?.taskId ?? null}
             onPick={(taskId) => setChosen({ kind: 'task', taskId })}
@@ -268,423 +248,6 @@ function TodayLine({ tracked }: { tracked: number }) {
   );
 }
 
-function Thread({
-  moments,
-  entries,
-  now,
-  openId,
-  runningId,
-  onPick,
-}: {
-  moments: Moment[];
-  entries: TimeEntry[];
-  now: number;
-  openId: Id | null;
-  runningId: Id | null;
-  onPick: (taskId: Id) => void;
-}) {
-  const index = useProjectIndex();
-  const today = todayKey();
-  const [editing, setEditing] = useState<TimeEntry>();
-  const scroller = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState(0);
-  const sleep = usePreference('sleep');
-  const hourHeight = Math.max(48, height / WINDOW_HOURS);
-  const scale = useMemo(
-    () => createTimeScale(hourHeight, sleep),
-    [hourHeight, sleep],
-  );
-  const nowTop = scale.top(minutesIntoDay(now));
-
-  useLayoutEffect(() => {
-    const element = scroller.current;
-    if (!element) return;
-    setHeight(element.clientHeight);
-    const observer = new ResizeObserver(([entry]) =>
-      setHeight(entry.contentRect.height),
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
-  const placed = useRef(false);
-  useLayoutEffect(() => {
-    const element = scroller.current;
-    if (!element || height === 0 || placed.current) return;
-    placed.current = true;
-    element.scrollTop = nowTop - hourHeight;
-  }, [height, nowTop, hourHeight]);
-
-  const rows = useMemo(() => {
-    const dayOpen = dayStart(today);
-    const placed: {
-      moment: Moment;
-      start: number;
-      end: number;
-      top: number;
-    }[] = [];
-    for (const moment of moments) {
-      const start = scale.top(Math.max(0, (moment.start - dayOpen) / 60));
-      const end = scale.top(Math.min(24 * 60, (moment.end - dayOpen) / 60));
-      const previous = placed.at(-1);
-      const top = previous ? Math.max(start, previous.top + ROW) : start;
-      placed.push({ moment, start, end, top });
-    }
-    return placed;
-  }, [moments, scale, today]);
-
-  return (
-    <div
-      ref={scroller}
-      className="relative no-scrollbar min-h-0 flex-1 overflow-y-auto [mask-image:linear-gradient(180deg,transparent,#000_24px,#000_calc(100%-24px),transparent)] pr-2"
-    >
-      <div className="relative" style={{ height: scale.height }}>
-        {scale.segments
-          .filter((segment) => segment.compact)
-          .map(({ from, top, height }) => (
-            <span
-              key={from}
-              aria-hidden
-              className="absolute inset-x-0 rounded-sm bg-black/20"
-              style={{ top, height }}
-            />
-          ))}
-        {scale.marks.map((minute) => (
-          <span
-            key={minute}
-            aria-hidden
-            className="absolute left-0 w-10 -translate-y-1/2 text-[11px] text-foreground/35"
-            style={{ top: scale.top(minute) }}
-          >
-            {formatMinutesOfDay(minute)}
-          </span>
-        ))}
-        <span
-          aria-hidden
-          className="absolute inset-y-0 left-[55px] w-px bg-white/20"
-        />
-        {rows.map(({ moment, start, end }) => (
-          <span
-            key={`span-${moment.key}`}
-            aria-hidden
-            className={cn(
-              'absolute left-[54px] w-[3px] rounded-full',
-              moment.done || moment.end <= now ? 'bg-white/30' : 'bg-white/70',
-            )}
-            style={{ top: start, height: Math.max(end - start, 3) }}
-          />
-        ))}
-        {entries.map((entry) => {
-          const dayOpen = dayStart(today);
-          const from = Math.max(0, (entry.startedAt - dayOpen) / 60);
-          const to = Math.min(24 * 60, (entry.endedAt - dayOpen) / 60);
-          if (to <= from) return null;
-          const tall = scale.extent(from, to);
-          const project =
-            entry.projectId === null
-              ? undefined
-              : index.byId.get(entry.projectId);
-          const label = entry.description || project?.name || 'Focus';
-          return (
-            <button
-              key={entry.id}
-              type="button"
-              disabled={entry.id === -1}
-              onClick={() => setEditing(entry)}
-              title={`${label} · ${formatClockTime(entry.startedAt)}–${entry.id === -1 ? 'now' : formatClockTime(entry.endedAt)} · ${formatDuration(entry.endedAt - entry.startedAt)}`}
-              className="absolute right-0 left-16 overflow-hidden rounded-md px-2 text-right text-[11px] leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-              style={{
-                top: scale.top(from),
-                height: Math.max(tall - 1, 3),
-                background: `color-mix(in oklab, ${
-                  project
-                    ? projectColorVar(project.color)
-                    : 'var(--muted-foreground)'
-                } 50%, transparent)`,
-              }}
-            >
-              {tall >= 24 && (
-                <span className="block truncate pt-1">{label}</span>
-              )}
-            </button>
-          );
-        })}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute right-0 left-[51.5px] flex -translate-y-1/2 items-center"
-          style={{ top: nowTop }}
-        >
-          <span className="size-2 rounded-full bg-white" />
-          <span className="h-px flex-1 bg-gradient-to-r from-white/70 to-transparent" />
-        </div>
-        <ol>
-          {rows.map(({ moment, top }) => {
-            const past = moment.end <= now;
-            const live =
-              moment.kind === 'block' &&
-              (moment.taskId === runningId ||
-                (moment.start <= now && moment.end > now));
-            const open = moment.taskId === openId;
-            const project =
-              moment.projectId !== null
-                ? index.byId.get(moment.projectId)
-                : undefined;
-            return (
-              <li
-                key={moment.key}
-                className="absolute right-28 left-12"
-                style={{ top: top - 11 }}
-              >
-                <button
-                  type="button"
-                  onClick={() => onPick(moment.taskId)}
-                  aria-current={open ? 'true' : undefined}
-                  className="group relative flex w-full items-start gap-4 text-left outline-none"
-                >
-                  <span className="relative mt-1 grid size-[15px] shrink-0 place-items-center">
-                    {moment.kind === 'event' ? (
-                      <span
-                        aria-label="Event"
-                        className={cn(
-                          'size-[11px] rotate-45 rounded-[2px] transition-colors duration-500',
-                          past ? 'bg-white/35' : 'bg-white/85',
-                        )}
-                      />
-                    ) : (
-                      <>
-                        {live && (
-                          <span className="absolute inset-[-5px] animate-[ping_2.6s_cubic-bezier(0,0,.2,1)_infinite] rounded-full bg-white/25" />
-                        )}
-                        <span
-                          className={cn(
-                            'size-[15px] rounded-full border transition-all duration-500',
-                            moment.done
-                              ? 'border-white/40 bg-white/40'
-                              : live || open
-                                ? 'border-white bg-white'
-                                : 'border-white/60 bg-[rgba(8,22,30,.9)] group-hover:border-white',
-                          )}
-                        />
-                      </>
-                    )}
-                  </span>
-                  <span className="min-w-0">
-                    <span
-                      className={cn(
-                        'block truncate text-[15px] transition-colors duration-500',
-                        moment.done && 'text-foreground/40 line-through',
-                        !moment.done &&
-                          (open
-                            ? 'text-foreground'
-                            : past
-                              ? 'text-foreground/50'
-                              : 'text-foreground/80 group-hover:text-foreground'),
-                        'group-focus-visible:underline',
-                      )}
-                    >
-                      {moment.title}
-                    </span>
-                  </span>
-                </button>
-                <p className="flex items-center gap-2 pl-7 text-xs text-foreground/50">
-                  {`${formatClockTime(moment.start)} – ${formatClockTime(moment.end)}`}
-                  {project && (
-                    <ProjectLink
-                      projectId={project.id}
-                      className="flex items-center gap-2"
-                    >
-                      <ProjectDot color={project.color} />
-                      <span className="truncate">{project.name}</span>
-                    </ProjectLink>
-                  )}
-                </p>
-              </li>
-            );
-          })}
-        </ol>
-      </div>
-      <EntryDialog
-        open={editing !== undefined}
-        onOpenChange={(next) => !next && setEditing(undefined)}
-        entry={editing}
-      />
-    </div>
-  );
-}
-
-function LooseList({
-  tasks,
-  openId,
-  runningId,
-  onPick,
-}: {
-  tasks: Loose[];
-  openId: Id | null;
-  runningId: Id | null;
-  onPick: (id: Id) => void;
-}) {
-  const { newTask } = useTaskDialog();
-  const today = todayKey();
-
-  return (
-    <div className="no-scrollbar max-h-[32%] shrink-0 overflow-y-auto pt-4 pb-3">
-      {tasks.length > 0 && (
-        <p className="pb-1 text-xs text-foreground/45">Any time today</p>
-      )}
-      <ul>
-        {tasks.map((task) => {
-          const open = task.taskId === openId;
-          const live = task.taskId === runningId;
-          return (
-            <li key={task.taskId}>
-              <button
-                type="button"
-                onClick={() => onPick(task.taskId)}
-                aria-current={open ? 'true' : undefined}
-                className="group flex w-full items-center gap-3 py-1.5 text-left outline-none"
-              >
-                <span
-                  className={cn(
-                    'size-[11px] shrink-0 rounded-full border transition-all duration-500',
-                    task.done
-                      ? 'border-white/40 bg-white/40'
-                      : live || open
-                        ? 'border-white bg-white'
-                        : 'border-white/60 group-hover:border-white',
-                  )}
-                />
-                <span
-                  className={cn(
-                    'truncate text-sm transition-colors duration-500 group-focus-visible:underline',
-                    task.done
-                      ? 'text-foreground/40 line-through'
-                      : open
-                        ? 'text-foreground'
-                        : 'text-foreground/75 group-hover:text-foreground',
-                  )}
-                >
-                  {task.title}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-      <button
-        type="button"
-        onClick={() => newTask({ dueDate: today })}
-        className="flex items-center gap-2 pt-1.5 text-sm text-foreground/45 transition-colors hover:text-foreground"
-      >
-        <PlusIcon className="size-4" strokeWidth={1.5} />
-        Add
-      </button>
-    </div>
-  );
-}
-
-function StartFocus({ onOpen }: { onOpen: (panel: Panel) => void }) {
-  const { data: timer } = useTimer();
-  const start = useStartTimer();
-  const now = useNow(1000, Boolean(timer));
-
-  if (timer)
-    return (
-      <button
-        type="button"
-        onClick={() => onOpen({ kind: 'focus' })}
-        className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] tabular-nums transition-colors hover:bg-white"
-      >
-        <span className="size-2 rounded-full bg-[#08161e]" />
-        {formatStopwatch(now - timer.startedAt)}
-      </button>
-    );
-
-  return (
-    <button
-      type="button"
-      disabled={start.isPending}
-      onClick={() =>
-        start.mutate(
-          { description: '', projectId: null, taskId: null },
-          { onSuccess: () => onOpen({ kind: 'focus' }) },
-        )
-      }
-      className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
-    >
-      <PlayIcon className="size-3.5 fill-current" />
-      Start focus
-    </button>
-  );
-}
-
-function CheckOut({
-  done,
-  open,
-  onToggle,
-}: {
-  done: boolean;
-  open: boolean;
-  onToggle: (open: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={open}
-      onClick={() => onToggle(!open)}
-      className={cn(
-        'flex h-9 items-center gap-2 rounded-full px-4 text-sm ring-1 ring-white/20 transition-colors hover:bg-white/15 hover:text-foreground',
-        open && 'bg-white/15',
-        done && !open ? 'text-foreground/60' : 'text-foreground',
-      )}
-    >
-      <MoonIcon className="size-3.5" strokeWidth={1.75} />
-      {done ? 'Checked out' : 'Check out'}
-    </button>
-  );
-}
-
-function CheckOutPrompt({ checkedOutAt }: { checkedOutAt: number | null }) {
-  const runner = useRitualRunner();
-  const { data: rituals } = useRituals();
-  const steps = (
-    rituals?.find((ritual) => ritual.kind === 'evening')?.steps ?? []
-  ).filter((step): step is keyof typeof STEPS => step in STEPS);
-
-  return (
-    <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-200 fade-in-0 slide-in-from-bottom-2 motion-reduce:animate-none">
-      <p className="text-sm text-foreground/55">End of day</p>
-      <h2 className="mt-2 text-3xl font-light">
-        {checkedOutAt
-          ? `Checked out at ${formatClockTime(checkedOutAt)}`
-          : 'Ready to check out?'}
-      </h2>
-      <p className="mt-3 max-w-md text-foreground/60">
-        Close today in a few quiet steps, then leave it here.
-      </p>
-      {steps.length > 0 && (
-        <ol className="mt-10 grid min-h-0 max-w-md flex-1 content-start gap-4 overflow-y-auto text-sm">
-          {steps.map((step) => (
-            <li key={step} className="grid gap-0.5">
-              <span>{STEPS[step].label}</span>
-              <span className="text-foreground/45">{STEPS[step].hint}</span>
-            </li>
-          ))}
-        </ol>
-      )}
-      <div className="shrink-0 pt-6">
-        <button
-          type="button"
-          onClick={() => runner.open('evening')}
-          className="flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
-        >
-          <MoonIcon className="size-3.5" strokeWidth={1.75} />
-          {checkedOutAt ? 'Check out again' : 'Begin check out'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function Focus({ taskId }: { taskId: Id }) {
   const tasks = useTaskIndex();
   const task = tasks.byId.get(taskId);
@@ -696,124 +259,3 @@ function Focus({ taskId }: { taskId: Id }) {
     </div>
   );
 }
-
-function FreeFocus() {
-  const { data: timer } = useTimer();
-  const index = useProjectIndex();
-  const tasks = useTaskIndex();
-  const edit = useEditTimer();
-  const stop = useStopTimer();
-  const discard = useDiscardTimer();
-  const now = useNow(1000, Boolean(timer));
-  const input = useRef<HTMLInputElement>(null);
-  if (!timer) return null;
-
-  const current = (): EntryDetails => ({
-    description: input.current?.value.trim() ?? timer.description,
-    projectId: timer.projectId,
-    taskId: timer.taskId,
-  });
-  const project =
-    timer.projectId === null ? undefined : index.byId.get(timer.projectId);
-  const task = timer.taskId === null ? undefined : tasks.byId.get(timer.taskId);
-
-  return (
-    <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-200 fade-in-0 slide-in-from-bottom-2">
-      <p className="text-sm text-foreground/55">Focusing</p>
-      <input
-        key={`${timer.startedAt}-${timer.taskId}`}
-        ref={input}
-        defaultValue={timer.description}
-        placeholder="What are you on?"
-        aria-label="What are you on?"
-        onBlur={() => {
-          if (current().description !== timer.description)
-            edit.mutate(current());
-        }}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') event.currentTarget.blur();
-        }}
-        className="mt-2 bg-transparent text-3xl font-light outline-none placeholder:text-foreground/35"
-      />
-
-      <dl className="mt-10 grid max-w-md grid-cols-[88px_minmax(0,1fr)] items-center gap-x-4 gap-y-3 text-sm">
-        <dt className="text-foreground/45">Task</dt>
-        <dd className="flex min-w-0 items-center gap-2">
-          <TaskPicker
-            value={timer.taskId}
-            onChange={(picked) =>
-              edit.mutate(
-                picked
-                  ? {
-                      description: current().description || picked.title,
-                      projectId: picked.projectId,
-                      taskId: picked.id,
-                    }
-                  : { ...current(), taskId: null },
-              )
-            }
-            trigger={
-              <button type="button" className={FIELD}>
-                <ListTodoIcon className="size-3.5 text-foreground/50" />
-                <span className="truncate">{task?.title ?? 'None'}</span>
-              </button>
-            }
-          />
-          {task && <TaskJump taskId={task.id} name={task.title} />}
-        </dd>
-        <dt className="text-foreground/45">Project</dt>
-        <dd className="flex min-w-0 items-center gap-2">
-          <ProjectPicker
-            value={timer.projectId}
-            onChange={(projectId) =>
-              edit.mutate({ ...current(), projectId, taskId: null })
-            }
-            trigger={
-              <button type="button" className={FIELD}>
-                {project ? (
-                  <ProjectDot color={project.color} />
-                ) : (
-                  <InboxIcon className="size-3.5 text-foreground/50" />
-                )}
-                <span className="truncate">{project?.name ?? 'None'}</span>
-              </button>
-            }
-          />
-          {project && (
-            <ProjectJump projectId={project.id} name={project.name} />
-          )}
-        </dd>
-        <dt className="text-foreground/45">Started</dt>
-        <dd className="text-foreground/75 tabular-nums">
-          {formatClockTime(timer.startedAt)}
-        </dd>
-      </dl>
-
-      <div className="mt-auto flex items-center gap-4 pt-10">
-        <span className="text-5xl font-extralight tracking-tight tabular-nums">
-          {formatStopwatch(now - timer.startedAt)}
-        </span>
-        <button
-          type="button"
-          disabled={stop.isPending}
-          onClick={() => stop.mutate(current())}
-          className="ml-4 flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
-        >
-          <SquareIcon className="size-3.5 fill-current" />
-          Stop
-        </button>
-        <button
-          type="button"
-          disabled={discard.isPending}
-          onClick={() => discard.mutate()}
-          className="text-sm text-foreground/45 transition-colors hover:text-foreground"
-        >
-          Discard
-        </button>
-      </div>
-    </div>
-  );
-}
-
-const FIELD =
-  'flex h-8 max-w-full items-center gap-2 rounded-full px-3 text-foreground/80 ring-1 ring-white/15 transition-colors outline-none hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/50';
