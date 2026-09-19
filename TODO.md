@@ -52,7 +52,7 @@ user research.
   - Done when: that phrase saves as "Weekly review" repeating every Friday at
     17:00 for 30m, with a test beside the parser. A repeat word that starts a
     title stays in the title when a later `every …` phrase is present.
-- [ ] **8. Keep Continue on screen in Check out.** With 11 leftovers at
+- [x] **8. Keep Continue on screen in Check out.** With 11 leftovers at
       1200×820, Continue sits at y=817–849 of 820, with no scroll hint.
   - Done when: Back and Continue stay visible at any list length, and the list
     scrolls inside the card.

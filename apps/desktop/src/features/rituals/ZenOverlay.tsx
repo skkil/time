@@ -94,11 +94,11 @@ function ZenFrame({
             <XIcon className="size-4" strokeWidth={1.5} />
             Leave
           </button>
-          <div className="relative grid h-full place-items-center overflow-y-auto p-8">
+          <div className="relative grid h-full place-items-center p-8">
             <div
               style={glass}
               className={cn(
-                'grid w-full animate-in gap-8 rounded-[40px] bg-white/[.07] px-12 py-11 shadow-[0_40px_120px_rgba(0,0,0,.28)] ring-1 ring-white/15 backdrop-blur-[48px] backdrop-saturate-150 delay-300 duration-[1200ms] fade-in-0 fill-mode-both zoom-in-[.97]',
+                'flex max-h-full min-h-0 w-full animate-in flex-col gap-8 rounded-[40px] bg-white/[.07] px-12 py-11 shadow-[0_40px_120px_rgba(0,0,0,.28)] ring-1 ring-white/15 backdrop-blur-[48px] backdrop-saturate-150 delay-300 duration-[1200ms] fade-in-0 fill-mode-both zoom-in-[.97]',
                 wide ? 'max-w-4xl' : 'max-w-[600px]',
               )}
             >
@@ -146,7 +146,7 @@ export function ZenOverlay({
   };
 
   const header = (
-    <header className="grid justify-items-center gap-4 text-center">
+    <header className="grid shrink-0 justify-items-center gap-4 text-center">
       <p className="text-xs tracking-[.2em] text-white/60">
         {meta.label.toUpperCase()}
       </p>
@@ -181,7 +181,7 @@ export function ZenOverlay({
         onEscape={onClose}
       >
         {header}
-        <div className="max-h-[70vh] overflow-y-auto pr-1">
+        <div className="min-h-0 overflow-y-auto pr-1">
           <WeekReviewFlow
             week={shiftKey(mondayOf(todayKey()), -7)}
             onDone={finish}
@@ -200,11 +200,11 @@ export function ZenOverlay({
       <section
         key={step}
         aria-live="polite"
-        className="min-h-44 animate-in duration-700 fade-in-0 slide-in-from-bottom-2"
+        className="min-h-0 flex-1 animate-in [scrollbar-width:thin] overflow-y-auto duration-700 fade-in-0 slide-in-from-bottom-2"
       >
         <RitualStep step={step} ctx={ctx} onNext={next} />
       </section>
-      <footer className="flex items-center gap-3">
+      <footer className="flex shrink-0 items-center gap-3">
         {index > 0 ? (
           <button
             type="button"
