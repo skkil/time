@@ -117,7 +117,7 @@ user research.
 - [x] **21. Fix the "Any time today" overflow.** With 6 or more tasks the list
       clips a row and Add scrolls out of view.
   - Done when: Add stays reachable and no row is cut off at 1200×820.
-- [ ] **22. Make overdue visible.** Overdue work is a faint "N left from earlier
+- [x] **22. Make overdue visible.** Overdue work is a faint "N left from earlier
       days", and overdue dates look normal in the task panel.
   - Done when: overdue dates are visually distinct everywhere, and the Day entry
     point meets the contrast target in item 42, in neutral wording.

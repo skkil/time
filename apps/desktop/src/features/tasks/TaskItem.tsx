@@ -35,6 +35,7 @@ import { useWorkflowIndex } from '@/features/workflow/api';
 import { formatDuration, formatEstimate, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
+import { DueText } from './DueText';
 import { PriorityCheck } from './PriorityCheck';
 import { TaskLink } from './TaskLink';
 import {
@@ -48,7 +49,7 @@ import {
   useUpdateTask,
 } from './api';
 import { DuePicker, PriorityFlag } from './fields';
-import { PRIORITIES, formatDate, formatDue } from './meta';
+import { PRIORITIES, formatDate } from './meta';
 import { useTaskDialog } from './task-dialog-context';
 
 export type TaskItemProps = {
@@ -196,14 +197,18 @@ export function TaskItem({
             )}
             <span className="min-w-0">{task.title}</span>
           </span>
-          <span className="mt-0.5 block truncate text-xs text-foreground/45 empty:hidden">
+          <span className="mt-0.5 block truncate text-xs text-foreground/60 empty:hidden">
             {[
               waitingOn.length === 1 &&
                 `waiting on ${firstBlocker?.title ?? 'another task'}`,
               waitingOn.length > 1 && `waiting on ${waitingOn.length} tasks`,
               status && variant === 'row' && status.name,
-              task.dueDate &&
-                `${formatDue(task, today)}${task.recurrence ? `, ${task.recurrence}` : ''}`,
+              task.dueDate && (
+                <span key="due">
+                  <DueText task={task} />
+                  {task.recurrence && `, ${task.recurrence}`}
+                </span>
+              ),
               task.deadline && `due by ${formatDate(task.deadline, today)}`,
               task.estimateMinutes !== null &&
                 `about ${formatEstimate(task.estimateMinutes)}`,
@@ -216,7 +221,7 @@ export function TaskItem({
                 `moved ${task.rolloverCount}×`,
             ]
               .filter(Boolean)
-              .join(' · ')}
+              .flatMap((part, at) => (at === 0 ? [part] : [' · ', part]))}
           </span>
         </button>
         {((showParent && parent) || (showPlacement && variant === 'row')) && (

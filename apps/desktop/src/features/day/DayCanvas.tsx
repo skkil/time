@@ -177,9 +177,11 @@ export function DayCanvas() {
             <button
               type="button"
               onClick={() => setSorting(true)}
-              className="mb-4 self-start text-sm text-foreground/55 underline-offset-4 transition-colors hover:text-foreground hover:underline"
+              className="mb-4 self-start text-sm text-foreground/85 underline decoration-foreground/30 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground"
             >
-              {plan.earlier.length} left from earlier days
+              {plan.earlier.length === 1
+                ? '1 task from earlier days'
+                : `${plan.earlier.length} tasks from earlier days`}
             </button>
           )}
         </aside>

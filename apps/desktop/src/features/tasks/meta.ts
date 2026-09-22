@@ -61,3 +61,12 @@ export function formatDue(
 }
 
 export const isOpen = (task: Task) => task.completedAt === null;
+
+export const isOverdue = (
+  task: Pick<Task, 'dueDate' | 'completedAt' | 'statusCategory'>,
+  today = todayKey(),
+) =>
+  task.dueDate !== null &&
+  task.dueDate < today &&
+  task.completedAt === null &&
+  task.statusCategory !== 'backlog';

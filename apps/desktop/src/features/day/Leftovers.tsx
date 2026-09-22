@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { ProjectLink } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
+import { DueText } from '@/features/tasks/DueText';
 import { TaskLink } from '@/features/tasks/TaskLink';
 import {
   useDeleteTasks,
@@ -10,7 +11,6 @@ import {
   useSetTaskCompleted,
   useSetTasksSomeday,
 } from '@/features/tasks/api';
-import { formatDate } from '@/features/tasks/meta';
 import { type DateKey, shiftKey, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
@@ -68,7 +68,9 @@ export function Leftovers({
                     {project?.name ?? 'Inbox'}
                   </ProjectLink>
                   {task.dueDate && (
-                    <span>· {formatDate(task.dueDate, today)}</span>
+                    <span>
+                      · <DueText task={task} />
+                    </span>
                   )}
                   {task.rolloverCount >= 2 && (
                     <span>· moved ×{task.rolloverCount}</span>

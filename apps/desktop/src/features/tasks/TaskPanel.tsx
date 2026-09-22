@@ -50,6 +50,7 @@ import {
 import { cn } from '@/lib/utils';
 
 import { Dependencies } from './Dependencies';
+import { DueText } from './DueText';
 import { Dot, Phrase } from './Phrase';
 import { AddStepForm, StepRow } from './StepRow';
 import { TaskFocus } from './TaskFocus';
@@ -73,7 +74,6 @@ import {
   PlacementPicker,
   PriorityPicker,
 } from './fields';
-import { formatDue } from './meta';
 import { useTaskDialog } from './task-dialog-context';
 
 export function TaskPanel({
@@ -264,7 +264,7 @@ function Details({
       onChange={(due) => save(due)}
       trigger={
         <Phrase set={task.dueDate !== null}>
-          {task.dueDate ? formatDue(task) : 'No date'}
+          {task.dueDate ? <DueText task={task} /> : 'No date'}
           {task.recurrence && (
             <span className="text-foreground/50"> · {task.recurrence}</span>
           )}

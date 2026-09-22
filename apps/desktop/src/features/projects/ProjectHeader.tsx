@@ -10,8 +10,8 @@ import { type ReactNode, useState } from 'react';
 import type { Project, Task } from '@/bindings';
 import { Button } from '@/components/ui/button';
 import { CommandItem } from '@/components/ui/command';
+import { DueText } from '@/features/tasks/DueText';
 import { TaskLink } from '@/features/tasks/TaskLink';
-import { formatDue } from '@/features/tasks/meta';
 import { cn } from '@/lib/utils';
 
 import { NewProjectDialog } from './NewProjectDialog';
@@ -113,7 +113,11 @@ export function ProjectHeader({
         className="max-w-xl truncate text-base text-foreground"
       >
         Next: {next.title}
-        {next.dueDate && `, ${formatDue(next)}`}
+        {next.dueDate && (
+          <>
+            , <DueText task={next} />
+          </>
+        )}
       </TaskLink>
     ),
     `${openCount} open ${openCount === 1 ? 'task' : 'tasks'}`,
