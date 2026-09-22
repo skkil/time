@@ -183,7 +183,7 @@ user research.
 
 ## P1: Projects and search
 
-- [ ] **37. Fix "Next" and "After that".** "Next" chose an overdue P2 over a P1
+- [x] **37. Fix "Next" and "After that".** "Next" chose an overdue P2 over a P1
       due today, and "After that" starts with an item from yesterday and repeats
       tasks.
   - Where: `apps/desktop/src/features/projects/context.ts`.

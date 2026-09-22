@@ -28,21 +28,34 @@ const isActionable = (task: Task) =>
   task.statusCategory !== 'backlog' &&
   task.waitingOn.length === 0;
 
-export function nextUp(tasks: Task[]): Task | undefined {
+const byDueThenPosition = (a: Task, b: Task) =>
+  (a.dueDate ?? '').localeCompare(b.dueDate ?? '') ||
+  (a.dueTime ?? 0) - (b.dueTime ?? 0) ||
+  a.position - b.position;
+
+/**
+ * Next is the single task to do now:
+ * 1. work due today or earlier, highest priority first, then oldest date;
+ * 2. otherwise the earliest dated task, ties by priority;
+ * 3. otherwise the top-level task with the highest priority, then by order.
+ */
+export function nextUp(tasks: Task[], today: DateKey): Task | undefined {
   const actionable = tasks.filter(isActionable);
-  const dated = actionable
-    .filter((task) => task.dueDate !== null)
+  const urgent = actionable
+    .filter((task) => task.dueDate !== null && task.dueDate <= today)
+    .sort((a, b) => a.priority - b.priority || byDueThenPosition(a, b));
+  const later = actionable
+    .filter((task) => task.dueDate !== null && task.dueDate > today)
     .sort(
       (a, b) =>
         (a.dueDate ?? '').localeCompare(b.dueDate ?? '') ||
-        (a.dueTime ?? 0) - (b.dueTime ?? 0),
+        a.priority - b.priority ||
+        byDueThenPosition(a, b),
     );
-  return (
-    dated[0] ??
-    actionable
-      .filter((task) => task.parentId === null)
-      .sort((a, b) => a.position - b.position)[0]
-  );
+  const undated = actionable
+    .filter((task) => task.dueDate === null && task.parentId === null)
+    .sort((a, b) => a.priority - b.priority || a.position - b.position);
+  return urgent[0] ?? later[0] ?? undated[0];
 }
 
 export function comingUp(
@@ -58,34 +71,28 @@ export function comingUp(
       task.kind !== 'record' &&
       task.statusCategory !== 'backlog',
   );
+  const tasksAhead = open.flatMap((task) => {
+    const dates: ComingItem[] = [];
+    if (task.id !== nextId && task.dueDate !== null && task.dueDate >= today)
+      dates.push({
+        key: `due-${task.id}`,
+        date: task.dueDate,
+        label: task.title,
+        taskId: task.id,
+      });
+    if (task.deadline !== null && task.deadline >= today)
+      dates.push({
+        key: `deadline-${task.id}`,
+        date: task.deadline,
+        label: task.title,
+        note: 'Deadline',
+        taskId: task.id,
+      });
+    const first = dates.sort((a, b) => a.date.localeCompare(b.date))[0];
+    return first ? [first] : [];
+  });
   const items: ComingItem[] = [
-    ...open.flatMap((task) =>
-      task.id !== nextId &&
-      task.dueDate !== null &&
-      (task.kind === 'task' || task.dueDate >= today)
-        ? [
-            {
-              key: `due-${task.id}`,
-              date: task.dueDate,
-              label: task.title,
-              taskId: task.id,
-            },
-          ]
-        : [],
-    ),
-    ...open.flatMap((task) =>
-      task.deadline !== null
-        ? [
-            {
-              key: `deadline-${task.id}`,
-              date: task.deadline,
-              label: task.title,
-              note: 'Deadline',
-              taskId: task.id,
-            },
-          ]
-        : [],
-    ),
+    ...tasksAhead,
     ...milestones.flatMap((milestone) =>
       milestone.date !== null && milestone.date >= today
         ? [

@@ -169,7 +169,9 @@ cargo clippy --all-targets
   Board, saved views, Graph and Timeline are layouts of Tasks, and the last
   layout is remembered per project. `projects/ProjectContext.tsx` is the side
   panel (after the next task, this week, notes), fed by pure helpers in
-  `projects/context.ts`. The sidebar is hidden by default (Mod+B); the project
+  `projects/context.ts` (Next: work due by today by priority, then the earliest
+  dated, then the highest-priority undated task; After that: upcoming dates only,
+  one row per task). The sidebar is hidden by default (Mod+B); the project
   name is the switcher.
 - Destructive and scheduling mutations offer Undo through `offerUndo`
   (`src/lib/undo.ts`, also Mod+Z outside text fields). Task changes restore a

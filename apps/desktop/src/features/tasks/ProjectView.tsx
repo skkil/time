@@ -22,6 +22,7 @@ import {
   setPreference,
   usePreference,
 } from '@/lib/preferences';
+import { todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 import {
@@ -105,7 +106,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
     createSection.mutate({ projectId, name, before });
   const archived = project?.archived ?? false;
   const unsectioned = topLevel(own, null);
-  const next = nextUp(own);
+  const next = nextUp(own, todayKey());
 
   const sectionList = (
     <PageBody className="px-10 pt-4">
