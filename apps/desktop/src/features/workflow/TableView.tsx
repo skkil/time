@@ -2,6 +2,7 @@ import { ArrowDownIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import type { Task } from '@/bindings';
+import { TABLE_SURFACE } from '@/components/surfaces';
 import { formatDate, formatDue } from '@/features/tasks/meta';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { formatDuration, formatEstimate, todayKey } from '@/lib/time';
@@ -74,7 +75,12 @@ export function TableView({
 
   return (
     <div className="min-h-0 flex-1 overflow-auto px-10 py-4">
-      <table className="w-full border-separate border-spacing-0 overflow-hidden rounded-2xl bg-white/[.04] text-sm ring-1 ring-white/[.07] backdrop-blur-md">
+      <table
+        className={cn(
+          TABLE_SURFACE,
+          'w-full border-separate border-spacing-0 overflow-hidden text-sm',
+        )}
+      >
         <thead>
           <tr>
             {columns.map((column) => (

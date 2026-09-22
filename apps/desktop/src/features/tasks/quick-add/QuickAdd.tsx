@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import type { TaskInput } from '@/bindings';
+import { WINDOW_SURFACE } from '@/components/surfaces';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import {
   useCreateProject,
@@ -19,6 +20,7 @@ import {
   todayKey,
 } from '@/lib/time';
 import { quoted } from '@/lib/undo';
+import { cn } from '@/lib/utils';
 
 import { SmartInput } from './SmartInput';
 import { parseQuickAdd } from './parser/parse';
@@ -114,7 +116,7 @@ export function QuickAdd({
         event.preventDefault();
         submit(false);
       }}
-      className="grid gap-4 rounded-[28px] bg-[rgba(10,22,34,.55)] px-8 py-7 shadow-[0_30px_90px_rgba(0,0,0,.35)] ring-1 ring-white/15 backdrop-blur-2xl"
+      className={cn(WINDOW_SURFACE, 'grid gap-4 px-8 py-7')}
     >
       <SmartInput
         autoFocus

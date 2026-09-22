@@ -365,7 +365,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
           open={viewEditor !== null}
           onOpenChange={(open) => !open && setViewEditor(null)}
         >
-          <DialogContent className="rounded-[28px] border-0 bg-[rgba(10,18,32,.92)] p-8 shadow-[0_40px_120px_rgba(0,0,0,.4)] ring-1 ring-white/10 backdrop-blur-2xl sm:max-w-md">
+          <DialogContent className="rounded-[28px] border-0 bg-[rgba(10,18,32,.92)] p-8 sm:max-w-md">
             <DialogTitle className="text-xl font-light">
               {viewEditor === 'new' ? 'New view' : 'Edit view'}
             </DialogTitle>

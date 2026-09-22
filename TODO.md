@@ -212,10 +212,12 @@ user research.
       today" about 3.7:1 (estimated from colours), and both are 11px or smaller.
   - Done when: body and label text reach 4.5:1 across the sky at every time of
     day.
-- [ ] **43. Check the keyboard focus ring.** `[recheck]` I detected no visible
+- [x] **43. Check the keyboard focus ring.** `[recheck]` I detected no visible
       ring after tabbing to a tab button.
   - Done when: every interactive element shows a visible focus state.
-- [ ] **44. Unify dialogs.** Quick Add, Leftovers, Settings and the project
+  - Rechecked 2026-11-08 in the mocked preview: tabs, buttons, links and checks
+    show a ring; task titles show an underline. Not reproduced.
+- [x] **44. Unify dialogs.** Quick Add, Leftovers, Settings and the project
       wizard each use a different surface, and the Timeline table is opaque.
   - Done when: there is one dialog style and one table style.
 - [ ] **45. Reconcile sky and ocean.** `[decide]` Rituals switch to a realistic

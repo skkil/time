@@ -101,7 +101,7 @@ export function SettingsDialog({
       <DialogContent className="grid h-[560px] grid-cols-[180px_minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-3xl">
         <nav
           aria-label="Settings"
-          className="grid content-start gap-0.5 border-r bg-sidebar p-3"
+          className="grid content-start gap-0.5 border-r bg-white/[.03] p-3"
         >
           <DialogTitle className="mb-2 px-2 text-sm">Settings</DialogTitle>
           {sections.map(({ id, label, icon: Icon }) => (

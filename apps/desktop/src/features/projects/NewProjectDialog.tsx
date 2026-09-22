@@ -52,7 +52,7 @@ export function NewProjectDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="flex h-[min(600px,84vh)] flex-col gap-0 rounded-[32px] border-0 bg-[rgba(10,18,32,.92)] p-10 shadow-[0_40px_120px_rgba(0,0,0,.4)] ring-1 ring-white/10 backdrop-blur-2xl sm:max-w-xl"
+        className="flex h-[min(600px,84vh)] flex-col gap-0 p-10 sm:max-w-xl"
       >
         {open && (
           <NewProjectForm

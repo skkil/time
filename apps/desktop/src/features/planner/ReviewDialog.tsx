@@ -30,7 +30,7 @@ export function ReviewDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[84vh] flex-col gap-6 rounded-[32px] border-0 bg-[rgba(10,18,32,.92)] p-10 ring-1 ring-white/10 backdrop-blur-2xl sm:max-w-xl">
+      <DialogContent className="flex max-h-[84vh] flex-col gap-6 p-10 sm:max-w-xl">
         <div>
           <DialogTitle className="text-3xl font-light">
             Week {isoWeekNumber(week)}

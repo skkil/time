@@ -53,7 +53,7 @@ export function ProjectSettingsDialog({
 }: ProjectSettingsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[min(720px,88vh)] flex-col gap-0 overflow-hidden rounded-[32px] border-0 bg-[rgba(10,18,32,.92)] p-0 shadow-[0_40px_120px_rgba(0,0,0,.4)] ring-1 ring-white/10 backdrop-blur-2xl sm:max-w-xl">
+      <DialogContent className="flex h-[min(720px,88vh)] flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
         {open && (
           <div className="min-h-0 flex-1 overflow-y-auto">
             <ProjectForm

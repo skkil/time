@@ -2,6 +2,7 @@ import { differenceInCalendarDays, format } from 'date-fns';
 import { FlagIcon } from 'lucide-react';
 import { useLayoutEffect, useRef } from 'react';
 
+import { TABLE_STICKY, TABLE_SURFACE } from '@/components/surfaces';
 import {
   type DateKey,
   fromDateKey,
@@ -96,7 +97,8 @@ export function Timeline({
     <div
       ref={scroller}
       className={cn(
-        'relative overflow-x-auto rounded-xl ring-1 ring-white/10',
+        TABLE_SURFACE,
+        'relative overflow-x-auto',
         fill && 'min-h-0 flex-1 overflow-y-auto',
       )}
     >
@@ -111,7 +113,10 @@ export function Timeline({
           )}
         >
           <div
-            className="sticky left-0 z-30 flex shrink-0 items-end border-r border-white/10 bg-[rgb(14,22,38)] px-4 pb-2 text-xs font-medium text-foreground/75"
+            className={cn(
+              TABLE_STICKY,
+              'sticky left-0 z-30 flex shrink-0 items-end border-r border-white/10 px-4 pb-2 text-xs font-medium text-foreground/75',
+            )}
             style={{ width: LABEL }}
           >
             {heading}
@@ -218,7 +223,10 @@ function TimelineRowView({
         type="button"
         onClick={row.onOpen}
         disabled={!row.onOpen}
-        className="sticky left-0 z-10 flex shrink-0 items-center gap-2 border-r border-white/10 bg-[rgb(14,22,38)] pr-3 text-left text-sm outline-none focus-visible:underline enabled:hover:text-foreground"
+        className={cn(
+          TABLE_STICKY,
+          'sticky left-0 z-10 flex shrink-0 items-center gap-2 border-r border-white/10 pr-3 text-left text-sm outline-none focus-visible:underline enabled:hover:text-foreground',
+        )}
         style={{ width: LABEL, paddingLeft: 16 + (row.depth ?? 0) * 16 }}
       >
         <span
