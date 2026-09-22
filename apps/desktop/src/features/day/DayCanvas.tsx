@@ -54,7 +54,7 @@ export function DayCanvas() {
       timer
         ? [
             ...logged,
-            { id: -1, ...timer, endedAt: Math.max(now, timer.startedAt + 60) },
+            { id: -1, ...timer, endedAt: Math.max(now, timer.startedAt) },
           ]
         : logged,
     [logged, timer, now],
@@ -143,7 +143,13 @@ export function DayCanvas() {
       <div className="flex items-end justify-between gap-6 pb-10">
         <TodayLine tracked={tracked} />
         <div className="flex shrink-0 items-center gap-2">
-          <StartFocus onOpen={() => setChosen({ kind: 'focus' })} />
+          <StartFocus
+            open={
+              panel?.kind === 'focus' ||
+              (panel?.kind === 'task' && panel.taskId === timer?.taskId)
+            }
+            onOpen={() => setChosen({ kind: 'focus' })}
+          />
           <CheckOut
             done={checkedOutAt !== null}
             open={panel?.kind === 'checkout'}

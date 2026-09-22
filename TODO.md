@@ -127,19 +127,20 @@ user research.
 
 ## P1: Timer
 
-- [ ] **24. Show the running timer once.** It appears in the top bar, the Start
+- [x] **24. Show the running timer once.** It appears in the top bar, the Start
       focus button and the panel at the same time.
   - Done when: the timer shows in one place on each screen, or a second place
     only if it adds a control.
-- [ ] **25. Fix rounding in focus totals.** A 2-second session moved the total
+- [x] **25. Fix rounding in focus totals.** A 2-second session moved the total
       from 1h 55m to 1h 56m and back, and an empty day showed "1m focused" after
       1 second.
   - Done when: running and saved totals use the same rounding, and sessions
     under a minute don't inflate the total.
-- [ ] **26. Protect Discard.** One click throws away a running session, and it
+- [x] **26. Protect Discard.** One click throws away a running session, and it
       sits right beside Stop.
   - Done when: covered by Undo from item 2, or it asks for confirmation once a
     session passes a set length.
+  - Covered by item 2: Discard offers Undo, which restores the running session.
 
 ## P1: Week
 

@@ -315,7 +315,7 @@ export function ScheduleView({
   };
 
   const runningEntry: TimeEntry | null = timer
-    ? { id: -1, ...timer, endedAt: Math.max(now, timer.startedAt + 60) }
+    ? { id: -1, ...timer, endedAt: Math.max(now, timer.startedAt) }
     : null;
 
   return (

@@ -22,7 +22,13 @@ import { formatClockTime, formatStopwatch } from '@/lib/time';
 const FIELD =
   'flex h-8 max-w-full items-center gap-2 rounded-full px-3 text-foreground/80 ring-1 ring-white/15 transition-colors outline-none hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/50';
 
-export function StartFocus({ onOpen }: { onOpen: () => void }) {
+export function StartFocus({
+  open,
+  onOpen,
+}: {
+  open: boolean;
+  onOpen: () => void;
+}) {
   const { data: timer } = useTimer();
   const start = useStartTimer();
   const now = useNow(1000, Boolean(timer));
@@ -35,7 +41,7 @@ export function StartFocus({ onOpen }: { onOpen: () => void }) {
         className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] tabular-nums transition-colors hover:bg-white"
       >
         <span className="size-2 rounded-full bg-[#08161e]" />
-        {formatStopwatch(now - timer.startedAt)}
+        {open ? 'Focusing' : formatStopwatch(now - timer.startedAt)}
       </button>
     );
 

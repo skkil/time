@@ -123,7 +123,7 @@ function Canvas() {
         </div>
         <SpaceToggle value={space} onChange={go} />
         <div className="pointer-events-auto flex items-center gap-2 justify-self-end">
-          <TimerPill />
+          {space !== 'day' && <TimerPill />}
           <ProfileMenu
             onSearch={() => setSearching(true)}
             onSettings={() => setSettingsOpen(true)}

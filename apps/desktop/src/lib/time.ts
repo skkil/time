@@ -88,7 +88,7 @@ export function formatMinutesOfDay(minutes: number): string {
 }
 
 export function formatDuration(seconds: number): string {
-  const total = Math.max(0, Math.round(seconds / 60));
+  const total = Math.max(0, Math.floor(seconds / 60));
   const h = Math.floor(total / 60);
   const m = total % 60;
   if (h === 0) return `${m}m`;
