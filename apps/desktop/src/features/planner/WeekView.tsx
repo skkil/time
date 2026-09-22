@@ -75,7 +75,7 @@ export function WeekView({ week }: { week: DateKey }) {
           />,
           <Stat
             value={formatDuration(tracked)}
-            label="tracked"
+            label="focused"
             swatch={
               <span
                 aria-hidden

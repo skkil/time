@@ -14,7 +14,6 @@ import { useWorkflow } from '@/features/workflow/api';
 import { useProjectTypeTime } from '@/features/workflow/use-workspace';
 import {
   formatDuration,
-  formatHours,
   fromSeconds,
   mondayOf,
   nowSeconds,
@@ -117,7 +116,7 @@ function ThisWeek({
       ? null
       : project.lastReviewedAt + project.reviewEveryWeeks * WEEK_SECONDS;
   const details = [
-    ...byType.map(([name, seconds]) => `${name}: ${formatHours(seconds)} h`),
+    ...byType.map(([name, seconds]) => `${name}: ${formatDuration(seconds)}`),
     nextReview === null
       ? 'Not reviewed yet'
       : `Next review ${format(fromSeconds(nextReview), 'd MMM')}`,

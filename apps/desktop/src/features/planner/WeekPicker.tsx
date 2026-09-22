@@ -11,7 +11,7 @@ import { useWeeks } from '@/features/review/api';
 import { FELT_LABELS } from '@/lib/felt';
 import {
   type DateKey,
-  formatHours,
+  formatDuration,
   formatWeekRange,
   isoWeekNumber,
   reviewWeekOf,
@@ -152,8 +152,7 @@ function WeekRow({
         {past && summary.reviewedAt === null && (
           <span className="mr-2 text-foreground/75">not reviewed</span>
         )}
-        {summary.trackedSeconds > 0 &&
-          `${formatHours(summary.trackedSeconds)} h`}
+        {summary.trackedSeconds > 0 && formatDuration(summary.trackedSeconds)}
       </span>
     </button>
   );

@@ -225,7 +225,7 @@ export function BlockCard({
               }}
             >
               <PlayIcon />
-              {running ? 'Tracking' : 'Start timer'}
+              {running ? 'Focusing' : 'Start focus'}
             </Button>
             <Button
               size="sm"

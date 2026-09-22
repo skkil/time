@@ -19,7 +19,7 @@ import { FELT_LABELS } from '@/lib/felt';
 import {
   type DateKey,
   dateKeyOf,
-  formatHours,
+  formatDuration,
   formatWeekday,
   isoWeekNumber,
   mondayOf,
@@ -268,7 +268,7 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
                   <span className="truncate">{item.name}</span>
                 </ProjectLink>
                 <span className="text-foreground/75 tabular-nums">
-                  {formatHours(item.seconds)} h
+                  {formatDuration(item.seconds)}
                 </span>
               </li>
             ))}
@@ -276,7 +276,7 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
               <li className="flex items-center gap-2 pl-4 text-foreground/75">
                 <span className="flex-1">Other</span>
                 <span className="tabular-nums">
-                  {formatHours(projects.rest)} h
+                  {formatDuration(projects.rest)}
                 </span>
               </li>
             )}
@@ -284,7 +284,7 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
           {byType.length > 0 && (
             <p className="text-xs leading-relaxed text-foreground/75">
               {byType
-                .map((item) => `${item.name} ${formatHours(item.seconds)} h`)
+                .map((item) => `${item.name} ${formatDuration(item.seconds)}`)
                 .join(' · ')}
             </p>
           )}

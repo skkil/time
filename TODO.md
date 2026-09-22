@@ -227,15 +227,21 @@ user research.
 - [x] **46. Restyle tooltips.** The black "Ctrl 2" box stays up after clicking
       and clashes with the UI.
   - Done when: tooltips match the theme and hide on click.
-- [ ] **47. Settle the vocabulary.** Begin / Start focus; Timer / Focus /
+- [x] **47. Settle the vocabulary.** Begin / Start focus; Timer / Focus /
       focused / tracked; Drop / Delete; must / outcome / priority; the "Calm"
       settings section.
   - Done when: one term is chosen for each idea and applied everywhere.
-- [ ] **48. Standardise units and explain labels.** "3.3 h" sits beside "3h
+  - Tracked time is "focus" everywhere (Start focus, Focusing, 2h focused);
+    the settings section is "Rituals"; "Begin check out" is "Check out". Drop
+    (let go, kept in history) and Delete (gone) stay as two ideas, as do must,
+    outcome and priority. Start focus vs Begin is item 50.
+- [x] **48. Standardise units and explain labels.** "3.3 h" sits beside "3h
       20m", and "13 of 15 so far" and "Make it smaller" don't explain
       themselves.
   - Done when: durations use one format, and those labels make sense on their
     own.
+  - `formatHours` is gone; every duration is `3h 20m`. "2 of 3 habits done
+    today", "done on 2 of 5 planned days", "Lower its daily goal".
 
 ## Remove or hide
 

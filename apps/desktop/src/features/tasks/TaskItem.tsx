@@ -213,7 +213,7 @@ export function TaskItem({
               task.estimateMinutes !== null &&
                 `about ${formatEstimate(task.estimateMinutes)}`,
               task.trackedSeconds > 0 &&
-                `${formatDuration(task.trackedSeconds)} spent`,
+                `${formatDuration(task.trackedSeconds)} focused`,
               children.length > 0 && `${finished} of ${children.length} steps`,
               task.priority < 4 && `priority ${task.priority}`,
               !done &&
@@ -300,7 +300,7 @@ export function TaskItem({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {running ? 'Timer running' : 'Start timer'}
+                {running ? 'Focusing' : 'Start focus'}
               </TooltipContent>
             </Tooltip>
           </div>

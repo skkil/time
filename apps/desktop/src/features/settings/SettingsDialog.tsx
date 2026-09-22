@@ -71,7 +71,7 @@ const sections: Section[] = [
   },
   {
     id: 'rituals',
-    label: 'Calm',
+    label: 'Rituals',
     description: 'The water, Check out and the weekly review.',
     icon: SunriseIcon,
     content: RitualSettings,

@@ -66,7 +66,7 @@ export function TimerPill() {
         </span>
       </Link>
       <TimerSubject
-        label={task?.title || timer.description || project?.name || 'Timer'}
+        label={task?.title || timer.description || project?.name || 'Focus'}
         taskId={task?.id}
         projectId={project?.id}
       />
@@ -76,7 +76,7 @@ export function TimerPill() {
             size="icon-xs"
             variant="ghost"
             className="rounded-full text-foreground hover:bg-white/15"
-            aria-label="Stop timer"
+            aria-label="Stop focus"
             onClick={() => stop.mutate(undefined)}
           >
             <SquareIcon className="fill-current" />

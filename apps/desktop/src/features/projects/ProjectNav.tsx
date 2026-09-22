@@ -218,8 +218,8 @@ export function ProjectNav() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete “{deleting?.name}”?</AlertDialogTitle>
             <AlertDialogDescription>
-              This deletes its sub-projects and their tasks. Tracked time stays
-              in your log without a project. Archive instead to keep everything.
+              This deletes its sub-projects and their tasks. Focus time stays in
+              your log without a project. Archive instead to keep everything.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

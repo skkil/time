@@ -34,7 +34,7 @@ describe('pickInsight', () => {
     const insight = pickInsight(
       week({ plannedSeconds: 22 * HOUR, trackedSeconds: 14 * HOUR }),
     );
-    expect(insight?.text).toBe('Planned 22 h, tracked 14 h.');
+    expect(insight?.text).toBe('Planned 22h, focused 14h.');
   });
 
   it('ignores small plans', () => {
@@ -52,7 +52,7 @@ describe('pickInsight', () => {
         ],
       }),
     );
-    expect(insight?.text).toBe('Run: 2 of 5 days.');
+    expect(insight?.text).toBe('Run: done on 2 of 5 planned days.');
     expect(insight?.action?.target).toBe('habits');
   });
 

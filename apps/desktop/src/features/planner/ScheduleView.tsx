@@ -705,7 +705,7 @@ function DayColumn({
               taskIndex.byId.get(entry.taskId)?.title) ||
             entry.description ||
             project?.name ||
-            'Tracked time';
+            'Focus';
           const tall = scale.extent(span.start, span.end);
           return (
             <Tooltip key={entry.id}>
@@ -735,7 +735,7 @@ function DayColumn({
                 </button>
               </TooltipTrigger>
               <TooltipContent side="left">
-                <p>Tracked: {label}</p>
+                <p>Focus: {label}</p>
                 <p className="text-xs opacity-80">
                   {formatClockTime(entry.startedAt)}–
                   {entry.id === -1 ? 'now' : formatClockTime(entry.endedAt)} ·{' '}

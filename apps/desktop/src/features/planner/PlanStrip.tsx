@@ -21,7 +21,7 @@ import { useRitualRunner } from '@/features/rituals/runner-context';
 import { useTimeEntries } from '@/features/time/api';
 import {
   type DateKey,
-  formatHours,
+  formatDuration,
   fromDateKey,
   isoWeekNumber,
   mondayOf,
@@ -218,7 +218,7 @@ function OutcomeItem({ outcome }: { outcome: Outcome }) {
                 ? `${outcome.tasksDone} of ${outcome.tasksTotal}`
                 : 'no tasks linked',
               outcome.trackedSeconds > 0 &&
-                `${formatHours(outcome.trackedSeconds)} h`,
+                formatDuration(outcome.trackedSeconds),
               outcome.timesCarried > 0 && `carried ×${outcome.timesCarried}`,
               outcome.status === 'carried' && 'moved to next week',
             ]
@@ -296,7 +296,7 @@ function HabitsLine({ start }: { start: DateKey }) {
     >
       {habits.length > 0 && (
         <p className="text-sm text-foreground/70 tabular-nums">
-          {due > 0 ? `${done} of ${due} so far` : 'Nothing due yet'}
+          {due > 0 ? `${done} of ${due} habits done today` : 'Nothing due yet'}
         </p>
       )}
       <HabitsSheet open={editing} onOpenChange={setEditing} />
@@ -358,7 +358,7 @@ function ProjectHours({ start }: { start: DateKey }) {
                 <span className="truncate">{project.name}</span>
               </ProjectLink>
               <span className="text-xs text-foreground/75 tabular-nums">
-                {formatHours(tracked)} / {formatHours(target)} h
+                {formatDuration(tracked)} of {formatDuration(target)}
               </span>
             </span>
             <span

@@ -20,7 +20,7 @@ const COLUMNS = [
   { key: 'date', label: 'Date', sort: 'date' },
   { key: 'deadline', label: 'Deadline', sort: 'deadline' },
   { key: 'estimate', label: 'Estimate', sort: null },
-  { key: 'tracked', label: 'Tracked', sort: null },
+  { key: 'tracked', label: 'Focused', sort: null },
 ] as const;
 
 export function TableView({

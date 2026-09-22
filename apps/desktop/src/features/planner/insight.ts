@@ -1,5 +1,5 @@
 import type { OutcomeStatus } from '@/bindings';
-import { formatHours } from '@/lib/time';
+import { formatDuration } from '@/lib/time';
 
 export type InsightWeek = {
   trackedSeconds: number;
@@ -39,7 +39,7 @@ export function pickInsight(week: InsightWeek): Insight | null {
     week.plannedSeconds >= 1.25 * week.trackedSeconds
   )
     return {
-      text: `Planned ${formatHours(week.plannedSeconds)} h, tracked ${formatHours(week.trackedSeconds)} h.`,
+      text: `Planned ${formatDuration(week.plannedSeconds)}, focused ${formatDuration(week.trackedSeconds)}.`,
       action: { label: 'Plan fewer blocks', target: 'next-week' },
     };
 
@@ -49,8 +49,8 @@ export function pickInsight(week: InsightWeek): Insight | null {
   );
   if (slipping)
     return {
-      text: `${slipping.name}: ${slipping.done} of ${slipping.due} days.`,
-      action: { label: 'Make it smaller', target: 'habits' },
+      text: `${slipping.name}: done on ${slipping.done} of ${slipping.due} planned days.`,
+      action: { label: 'Lower its daily goal', target: 'habits' },
     };
 
   const counted = week.outcomes.filter(

@@ -158,7 +158,7 @@ function WhatMovedStep({ ctx }: { ctx: RitualContext }) {
       <StepHeading title={prompt('what_moved', ctx.date)}>
         {done.length === 0 && total === 0
           ? 'Nothing logged. That’s information too, not a grade.'
-          : `${done.length} finished · ${formatDuration(total)} tracked`}
+          : `${done.length} finished · ${formatDuration(total)} focused`}
       </StepHeading>
       {done.length > 0 && (
         <ul className="grid gap-1.5">

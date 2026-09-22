@@ -287,7 +287,7 @@ function Details({
   if (task.trackedSeconds > 0)
     parts.push(
       <span key="tracked" className="text-foreground/75">
-        {formatDuration(task.trackedSeconds)} so far
+        {formatDuration(task.trackedSeconds)} focused
       </span>,
     );
   parts.push(
@@ -489,8 +489,8 @@ function MoreMenu({ task, onWait }: { task: Task; onWait: () => void }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete “{task.title}”?</AlertDialogTitle>
             <AlertDialogDescription>
-              Its steps and planned blocks go too. Tracked time stays in your
-              log, unlinked.
+              Its steps and planned blocks go too. Focus time stays in your log,
+              unlinked.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
