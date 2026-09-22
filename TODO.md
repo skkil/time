@@ -189,16 +189,19 @@ user research.
   - Where: `apps/desktop/src/features/projects/context.ts`.
   - Done when: the ordering rule is written down and tested, and no task appears
     twice.
-- [ ] **38. Show row actions without hover.** Four row actions only appear on
+- [x] **38. Show row actions without hover.** Four row actions only appear on
       hover.
   - Done when: they are reachable by keyboard, and the main ones are
     discoverable without hovering.
-- [ ] **39. Use the space in Timeline.** It shows 5 rows in a small box with
+- [x] **39. Use the space in Timeline.** It shows 5 rows in a small box with
       half the window empty.
   - Done when: it fills the available height.
-- [ ] **40. Remove Board's page scrollbar.** It appears with only two columns.
+- [x] **40. Remove Board's page scrollbar.** It appears with only two columns.
   - Done when: a horizontal scrollbar appears only when columns overflow.
-- [ ] **41. Tighten search.** "sink" returned an unrelated long task, and
+  - The Add section column was a full 288px column, so two sections plus it
+    overflowed beside the side panel. It is now 176px. Not reproduced in
+    WebKitGTK; recheck in the real app.
+- [x] **41. Tighten search.** "sink" returned an unrelated long task, and
       "Draft" did too.
   - Done when: exact and prefix matches rank first, and weak fuzzy matches are
     dropped.

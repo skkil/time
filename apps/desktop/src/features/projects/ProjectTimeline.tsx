@@ -46,7 +46,7 @@ export function ProjectTimeline({
   }));
 
   return (
-    <PageBody className="px-10 pt-5">
+    <PageBody className="flex min-h-0 flex-col px-10 pt-5 pb-6">
       {rows.length === 0 ? (
         <p className="text-sm text-foreground/55">
           No open task has a due date or deadline yet. Give tasks dates to see
@@ -55,6 +55,7 @@ export function ProjectTimeline({
       ) : (
         <>
           <Timeline
+            fill
             heading="Task"
             rows={rows}
             lines={projectLines(project, milestones)}
@@ -63,7 +64,7 @@ export function ProjectTimeline({
         </>
       )}
       {undated > 0 && rows.length > 0 && (
-        <p className="mt-1 text-xs text-foreground/45">
+        <p className="mt-1 shrink-0 text-xs text-foreground/45">
           {undated} open {undated === 1 ? 'task has' : 'tasks have'} no date and{' '}
           {undated === 1 ? 'isn’t' : 'aren’t'} shown.
         </p>

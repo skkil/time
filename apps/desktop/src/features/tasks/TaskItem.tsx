@@ -244,65 +244,74 @@ export function TaskItem({
       {!done && task.kind !== 'event' && (
         <div
           className={cn(
-            'absolute right-0 flex items-center rounded-md bg-popover opacity-0 group-focus-within/task:opacity-100 group-hover/task:opacity-100 has-[[data-state=open]]:opacity-100',
-            variant === 'row' ? 'top-1.5' : 'top-2 right-2 bg-card',
+            'absolute right-0 flex items-center rounded-md',
+            variant === 'row' ? 'top-1.5' : 'top-2 right-2',
           )}
         >
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon-xs"
-                variant="ghost"
-                aria-label={`Edit ${task.title}`}
-                onClick={() => openTask(task.id)}
-              >
-                <PencilIcon />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Edit</TooltipContent>
-          </Tooltip>
-          <DuePicker
-            value={task}
-            onChange={(due) => save(due)}
-            trigger={
-              <Button
-                size="icon-xs"
-                variant="ghost"
-                aria-label={`Set date for ${task.title}`}
-              >
-                <CalendarIcon />
-              </Button>
-            }
-          />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon-xs"
-                variant="ghost"
-                aria-label={`Track time on ${task.title}`}
-                disabled={running}
-                className={cn(running && 'text-now')}
-                onClick={() =>
-                  start.mutate({
-                    description: task.title,
-                    projectId: task.projectId,
-                    taskId: task.id,
-                  })
-                }
-              >
-                <PlayIcon />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {running ? 'Timer running' : 'Start timer'}
-            </TooltipContent>
-          </Tooltip>
+          <div
+            className={cn(
+              'flex items-center rounded-md bg-popover opacity-0 group-focus-within/task:opacity-100 group-hover/task:opacity-100 has-[[data-state=open]]:opacity-100',
+              variant === 'card' && 'bg-card',
+            )}
+          >
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon-xs"
+                  variant="ghost"
+                  aria-label={`Edit ${task.title}`}
+                  onClick={() => openTask(task.id)}
+                >
+                  <PencilIcon />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit</TooltipContent>
+            </Tooltip>
+            <DuePicker
+              value={task}
+              onChange={(due) => save(due)}
+              trigger={
+                <Button
+                  size="icon-xs"
+                  variant="ghost"
+                  aria-label={`Set date for ${task.title}`}
+                >
+                  <CalendarIcon />
+                </Button>
+              }
+            />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon-xs"
+                  variant="ghost"
+                  aria-label={`Track time on ${task.title}`}
+                  disabled={running}
+                  className={cn(running && 'text-now')}
+                  onClick={() =>
+                    start.mutate({
+                      description: task.title,
+                      projectId: task.projectId,
+                      taskId: task.id,
+                    })
+                  }
+                >
+                  <PlayIcon />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {running ? 'Timer running' : 'Start timer'}
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 size="icon-xs"
                 variant="ghost"
                 aria-label={`More actions for ${task.title}`}
+                title="Actions: edit, date, timer, priority, delete"
+                className="text-foreground/45 hover:text-foreground data-[state=open]:text-foreground"
               >
                 <MoreHorizontalIcon />
               </Button>

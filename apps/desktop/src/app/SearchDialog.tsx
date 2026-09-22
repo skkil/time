@@ -22,6 +22,7 @@ import { projectPath } from '@/features/projects/tree';
 import { PriorityCheck } from '@/features/tasks/PriorityCheck';
 import { useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
+import { searchScore } from '@/lib/search';
 import { shiftKey, todayKey, weekStartOf } from '@/lib/time';
 
 export function SearchDialog({
@@ -82,7 +83,11 @@ export function SearchDialog({
       description="Find a task, project or page"
       className="sm:max-w-xl"
     >
-      <Command>
+      <Command
+        filter={(_value, search, keywords = []) =>
+          searchScore(keywords[0] ?? '', keywords[1] ?? '', search)
+        }
+      >
         <CommandInput placeholder="Search tasks and projects…" />
         <CommandList className="max-h-[60vh]">
           <CommandEmpty>Nothing found.</CommandEmpty>
@@ -92,7 +97,8 @@ export function SearchDialog({
               .map((task) => (
                 <CommandItem
                   key={task.id}
-                  value={`task ${task.id} ${task.title} ${task.notes.slice(0, 200)}`}
+                  value={`task-${task.id}`}
+                  keywords={[task.title, task.notes.slice(0, 200)]}
                   onSelect={() => go(() => openTask(task.id))}
                 >
                   <PriorityCheck
@@ -115,7 +121,8 @@ export function SearchDialog({
             {index.active.map((node) => (
               <CommandItem
                 key={node.id}
-                value={`project ${node.id} ${projectPath(index, node.id)}`}
+                value={`project-${node.id}`}
+                keywords={[projectPath(index, node.id)]}
                 onSelect={() =>
                   go(() =>
                     navigate({
@@ -134,7 +141,8 @@ export function SearchDialog({
             {pages.map((page) => (
               <CommandItem
                 key={page.label}
-                value={`page ${page.label}`}
+                value={`page-${page.label}`}
+                keywords={[page.label]}
                 onSelect={() => go(page.run)}
               >
                 <page.icon className="text-muted-foreground" />

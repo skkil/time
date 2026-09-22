@@ -441,7 +441,7 @@ function BoardLayout({
           })}
         </TaskDnd>
         {!archived && (
-          <div className="w-72 shrink-0">
+          <div className="w-44 shrink-0">
             <AddSection always onAdd={onAddSection} />
           </div>
         )}

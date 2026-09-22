@@ -70,10 +70,12 @@ export function Timeline({
   rows,
   lines = [],
   heading,
+  fill = false,
 }: {
   rows: TimelineRow[];
   lines?: TimelineLine[];
   heading: string;
+  fill?: boolean;
 }) {
   const today = todayKey();
   const { start, days } = rangeOf(rows, lines, today);
@@ -93,9 +95,15 @@ export function Timeline({
   return (
     <div
       ref={scroller}
-      className="relative overflow-x-auto rounded-xl ring-1 ring-white/10"
+      className={cn(
+        'relative overflow-x-auto rounded-xl ring-1 ring-white/10',
+        fill && 'min-h-0 flex-1 overflow-y-auto',
+      )}
     >
-      <div className="relative" style={{ width: LABEL + days * DAY }}>
+      <div
+        className={cn('relative', fill && 'min-h-full')}
+        style={{ width: LABEL + days * DAY }}
+      >
         <div
           className={cn(
             'relative z-20 flex border-b border-white/10',
