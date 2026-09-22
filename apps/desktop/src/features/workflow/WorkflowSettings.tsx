@@ -59,7 +59,7 @@ function Section({
     <section className="grid gap-3 border-t border-white/[.07] pt-5">
       <div>
         <h3 className="text-sm font-medium">{title}</h3>
-        <p className="text-xs text-foreground/50">{hint}</p>
+        <p className="text-xs text-foreground/75">{hint}</p>
       </div>
       {children}
     </section>
@@ -98,7 +98,7 @@ function RemoveWithMove<T extends { id: Id; name: string }>({
         type="button"
         aria-label={`Delete ${item.name}`}
         onClick={() => onRemove(null)}
-        className="grid size-7 place-items-center rounded-full text-foreground/40 hover:bg-white/10 hover:text-foreground"
+        className="grid size-7 place-items-center rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
       >
         <Trash2Icon className="size-3.5" />
       </button>
@@ -109,7 +109,7 @@ function RemoveWithMove<T extends { id: Id; name: string }>({
         <button
           type="button"
           aria-label={`Delete ${item.name}`}
-          className="grid size-7 place-items-center rounded-full text-foreground/40 hover:bg-white/10 hover:text-foreground"
+          className="grid size-7 place-items-center rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
         >
           <Trash2Icon className="size-3.5" />
         </button>
@@ -227,7 +227,7 @@ function Types({ projectId, types }: { projectId: Id; types: ItemType[] }) {
           <button
             type="button"
             onClick={() => add({ name: 'New type' })}
-            className="flex w-fit items-center gap-1.5 text-sm text-foreground/50 hover:text-foreground"
+            className="flex w-fit items-center gap-1.5 text-sm text-foreground/75 hover:text-foreground"
           >
             <PlusIcon className="size-3.5" />
             Add a type
@@ -295,7 +295,7 @@ function TypeRow({ type, action }: { type: ItemType; action: ReactNode }) {
         />
         {action}
       </div>
-      <div className="flex flex-wrap items-center gap-2 pl-9 text-xs text-foreground/60">
+      <div className="flex flex-wrap items-center gap-2 pl-9 text-xs text-foreground/75">
         <select
           value={type.kind}
           aria-label="Kind"
@@ -407,7 +407,7 @@ function Statuses({
                 input: { name: 'New status', category: 'active' },
               })
             }
-            className="flex w-fit items-center gap-1.5 text-sm text-foreground/50 hover:text-foreground"
+            className="flex w-fit items-center gap-1.5 text-sm text-foreground/75 hover:text-foreground"
           >
             <PlusIcon className="size-3.5" />
             Add a status
@@ -439,7 +439,7 @@ function StatusRow({
           aria-label={`Move ${status.name} up`}
           disabled={!onUp}
           onClick={onUp}
-          className="text-foreground/40 hover:text-foreground disabled:opacity-20"
+          className="text-foreground/75 hover:text-foreground disabled:opacity-20"
         >
           <ArrowUpIcon className="size-3" />
         </button>
@@ -448,7 +448,7 @@ function StatusRow({
           aria-label={`Move ${status.name} down`}
           disabled={!onDown}
           onClick={onDown}
-          className="text-foreground/40 hover:text-foreground disabled:opacity-20"
+          className="text-foreground/75 hover:text-foreground disabled:opacity-20"
         >
           <ArrowDownIcon className="size-3" />
         </button>
@@ -516,7 +516,7 @@ function Milestones({
         />
       ) : (
         <>
-          <label className="flex items-center gap-2 text-xs text-foreground/60">
+          <label className="flex items-center gap-2 text-xs text-foreground/75">
             Called
             <input
               value={draft}
@@ -547,7 +547,7 @@ function Milestones({
                 },
               })
             }
-            className="flex w-fit items-center gap-1.5 text-sm text-foreground/50 hover:text-foreground"
+            className="flex w-fit items-center gap-1.5 text-sm text-foreground/75 hover:text-foreground"
           >
             <PlusIcon className="size-3.5" />
             Add
@@ -555,7 +555,7 @@ function Milestones({
           <button
             type="button"
             onClick={() => setLabel.mutate({ id: projectId, label: '' })}
-            className="w-fit text-xs text-foreground/40 hover:text-foreground"
+            className="w-fit text-xs text-foreground/75 hover:text-foreground"
           >
             Turn off
           </button>
@@ -602,7 +602,7 @@ function MilestoneRow({ milestone }: { milestone: Milestone }) {
         type="button"
         aria-label={`Delete ${milestone.name}`}
         onClick={() => remove.mutate(milestone.id)}
-        className="grid size-7 place-items-center rounded-full text-foreground/40 hover:bg-white/10 hover:text-foreground"
+        className="grid size-7 place-items-center rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
       >
         <Trash2Icon className="size-3.5" />
       </button>
@@ -626,12 +626,12 @@ function Views({
           {views.map((view) => (
             <li key={view.id} className="flex items-center gap-2 text-sm">
               <span className="flex-1">{view.name}</span>
-              <span className="text-xs text-foreground/45">{view.summary}</span>
+              <span className="text-xs text-foreground/75">{view.summary}</span>
               <button
                 type="button"
                 aria-label={`Delete ${view.name}`}
                 onClick={() => remove.mutate(view.id)}
-                className="grid size-7 place-items-center rounded-full text-foreground/40 hover:bg-white/10 hover:text-foreground"
+                className="grid size-7 place-items-center rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
               >
                 <Trash2Icon className="size-3.5" />
               </button>

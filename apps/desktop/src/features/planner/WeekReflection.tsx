@@ -60,7 +60,7 @@ export function WeekReflection({
       className="grid w-80 shrink-0 content-start gap-7 overflow-y-auto border-l border-white/10 bg-[rgba(6,18,26,.35)] p-6 backdrop-blur-xl"
     >
       {isPending ? null : reviewed ? (
-        <p className="flex items-baseline justify-between text-sm text-foreground/55">
+        <p className="flex items-baseline justify-between text-sm text-foreground/75">
           <span>
             {data?.felt
               ? `Felt ${FELT_LABELS[data.felt - 1].toLowerCase()}`
@@ -95,7 +95,7 @@ export function WeekReflection({
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="grid gap-2">
-      <h3 className="text-xs tracking-wide text-foreground/45">{title}</h3>
+      <h3 className="text-xs tracking-wide text-foreground/75">{title}</h3>
       {children}
     </section>
   );
@@ -130,7 +130,7 @@ function Outcomes({ outcomes }: { outcomes: Outcome[] }) {
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-foreground/85">{outcome.title}</span>
-              <span className="text-xs text-foreground/45">
+              <span className="text-xs text-foreground/75">
                 {OUTCOME_ENDINGS[outcome.status]}
                 {outcome.tasksTotal > 0 &&
                   ` · ${outcome.tasksDone} of ${outcome.tasksTotal} tasks`}
@@ -246,7 +246,7 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
                         },
                       })
                 }
-                className="text-sm text-foreground/60 underline-offset-4 hover:text-foreground hover:underline"
+                className="text-sm text-foreground/75 underline-offset-4 hover:text-foreground hover:underline"
               >
                 {insight.action.label}
               </button>
@@ -267,13 +267,13 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
                   <ProjectDot color={item.color} />
                   <span className="truncate">{item.name}</span>
                 </ProjectLink>
-                <span className="text-foreground/60 tabular-nums">
+                <span className="text-foreground/75 tabular-nums">
                   {formatHours(item.seconds)} h
                 </span>
               </li>
             ))}
             {projects.rest > 0 && (
-              <li className="flex items-center gap-2 pl-4 text-foreground/55">
+              <li className="flex items-center gap-2 pl-4 text-foreground/75">
                 <span className="flex-1">Other</span>
                 <span className="tabular-nums">
                   {formatHours(projects.rest)} h
@@ -282,7 +282,7 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
             )}
           </ul>
           {byType.length > 0 && (
-            <p className="text-xs leading-relaxed text-foreground/50">
+            <p className="text-xs leading-relaxed text-foreground/75">
               {byType
                 .map((item) => `${item.name} ${formatHours(item.seconds)} h`)
                 .join(' · ')}
@@ -305,7 +305,7 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
                   >
                     {habit.name}
                   </button>
-                  <span className="text-foreground/60 tabular-nums">
+                  <span className="text-foreground/75 tabular-nums">
                     {habit.done} of {habit.due}
                   </span>
                 </li>
@@ -329,7 +329,7 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
               </li>
             ))}
             {finished.length > 6 && (
-              <li className="text-foreground/40">
+              <li className="text-foreground/75">
                 and {finished.length - 6} more
               </li>
             )}
@@ -342,7 +342,7 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
           <dl className="grid gap-3 text-sm leading-relaxed">
             {noted.map(([label, text]) => (
               <div key={label}>
-                <dt className="text-xs text-foreground/45">{label}</dt>
+                <dt className="text-xs text-foreground/75">{label}</dt>
                 <dd className="whitespace-pre-wrap text-foreground/85">
                   {text}
                 </dd>
@@ -357,7 +357,7 @@ function Reflection({ week, start }: { week: DateKey; start: DateKey }) {
           <ul className="grid gap-1 text-sm">
             {felt.map((day) => (
               <li key={day.date} className="grid grid-cols-[36px_1fr] gap-2">
-                <span className="text-foreground/45">
+                <span className="text-foreground/75">
                   {formatWeekday(day.date)}
                 </span>
                 <span className="text-foreground/80">

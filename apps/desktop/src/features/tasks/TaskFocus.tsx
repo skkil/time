@@ -20,7 +20,7 @@ export function TaskFocus({ taskId }: { taskId: Id }) {
         type="button"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="flex min-w-0 items-center gap-2 rounded-sm text-left text-[15px] leading-relaxed text-foreground/45 transition-colors outline-none hover:text-foreground/70 focus-visible:text-foreground/70"
+        className="flex min-w-0 items-center gap-2 rounded-sm text-left text-[15px] leading-relaxed text-foreground/75 transition-colors outline-none hover:text-foreground/70 focus-visible:text-foreground/70"
       >
         <ChevronRightIcon
           className={cn(
@@ -29,7 +29,7 @@ export function TaskFocus({ taskId }: { taskId: Id }) {
           )}
         />
         <span className="shrink-0">Focus</span>
-        <span className="min-w-0 truncate text-foreground/60">
+        <span className="min-w-0 truncate text-foreground/75">
           {formatDuration(totalSeconds(entries))} ·{' '}
           {sessionCount(entries.length)}
         </span>

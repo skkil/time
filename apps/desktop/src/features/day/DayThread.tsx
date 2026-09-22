@@ -124,7 +124,7 @@ export function DayThread({
           <span
             key={minute}
             aria-hidden
-            className="absolute left-0 w-10 -translate-y-1/2 text-[11px] text-foreground/35"
+            className="absolute left-0 w-10 -translate-y-1/2 text-[11px] text-foreground/75"
             style={{ top: scale.top(minute) }}
           >
             {formatMinutesOfDay(minute)}
@@ -255,12 +255,12 @@ export function DayThread({
                     <span
                       className={cn(
                         'block truncate text-[15px] transition-colors duration-500',
-                        moment.done && 'text-foreground/40 line-through',
+                        moment.done && 'text-foreground/75 line-through',
                         !moment.done &&
                           (open
                             ? 'text-foreground'
                             : past
-                              ? 'text-foreground/50'
+                              ? 'text-foreground/75'
                               : 'text-foreground/80 group-hover:text-foreground'),
                         'group-focus-visible:underline',
                       )}
@@ -269,7 +269,7 @@ export function DayThread({
                     </span>
                   </button>
                 </div>
-                <p className="flex items-center gap-2 pl-[31px] text-xs text-foreground/50">
+                <p className="flex items-center gap-2 pl-[31px] text-xs text-foreground/75">
                   {moment.showEnd
                     ? `${formatClockTime(moment.start)} – ${formatClockTime(moment.end)}`
                     : formatClockTime(moment.start)}

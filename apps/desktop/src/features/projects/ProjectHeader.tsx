@@ -50,7 +50,7 @@ function ProjectSwitcher({ project }: { project?: Project }) {
             {project && <ProjectDot color={project.color} className="size-3" />}
             <span className="truncate">{project?.name ?? 'Inbox'}</span>
             <ChevronDownIcon
-              className="size-5 shrink-0 text-foreground/45 transition-colors group-hover/switch:text-foreground"
+              className="size-5 shrink-0 text-foreground/75 transition-colors group-hover/switch:text-foreground"
               strokeWidth={1.5}
             />
           </button>
@@ -130,7 +130,7 @@ export function ProjectHeader({
       {(group || parents.length > 0) && (
         <nav
           aria-label="Breadcrumb"
-          className="mb-1 flex flex-wrap gap-1.5 text-sm text-foreground/55"
+          className="mb-1 flex flex-wrap gap-1.5 text-sm text-foreground/75"
         >
           {group && (
             <Link
@@ -166,7 +166,7 @@ export function ProjectHeader({
           </Button>
         )}
       </div>
-      <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-foreground/55">
+      <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-foreground/75">
         {details.map((detail, i) => (
           <span key={i} className="flex items-center gap-2">
             {i > 0 && <span aria-hidden>·</span>}
@@ -194,7 +194,7 @@ export function ProjectHeader({
                     '-mb-px border-b-2 pb-2.5 text-sm transition-colors outline-none focus-visible:text-foreground',
                     option.id === view
                       ? 'border-foreground font-medium text-foreground'
-                      : 'border-transparent text-foreground/55 hover:text-foreground',
+                      : 'border-transparent text-foreground/75 hover:text-foreground',
                   )}
                 >
                   {option.label}

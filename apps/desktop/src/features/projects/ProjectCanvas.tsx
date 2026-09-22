@@ -254,7 +254,7 @@ function Toolbar({ editor, status }: { editor: Editor; status: string }) {
       >
         <MinusIcon />
       </Tool>
-      <span className="ml-auto text-xs text-foreground/45">{status}</span>
+      <span className="ml-auto text-xs text-foreground/75">{status}</span>
     </div>
   );
 }

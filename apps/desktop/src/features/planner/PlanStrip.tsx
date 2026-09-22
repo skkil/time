@@ -62,7 +62,7 @@ function RailBlock({
   return (
     <section className="grid gap-2.5">
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-xs tracking-wide text-foreground/45">{title}</h3>
+        <h3 className="text-xs tracking-wide text-foreground/75">{title}</h3>
         {action}
       </div>
       {children}
@@ -89,7 +89,7 @@ function ReviewNudge({ start }: { start: DateKey }) {
   )
     return null;
   return (
-    <p className="text-sm text-foreground/55">
+    <p className="text-sm text-foreground/75">
       Week {isoWeekNumber(lastMonday)} isn’t reviewed ·{' '}
       <button
         type="button"
@@ -194,13 +194,13 @@ function OutcomeItem({ outcome }: { outcome: Outcome }) {
             onClick={() => setEditing(true)}
             className={cn(
               'text-left text-sm leading-snug hover:underline',
-              achieved && 'text-foreground/50',
+              achieved && 'text-foreground/75',
             )}
           >
             {outcome.title}
           </button>
         )}
-        <p className="mt-1 flex items-center gap-2 text-xs text-foreground/45">
+        <p className="mt-1 flex items-center gap-2 text-xs text-foreground/75">
           {outcome.tasksTotal > 0 && (
             <span
               aria-hidden
@@ -231,7 +231,7 @@ function OutcomeItem({ outcome }: { outcome: Outcome }) {
         type="button"
         aria-label={`Remove ${outcome.title}`}
         onClick={() => remove.mutate(outcome.id)}
-        className="mt-0.5 rounded-full p-0.5 text-foreground/40 opacity-0 group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100"
+        className="mt-0.5 rounded-full p-0.5 text-foreground/75 opacity-0 group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100"
       >
         <XIcon className="size-3.5" />
       </button>
@@ -252,7 +252,7 @@ function AddOutcome({ week }: { week: DateKey }) {
   };
   return (
     <form onSubmit={submit} className="flex items-center gap-2.5">
-      <PlusIcon className="size-4 text-foreground/35" />
+      <PlusIcon className="size-4 text-foreground/75" />
       <input
         value={title}
         maxLength={200}
@@ -288,7 +288,7 @@ function HabitsLine({ start }: { start: DateKey }) {
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="text-xs text-foreground/45 hover:text-foreground hover:underline"
+          className="text-xs text-foreground/75 hover:text-foreground hover:underline"
         >
           {habits.length ? 'Open' : 'Add'}
         </button>
@@ -357,7 +357,7 @@ function ProjectHours({ start }: { start: DateKey }) {
                 <ProjectDot color={project.color} />
                 <span className="truncate">{project.name}</span>
               </ProjectLink>
-              <span className="text-xs text-foreground/55 tabular-nums">
+              <span className="text-xs text-foreground/75 tabular-nums">
                 {formatHours(tracked)} / {formatHours(target)} h
               </span>
             </span>

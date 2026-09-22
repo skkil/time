@@ -169,14 +169,14 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
 
         {showCompleted && (
           <section aria-label="Completed" className="mt-8">
-            <h2 className="mb-1 border-b border-white/[.07] pb-2 text-sm font-medium text-foreground/50">
+            <h2 className="mb-1 border-b border-white/[.07] pb-2 text-sm font-medium text-foreground/75">
               Completed{' '}
               <span className="text-xs font-normal">{completed.length}</span>
             </h2>
             {completed.length > 0 ? (
               <FlatTaskList tasks={completed} />
             ) : (
-              <p className="py-3 text-sm text-foreground/45">
+              <p className="py-3 text-sm text-foreground/75">
                 Nothing completed in the last two weeks.
               </p>
             )}
@@ -265,7 +265,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
                         'h-7 rounded-md px-2.5 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white/50',
                         option.id === layout
                           ? 'bg-white/[.12] text-foreground'
-                          : 'text-foreground/55 hover:text-foreground',
+                          : 'text-foreground/75 hover:text-foreground',
                       )}
                     >
                       {option.label}
@@ -301,7 +301,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
                   aria-pressed={showCompleted}
                   onClick={() => setShowCompleted((value) => !value)}
                   className={cn(
-                    '-mr-2.5 font-normal text-foreground/55',
+                    '-mr-2.5 font-normal text-foreground/75',
                     showCompleted && 'bg-muted text-foreground',
                   )}
                 >
@@ -484,7 +484,7 @@ function BoardColumn({
             {title}
           </h2>
         )}
-        <span className="text-xs text-foreground/40 tabular-nums">{count}</span>
+        <span className="text-xs text-foreground/75 tabular-nums">{count}</span>
         {section && (
           <div
             className={cn(

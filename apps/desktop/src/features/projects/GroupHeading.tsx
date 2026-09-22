@@ -55,7 +55,7 @@ export function GroupHeading({ group }: { group: Group }) {
           <button
             type="button"
             aria-label={`${group.name} options`}
-            className="hidden size-5 place-items-center rounded-sm text-foreground/45 group-hover/org:grid hover:text-foreground focus-visible:grid data-[state=open]:grid"
+            className="hidden size-5 place-items-center rounded-sm text-foreground/75 group-hover/org:grid hover:text-foreground focus-visible:grid data-[state=open]:grid"
           >
             <MoreHorizontalIcon className="size-3.5" />
           </button>

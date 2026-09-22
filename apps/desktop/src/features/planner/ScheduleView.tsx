@@ -449,7 +449,7 @@ function DayHeader({
           {formatDayOfMonth(day)}
         </span>
         {tracked >= 60 && (
-          <span className="ml-auto text-[11px] text-foreground/50 tabular-nums">
+          <span className="ml-auto text-[11px] text-foreground/75 tabular-nums">
             {formatDuration(tracked)}
           </span>
         )}

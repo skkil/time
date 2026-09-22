@@ -23,7 +23,7 @@ export function CheckOut({
       className={cn(
         'flex h-9 items-center gap-2 rounded-full px-4 text-sm ring-1 ring-white/20 transition-colors hover:bg-white/15 hover:text-foreground',
         open && 'bg-white/15',
-        done && !open ? 'text-foreground/60' : 'text-foreground',
+        done && !open ? 'text-foreground/75' : 'text-foreground',
       )}
     >
       <MoonIcon className="size-3.5" strokeWidth={1.75} />
@@ -45,13 +45,13 @@ export function CheckOutPrompt({
 
   return (
     <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-200 fade-in-0 slide-in-from-bottom-2 motion-reduce:animate-none">
-      <p className="text-sm text-foreground/55">End of day</p>
+      <p className="text-sm text-foreground/75">End of day</p>
       <h2 className="mt-2 text-3xl font-light">
         {checkedOutAt
           ? `Checked out at ${formatClockTime(checkedOutAt)}`
           : 'Ready to check out?'}
       </h2>
-      <p className="mt-3 max-w-md text-foreground/60">
+      <p className="mt-3 max-w-md text-foreground/75">
         Close today in a few quiet steps, then leave it here.
       </p>
       {steps.length > 0 && (
@@ -59,7 +59,7 @@ export function CheckOutPrompt({
           {steps.map((step) => (
             <li key={step} className="grid gap-0.5">
               <span>{STEPS[step].label}</span>
-              <span className="text-foreground/45">{STEPS[step].hint}</span>
+              <span className="text-foreground/75">{STEPS[step].hint}</span>
             </li>
           ))}
         </ol>

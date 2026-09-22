@@ -25,7 +25,7 @@ Design memory. Read before designing; update when a durable decision changes. So
 | token | value | role |
 |---|---|---|
 | background | #0B1220 | under the sky, never seen for long |
-| foreground | #F1F1EE | ink; secondary text is `foreground/45–60`, faint hints `/25–35` |
+| foreground | #F1F1EE | ink; secondary text is `foreground/75` (4.5:1 floor), placeholders and decoration `/25–40` |
 | card | white 5% | in-flow glass |
 | popover | rgba(14,22,36,.90) + `backdrop-blur-2xl backdrop-saturate-150` | menus, popovers, dialogs |
 | border / input | white 12% / 14% | hairlines |
@@ -111,3 +111,4 @@ See `.design/slop-allow.json`: zen-backdrop (gradient + ambient shader, zen mode
 - 2026-11-06: "Organization" renamed to Group (founder: "the term organization doesn't fit here, i just wanted to group some projects together"). A group heading in the drawer opens a group overview: same header pattern as a project (label, title with New project / Rename buttons, details line), then a card grid, one card per top-level project (goal, done-of-total bar, open / overdue / next due / target / this week vs budget, sub-projects), inactive ones dimmed in a second section.
 - 2026-11-06: "Done when" (project outcome) removed from the UI; founder: "the project done when feature is useless". The column stays in the DB, unused. Replaced by deadlines and timelines: a shared horizontal Timeline (sticky label column, month + week header, weekend shading, yellow today line, dashed milestone/target lines; dot = due, red diamond = deadline, hollow diamond = milestone, flag = target, amber ring = overdue, bar from due to deadline or from today to target). The group page shows it above the cards (one row per project and sub-project); each project gets a Timeline tab (one row per dated task). Cards show the next deadline instead of the goal.
 - 2026-11-06: Project Canvas tab: a Notion-style document per project (founder: "i need a canvas for each project where i can write information in"; chose a document page over a free-form board). Full-width writing on the canvas, a plain icon toolbar with tooltips (H1–H3, bold, italic, strike, link, lists, checklist, quote, code, divider) aligned to the header edge, "Saved … ago" on the right, markdown shortcuts, Ctrl+click opens links.
+- 2026-11-08: Text contrast (QA item 42). Over the midday glows even pure white text was 2.2:1, so `ZenBackdrop` adds a readability shade sized per hour (`zen/contrast.ts`) that keeps 75% white at 4.5:1 over the brightest point; it is 0 at night and about 0.5 at midday, so daytime skies read deeper. Secondary text moved from white 45–60% to 75% and `--muted-foreground` to .75.

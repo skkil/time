@@ -12,7 +12,7 @@ export const Phrase = forwardRef<
       type="button"
       className={cn(
         '-mx-1 rounded-md px-1 underline-offset-4 transition-colors outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-white/40',
-        set ? 'text-foreground/80' : 'text-foreground/35',
+        set ? 'text-foreground/80' : 'text-foreground/75',
         className,
       )}
       {...props}

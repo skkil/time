@@ -85,7 +85,7 @@ export function FreeFocus() {
 
   return (
     <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-200 fade-in-0 slide-in-from-bottom-2">
-      <p className="text-sm text-foreground/55">Focusing</p>
+      <p className="text-sm text-foreground/75">Focusing</p>
       <input
         key={`${timer.startedAt}-${timer.taskId}`}
         ref={input}
@@ -103,7 +103,7 @@ export function FreeFocus() {
       />
 
       <dl className="mt-10 grid max-w-md grid-cols-[88px_minmax(0,1fr)] items-center gap-x-4 gap-y-3 text-sm">
-        <dt className="text-foreground/45">Task</dt>
+        <dt className="text-foreground/75">Task</dt>
         <dd className="flex min-w-0 items-center gap-2">
           <TaskPicker
             value={timer.taskId}
@@ -120,14 +120,14 @@ export function FreeFocus() {
             }
             trigger={
               <button type="button" className={FIELD}>
-                <ListTodoIcon className="size-3.5 text-foreground/50" />
+                <ListTodoIcon className="size-3.5 text-foreground/75" />
                 <span className="truncate">{task?.title ?? 'None'}</span>
               </button>
             }
           />
           {task && <TaskJump taskId={task.id} name={task.title} />}
         </dd>
-        <dt className="text-foreground/45">Project</dt>
+        <dt className="text-foreground/75">Project</dt>
         <dd className="flex min-w-0 items-center gap-2">
           <ProjectPicker
             value={timer.projectId}
@@ -139,7 +139,7 @@ export function FreeFocus() {
                 {project ? (
                   <ProjectDot color={project.color} />
                 ) : (
-                  <InboxIcon className="size-3.5 text-foreground/50" />
+                  <InboxIcon className="size-3.5 text-foreground/75" />
                 )}
                 <span className="truncate">{project?.name ?? 'None'}</span>
               </button>
@@ -149,7 +149,7 @@ export function FreeFocus() {
             <ProjectJump projectId={project.id} name={project.name} />
           )}
         </dd>
-        <dt className="text-foreground/45">Started</dt>
+        <dt className="text-foreground/75">Started</dt>
         <dd className="text-foreground/75 tabular-nums">
           {formatClockTime(timer.startedAt)}
         </dd>
@@ -172,7 +172,7 @@ export function FreeFocus() {
           type="button"
           disabled={discard.isPending}
           onClick={() => discard.mutate()}
-          className="text-sm text-foreground/45 transition-colors hover:text-foreground"
+          className="text-sm text-foreground/75 transition-colors hover:text-foreground"
         >
           Discard
         </button>

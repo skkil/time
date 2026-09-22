@@ -104,7 +104,7 @@ function HabitDot({ habit, day }: { habit: Habit; day: HabitDay }) {
       <PopoverTrigger asChild>{dot}</PopoverTrigger>
       <PopoverContent align="start" className="w-60">
         <p className="text-sm">{habit.name}</p>
-        <p className="mt-0.5 text-xs text-foreground/55">
+        <p className="mt-0.5 text-xs text-foreground/75">
           {progressLabel(habit, value)}
           {habit.tracking && ' · tracked automatically'}
         </p>
@@ -148,7 +148,7 @@ function HabitDot({ habit, day }: { habit: Habit; day: HabitDay }) {
                   status: status === 'done' ? null : 'done',
                 })
               }
-              className="ml-auto text-xs text-foreground/60 hover:text-foreground hover:underline"
+              className="ml-auto text-xs text-foreground/75 hover:text-foreground hover:underline"
             >
               {status === 'done' ? 'Undo' : 'Mark done'}
             </button>

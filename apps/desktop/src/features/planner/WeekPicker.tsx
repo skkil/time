@@ -70,7 +70,7 @@ export function WeekPicker({
         >
           Week {isoWeekNumber(week)}
           <ChevronDownIcon
-            className="mt-1 size-5 text-foreground/40"
+            className="mt-1 size-5 text-foreground/75"
             strokeWidth={1.5}
           />
         </button>
@@ -134,7 +134,7 @@ function WeekRow({
       )}
     >
       <span className="text-[15px]">Week {isoWeekNumber(start)}</span>
-      <span className="truncate text-xs text-foreground/50">
+      <span className="truncate text-xs text-foreground/75">
         {[
           start === thisMonday
             ? 'This week'
@@ -148,9 +148,9 @@ function WeekRow({
           .filter(Boolean)
           .join(' · ')}
       </span>
-      <span className="text-xs text-foreground/50 tabular-nums">
+      <span className="text-xs text-foreground/75 tabular-nums">
         {past && summary.reviewedAt === null && (
-          <span className="mr-2 text-foreground/35">not reviewed</span>
+          <span className="mr-2 text-foreground/75">not reviewed</span>
         )}
         {summary.trackedSeconds > 0 &&
           `${formatHours(summary.trackedSeconds)} h`}

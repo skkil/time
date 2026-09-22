@@ -58,7 +58,7 @@ export function AnyTimeList({
   return (
     <div className="shrink-0 pt-4 pb-3">
       {rows.length > 0 && (
-        <p className="pb-1 text-xs text-foreground/60">
+        <p className="pb-1 text-xs text-foreground/75">
           Any time today
           {tasks.length > VISIBLE_ROWS && ` · ${tasks.length}`}
         </p>
@@ -92,7 +92,7 @@ export function AnyTimeList({
                 className={cn(
                   'min-w-0 truncate text-left text-sm transition-colors duration-500 outline-none hover:text-foreground focus-visible:underline',
                   done
-                    ? 'text-foreground/40 line-through'
+                    ? 'text-foreground/75 line-through'
                     : open
                       ? 'text-foreground'
                       : 'text-foreground/75',
@@ -109,7 +109,7 @@ export function AnyTimeList({
           Nothing planned for today. Add a task, or press Q from anywhere.
         </p>
       )}
-      <div className="flex items-center gap-4 pt-1.5 text-sm text-foreground/60">
+      <div className="flex items-center gap-4 pt-1.5 text-sm text-foreground/75">
         <button
           type="button"
           onClick={() => newTask({ dueDate: todayKey() })}

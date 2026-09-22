@@ -208,7 +208,7 @@ user research.
 
 ## P2: Design and language
 
-- [ ] **42. Raise text contrast.** Hour labels are about 2.9:1 and "Any time
+- [x] **42. Raise text contrast.** Hour labels are about 2.9:1 and "Any time
       today" about 3.7:1 (estimated from colours), and both are 11px or smaller.
   - Done when: body and label text reach 4.5:1 across the sky at every time of
     day.

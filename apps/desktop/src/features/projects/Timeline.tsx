@@ -111,12 +111,12 @@ export function Timeline({
           )}
         >
           <div
-            className="sticky left-0 z-30 flex shrink-0 items-end border-r border-white/10 bg-[rgb(14,22,38)] px-4 pb-2 text-xs font-medium text-foreground/55"
+            className="sticky left-0 z-30 flex shrink-0 items-end border-r border-white/10 bg-[rgb(14,22,38)] px-4 pb-2 text-xs font-medium text-foreground/75"
             style={{ width: LABEL }}
           >
             {heading}
           </div>
-          <div className="relative flex-1 text-xs text-foreground/55">
+          <div className="relative flex-1 text-xs text-foreground/75">
             {months.map((key) => (
               <span
                 key={key}
@@ -307,7 +307,7 @@ function Mark({
 
 export function TimelineLegend() {
   return (
-    <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-foreground/55">
+    <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-foreground/75">
       <span className="flex items-center gap-1.5">
         <span className="size-2 rounded-full bg-foreground/70" />
         Due

@@ -76,7 +76,7 @@ function ComingUp({
                 </TaskLink>
               )}
               {item.note && (
-                <span className="shrink-0 text-foreground/55">{item.note}</span>
+                <span className="shrink-0 text-foreground/75">{item.note}</span>
               )}
             </span>
           </li>

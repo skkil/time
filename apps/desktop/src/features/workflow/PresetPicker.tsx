@@ -64,13 +64,13 @@ export function PresetPicker({
           );
         })}
       </div>
-      <p id="preset-description" className="min-h-4 text-xs text-foreground/50">
+      <p id="preset-description" className="min-h-4 text-xs text-foreground/75">
         {selected?.description || 'Imported preset'}
       </p>
       <button
         type="button"
         onClick={() => file.current?.click()}
-        className="flex items-center gap-2 justify-self-start text-xs text-foreground/40 hover:text-foreground"
+        className="flex items-center gap-2 justify-self-start text-xs text-foreground/75 hover:text-foreground"
       >
         <UploadIcon className="size-3.5" />
         Import a preset file

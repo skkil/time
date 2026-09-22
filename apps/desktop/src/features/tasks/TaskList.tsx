@@ -157,7 +157,7 @@ export function AddTaskRow({
       type="button"
       onClick={() => newTask(defaults)}
       className={cn(
-        'group/add flex h-9 w-full items-center gap-2.5 rounded-sm text-sm text-foreground/45 outline-offset-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring',
+        'group/add flex h-9 w-full items-center gap-2.5 rounded-sm text-sm text-foreground/75 outline-offset-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring',
         className,
       )}
     >

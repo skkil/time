@@ -40,7 +40,7 @@ function Choice({
 }) {
   return (
     <div className="grid gap-1.5">
-      <span className="text-xs text-foreground/45">{label}</span>
+      <span className="text-xs text-foreground/75">{label}</span>
       <div
         role="radiogroup"
         aria-label={label}
@@ -186,7 +186,7 @@ export function ViewEditor({
             onClick={() =>
               remove.mutate(view.id, { onSuccess: () => onDone() })
             }
-            className="text-sm text-foreground/50 hover:text-foreground hover:underline"
+            className="text-sm text-foreground/75 hover:text-foreground hover:underline"
           >
             Delete view
           </button>

@@ -132,7 +132,7 @@ export function QuickAdd({
           submit(event.shiftKey);
         }}
       />
-      <p className="flex flex-wrap items-center gap-x-2 text-sm text-foreground/55">
+      <p className="flex flex-wrap items-center gap-x-2 text-sm text-foreground/75">
         <span className="flex items-center gap-1.5">
           {project && <ProjectDot color={project.color} />}
           {project?.name ?? 'Inbox'}
@@ -144,7 +144,7 @@ export function QuickAdd({
           </span>
         ))}
         {!text && (
-          <span className="ml-auto text-xs text-foreground/35">
+          <span className="ml-auto text-xs text-foreground/75">
             {'tomorrow 3pm · every mon · {fri} · p1 · #project'}
           </span>
         )}
@@ -168,7 +168,7 @@ export function QuickAdd({
           </button>
         </p>
       )}
-      <p className="text-xs text-foreground/50">
+      <p className="text-xs text-foreground/75">
         Enter to add · Shift+Enter to add another
       </p>
     </form>

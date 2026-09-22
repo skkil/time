@@ -176,7 +176,7 @@ function SpaceToggle({
             'relative h-7 w-20 rounded-full text-[13px] tracking-wide transition-colors duration-300 outline-none focus-visible:ring-2 focus-visible:ring-white/50',
             option.id === value
               ? 'text-foreground'
-              : 'text-foreground/55 hover:text-foreground/85',
+              : 'text-foreground/75 hover:text-foreground/85',
           )}
         >
           {option.label}

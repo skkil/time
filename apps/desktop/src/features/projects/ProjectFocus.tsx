@@ -20,7 +20,7 @@ export function ProjectFocus({ projectId }: { projectId: Id }) {
 
   return (
     <PageBody className="px-10">
-      <p className="mb-5 text-sm text-foreground/55">
+      <p className="mb-5 text-sm text-foreground/75">
         {formatDuration(totalSeconds(entries))} · {sessionCount(entries.length)}
       </p>
       <div className="max-w-2xl">

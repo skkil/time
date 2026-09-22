@@ -106,7 +106,7 @@ export function TaskPanel({
 
   return (
     <div className={cn('flex h-full min-h-0 flex-col', className)}>
-      <div className="flex items-center gap-2 text-sm text-foreground/60">
+      <div className="flex items-center gap-2 text-sm text-foreground/75">
         <PlacementPicker
           value={{ projectId: task.projectId, sectionId: task.sectionId }}
           onChange={(placement) =>
@@ -120,7 +120,7 @@ export function TaskPanel({
               {project && <ProjectDot color={project.color} />}
               {project?.name ?? 'Inbox'}
               {section && (
-                <span className="text-foreground/45">/ {section.name}</span>
+                <span className="text-foreground/75">/ {section.name}</span>
               )}
             </Phrase>
           }
@@ -151,7 +151,7 @@ export function TaskPanel({
         maxLength={500}
         className={cn(
           'mt-4 field-sizing-content shrink-0 resize-none overflow-hidden bg-transparent text-4xl leading-tight font-light text-balance outline-none',
-          done && 'text-foreground/50 line-through',
+          done && 'text-foreground/75 line-through',
         )}
         onChange={(event) => setTitle(event.target.value.replace(/\n/g, ''))}
         onBlur={() =>
@@ -176,7 +176,7 @@ export function TaskPanel({
       <div className="mt-8 grid min-h-0 max-w-2xl content-start gap-8 overflow-y-auto pr-2">
         {task.nextStep && (
           <div>
-            <p className="text-xs tracking-wide text-foreground/45">
+            <p className="text-xs tracking-wide text-foreground/75">
               Where you left off
             </p>
             <p className="mt-1.5 text-lg font-light">{task.nextStep}</p>
@@ -223,7 +223,7 @@ function Notes({
         type="button"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="flex min-w-0 items-center gap-2 rounded-sm text-left text-[15px] leading-relaxed text-foreground/45 transition-colors outline-none hover:text-foreground/80 focus-visible:ring-2 focus-visible:ring-white/40"
+        className="flex min-w-0 items-center gap-2 rounded-sm text-left text-[15px] leading-relaxed text-foreground/75 transition-colors outline-none hover:text-foreground/80 focus-visible:ring-2 focus-visible:ring-white/40"
       >
         <ChevronRightIcon
           className={cn(
@@ -233,7 +233,7 @@ function Notes({
         />
         <span className="shrink-0">{label}</span>
         {!open && preview && (
-          <span className="min-w-0 truncate text-foreground/60">{preview}</span>
+          <span className="min-w-0 truncate text-foreground/75">{preview}</span>
         )}
       </button>
       {open && (
@@ -266,7 +266,7 @@ function Details({
         <Phrase set={task.dueDate !== null}>
           {task.dueDate ? <DueText task={task} /> : 'No date'}
           {task.recurrence && (
-            <span className="text-foreground/50"> · {task.recurrence}</span>
+            <span className="text-foreground/75"> · {task.recurrence}</span>
           )}
         </Phrase>
       }
@@ -286,7 +286,7 @@ function Details({
   ];
   if (task.trackedSeconds > 0)
     parts.push(
-      <span key="tracked" className="text-foreground/55">
+      <span key="tracked" className="text-foreground/75">
         {formatDuration(task.trackedSeconds)} so far
       </span>,
     );
@@ -336,7 +336,7 @@ function Serves({ task }: { task: Task }) {
     (current?.outcomes.length ?? 0) + (next?.outcomes.length ?? 0) > 0;
   if (!available && task.outcomeId === null) return null;
   return (
-    <p className="mt-1.5 text-[15px] text-foreground/45">
+    <p className="mt-1.5 text-[15px] text-foreground/75">
       Serves{' '}
       <OutcomePicker
         value={task.outcomeId}
@@ -449,7 +449,7 @@ function MoreMenu({ task, onWait }: { task: Task; onWait: () => void }) {
           <button
             type="button"
             aria-label="More"
-            className="ml-auto grid size-8 place-items-center rounded-full text-foreground/50 transition-colors hover:bg-white/10 hover:text-foreground"
+            className="ml-auto grid size-8 place-items-center rounded-full text-foreground/75 transition-colors hover:bg-white/10 hover:text-foreground"
           >
             <EllipsisIcon className="size-4" />
           </button>

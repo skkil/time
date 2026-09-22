@@ -100,7 +100,7 @@ export function GroupView({ groupId }: { groupId: Id }) {
 
   if (!group)
     return (
-      <p className="px-10 pt-6 text-sm text-foreground/55">
+      <p className="px-10 pt-6 text-sm text-foreground/75">
         This group no longer exists.
       </p>
     );
@@ -132,13 +132,13 @@ export function GroupView({ groupId }: { groupId: Id }) {
   return (
     <div className="flex h-full flex-col overflow-y-auto pb-10">
       <header className="w-full shrink-0 px-10 pt-4">
-        <p className="mb-1 text-sm text-foreground/50">Group</p>
+        <p className="mb-1 text-sm text-foreground/75">Group</p>
         <GroupTitle
           groupId={group.id}
           name={group.name}
           onAddProject={() => setCreating(true)}
         />
-        <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-foreground/55">
+        <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-foreground/75">
           {details.map((detail, i) => (
             <span key={i} className="flex items-center gap-2">
               {i > 0 && <span aria-hidden>·</span>}
@@ -154,7 +154,7 @@ export function GroupView({ groupId }: { groupId: Id }) {
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="w-full max-w-md rounded-xl border border-dashed border-white/15 px-4 py-6 text-left text-sm text-foreground/55 hover:bg-white/[.04]"
+            className="w-full max-w-md rounded-xl border border-dashed border-white/15 px-4 py-6 text-left text-sm text-foreground/75 hover:bg-white/[.04]"
           >
             No projects in this group yet. Add one, or set this group in a
             project’s settings.
@@ -163,14 +163,14 @@ export function GroupView({ groupId }: { groupId: Id }) {
           <>
             {rows.some((row) => row.marks.length > 0) && (
               <section className="mb-10">
-                <h2 className="mb-3 text-sm font-medium text-foreground/55">
+                <h2 className="mb-3 text-sm font-medium text-foreground/75">
                   Timeline
                 </h2>
                 <Timeline heading="Project" rows={rows} />
                 <TimelineLegend />
               </section>
             )}
-            <h2 className="mb-3 text-sm font-medium text-foreground/55">
+            <h2 className="mb-3 text-sm font-medium text-foreground/75">
               Projects
             </h2>
             <ProjectGrid summaries={active} today={today} />
@@ -178,7 +178,7 @@ export function GroupView({ groupId }: { groupId: Id }) {
         )}
         {inactive.length > 0 && (
           <section className="mt-10">
-            <h2 className="mb-3 text-sm font-medium text-foreground/55">
+            <h2 className="mb-3 text-sm font-medium text-foreground/75">
               Inactive
             </h2>
             <ProjectGrid summaries={inactive} today={today} />
@@ -253,7 +253,7 @@ function GroupTitle({
     <div className="flex items-center gap-3">
       <h1 className="flex min-w-0 flex-1 items-center gap-2.5 text-3xl leading-tight font-light tracking-tight">
         <FoldersIcon
-          className="size-6 shrink-0 text-foreground/50"
+          className="size-6 shrink-0 text-foreground/75"
           strokeWidth={1.5}
         />
         {renaming ? (
@@ -367,14 +367,14 @@ function ProjectCard({ summary, today }: { summary: Summary; today: string }) {
           {node.name}
         </h3>
         {(node.archived || node.status !== 'active') && (
-          <span className="rounded-full px-2 py-0.5 text-xs text-foreground/60 ring-1 ring-white/15">
+          <span className="rounded-full px-2 py-0.5 text-xs text-foreground/75 ring-1 ring-white/15">
             {node.archived ? 'Archived' : status?.label}
           </span>
         )}
       </div>
 
       <div className="min-h-10 text-sm">
-        <p className="text-xs text-foreground/55">Next deadline</p>
+        <p className="text-xs text-foreground/75">Next deadline</p>
         {nextDeadline ? (
           <p className="flex gap-2">
             <span className="min-w-0 flex-1 truncate">
@@ -385,12 +385,12 @@ function ProjectCard({ summary, today }: { summary: Summary; today: string }) {
             </span>
           </p>
         ) : (
-          <p className="text-foreground/40">None</p>
+          <p className="text-foreground/75">None</p>
         )}
       </div>
 
       <div>
-        <div className="mb-1.5 flex justify-between text-xs text-foreground/55">
+        <div className="mb-1.5 flex justify-between text-xs text-foreground/75">
           <span>Progress</span>
           <span className="tabular-nums">
             {done} of {total} done
@@ -407,14 +407,14 @@ function ProjectCard({ summary, today }: { summary: Summary; today: string }) {
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
         {stats.map(([label, value]) => (
           <div key={label} className="contents">
-            <dt className="text-foreground/55">{label}</dt>
+            <dt className="text-foreground/75">{label}</dt>
             <dd className="text-right">{value}</dd>
           </div>
         ))}
       </dl>
 
       {children.length > 0 && (
-        <p className="mt-auto truncate border-t border-white/10 pt-3 text-xs text-foreground/55">
+        <p className="mt-auto truncate border-t border-white/10 pt-3 text-xs text-foreground/75">
           {children.length} sub-{children.length === 1 ? 'project' : 'projects'}
           : {children.map((child) => child.name).join(', ')}
         </p>

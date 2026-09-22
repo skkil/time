@@ -72,7 +72,7 @@ export function PhasePager({ task }: { task: Task }) {
               type="button"
               aria-current={i === visible ? 'step' : undefined}
               onClick={() => scrollTo(i)}
-              className="flex items-center gap-2 border-l-2 border-white/10 py-1.5 pr-1 pl-3 text-left text-sm text-foreground/50 transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/40 aria-[current=step]:border-white/80 aria-[current=step]:text-foreground"
+              className="flex items-center gap-2 border-l-2 border-white/10 py-1.5 pr-1 pl-3 text-left text-sm text-foreground/75 transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/40 aria-[current=step]:border-white/80 aria-[current=step]:text-foreground"
             >
               <span className="min-w-0 flex-1 truncate">
                 {page.status?.name ?? 'No phase'}
@@ -84,7 +84,7 @@ export function PhasePager({ task }: { task: Task }) {
                 />
               )}
               {page.items.length > 0 && (
-                <span className="text-xs text-foreground/40 tabular-nums">
+                <span className="text-xs text-foreground/75 tabular-nums">
                   {finished.length}/{page.items.length}
                 </span>
               )}
@@ -142,7 +142,7 @@ function PhasePage({
       <div className="flex items-baseline gap-3">
         <h3 className="text-xl font-light">{status?.name ?? 'No phase'}</h3>
         {isCurrent ? (
-          <span className="text-xs text-foreground/45">Current phase</span>
+          <span className="text-xs text-foreground/75">Current phase</span>
         ) : (
           status && (
             <button
@@ -150,7 +150,7 @@ function PhasePage({
               onClick={() =>
                 setStatus.mutate({ id: record.id, statusId: status.id })
               }
-              className="rounded-md text-xs text-foreground/60 underline-offset-4 outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-white/40"
+              className="rounded-md text-xs text-foreground/75 underline-offset-4 outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-white/40"
             >
               Move to {status.name}
             </button>

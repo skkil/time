@@ -55,7 +55,7 @@ export function CalendarView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col px-10 py-4">
-      <div className="mb-3 flex items-center gap-2 text-sm text-foreground/60">
+      <div className="mb-3 flex items-center gap-2 text-sm text-foreground/75">
         <button
           type="button"
           aria-label="Previous week"
@@ -126,7 +126,7 @@ function Day({
         isOver && 'bg-white/[.1]',
       )}
     >
-      <h3 className="px-1 pb-1 text-xs text-foreground/50">
+      <h3 className="px-1 pb-1 text-xs text-foreground/75">
         {formatWeekday(day)}{' '}
         <span className={cn('text-sm', day === today && 'text-foreground')}>
           {formatDayOfMonth(day)}
@@ -192,7 +192,7 @@ function CalendarTask({ task }: { task: Task }) {
         onClick={() => openTask(task.id)}
         className={cn(
           'min-w-0 flex-1 text-left leading-snug hover:underline',
-          done && 'text-foreground/40 line-through',
+          done && 'text-foreground/75 line-through',
         )}
       >
         {task.title}

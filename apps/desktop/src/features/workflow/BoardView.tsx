@@ -125,7 +125,7 @@ function Column({
         onClick={onUnfold}
         aria-label={`Show ${group.label}, ${group.tasks.length} items`}
         className={cn(
-          'flex h-48 w-11 shrink-0 flex-col items-center gap-2 rounded-2xl bg-white/[.03] py-3 text-xs text-foreground/50 ring-1 ring-white/[.06] transition-colors hover:text-foreground',
+          'flex h-48 w-11 shrink-0 flex-col items-center gap-2 rounded-2xl bg-white/[.03] py-3 text-xs text-foreground/75 ring-1 ring-white/[.06] transition-colors hover:text-foreground',
           isOver && 'bg-white/[.08]',
         )}
       >
@@ -145,14 +145,14 @@ function Column({
       <header className="flex h-10 shrink-0 items-center gap-2 px-3 text-sm">
         {group.icon && <TypeIcon icon={group.icon} />}
         <h2 className="truncate">{group.label}</h2>
-        <span className="text-xs text-foreground/40 tabular-nums">
+        <span className="text-xs text-foreground/75 tabular-nums">
           {group.tasks.length}
         </span>
         {isClosed(group.category ?? null) && (
           <button
             type="button"
             onClick={onFold}
-            className="ml-auto text-xs text-foreground/40 hover:text-foreground"
+            className="ml-auto text-xs text-foreground/75 hover:text-foreground"
           >
             Fold
           </button>
@@ -167,7 +167,7 @@ function Column({
         <button
           type="button"
           onClick={() => newTask(groupDefaults(group, projectId))}
-          className="mx-3 mb-2 flex h-8 items-center gap-2 text-sm text-foreground/40 hover:text-foreground"
+          className="mx-3 mb-2 flex h-8 items-center gap-2 text-sm text-foreground/75 hover:text-foreground"
         >
           <PlusIcon className="size-4" strokeWidth={1.5} />
           Add
@@ -196,7 +196,7 @@ function Card({ task, showAge }: { task: Task; showAge: boolean }) {
     >
       <TaskItem task={task} variant="card" />
       {showAge && (
-        <span className="pointer-events-none absolute right-3 bottom-2 text-[11px] text-foreground/35">
+        <span className="pointer-events-none absolute right-3 bottom-2 text-[11px] text-foreground/75">
           {age === 0 ? 'moved today' : `${age}d since last move`}
         </span>
       )}

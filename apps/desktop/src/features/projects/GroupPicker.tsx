@@ -48,15 +48,15 @@ export function GroupPicker({
           className="flex h-9 w-full max-w-64 items-center gap-2 rounded-full px-3 text-sm ring-1 ring-white/15 transition-colors outline-none hover:bg-white/[.06] focus-visible:ring-2 focus-visible:ring-white/50"
         >
           <FoldersIcon
-            className="size-3.5 shrink-0 text-foreground/50"
+            className="size-3.5 shrink-0 text-foreground/75"
             strokeWidth={1.5}
           />
           <span
-            className={selected ? 'truncate' : 'truncate text-foreground/50'}
+            className={selected ? 'truncate' : 'truncate text-foreground/75'}
           >
             {selected?.name ?? 'None'}
           </span>
-          <ChevronDownIcon className="ml-auto size-3.5 text-foreground/40" />
+          <ChevronDownIcon className="ml-auto size-3.5 text-foreground/75" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-0" align="start">

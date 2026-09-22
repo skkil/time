@@ -60,7 +60,7 @@ export function StepRow({ step, depth = 0 }: { step: Task; depth?: number }) {
           onClick={() => openTask(step.id)}
           className={cn(
             'min-w-0 text-left text-[15px] hover:underline',
-            finished ? 'text-foreground/40 line-through' : 'text-foreground/85',
+            finished ? 'text-foreground/75 line-through' : 'text-foreground/85',
           )}
         >
           {step.title}
@@ -71,7 +71,7 @@ export function StepRow({ step, depth = 0 }: { step: Task; depth?: number }) {
             aria-label={expanded ? 'Hide steps' : 'Show steps'}
             aria-expanded={expanded}
             onClick={() => setExpanded(!expanded)}
-            className="flex shrink-0 items-center gap-1 text-xs text-foreground/45 tabular-nums hover:text-foreground/80"
+            className="flex shrink-0 items-center gap-1 text-xs text-foreground/75 tabular-nums hover:text-foreground/80"
           >
             <ChevronRightIcon
               className={cn(
@@ -90,7 +90,7 @@ export function StepRow({ step, depth = 0 }: { step: Task; depth?: number }) {
             setExpanded(true);
             setAdding(true);
           }}
-          className="ml-auto shrink-0 rounded-sm text-foreground/35 transition-colors group-hover:text-foreground/60 hover:text-foreground"
+          className="ml-auto shrink-0 rounded-sm text-foreground/75 transition-colors group-hover:text-foreground/75 hover:text-foreground"
         >
           <PlusIcon className="size-4" />
         </button>
@@ -101,7 +101,7 @@ export function StepRow({ step, depth = 0 }: { step: Task; depth?: number }) {
           onClick={() =>
             steps.length > 0 ? setConfirming(true) : remove.mutate(step.id)
           }
-          className="shrink-0 rounded-sm text-foreground/35 transition-colors group-hover:text-foreground/60 hover:text-foreground"
+          className="shrink-0 rounded-sm text-foreground/75 transition-colors group-hover:text-foreground/75 hover:text-foreground"
         >
           <XIcon className="size-4" />
         </button>
@@ -165,7 +165,7 @@ export function AddStepForm({
       }}
       className="flex items-center gap-3 py-1.5"
     >
-      <PlusIcon className="size-[18px] text-foreground/35" strokeWidth={1.5} />
+      <PlusIcon className="size-[18px] text-foreground/75" strokeWidth={1.5} />
       <input
         name="title"
         autoFocus={autoFocus}

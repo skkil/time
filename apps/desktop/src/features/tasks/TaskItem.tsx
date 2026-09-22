@@ -185,19 +185,19 @@ export function TaskItem({
           <span
             className={cn(
               'flex items-start gap-1.5 text-[15px] leading-5 break-words',
-              done && 'text-foreground/40 line-through',
-              waitingOn.length > 0 && 'text-foreground/60',
+              done && 'text-foreground/75 line-through',
+              waitingOn.length > 0 && 'text-foreground/75',
             )}
           >
             {type && (
               <TypeIcon
                 icon={type.icon}
-                className="mt-[3px] text-foreground/50"
+                className="mt-[3px] text-foreground/75"
               />
             )}
             <span className="min-w-0">{task.title}</span>
           </span>
-          <span className="mt-0.5 block truncate text-xs text-foreground/60 empty:hidden">
+          <span className="mt-0.5 block truncate text-xs text-foreground/75 empty:hidden">
             {[
               waitingOn.length === 1 &&
                 `waiting on ${firstBlocker?.title ?? 'another task'}`,
@@ -225,7 +225,7 @@ export function TaskItem({
           </span>
         </button>
         {((showParent && parent) || (showPlacement && variant === 'row')) && (
-          <p className="flex min-w-0 gap-1.5 text-xs text-foreground/45">
+          <p className="flex min-w-0 gap-1.5 text-xs text-foreground/75">
             {showParent && parent && (
               <TaskLink taskId={parent.id} className="truncate">
                 in {parent.title}
@@ -311,7 +311,7 @@ export function TaskItem({
                 variant="ghost"
                 aria-label={`More actions for ${task.title}`}
                 title="Actions: edit, date, timer, priority, delete"
-                className="text-foreground/45 hover:text-foreground data-[state=open]:text-foreground"
+                className="text-foreground/75 hover:text-foreground data-[state=open]:text-foreground"
               >
                 <MoreHorizontalIcon />
               </Button>

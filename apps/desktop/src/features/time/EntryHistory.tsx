@@ -28,13 +28,13 @@ function EntrySubject({
           taskId={entry.taskId ?? 0}
           className={cn(
             'truncate',
-            entry.taskCompleted && 'text-foreground/50 line-through',
+            entry.taskCompleted && 'text-foreground/75 line-through',
           )}
         >
           {entry.taskTitle}
         </TaskLink>
       )}
-      {note && <span className="truncate text-foreground/55">{note}</span>}
+      {note && <span className="truncate text-foreground/75">{note}</span>}
     </span>
   );
 }
@@ -53,7 +53,7 @@ export function EntryHistory({
     <div className="grid gap-5">
       {days.map(([day, list]) => (
         <section key={day} aria-label={formatDayLabel(day)}>
-          <h3 className="flex justify-between text-xs text-foreground/45">
+          <h3 className="flex justify-between text-xs text-foreground/75">
             {formatDayLabel(day)}
             <span className="tabular-nums">
               {formatDuration(totalSeconds(list))}

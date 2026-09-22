@@ -82,7 +82,7 @@ export function TableView({
                 key={column.key}
                 scope="col"
                 aria-sort={column.sort === sort ? 'ascending' : undefined}
-                className="border-b border-white/[.07] px-3 py-2.5 text-left text-xs font-normal text-foreground/50"
+                className="border-b border-white/[.07] px-3 py-2.5 text-left text-xs font-normal text-foreground/75"
               >
                 {column.sort ? (
                   <button
@@ -119,7 +119,7 @@ export function TableView({
                     column.key === 'title' && 'text-foreground',
                     task.completedAt !== null &&
                       column.key === 'title' &&
-                      'text-foreground/45 line-through',
+                      'text-foreground/75 line-through',
                   )}
                 >
                   {cell(task, column.key)}

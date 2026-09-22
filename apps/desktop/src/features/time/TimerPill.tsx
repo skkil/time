@@ -17,7 +17,7 @@ import { formatStopwatch, todayKey, weekStartOf } from '@/lib/time';
 
 import { useStopTimer, useTimer } from './api';
 
-const SUBJECT = 'ml-2 block max-w-40 truncate text-xs text-foreground/60';
+const SUBJECT = 'ml-2 block max-w-40 truncate text-xs text-foreground/75';
 
 function TimerSubject({
   label,

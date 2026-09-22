@@ -139,7 +139,7 @@ function NewProjectForm({
 
   return (
     <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
-      <p className="text-xs text-foreground/45 tabular-nums">
+      <p className="text-xs text-foreground/75 tabular-nums">
         {step + 1} of {STEPS.length} · {STEPS[step]}
       </p>
       <DialogTitle className="mt-2 text-3xl font-light">
@@ -289,7 +289,7 @@ function Field({
     <div className="grid gap-1.5">
       <Label htmlFor={htmlFor}>{label}</Label>
       {children}
-      {hint && <p className="text-xs text-foreground/45">{hint}</p>}
+      {hint && <p className="text-xs text-foreground/75">{hint}</p>}
     </div>
   );
 }

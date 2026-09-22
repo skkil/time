@@ -64,7 +64,7 @@ export function ProjectsSpace() {
                 <InboxIcon className="size-4 opacity-70" strokeWidth={1.5} />
                 Inbox
                 {counts.inbox > 0 && (
-                  <span className="ml-auto text-xs text-foreground/50">
+                  <span className="ml-auto text-xs text-foreground/75">
                     {counts.inbox}
                   </span>
                 )}
@@ -75,7 +75,7 @@ export function ProjectsSpace() {
                 <SunsetIcon className="size-4 opacity-70" strokeWidth={1.5} />
                 Someday
                 {counts.someday > 0 && (
-                  <span className="ml-auto text-xs text-foreground/50">
+                  <span className="ml-auto text-xs text-foreground/75">
                     {counts.someday}
                   </span>
                 )}

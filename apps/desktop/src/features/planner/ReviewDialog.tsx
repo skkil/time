@@ -35,7 +35,7 @@ export function ReviewDialog({
           <DialogTitle className="text-3xl font-light">
             Week {isoWeekNumber(week)}
           </DialogTitle>
-          <DialogDescription className="mt-1 text-sm text-foreground/50">
+          <DialogDescription className="mt-1 text-sm text-foreground/75">
             {formatWeekRange(week)}
           </DialogDescription>
         </div>
@@ -72,7 +72,7 @@ function ReviewForm({ week, onDone }: { week: DateKey; onDone: () => void }) {
         />
         {FIELDS.map(({ key, label }) => (
           <label key={key} className="grid gap-1.5">
-            <span className="text-sm text-foreground/55">{label}</span>
+            <span className="text-sm text-foreground/75">{label}</span>
             <Textarea
               rows={2}
               maxLength={2000}

@@ -25,7 +25,7 @@ export function GroupedList({
       {shown.map((group) => (
         <section key={group.key} aria-label={group.label}>
           {groups.length > 1 && (
-            <h2 className="mb-1 flex items-center gap-2 text-xs tracking-wide text-foreground/50">
+            <h2 className="mb-1 flex items-center gap-2 text-xs tracking-wide text-foreground/75">
               {group.icon && <TypeIcon icon={group.icon} />}
               {group.label}
               <span className="text-foreground/30">{group.tasks.length}</span>
@@ -42,7 +42,7 @@ export function GroupedList({
             <button
               type="button"
               onClick={() => newTask(groupDefaults(group, projectId))}
-              className="mt-1 flex h-8 items-center gap-2.5 text-sm text-foreground/40 hover:text-foreground"
+              className="mt-1 flex h-8 items-center gap-2.5 text-sm text-foreground/75 hover:text-foreground"
             >
               <PlusIcon className="size-4" strokeWidth={1.5} />
               Add

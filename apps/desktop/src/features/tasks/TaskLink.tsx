@@ -44,7 +44,7 @@ export function TaskJump({ taskId, name }: { taskId: Id; name: string }) {
     <TaskLink
       taskId={taskId}
       label={`Open ${name}`}
-      className="shrink-0 text-foreground/45 hover:text-foreground"
+      className="shrink-0 text-foreground/75 hover:text-foreground"
     >
       <ArrowUpRightIcon className="size-4" />
     </TaskLink>

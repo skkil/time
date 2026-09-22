@@ -53,7 +53,7 @@ export function GraphView({
   return (
     <div className="min-h-0 flex-1 overflow-auto px-10 py-6">
       {unlinked > 0 && (
-        <p className="mb-6 text-sm text-foreground/45">
+        <p className="mb-6 text-sm text-foreground/75">
           {unlinked} {unlinked === 1 ? 'task has' : 'tasks have'} no links and
           {unlinked === 1 ? ' isn’t' : ' aren’t'} shown.
         </p>
@@ -192,14 +192,14 @@ function GraphNode({
         <span
           className={cn(
             'line-clamp-1 text-sm',
-            done && 'text-foreground/40 line-through',
-            waiting && 'text-foreground/60',
+            done && 'text-foreground/75 line-through',
+            waiting && 'text-foreground/75',
           )}
         >
           {task.title}
         </span>
         {meta && (
-          <span className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-foreground/45">
+          <span className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-foreground/75">
             {elsewhere && <ProjectDot color={elsewhere.color} />}
             {meta}
           </span>

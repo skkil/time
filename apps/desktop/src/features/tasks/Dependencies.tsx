@@ -36,7 +36,7 @@ export function Dependencies({
   if (blockers.length === 0 && holding.length === 0 && !adding) return null;
 
   return (
-    <div className="mt-1.5 grid gap-1 text-[15px] text-foreground/45">
+    <div className="mt-1.5 grid gap-1 text-[15px] text-foreground/75">
       {(blockers.length > 0 || adding) && (
         <p className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
           Waiting on
@@ -47,7 +47,7 @@ export function Dependencies({
                 onClick={() => openTask(blocker.id)}
                 className={cn(
                   blocker.completedAt !== null &&
-                    'text-foreground/40 line-through',
+                    'text-foreground/75 line-through',
                 )}
               >
                 {blocker.title}
@@ -61,7 +61,7 @@ export function Dependencies({
                     blockedById: blocker.id,
                   })
                 }
-                className="ml-0.5 grid size-4 place-items-center self-center rounded-sm text-foreground/40 opacity-0 transition-opacity group-hover/link:opacity-100 hover:text-foreground focus-visible:opacity-100"
+                className="ml-0.5 grid size-4 place-items-center self-center rounded-sm text-foreground/75 opacity-0 transition-opacity group-hover/link:opacity-100 hover:text-foreground focus-visible:opacity-100"
               >
                 <XIcon className="size-3" />
               </button>

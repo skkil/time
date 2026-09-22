@@ -93,7 +93,7 @@ export function HabitsSheet({
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px]">{habit.name}</p>
-                    <p className="truncate text-xs text-foreground/45">
+                    <p className="truncate text-xs text-foreground/75">
                       {[
                         habit.kind === 'build'
                           ? 'Build'
@@ -114,7 +114,7 @@ export function HabitsSheet({
                     type="button"
                     aria-label={`Edit ${habit.name}`}
                     onClick={() => setDialog({ mode: 'edit', habit })}
-                    className="grid size-8 place-items-center rounded-full text-foreground/50 opacity-0 group-hover:opacity-100 hover:bg-white/10 hover:text-foreground focus-visible:opacity-100"
+                    className="grid size-8 place-items-center rounded-full text-foreground/75 opacity-0 group-hover:opacity-100 hover:bg-white/10 hover:text-foreground focus-visible:opacity-100"
                   >
                     <PencilIcon className="size-4" />
                   </button>
@@ -122,7 +122,7 @@ export function HabitsSheet({
                     type="button"
                     aria-label={`Archive ${habit.name}`}
                     onClick={() => setRetiring(habit)}
-                    className="grid size-8 place-items-center rounded-full text-foreground/50 opacity-0 group-hover:opacity-100 hover:bg-white/10 hover:text-foreground focus-visible:opacity-100"
+                    className="grid size-8 place-items-center rounded-full text-foreground/75 opacity-0 group-hover:opacity-100 hover:bg-white/10 hover:text-foreground focus-visible:opacity-100"
                   >
                     <ArchiveIcon className="size-4" />
                   </button>

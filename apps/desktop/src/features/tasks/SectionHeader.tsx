@@ -142,7 +142,7 @@ export function SectionHeader({
             : `Collapse ${section.name}`
         }
         aria-expanded={!section.collapsed}
-        className="absolute -left-7 rounded-sm p-0.5 text-foreground/40 hover:text-foreground"
+        className="absolute -left-7 rounded-sm p-0.5 text-foreground/75 hover:text-foreground"
         onClick={() =>
           collapse.mutate({ id: section.id, collapsed: !section.collapsed })
         }
@@ -165,7 +165,7 @@ export function SectionHeader({
         </h2>
       )}
       {count > 0 && (
-        <span className="text-xs text-foreground/40 tabular-nums">{count}</span>
+        <span className="text-xs text-foreground/75 tabular-nums">{count}</span>
       )}
       <div className="ml-auto opacity-0 group-focus-within/section:opacity-100 group-hover/section:opacity-100 has-[[data-state=open]]:opacity-100">
         <SectionMenu
@@ -221,7 +221,7 @@ export function AddSection({
           <button
             type="button"
             onClick={() => setEditing(false)}
-            className="text-sm text-foreground/45 transition-colors hover:text-foreground"
+            className="text-sm text-foreground/75 transition-colors hover:text-foreground"
           >
             Cancel
           </button>
@@ -235,7 +235,7 @@ export function AddSection({
       onClick={() => setEditing(true)}
       className={cn(
         'group/add-section my-1 flex h-7 w-full items-center gap-3 text-sm font-medium text-now opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100',
-        always && 'text-foreground/40 opacity-100 hover:text-now',
+        always && 'text-foreground/75 opacity-100 hover:text-now',
       )}
     >
       <span className="h-px flex-1 bg-current opacity-40" />

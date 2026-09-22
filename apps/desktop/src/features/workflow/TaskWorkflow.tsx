@@ -61,7 +61,7 @@ export function WorkflowLine({ task }: { task: Task }) {
                 <TypeIcon icon={item.icon} />
                 <span className="flex-1">{item.name}</span>
                 {needsTime ? (
-                  <span className="text-xs text-foreground/40">
+                  <span className="text-xs text-foreground/75">
                     needs a time
                   </span>
                 ) : (
@@ -98,7 +98,7 @@ export function WorkflowLine({ task }: { task: Task }) {
             if (items.length === 0) return null;
             return (
               <div key={category.value}>
-                <DropdownMenuLabel className="text-xs text-foreground/40">
+                <DropdownMenuLabel className="text-xs text-foreground/75">
                   {category.label}
                 </DropdownMenuLabel>
                 {items.map((item) => (
@@ -129,7 +129,7 @@ export function WorkflowLine({ task }: { task: Task }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56">
           {workflow.milestones.length === 0 && (
-            <p className="px-2 py-1.5 text-sm text-foreground/50">
+            <p className="px-2 py-1.5 text-sm text-foreground/75">
               Add {workflow.milestoneLabel.toLowerCase()} in project settings.
             </p>
           )}
@@ -142,7 +142,7 @@ export function WorkflowLine({ task }: { task: Task }) {
             >
               <span className="flex-1">{item.name}</span>
               {item.date && (
-                <span className="text-xs text-foreground/45">
+                <span className="text-xs text-foreground/75">
                   {format(fromDateKey(item.date), 'd MMM')}
                 </span>
               )}

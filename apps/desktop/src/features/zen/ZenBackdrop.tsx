@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { usePreference } from '@/lib/preferences';
 import { cn } from '@/lib/utils';
 
+import { SHADE, readabilityShade } from './contrast';
 import { rgb, skyAt } from './sky';
 
 const GLOWS = [
@@ -62,6 +63,10 @@ export function ZenBackdrop({
         />
       ))}
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,8,18,.35)_0%,transparent_45%)]" />
+      <div
+        className="absolute inset-0 transition-[background-color] duration-[3000ms]"
+        style={{ background: rgb(SHADE, readabilityShade(sky)) }}
+      />
       <div
         className={cn(
           'absolute inset-0 bg-[rgba(4,8,18,.45)] transition-opacity duration-[1200ms]',

@@ -24,7 +24,7 @@ const glass = {
   '--border': 'rgba(255, 255, 255, 0.14)',
   '--input': 'rgba(255, 255, 255, 0.16)',
   '--muted': 'rgba(255, 255, 255, 0.1)',
-  '--muted-foreground': 'rgba(255, 255, 255, 0.66)',
+  '--muted-foreground': 'rgba(255, 255, 255, 0.8)',
   '--accent': 'rgba(255, 255, 255, 0.1)',
   '--primary': 'rgba(255, 255, 255, 0.92)',
   '--primary-foreground': '#0b1a22',
@@ -152,7 +152,7 @@ export function ZenOverlay({
 
   const header = (
     <header className="grid shrink-0 justify-items-center gap-4 text-center">
-      <p className="text-xs tracking-[.2em] text-white/60">
+      <p className="text-xs tracking-[.2em] text-white/80">
         {meta.label.toUpperCase()}
       </p>
       {steps.length > 1 && (
@@ -227,7 +227,7 @@ export function ZenOverlay({
           <button
             type="button"
             onClick={() => setIndex(index - 1)}
-            className="flex items-center gap-2 text-sm text-white/60 transition-colors hover:text-white"
+            className="flex items-center gap-2 text-sm text-white/80 transition-colors hover:text-white"
           >
             <ArrowLeftIcon className="size-4" strokeWidth={1.5} />
             Back
@@ -236,7 +236,7 @@ export function ZenOverlay({
           <button
             type="button"
             onClick={skip}
-            className="text-sm text-white/60 transition-colors hover:text-white"
+            className="text-sm text-white/80 transition-colors hover:text-white"
           >
             Skip {meta.label.toLowerCase()} today
           </button>
