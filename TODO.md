@@ -168,16 +168,16 @@ user research.
 
 ## P1: Check out
 
-- [ ] **33. Fix the time-block step with no musts.** It says "Every must has a
+- [x] **33. Fix the time-block step with no musts.** It says "Every must has a
       time" when none were picked.
   - Done when: the step is skipped or says so plainly when there are no musts.
-- [ ] **34. Keep tonight's plans out of Leftovers.** Tasks and blocks still
+- [x] **34. Keep tonight's plans out of Leftovers.** Tasks and blocks still
       ahead today are listed as leftovers.
   - Done when: they are excluded or clearly marked as still planned.
-- [ ] **35. Clarify "Leave" and "Not today".** The two exits are hard to tell
+- [x] **35. Clarify "Leave" and "Not today".** The two exits are hard to tell
       apart.
   - Done when: each label says what happens to the check-out.
-- [ ] **36. End Check out with closure.** Finish only changes the button to
+- [x] **36. End Check out with closure.** Finish only changes the button to
       "Checked out".
   - Done when: the last step summarises the day and tomorrow's plan.
 

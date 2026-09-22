@@ -7,6 +7,7 @@ import { WeekReviewFlow } from '@/features/review/WeekReview';
 import { mondayOf, shiftKey, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
+import { DaySummary } from './DaySummary';
 import { useRunActions } from './api';
 import {
   RITUALS,
@@ -62,12 +63,14 @@ function ZenFrame({
   label,
   description,
   wide = false,
+  leaveLabel = 'Finish later',
   onEscape,
   children,
 }: {
   label: string;
   description: string;
   wide?: boolean;
+  leaveLabel?: string;
   onEscape: () => void;
   children: ReactNode;
 }) {
@@ -92,7 +95,7 @@ function ZenFrame({
             className="absolute top-6 left-7 z-10 flex items-center gap-2 rounded-full px-3 py-2 text-sm text-white/70 transition-colors outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-white/50"
           >
             <XIcon className="size-4" strokeWidth={1.5} />
-            Leave
+            {leaveLabel}
           </button>
           <div className="relative grid h-full place-items-center p-8">
             <div
@@ -130,10 +133,12 @@ export function ZenOverlay({
   const ctx = contextFor(kind, todayKey(), run.taskId);
   const last = index === steps.length - 1;
   const step = steps[index];
+  const [closed, setClosed] = useState(false);
 
   const finish = () => {
     actions.finish.mutate(run.id);
-    onClose();
+    if (kind === 'evening') setClosed(true);
+    else onClose();
   };
   const next = () => {
     if (last) return finish();
@@ -190,11 +195,24 @@ export function ZenOverlay({
       </ZenFrame>
     );
 
+  if (closed)
+    return (
+      <ZenFrame
+        label={meta.label}
+        description={meta.description}
+        onEscape={onClose}
+        leaveLabel="Close"
+      >
+        <DaySummary ctx={ctx} onClose={onClose} />
+      </ZenFrame>
+    );
+
   return (
     <ZenFrame
       label={meta.label}
       description={meta.description}
       onEscape={onClose}
+      leaveLabel="Finish later"
     >
       {header}
       <section
@@ -218,9 +236,9 @@ export function ZenOverlay({
           <button
             type="button"
             onClick={skip}
-            className="text-sm text-white/50 transition-colors hover:text-white"
+            className="text-sm text-white/60 transition-colors hover:text-white"
           >
-            Not today
+            Skip {meta.label.toLowerCase()} today
           </button>
         )}
         <button

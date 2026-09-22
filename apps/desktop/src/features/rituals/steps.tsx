@@ -210,10 +210,24 @@ function WhatMovedStep({ ctx }: { ctx: RitualContext }) {
 
 function LeftoversStep({ ctx }: { ctx: RitualContext }) {
   const { data: tasks } = useTasks();
-  const leftovers = useMemo(
-    () => earlierTasks(tasks ?? [], ctx.target),
-    [tasks, ctx.target],
-  );
+  const { data: blocks } = useBlocks(mondayOf(ctx.date));
+  const now = useNow(60_000);
+  const leftovers = useMemo(() => {
+    const ahead = new Set(
+      (blocks ?? [])
+        .filter(
+          (block) => dateKeyOf(block.startAt) === ctx.date && block.endAt > now,
+        )
+        .map((block) => block.taskId),
+    );
+    const stillPlanned = (task: Task) =>
+      task.dueDate === ctx.date &&
+      (ahead.has(task.id) ||
+        (task.dueTime !== null && atMinutes(ctx.date, task.dueTime) > now));
+    return earlierTasks(tasks ?? [], ctx.target).filter(
+      (task) => !stillPlanned(task),
+    );
+  }, [tasks, blocks, ctx.date, ctx.target, now]);
   return (
     <div className="grid gap-5">
       <StepHeading title="Leftovers">
@@ -329,12 +343,10 @@ function TimeblockStep({ ctx }: { ctx: RitualContext }) {
     .filter((block) => dateKeyOf(block.startAt) === ctx.target)
     .sort((a, b) => a.startAt - b.startAt);
   const blocked = new Set(dayBlocks.map((block) => block.taskId));
-  const musts = (tasks ?? []).filter(
-    (task) =>
-      task.completedAt === null &&
-      task.mustOn === ctx.target &&
-      !blocked.has(task.id),
+  const allMusts = (tasks ?? []).filter(
+    (task) => task.completedAt === null && task.mustOn === ctx.target,
   );
+  const musts = allMusts.filter((task) => !blocked.has(task.id));
   const taken = (minute: number) => {
     const at = atMinutes(ctx.target, minute);
     return dayBlocks.some((block) => block.startAt <= at && block.endAt > at);
@@ -347,7 +359,9 @@ function TimeblockStep({ ctx }: { ctx: RitualContext }) {
       </StepHeading>
       {musts.length === 0 && (
         <p className="text-sm text-muted-foreground">
-          Every must has a time. Open Week to fine-tune.
+          {allMusts.length === 0
+            ? `No musts picked for ${targetWord(ctx)}, so there’s nothing to place. Continue when you’re ready.`
+            : 'Every must has a time. Open Week to fine-tune.'}
         </p>
       )}
       <ul className="grid gap-3">
