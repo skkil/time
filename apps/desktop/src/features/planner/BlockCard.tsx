@@ -142,7 +142,6 @@ export function BlockCard({
           {...listeners}
           role="button"
           data-grid-card
-          title={`${block.title} · ${formatMinutesOfDay(start)}–${formatMinutesOfDay(shownEnd % DAY_MINUTES)}`}
           aria-label={`${block.title}, ${formatMinutesOfDay(start)} to ${formatMinutesOfDay(shownEnd)}`}
           onClick={() => !suppressClick.current && setOpen(true)}
           onKeyDown={(event) => {

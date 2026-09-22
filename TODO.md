@@ -224,7 +224,7 @@ user research.
       ocean, a 12 MB file, while the app is a soft gradient.
   - Done when: rituals and the app feel like one product, whichever way you
     decide.
-- [ ] **46. Restyle tooltips.** The black "Ctrl 2" box stays up after clicking
+- [x] **46. Restyle tooltips.** The black "Ctrl 2" box stays up after clicking
       and clashes with the UI.
   - Done when: tooltips match the theme and hide on click.
 - [ ] **47. Settle the vocabulary.** Begin / Start focus; Timer / Focus /

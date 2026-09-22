@@ -51,7 +51,6 @@ export function DueCard({
       {...listeners}
       role="button"
       data-grid-card
-      title={`${task.title} · ${formatMinutesOfDay(start)}`}
       aria-label={`${task.title}, due ${formatMinutesOfDay(start)}`}
       onClick={() => !suppressClick.current && openTask(task.id)}
       onKeyDown={(event) => {

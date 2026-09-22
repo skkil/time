@@ -17,6 +17,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Hint } from '@/components/ui/tooltip';
 import { useHabitSync } from '@/features/habits/api';
 import { ProjectsNavToggle } from '@/features/projects/ProjectsNavToggle';
 import { RitualProvider } from '@/features/rituals/RitualProvider';
@@ -165,22 +166,22 @@ function SpaceToggle({
         style={{ transform: `translateX(${Math.max(index, 0) * 100}%)` }}
       />
       {SPACES.map((option) => (
-        <button
-          key={option.id}
-          type="button"
-          role="tab"
-          aria-selected={option.id === value}
-          title={formatShortcut(option.keys)}
-          onClick={() => onChange(option.id)}
-          className={cn(
-            'relative h-7 w-20 rounded-full text-[13px] tracking-wide transition-colors duration-300 outline-none focus-visible:ring-2 focus-visible:ring-white/50',
-            option.id === value
-              ? 'text-foreground'
-              : 'text-foreground/75 hover:text-foreground/85',
-          )}
-        >
-          {option.label}
-        </button>
+        <Hint key={option.id} label={formatShortcut(option.keys)} side="bottom">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={option.id === value}
+            onClick={() => onChange(option.id)}
+            className={cn(
+              'relative h-7 w-20 rounded-full text-[13px] tracking-wide transition-colors duration-300 outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+              option.id === value
+                ? 'text-foreground'
+                : 'text-foreground/75 hover:text-foreground/85',
+            )}
+          >
+            {option.label}
+          </button>
+        </Hint>
       ))}
     </div>
   );
