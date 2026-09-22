@@ -8,7 +8,6 @@ import { formatMinutesOfDay } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 import type { TaskDragData } from './TaskRail';
-import { DAY_MINUTES } from './geometry';
 import { useTimeScale } from './scale';
 
 export function DueCard({
@@ -52,6 +51,7 @@ export function DueCard({
       {...listeners}
       role="button"
       data-grid-card
+      title={`${task.title} · ${formatMinutesOfDay(start)}`}
       aria-label={`${task.title}, due ${formatMinutesOfDay(start)}`}
       onClick={() => !suppressClick.current && openTask(task.id)}
       onKeyDown={(event) => {
@@ -59,26 +59,25 @@ export function DueCard({
         listeners?.onKeyDown?.(event);
       }}
       className={cn(
-        'absolute z-10 flex touch-none overflow-hidden rounded-md border px-2 text-left outline-none select-none focus-visible:ring-2 focus-visible:ring-ring',
+        'absolute z-10 flex touch-none overflow-hidden rounded-md border border-dashed bg-background/30 px-2 text-left outline-none select-none focus-visible:ring-2 focus-visible:ring-ring',
         compact ? 'items-center gap-1.5 py-0' : 'flex-col py-1',
         isDragging && 'opacity-40',
+        lanes > 1 &&
+          'hover:left-[2px]! hover:z-30 hover:w-[calc(100%-4px)]! hover:bg-[rgb(22_34_52)] hover:shadow-[0_8px_24px_rgba(0,0,0,.35)] focus-visible:left-[2px]! focus-visible:z-30 focus-visible:w-[calc(100%-4px)]!',
       )}
       style={{
         top: scale.top(start),
         height: Math.max(height - 2, 14),
         left: `calc(${(lane / lanes) * 100}% + 2px)`,
         width: `calc(${100 / lanes}% - 4px)`,
-        background: `color-mix(in oklab, ${tint} var(--block-tint), var(--card))`,
-        borderColor: `color-mix(in oklab, ${tint} var(--block-edge), var(--card))`,
-        borderLeft: `3px solid ${tint}`,
+        borderColor: `color-mix(in oklab, ${tint} 70%, transparent)`,
       }}
     >
-      <span className="truncate text-[13px] leading-tight font-semibold">
+      <span className="truncate text-[13px] leading-tight font-medium">
         {task.title}
       </span>
       <span className="truncate text-[11px] leading-tight text-muted-foreground">
-        {formatMinutesOfDay(start)}
-        {!compact && `–${formatMinutesOfDay(end % DAY_MINUTES)}`}
+        Due {formatMinutesOfDay(start)} · not planned
       </span>
     </div>
   );

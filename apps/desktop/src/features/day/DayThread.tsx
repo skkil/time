@@ -7,8 +7,9 @@ import { ProjectLink } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
 import { projectColorVar } from '@/features/projects/tree';
 import { PriorityCheck } from '@/features/tasks/PriorityCheck';
-import { useSetTaskCompleted } from '@/features/tasks/api';
+import { useSetTaskCompleted, useTaskIndex } from '@/features/tasks/api';
 import { EntryDialog } from '@/features/time/EntryDialog';
+import { MIN_ENTRY_HEIGHT, trackedFill } from '@/features/time/tracked';
 import { usePreference } from '@/lib/preferences';
 import {
   dayStart,
@@ -53,6 +54,7 @@ export function DayThread({
 }) {
   const index = useProjectIndex();
   const complete = useSetTaskCompleted();
+  const tasks = useTaskIndex();
   const today = todayKey();
   const [editing, setEditing] = useState<TimeEntry>();
   const scroller = useRef<HTMLDivElement>(null);
@@ -153,7 +155,11 @@ export function DayThread({
             entry.projectId === null
               ? undefined
               : index.byId.get(entry.projectId);
-          const label = entry.description || project?.name || 'Focus';
+          const label =
+            (entry.taskId !== null && tasks.byId.get(entry.taskId)?.title) ||
+            entry.description ||
+            project?.name ||
+            'Focus';
           return (
             <button
               key={entry.id}
@@ -164,12 +170,12 @@ export function DayThread({
               className="absolute right-0 left-16 overflow-hidden rounded-md px-2 text-right text-[11px] leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70"
               style={{
                 top: scale.top(from),
-                height: Math.max(tall - 1, 3),
-                background: `color-mix(in oklab, ${
+                height: Math.max(tall - 1, MIN_ENTRY_HEIGHT),
+                background: trackedFill(
                   project
                     ? projectColorVar(project.color)
-                    : 'var(--muted-foreground)'
-                } 50%, transparent)`,
+                    : 'var(--muted-foreground)',
+                ),
               }}
             >
               {tall >= 24 && (

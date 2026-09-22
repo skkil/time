@@ -144,24 +144,24 @@ user research.
 
 ## P1: Week
 
-- [ ] **27. Make overlapping blocks readable.** At the default width they shrink
+- [x] **27. Make overlapping blocks readable.** At the default width they shrink
       to "Ru…", "Ca…" and "Pr…".
   - Done when: each block's title is identifiable through hover or a wider
     layout at 1200×820.
-- [ ] **28. Separate planned from tracked time.** They look alike, there is no
+- [x] **28. Separate planned from tracked time.** They look alike, there is no
       legend, and tracked blocks show only the project.
   - Done when: the two are distinct at a glance, and tracked blocks name the
     task when one is linked.
-- [ ] **29. Stop due cards looking like blocks.** After moving Draft chapter 2
+- [x] **29. Stop due cards looking like blocks.** After moving Draft chapter 2
       to Friday, Saturday still shows a matching card at 09:00.
   - Done when: a due card can't be mistaken for a planned block.
-- [ ] **30. Remove triple listing.** One task can appear as a day chip, a grid
+- [x] **30. Remove triple listing.** One task can appear as a day chip, a grid
       item and a rail card.
   - Done when: a task with a place on the grid isn't repeated as a chip.
-- [ ] **31. Make very short entries clickable.** A 5-minute entry renders as a
+- [x] **31. Make very short entries clickable.** A 5-minute entry renders as a
       3px line.
   - Done when: entries keep a minimum clickable height.
-- [ ] **32. Clean up scrollbars.** The rail and grid scrollbars are nested, and
+- [x] **32. Clean up scrollbars.** The rail and grid scrollbars are nested, and
       one sits over Sunday.
   - Done when: no scrollbar overlaps content, and only one scroll area is active
     at a time.

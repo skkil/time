@@ -33,10 +33,11 @@ import {
 } from '@/components/ui/tooltip';
 import { useProjectIndex } from '@/features/projects/api';
 import { projectColorVar } from '@/features/projects/tree';
-import { useTasks } from '@/features/tasks/api';
+import { useTaskIndex, useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { EntryDialog } from '@/features/time/EntryDialog';
 import { useTimeEntries, useTimer } from '@/features/time/api';
+import { MIN_ENTRY_HEIGHT, trackedFill } from '@/features/time/tracked';
 import { useEvents } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
 import { usePreference } from '@/lib/preferences';
@@ -185,9 +186,6 @@ export function ScheduleView({
   }, [blocks]);
 
   const { dueByDay, timedByDay } = useMemo(() => {
-    const planned = new Set(
-      blocks.map((block) => `${block.taskId}:${dateKeyOf(block.startAt)}`),
-    );
     const due = new Map<DateKey, Task[]>();
     const timed = new Map<DateKey, Task[]>();
     for (const task of tasks) {
@@ -198,15 +196,11 @@ export function ScheduleView({
       )
         continue;
       const target = task.dueTime === null ? due : timed;
-      const placed =
-        target === due
-          ? plannedCounts.has(task.id)
-          : planned.has(`${task.id}:${task.dueDate}`);
-      if (placed) continue;
+      if (plannedCounts.has(task.id)) continue;
       target.set(task.dueDate, [...(target.get(task.dueDate) ?? []), task]);
     }
     return { dueByDay: due, timedByDay: timed };
-  }, [tasks, blocks, plannedCounts]);
+  }, [tasks, plannedCounts]);
 
   const registerColumn = useCallback(
     (day: DateKey, element: HTMLElement | null) => {
@@ -330,7 +324,7 @@ export function ScheduleView({
       >
         <div className="flex min-h-0 flex-1">
           <div className="flex min-w-0 flex-1 flex-col">
-            <div className="grid shrink-0 grid-cols-[56px_repeat(7,minmax(0,1fr))] border-b border-white/10">
+            <div className="grid shrink-0 [scrollbar-gutter:stable] grid-cols-[56px_repeat(7,minmax(0,1fr))] overflow-y-hidden border-b border-white/10">
               <div />
               {days.map((day) => (
                 <DayHeader
@@ -343,7 +337,10 @@ export function ScheduleView({
               ))}
             </div>
 
-            <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto">
+            <div
+              ref={scroller}
+              className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto"
+            >
               <div
                 className="relative grid grid-cols-[56px_repeat(7,minmax(0,1fr))]"
                 style={{ height: scale.height }}
@@ -544,6 +541,7 @@ function DayColumn({
   onOpenEntry,
 }: DayColumnProps) {
   const index = useProjectIndex();
+  const taskIndex = useTaskIndex();
   const scale = useTimeScale();
   const { setNodeRef, isOver } = useDroppable({ id: `day:${day}` });
 
@@ -702,6 +700,13 @@ function DayColumn({
             entry.projectId === null
               ? undefined
               : index.byId.get(entry.projectId);
+          const label =
+            (entry.taskId !== null &&
+              taskIndex.byId.get(entry.taskId)?.title) ||
+            entry.description ||
+            project?.name ||
+            'Tracked time';
+          const tall = scale.extent(span.start, span.end);
           return (
             <Tooltip key={entry.id}>
               <TooltipTrigger asChild>
@@ -716,23 +721,21 @@ function DayColumn({
                   )}
                   style={{
                     top: scale.top(span.start),
-                    height: Math.max(scale.extent(span.start, span.end) - 1, 3),
-                    background: `color-mix(in oklab, ${
+                    height: Math.max(tall - 1, MIN_ENTRY_HEIGHT),
+                    background: trackedFill(
                       project
                         ? projectColorVar(project.color)
-                        : 'var(--muted-foreground)'
-                    } 55%, transparent)`,
+                        : 'var(--muted-foreground)',
+                    ),
                   }}
                 >
-                  {!shared && scale.extent(span.start, span.end) >= 24 && (
-                    <span className="block truncate pt-0.5">
-                      {entry.description || project?.name}
-                    </span>
+                  {!shared && tall >= 24 && (
+                    <span className="block truncate pt-0.5">{label}</span>
                   )}
                 </button>
               </TooltipTrigger>
               <TooltipContent side="left">
-                <p>{entry.description || project?.name || 'Tracked time'}</p>
+                <p>Tracked: {label}</p>
                 <p className="text-xs opacity-80">
                   {formatClockTime(entry.startedAt)}–
                   {entry.id === -1 ? 'now' : formatClockTime(entry.endedAt)} ·{' '}

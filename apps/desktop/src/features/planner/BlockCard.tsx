@@ -96,12 +96,13 @@ export function BlockCard({
 
   const scale = useTimeScale();
   const tint = priorityTint(block.priority);
+  const fill = `color-mix(in oklab, ${tint} var(--block-tint), var(--card))`;
   const style: CSSProperties = {
     top: scale.top(start),
     height: Math.max(scale.extent(start, start + minutes) - 2, 14),
     left: `calc(${(lane / lanes) * 100}% + 2px)`,
     width: `calc(${100 / lanes}% - 4px)`,
-    background: `color-mix(in oklab, ${tint} var(--block-tint), var(--card))`,
+    background: `linear-gradient(${fill}, ${fill}), var(--card-under, transparent)`,
     borderColor: `color-mix(in oklab, ${tint} var(--block-edge), var(--card))`,
     borderLeft: `3px solid ${tint}`,
   };
@@ -141,6 +142,7 @@ export function BlockCard({
           {...listeners}
           role="button"
           data-grid-card
+          title={`${block.title} · ${formatMinutesOfDay(start)}–${formatMinutesOfDay(shownEnd % DAY_MINUTES)}`}
           aria-label={`${block.title}, ${formatMinutesOfDay(start)} to ${formatMinutesOfDay(shownEnd)}`}
           onClick={() => !suppressClick.current && setOpen(true)}
           onKeyDown={(event) => {
@@ -154,6 +156,8 @@ export function BlockCard({
             isDragging && 'opacity-40',
             running && 'ring-2 ring-now',
             block.completed && 'opacity-60',
+            lanes > 1 &&
+              'hover:left-[2px]! hover:z-30 hover:w-[calc(100%-4px)]! hover:shadow-[0_8px_24px_rgba(0,0,0,.35)] hover:[--card-under:rgb(22_34_52)] focus-visible:left-[2px]! focus-visible:z-30 focus-visible:w-[calc(100%-4px)]!',
           )}
         >
           <span

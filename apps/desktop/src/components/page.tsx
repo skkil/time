@@ -165,10 +165,21 @@ export function SectionTitle({
   );
 }
 
-export function Stat({ value, label }: { value: string; label: string }) {
+export function Stat({
+  value,
+  label,
+  swatch,
+}: {
+  value: string;
+  label: string;
+  swatch?: ReactNode;
+}) {
   return (
-    <span>
-      <span className="text-foreground">{value}</span> {label}
+    <span className="inline-flex items-center gap-1.5">
+      {swatch}
+      <span>
+        <span className="text-foreground">{value}</span> {label}
+      </span>
     </span>
   );
 }

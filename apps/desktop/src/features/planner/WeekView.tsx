@@ -3,6 +3,7 @@ import { useRef } from 'react';
 
 import { Page, PageHeader, Stat, WeekSwitcher } from '@/components/page';
 import { useTimeEntries } from '@/features/time/api';
+import { trackedFill } from '@/features/time/tracked';
 import { usePreference } from '@/lib/preferences';
 import { useShortcuts } from '@/lib/shortcuts';
 import {
@@ -62,8 +63,27 @@ export function WeekView({ week }: { week: DateKey }) {
         }
         meta={[
           formatWeekRange(start),
-          <Stat value={formatDuration(planned)} label="planned" />,
-          <Stat value={formatDuration(tracked)} label="tracked" />,
+          <Stat
+            value={formatDuration(planned)}
+            label="planned"
+            swatch={
+              <span
+                aria-hidden
+                className="size-2.5 rounded-[3px] border-l-2 border-foreground/80 bg-foreground/25"
+              />
+            }
+          />,
+          <Stat
+            value={formatDuration(tracked)}
+            label="tracked"
+            swatch={
+              <span
+                aria-hidden
+                className="size-2.5 rounded-[3px]"
+                style={{ background: trackedFill('var(--foreground)') }}
+              />
+            }
+          />,
         ]}
         actions={<WeekSwitcher week={start} onChange={go} />}
       />

@@ -32,12 +32,15 @@ export function EventCard({
       type="button"
       onPointerDown={(e) => e.stopPropagation()}
       onClick={() => openTask(event.taskId)}
+      title={`${event.title} · ${formatClockTime(event.startAt)}–${formatClockTime(event.endAt)}`}
       aria-label={`${event.title}, event ${formatClockTime(event.startAt)} to ${formatClockTime(event.endAt)}`}
       className={cn(
         'absolute z-10 overflow-hidden rounded-md px-2 text-left text-white shadow-[0_1px_0_rgba(255,255,255,.15)_inset] outline-none focus-visible:ring-2 focus-visible:ring-white/70',
         scale.extent(start, start + minutes) < 24
           ? 'py-0 text-[11px] leading-[15px]'
           : 'py-1 text-[12px] leading-tight',
+        lanes > 1 &&
+          'hover:left-[2px]! hover:z-30 hover:w-[calc(100%-4px)]! hover:shadow-[0_8px_24px_rgba(0,0,0,.35)] focus-visible:left-[2px]! focus-visible:z-30 focus-visible:w-[calc(100%-4px)]!',
       )}
       style={{
         top: scale.top(start),
