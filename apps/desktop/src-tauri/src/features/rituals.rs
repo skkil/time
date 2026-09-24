@@ -464,6 +464,10 @@ mod tests {
             let session = get(conn, "session")?;
             assert!(session.enabled);
             assert_eq!(session.steps[0], "did_it_move");
+            assert_eq!(
+                get(conn, "evening")?.steps,
+                ["what_moved", "leftovers", "habit_check", "one_line_note"]
+            );
             assert_eq!(planning_time(conn)?, None);
             Ok(())
         })
