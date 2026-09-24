@@ -272,11 +272,12 @@ All `[decide]`: likely user wants, not validated.
 - [ ] **55. Import from other task apps.**
 - [ ] **56. Light theme.**
 - [ ] **57. Phone capture.**
-- [ ] Breaks in focus mode sessions, and a way to stop/resume them. Also there
+- [x] Breaks in focus mode sessions, and a way to stop/resume them. Also there
       is no way to remove a focus session from the timeline.
   - 2026-11-08: removing is done (Delete with Undo in the focus session
-    window, opened by clicking a session on Day or Week). Breaks and
-    pause/resume are still open.
+    window, opened by clicking a session on Day or Week). Break/Resume
+    sits beside Stop on Day, in the task window and in the timer pill; each
+    stretch is its own entry, so breaks leave gaps on the timeline.
 
 ## Still to test
 

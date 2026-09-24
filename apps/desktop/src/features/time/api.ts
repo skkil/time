@@ -62,6 +62,19 @@ export function useStartTimer() {
   });
 }
 
+export function usePauseTimer() {
+  const client = useQueryClient();
+  const refresh = useRefreshTracked();
+  return useMutation({
+    mutationFn: (paused: boolean) =>
+      paused ? commands.resumeTimer() : commands.pauseTimer(),
+    onSuccess: (timer) => {
+      client.setQueryData(keys.timer, timer);
+      return refresh();
+    },
+  });
+}
+
 export function useEditTimer() {
   const client = useQueryClient();
   return useMutation({

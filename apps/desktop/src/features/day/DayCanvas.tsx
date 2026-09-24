@@ -13,6 +13,7 @@ import { useRitualRuns } from '@/features/rituals/api';
 import { TaskPanel } from '@/features/tasks/TaskPanel';
 import { useTaskIndex } from '@/features/tasks/api';
 import { useTimeEntries, useTimer } from '@/features/time/api';
+import { liveEntry } from '@/features/time/timer';
 import { useEvents } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
 import { usePreference } from '@/lib/preferences';
@@ -48,16 +49,10 @@ export function DayCanvas() {
   const { data: runs = [] } = useRitualRuns(today, shiftKey(today, 1));
   const { data: logged = [] } = useTimeEntries(today, shiftKey(today, 1));
   const now = useNow(30_000);
-  const entries = useMemo<TimeEntry[]>(
-    () =>
-      timer
-        ? [
-            ...logged,
-            { id: -1, ...timer, endedAt: Math.max(now, timer.startedAt) },
-          ]
-        : logged,
-    [logged, timer, now],
-  );
+  const entries = useMemo<TimeEntry[]>(() => {
+    const live = liveEntry(timer, now);
+    return live ? [...logged, live] : logged;
+  }, [logged, timer, now]);
   const tracked = entries.reduce(
     (sum, entry) => sum + secondsWithin(entry, today, shiftKey(today, 1)),
     0,

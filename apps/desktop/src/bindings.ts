@@ -55,6 +55,8 @@ export const commands = {
 	startTimer: (details: EntryDetails) => __TAURI_INVOKE<RunningTimer>("start_timer", { details }),
 	editTimer: (details: EntryDetails) => __TAURI_INVOKE<RunningTimer>("edit_timer", { details }),
 	stopTimer: () => __TAURI_INVOKE<TimeEntry | null>("stop_timer"),
+	pauseTimer: () => __TAURI_INVOKE<RunningTimer>("pause_timer"),
+	resumeTimer: () => __TAURI_INVOKE<RunningTimer>("resume_timer"),
 	discardTimer: () => __TAURI_INVOKE<null>("discard_timer"),
 	restoreTimer: (timer: RunningTimer) => __TAURI_INVOKE<RunningTimer>("restore_timer", { timer }),
 	listHabits: () => __TAURI_INVOKE<Habit[]>("list_habits"),
@@ -387,6 +389,8 @@ export type RunningTimer = {
 	projectId: Id | null,
 	taskId: Id | null,
 	startedAt: Timestamp,
+	pausedAt: Timestamp | null,
+	bankedSeconds: number,
 };
 
 export type SavedView = {

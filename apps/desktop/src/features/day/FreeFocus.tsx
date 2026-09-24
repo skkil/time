@@ -9,6 +9,7 @@ import { useProjectIndex } from '@/features/projects/api';
 import { TaskJump } from '@/features/tasks/TaskLink';
 import { TaskPicker } from '@/features/tasks/TaskPicker';
 import { useTaskIndex } from '@/features/tasks/api';
+import { BreakNote, PauseButton } from '@/features/time/PauseButton';
 import {
   useDiscardTimer,
   useEditTimer,
@@ -16,6 +17,7 @@ import {
   useStopTimer,
   useTimer,
 } from '@/features/time/api';
+import { focusedSeconds } from '@/features/time/timer';
 import { useNow } from '@/hooks/use-now';
 import { formatClockTime, formatStopwatch } from '@/lib/time';
 
@@ -41,7 +43,11 @@ export function StartFocus({
         className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] tabular-nums transition-colors hover:bg-white"
       >
         <span className="size-2 rounded-full bg-[#08161e]" />
-        {open ? 'Focusing' : formatStopwatch(now - timer.startedAt)}
+        {open
+          ? timer.pausedAt === null
+            ? 'Focusing'
+            : 'On a break'
+          : formatStopwatch(focusedSeconds(timer, now))}
       </button>
     );
 
@@ -85,7 +91,9 @@ export function FreeFocus() {
 
   return (
     <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-200 fade-in-0 slide-in-from-bottom-2">
-      <p className="text-sm text-foreground/75">Focusing</p>
+      <p className="text-sm text-foreground/75">
+        {timer.pausedAt === null ? 'Focusing' : 'On a break'}
+      </p>
       <input
         key={`${timer.startedAt}-${timer.taskId}`}
         ref={input}
@@ -157,13 +165,14 @@ export function FreeFocus() {
 
       <div className="mt-auto flex items-center gap-4 pt-10">
         <span className="text-5xl font-extralight tracking-tight tabular-nums">
-          {formatStopwatch(now - timer.startedAt)}
+          {formatStopwatch(focusedSeconds(timer, now))}
         </span>
+        <PauseButton timer={timer} />
         <button
           type="button"
           disabled={stop.isPending}
           onClick={() => stop.mutate(current())}
-          className="ml-4 flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
+          className="flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
         >
           <SquareIcon className="size-3.5 fill-current" />
           Stop
@@ -177,6 +186,7 @@ export function FreeFocus() {
           Discard
         </button>
       </div>
+      <BreakNote timer={timer} />
     </div>
   );
 }

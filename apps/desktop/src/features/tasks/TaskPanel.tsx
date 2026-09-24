@@ -34,7 +34,9 @@ import { useProjectIndex } from '@/features/projects/api';
 import { PhasePager } from '@/features/records/PhasePager';
 import { OutcomePicker } from '@/features/review/OutcomePicker';
 import { useWeek } from '@/features/review/api';
+import { PauseButton } from '@/features/time/PauseButton';
 import { useStartTimer, useStopTimer, useTimer } from '@/features/time/api';
+import { focusedSeconds } from '@/features/time/timer';
 import { EventLine, WorkflowLine } from '@/features/workflow/TaskWorkflow';
 import { useProjectWorkflow } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
@@ -393,12 +395,13 @@ function Actions({
       {running ? (
         <>
           <span className="text-5xl font-extralight tracking-tight tabular-nums">
-            {formatStopwatch(now - timer.startedAt)}
+            {formatStopwatch(focusedSeconds(timer, now))}
           </span>
+          <PauseButton timer={timer} />
           <button
             type="button"
             onClick={() => stop.mutate(undefined)}
-            className="ml-4 flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
+            className="flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
           >
             <SquareIcon className="size-3.5 fill-current" />
             Stop

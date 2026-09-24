@@ -72,6 +72,8 @@ fn specta_builder() -> Builder<tauri::Wry> {
             time_entries::start_timer,
             time_entries::edit_timer,
             time_entries::stop_timer,
+            time_entries::pause_timer,
+            time_entries::resume_timer,
             time_entries::discard_timer,
             time_entries::restore_timer,
             habits::list_habits,

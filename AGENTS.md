@@ -45,7 +45,9 @@ in `.design/DESIGN.md`.
 - **TimeEntry** — tracked time with optional project/task; a linked task decides
   the project. The running timer is one row in `running_timer` (migration 008),
   so it survives a restart; stopping turns it into an entry, and finishing a
-  task stops a timer on it or anything nested under it. `list_time_entries`
+  task stops a timer on it or anything nested under it. A break (migration 016)
+  logs the stretch so far as an entry and sets `paused_at`; `banked_seconds`
+  keeps the session total, and resuming starts a new stretch. `list_time_entries`
   returns every entry overlapping the range, so totals clip with
   `secondsWithin`. `list_task_entries` (with sub-tasks) and
   `list_project_entries` (with sub-projects, following a linked task's current

@@ -57,6 +57,9 @@ pub struct RunningTimer {
     pub project_id: Option<Id>,
     pub task_id: Option<Id>,
     pub started_at: Timestamp,
+    pub paused_at: Option<Timestamp>,
+    #[specta(type = specta_typescript::Number)]
+    pub banked_seconds: i64,
 }
 
 #[derive(Default)]
@@ -219,7 +222,8 @@ pub fn delete(conn: &Connection, id: Id) -> Result<()> {
 pub fn running(conn: &Connection) -> Result<Option<RunningTimer>> {
     Ok(conn
         .query_row(
-            "SELECT description, project_id, task_id, started_at FROM running_timer WHERE id = 1",
+            "SELECT description, project_id, task_id, started_at, paused_at, banked_seconds
+             FROM running_timer WHERE id = 1",
             [],
             |row| {
                 Ok(RunningTimer {
@@ -227,6 +231,8 @@ pub fn running(conn: &Connection) -> Result<Option<RunningTimer>> {
                     project_id: row.get(1)?,
                     task_id: row.get(2)?,
                     started_at: row.get(3)?,
+                    paused_at: row.get(4)?,
+                    banked_seconds: row.get(5)?,
                 })
             },
         )
@@ -235,13 +241,16 @@ pub fn running(conn: &Connection) -> Result<Option<RunningTimer>> {
 
 fn save_running(conn: &Connection, running: &RunningTimer) -> Result<()> {
     conn.execute(
-        "INSERT OR REPLACE INTO running_timer (id, description, project_id, task_id, started_at)
-         VALUES (1, ?1, ?2, ?3, ?4)",
+        "INSERT OR REPLACE INTO running_timer
+           (id, description, project_id, task_id, started_at, paused_at, banked_seconds)
+         VALUES (1, ?1, ?2, ?3, ?4, ?5, ?6)",
         params![
             running.description,
             running.project_id,
             running.task_id,
-            running.started_at
+            running.started_at,
+            running.paused_at,
+            running.banked_seconds
         ],
     )?;
     Ok(())
@@ -253,6 +262,9 @@ fn clear_running(conn: &Connection) -> Result<()> {
 }
 
 fn finish(conn: &Connection, running: RunningTimer) -> Result<Option<TimeEntry>> {
+    if running.paused_at.is_some() {
+        return Ok(None);
+    }
     let ended_at = Timestamp::now();
     let started_at = Timestamp(running.started_at.0.max(ended_at.0 - MAX_ENTRY_SECONDS));
     if started_at.seconds_until(ended_at) < 1 {
@@ -280,9 +292,34 @@ pub fn start(conn: &Connection, details: &EntryDetails) -> Result<RunningTimer> 
         project_id: details.project_id,
         task_id: details.task_id,
         started_at: Timestamp::now(),
+        paused_at: None,
+        banked_seconds: 0,
     };
     save_running(conn, &next)?;
     Ok(next)
+}
+
+pub fn pause(conn: &Connection) -> Result<RunningTimer> {
+    let mut current = running(conn)?.ok_or_else(|| Error::invalid("No timer is running."))?;
+    if current.paused_at.is_some() {
+        return Ok(current);
+    }
+    let now = Timestamp::now();
+    if let Some(entry) = finish(conn, current.clone())? {
+        current.banked_seconds += entry.started_at.seconds_until(entry.ended_at);
+    }
+    current.paused_at = Some(now);
+    save_running(conn, &current)?;
+    Ok(current)
+}
+
+pub fn resume(conn: &Connection) -> Result<RunningTimer> {
+    let mut current = running(conn)?.ok_or_else(|| Error::invalid("No timer is running."))?;
+    if current.paused_at.take().is_some() {
+        current.started_at = Timestamp::now();
+        save_running(conn, &current)?;
+    }
+    Ok(current)
 }
 
 pub fn edit_running(conn: &Connection, details: &EntryDetails) -> Result<RunningTimer> {
@@ -388,6 +425,18 @@ pub async fn edit_timer(db: State<'_, Db>, details: EntryDetails) -> Result<Runn
 #[specta::specta]
 pub async fn stop_timer(db: State<'_, Db>) -> Result<Option<TimeEntry>> {
     db.call(|conn| stop(conn))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn pause_timer(db: State<'_, Db>) -> Result<RunningTimer> {
+    db.call(|conn| pause(conn))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn resume_timer(db: State<'_, Db>) -> Result<RunningTimer> {
+    db.call(|conn| resume(conn))
 }
 
 #[tauri::command]
@@ -532,6 +581,39 @@ mod tests {
             assert_eq!(entries[0].description, "first");
 
             stop(conn)?;
+            assert!(running(conn)?.is_none());
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn a_break_is_left_out_of_focus_time() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            start(conn, &details("Write", None))?;
+            let earlier = Timestamp(Timestamp::now().0 - 600);
+            conn.execute("UPDATE running_timer SET started_at = ?1", params![earlier])?;
+            let paused = pause(conn)?;
+            assert!(paused.paused_at.is_some());
+            assert!((599..=601).contains(&paused.banked_seconds));
+            let entries = conn.query_row("SELECT COUNT(*) FROM time_entry", [], |row| {
+                row.get::<_, i64>(0)
+            })?;
+            assert_eq!(entries, 1);
+
+            let break_start = Timestamp(Timestamp::now().0 - 300);
+            conn.execute(
+                "UPDATE running_timer SET paused_at = ?1",
+                params![break_start],
+            )?;
+            let resumed = resume(conn)?;
+            assert_eq!(resumed.paused_at, None);
+            assert!(resumed.started_at.0 >= Timestamp::now().0 - 1);
+            assert!((599..=601).contains(&resumed.banked_seconds));
+
+            pause(conn)?;
+            assert!(stop(conn)?.is_none());
             assert!(running(conn)?.is_none());
             Ok(())
         })

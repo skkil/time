@@ -14,8 +14,11 @@ import { TaskLink } from '@/features/tasks/TaskLink';
 import { useTaskIndex } from '@/features/tasks/api';
 import { useNow } from '@/hooks/use-now';
 import { formatStopwatch, todayKey, weekStartOf } from '@/lib/time';
+import { cn } from '@/lib/utils';
 
+import { PauseButton } from './PauseButton';
 import { useStopTimer, useTimer } from './api';
+import { focusedSeconds } from './timer';
 
 const SUBJECT = 'ml-2 block max-w-40 truncate text-xs text-foreground/75';
 
@@ -61,8 +64,13 @@ export function TimerPill() {
         search={{ view: 'day', week: weekStartOf(todayKey()) }}
         className="flex min-w-0 items-center gap-2 rounded-sm text-xs outline-offset-2 focus-visible:outline-2 focus-visible:outline-foreground"
       >
-        <span className="font-semibold">
-          {formatStopwatch(now - timer.startedAt)}
+        <span
+          className={cn(
+            'font-semibold',
+            timer.pausedAt !== null && 'text-foreground/75',
+          )}
+        >
+          {formatStopwatch(focusedSeconds(timer, now))}
         </span>
       </Link>
       <TimerSubject
@@ -70,6 +78,7 @@ export function TimerPill() {
         taskId={task?.id}
         projectId={project?.id}
       />
+      <PauseButton timer={timer} compact />
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

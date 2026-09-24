@@ -37,6 +37,7 @@ import { useTaskIndex, useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { EntryDialog } from '@/features/time/EntryDialog';
 import { useTimeEntries, useTimer } from '@/features/time/api';
+import { liveEntry } from '@/features/time/timer';
 import { MIN_ENTRY_HEIGHT, trackedFill } from '@/features/time/tracked';
 import { useEvents } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
@@ -308,9 +309,7 @@ export function ScheduleView({
     closeSlot();
   };
 
-  const runningEntry: TimeEntry | null = timer
-    ? { id: -1, ...timer, endedAt: Math.max(now, timer.startedAt) }
-    : null;
+  const runningEntry = liveEntry(timer, now);
 
   return (
     <TimeScaleContext value={scale}>
