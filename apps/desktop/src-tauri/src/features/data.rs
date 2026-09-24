@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicI64, Ordering};
 
 use rusqlite::Connection;
 use tauri::{AppHandle, Manager, State};
@@ -60,6 +61,25 @@ pub fn restore_from(conn: &mut Connection, file: &Path, data_dir: &Path) -> Resu
     });
     remove_staged(&staged)?;
     restored
+}
+
+#[derive(Default)]
+pub struct SeenVersion(AtomicI64);
+
+fn data_version(conn: &Connection) -> Result<i64> {
+    Ok(conn.query_row("PRAGMA data_version", [], |row| row.get(0))?)
+}
+
+fn changed_since(seen: &SeenVersion, version: i64) -> bool {
+    let previous = seen.0.swap(version, Ordering::Relaxed);
+    previous != 0 && previous != version
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn external_changes(db: State<'_, Db>, seen: State<'_, SeenVersion>) -> Result<bool> {
+    let version = db.call(|conn| data_version(conn))?;
+    Ok(changed_since(&seen, version))
 }
 
 #[tauri::command]
@@ -139,6 +159,28 @@ mod tests {
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir
+    }
+
+    #[test]
+    fn notices_writes_from_another_process() -> Result<()> {
+        let dir = scratch_dir("external");
+        let path = dir.join("time.db");
+        let app = Db::open(&path)?;
+        let other = Db::open(&path)?;
+        let seen = SeenVersion::default();
+        let check = || {
+            app.call(|conn| data_version(conn))
+                .map(|v| changed_since(&seen, v))
+        };
+        assert!(!check()?);
+        app.call(|conn| Ok(conn.execute("INSERT INTO project_group (name) VALUES ('Own')", [])?))?;
+        assert!(!check()?);
+        other.call(|conn| {
+            Ok(conn.execute("INSERT INTO project_group (name) VALUES ('MCP')", [])?)
+        })?;
+        assert!(check()?);
+        assert!(!check()?);
+        fs::remove_dir_all(&dir).map_err(io_error)
     }
 
     #[test]

@@ -1,0 +1,641 @@
+use std::path::PathBuf;
+
+use chrono::{Local, NaiveDate, TimeZone};
+use rmcp::handler::server::router::tool::ToolRouter;
+use rmcp::handler::server::wrapper::Parameters;
+use rmcp::model::{Implementation, ServerCapabilities, ServerConfig};
+use rmcp::{ServerHandler, ServiceExt, tool, tool_handler, tool_router};
+use rusqlite::Connection;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+use crate::db::Db;
+use crate::error::{Error as AppError, Result as AppResult};
+use crate::features::time_entries::{self, EntryDetails, RunningTimer};
+use crate::features::{blocks, projects, tasks};
+use crate::types::{Date, Id, Timestamp};
+
+pub const FLAG: &str = "--mcp";
+const DB_ENV: &str = "SKKIL_TIME_DB";
+const IDENTIFIER: &str = "com.skkil.time";
+const DEFAULT_LIMIT: usize = 50;
+
+const INSTRUCTIONS: &str = "skkil time is the user's local planner. Tasks belong to a project or \
+the Inbox. Priority 1 is the highest and 4 is normal. Dates are YYYY-MM-DD (or today/tomorrow), \
+times are HH:MM in the user's local time. Repeats use Todoist wording such as \"every day\" or \
+\"every monday\". Start with `today` to see what the user is working on.";
+
+fn database_path() -> Result<PathBuf, String> {
+    if let Some(path) = std::env::var_os(DB_ENV) {
+        return Ok(PathBuf::from(path));
+    }
+    dirs::data_dir()
+        .map(|dir| dir.join(IDENTIFIER).join("time.db"))
+        .ok_or_else(|| format!("No data directory found; set {DB_ENV}."))
+}
+
+pub fn serve() -> Result<(), String> {
+    let path = database_path()?;
+    if !path.exists() {
+        return Err(format!(
+            "{} doesn't exist yet. Open skkil time once first.",
+            path.display()
+        ));
+    }
+    let db = Db::open(&path).map_err(|error| error.to_string())?;
+    tokio::runtime::Runtime::new()
+        .map_err(|error| error.to_string())?
+        .block_on(async {
+            let service = Planner::new(db)
+                .serve(rmcp::transport::stdio())
+                .await
+                .map_err(|error| error.to_string())?;
+            service.waiting().await.map_err(|error| error.to_string())?;
+            Ok(())
+        })
+}
+
+#[derive(Debug, Serialize)]
+struct TaskView {
+    id: i64,
+    title: String,
+    project: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parent_id: Option<i64>,
+    priority: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    due: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    deadline: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    repeats: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    estimate_minutes: Option<i32>,
+    #[serde(skip_serializing_if = "String::is_empty")]
+    notes: String,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    done: bool,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    someday: bool,
+}
+
+#[derive(Debug, Serialize)]
+struct ProjectView {
+    id: i64,
+    name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parent_id: Option<i64>,
+    status: String,
+}
+
+#[derive(Debug, Serialize)]
+struct FocusView {
+    title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    task_id: Option<i64>,
+    started: String,
+    focused_minutes: i64,
+    on_break: bool,
+}
+
+#[derive(Debug, Serialize)]
+struct SpanView {
+    title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    task_id: Option<i64>,
+    start: String,
+    end: String,
+}
+
+#[derive(Debug, Serialize)]
+struct TodayView {
+    date: String,
+    overdue: Vec<TaskView>,
+    due_today: Vec<TaskView>,
+    planned_blocks: Vec<SpanView>,
+    focused_minutes: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    focusing: Option<FocusView>,
+}
+
+fn clock(minutes: i32) -> String {
+    format!("{:02}:{:02}", minutes / 60, minutes % 60)
+}
+
+fn local_time(at: Timestamp) -> String {
+    Local
+        .timestamp_opt(at.0, 0)
+        .single()
+        .map(|time| time.format("%Y-%m-%d %H:%M").to_string())
+        .unwrap_or_default()
+}
+
+fn parse_date(text: &str) -> AppResult<Date> {
+    let today = Date::today();
+    match text.trim().to_lowercase().as_str() {
+        "today" => Ok(today),
+        "tomorrow" => Ok(today.add_days(1)),
+        "yesterday" => Ok(today.add_days(-1)),
+        other => NaiveDate::parse_from_str(other, "%Y-%m-%d")
+            .map(Date)
+            .map_err(|_| AppError::invalid(format!("Use YYYY-MM-DD for dates, not “{text}”."))),
+    }
+}
+
+fn parse_clock(text: &str) -> AppResult<i32> {
+    let invalid = || AppError::invalid(format!("Use HH:MM for times, not “{text}”."));
+    let (hours, minutes) = text.trim().split_once(':').ok_or_else(invalid)?;
+    let hours: i32 = hours.parse().map_err(|_| invalid())?;
+    let minutes: i32 = minutes.parse().map_err(|_| invalid())?;
+    if !(0..24).contains(&hours) || !(0..60).contains(&minutes) {
+        return Err(invalid());
+    }
+    Ok(hours * 60 + minutes)
+}
+
+fn optional_date(text: Option<&str>) -> AppResult<Option<Date>> {
+    match text.map(str::trim) {
+        None | Some("") => Ok(None),
+        Some(text) => parse_date(text).map(Some),
+    }
+}
+
+fn project_name(all: &[projects::Project], id: Option<Id>) -> String {
+    id.and_then(|id| all.iter().find(|project| project.id == id))
+        .map_or_else(|| "Inbox".to_owned(), |project| project.name.clone())
+}
+
+fn resolve_project(conn: &Connection, text: &str) -> AppResult<Option<Id>> {
+    let text = text.trim();
+    if text.eq_ignore_ascii_case("inbox") {
+        return Ok(None);
+    }
+    let all = projects::list(conn)?;
+    let open = all.iter().filter(|project| !project.archived);
+    let found = match text.parse::<i64>() {
+        Ok(id) => open.clone().find(|project| project.id.0 == id),
+        Err(_) => open
+            .clone()
+            .find(|project| project.name.eq_ignore_ascii_case(text)),
+    };
+    found.map(|project| Some(project.id)).ok_or_else(|| {
+        let names: Vec<&str> = std::iter::once("Inbox")
+            .chain(open.map(|project| project.name.as_str()))
+            .collect();
+        AppError::invalid(format!(
+            "No project called “{text}”. Projects: {}.",
+            names.join(", ")
+        ))
+    })
+}
+
+fn view(task: &tasks::Task, all: &[projects::Project]) -> TaskView {
+    TaskView {
+        id: task.id.0,
+        title: task.title.clone(),
+        project: project_name(all, task.project_id),
+        parent_id: task.parent_id.map(|id| id.0),
+        priority: task.priority,
+        due: task.due_date.map(|date| match task.due_time {
+            Some(minutes) => format!("{} {}", date.0, clock(minutes)),
+            None => date.0.to_string(),
+        }),
+        deadline: task.deadline.map(|date| date.0.to_string()),
+        repeats: task.recurrence.clone(),
+        estimate_minutes: task.estimate_minutes,
+        notes: task.notes.clone(),
+        done: task.completed_at.is_some(),
+        someday: task.someday,
+    }
+}
+
+fn focus_view(conn: &Connection, timer: &RunningTimer) -> AppResult<FocusView> {
+    let title = match timer.task_id {
+        Some(id) => tasks::get(conn, id)?.title,
+        None if !timer.description.is_empty() => timer.description.clone(),
+        None => "Focus".to_owned(),
+    };
+    let current = match timer.paused_at {
+        Some(_) => 0,
+        None => timer.started_at.seconds_until(Timestamp::now()).max(0),
+    };
+    Ok(FocusView {
+        title,
+        task_id: timer.task_id.map(|id| id.0),
+        started: local_time(timer.started_at),
+        focused_minutes: (timer.banked_seconds + current) / 60,
+        on_break: timer.paused_at.is_some(),
+    })
+}
+
+fn to_json<T: Serialize>(value: &T) -> AppResult<String> {
+    serde_json::to_string_pretty(value).map_err(|error| AppError::invalid(error.to_string()))
+}
+
+#[derive(Debug, Default, Deserialize, JsonSchema)]
+struct ListTasks {
+    #[schemars(description = "Project name or id, or \"Inbox\". Leave out for every project.")]
+    project: Option<String>,
+    #[schemars(
+        description = "Only tasks due on or before this date (YYYY-MM-DD, today, tomorrow)."
+    )]
+    due_by: Option<String>,
+    #[schemars(description = "Only tasks whose title or notes contain this text.")]
+    search: Option<String>,
+    #[schemars(description = "Include tasks finished in the last two weeks.")]
+    include_done: Option<bool>,
+    #[schemars(description = "Most tasks to return (default 50).")]
+    limit: Option<usize>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct AddTask {
+    title: String,
+    notes: Option<String>,
+    #[schemars(description = "Project name or id, or \"Inbox\" (the default).")]
+    project: Option<String>,
+    #[schemars(description = "Make it a sub-task of this task id; it joins that task's project.")]
+    parent_id: Option<i64>,
+    #[schemars(description = "1 (highest) to 4 (normal, the default).")]
+    priority: Option<i32>,
+    #[schemars(description = "YYYY-MM-DD, today or tomorrow.")]
+    due_date: Option<String>,
+    #[schemars(description = "HH:MM, local time. Needs a due date or a repeat.")]
+    due_time: Option<String>,
+    #[schemars(description = "Todoist wording, e.g. \"every day\" or \"every monday\".")]
+    repeat: Option<String>,
+    #[schemars(description = "Hard deadline, YYYY-MM-DD.")]
+    deadline: Option<String>,
+    estimate_minutes: Option<i32>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct UpdateTask {
+    id: i64,
+    title: Option<String>,
+    notes: Option<String>,
+    #[schemars(description = "1 (highest) to 4 (normal).")]
+    priority: Option<i32>,
+    #[schemars(description = "YYYY-MM-DD, today or tomorrow; an empty string clears it.")]
+    due_date: Option<String>,
+    #[schemars(description = "HH:MM; an empty string clears it.")]
+    due_time: Option<String>,
+    #[schemars(description = "Todoist wording; an empty string stops the repeat.")]
+    repeat: Option<String>,
+    #[schemars(description = "YYYY-MM-DD; an empty string clears it.")]
+    deadline: Option<String>,
+    estimate_minutes: Option<i32>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct CompleteTask {
+    id: i64,
+    #[schemars(
+        description = "false reopens the task. A repeating task moves to its next date instead of closing."
+    )]
+    done: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct StartFocus {
+    #[schemars(description = "The task being worked on, if any.")]
+    task_id: Option<i64>,
+    #[schemars(description = "What the session is about when there is no task.")]
+    description: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct FocusHistory {
+    #[schemars(description = "First day, YYYY-MM-DD (default today).")]
+    from: Option<String>,
+    #[schemars(description = "Last day, YYYY-MM-DD (default the same as from).")]
+    to: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct Nothing {}
+
+#[derive(Clone)]
+pub struct Planner {
+    db: std::sync::Arc<Db>,
+    #[allow(dead_code)]
+    tool_router: ToolRouter<Self>,
+}
+
+impl Planner {
+    fn new(db: Db) -> Self {
+        Self {
+            db: std::sync::Arc::new(db),
+            tool_router: Self::tool_router(),
+        }
+    }
+
+    fn run<T>(&self, work: impl FnOnce(&mut Connection) -> AppResult<T>) -> Result<T, String> {
+        self.db.call(work).map_err(|error| error.to_string())
+    }
+}
+
+#[tool_router]
+impl Planner {
+    #[tool(description = "List the active projects with their ids.")]
+    async fn list_projects(&self, Parameters(_): Parameters<Nothing>) -> Result<String, String> {
+        self.run(|conn| {
+            let all: Vec<ProjectView> = projects::list(conn)?
+                .into_iter()
+                .filter(|project| !project.archived)
+                .map(|project| ProjectView {
+                    id: project.id.0,
+                    name: project.name,
+                    parent_id: project.parent_id.map(|id| id.0),
+                    status: project.status,
+                })
+                .collect();
+            to_json(&all)
+        })
+    }
+
+    #[tool(
+        description = "What today looks like: overdue and due tasks, planned blocks, focus so far and the running session."
+    )]
+    async fn today(&self, Parameters(_): Parameters<Nothing>) -> Result<String, String> {
+        self.run(|conn| {
+            let today = Date::today();
+            let all = projects::list(conn)?;
+            let open: Vec<tasks::Task> = tasks::list(conn)?
+                .into_iter()
+                .filter(|task| task.completed_at.is_none() && !task.someday)
+                .collect();
+            let pick = |keep: &dyn Fn(Date) -> bool| -> Vec<TaskView> {
+                open.iter()
+                    .filter(|task| task.due_date.is_some_and(keep))
+                    .map(|task| view(task, &all))
+                    .collect()
+            };
+            let planned_blocks = blocks::list(conn, today, today.add_days(1))?
+                .into_iter()
+                .map(|block| SpanView {
+                    title: block.title,
+                    task_id: Some(block.task_id.0),
+                    start: local_time(block.start_at),
+                    end: local_time(block.end_at),
+                })
+                .collect();
+            let (start, end) = (today.start().0, today.add_days(1).start().0);
+            let overlap = |from: i64, to: i64| (to.min(end) - from.max(start)).max(0);
+            let logged: i64 = time_entries::list(conn, today, today.add_days(1))?
+                .iter()
+                .map(|entry| overlap(entry.started_at.0, entry.ended_at.0))
+                .sum();
+            let running = time_entries::running(conn)?;
+            let live = running
+                .as_ref()
+                .filter(|timer| timer.paused_at.is_none())
+                .map_or(0, |timer| overlap(timer.started_at.0, Timestamp::now().0));
+            let focusing = running.map(|timer| focus_view(conn, &timer)).transpose()?;
+            to_json(&TodayView {
+                date: today.0.to_string(),
+                overdue: pick(&|date| date < today),
+                due_today: pick(&|date| date == today),
+                planned_blocks,
+                focused_minutes: (logged + live) / 60,
+                focusing,
+            })
+        })
+    }
+
+    #[tool(description = "Find tasks. Open tasks only unless include_done is set.")]
+    async fn list_tasks(&self, Parameters(query): Parameters<ListTasks>) -> Result<String, String> {
+        self.run(|conn| {
+            let project = query
+                .project
+                .as_deref()
+                .map(|text| resolve_project(conn, text))
+                .transpose()?;
+            let due_by = optional_date(query.due_by.as_deref())?;
+            let search = query.search.as_deref().map(str::to_lowercase);
+            let all = projects::list(conn)?;
+            let found: Vec<TaskView> = tasks::list(conn)?
+                .iter()
+                .filter(|task| query.include_done.unwrap_or(false) || task.completed_at.is_none())
+                .filter(|task| project.is_none_or(|id| task.project_id == id))
+                .filter(|task| due_by.is_none_or(|by| task.due_date.is_some_and(|date| date <= by)))
+                .filter(|task| {
+                    search.as_deref().is_none_or(|text| {
+                        task.title.to_lowercase().contains(text)
+                            || task.notes.to_lowercase().contains(text)
+                    })
+                })
+                .take(query.limit.unwrap_or(DEFAULT_LIMIT))
+                .map(|task| view(task, &all))
+                .collect();
+            to_json(&found)
+        })
+    }
+
+    #[tool(description = "Add a task. Returns the new task.")]
+    async fn add_task(&self, Parameters(input): Parameters<AddTask>) -> Result<String, String> {
+        self.run(|conn| {
+            let parent = input
+                .parent_id
+                .map(|id| tasks::get(conn, Id(id)))
+                .transpose()?;
+            let project_id = match (&parent, input.project.as_deref()) {
+                (Some(parent), _) => parent.project_id,
+                (None, Some(text)) => resolve_project(conn, text)?,
+                (None, None) => None,
+            };
+            let task = tasks::create(
+                conn,
+                &tasks::TaskInput {
+                    title: input.title,
+                    notes: input.notes.unwrap_or_default(),
+                    project_id,
+                    section_id: parent.as_ref().and_then(|parent| parent.section_id),
+                    parent_id: parent.map(|parent| parent.id),
+                    priority: input.priority.unwrap_or(4),
+                    due_date: optional_date(input.due_date.as_deref())?,
+                    due_time: input.due_time.as_deref().map(parse_clock).transpose()?,
+                    deadline: optional_date(input.deadline.as_deref())?,
+                    recurrence: input.repeat.filter(|repeat| !repeat.trim().is_empty()),
+                    estimate_minutes: input.estimate_minutes,
+                },
+            )?;
+            to_json(&view(&task, &projects::list(conn)?))
+        })
+    }
+
+    #[tool(
+        description = "Change a task's title, notes, priority, dates, repeat or estimate. Fields left out stay as they are."
+    )]
+    async fn update_task(
+        &self,
+        Parameters(change): Parameters<UpdateTask>,
+    ) -> Result<String, String> {
+        self.run(|conn| {
+            let id = Id(change.id);
+            let task = tasks::get(conn, id)?;
+            let cleared = |text: &Option<String>| text.as_deref().map(str::trim) == Some("");
+            let input = tasks::TaskInput {
+                title: change.title.unwrap_or(task.title),
+                notes: change.notes.unwrap_or(task.notes),
+                project_id: task.project_id,
+                section_id: task.section_id,
+                parent_id: task.parent_id,
+                priority: change.priority.unwrap_or(task.priority),
+                due_date: match &change.due_date {
+                    Some(_) if cleared(&change.due_date) => None,
+                    Some(text) => Some(parse_date(text)?),
+                    None => task.due_date,
+                },
+                due_time: match &change.due_time {
+                    Some(_) if cleared(&change.due_time) => None,
+                    Some(text) => Some(parse_clock(text)?),
+                    None => task.due_time,
+                },
+                deadline: match &change.deadline {
+                    Some(_) if cleared(&change.deadline) => None,
+                    Some(text) => Some(parse_date(text)?),
+                    None => task.deadline,
+                },
+                recurrence: match change.repeat {
+                    Some(text) if text.trim().is_empty() => None,
+                    Some(text) => Some(text),
+                    None => task.recurrence,
+                },
+                estimate_minutes: change.estimate_minutes.or(task.estimate_minutes),
+            };
+            let task = tasks::update(conn, id, &input)?;
+            to_json(&view(&task, &projects::list(conn)?))
+        })
+    }
+
+    #[tool(description = "Mark a task done (or not done). Sub-tasks follow.")]
+    async fn complete_task(
+        &self,
+        Parameters(input): Parameters<CompleteTask>,
+    ) -> Result<String, String> {
+        self.run(|conn| {
+            let task = tasks::set_completed(conn, Id(input.id), input.done.unwrap_or(true))?;
+            to_json(&view(&task, &projects::list(conn)?))
+        })
+    }
+
+    #[tool(description = "Start a focus session, finishing any session already running.")]
+    async fn start_focus(
+        &self,
+        Parameters(input): Parameters<StartFocus>,
+    ) -> Result<String, String> {
+        self.run(|conn| {
+            let timer = time_entries::start(
+                conn,
+                &EntryDetails {
+                    description: input.description.unwrap_or_default(),
+                    project_id: None,
+                    task_id: input.task_id.map(Id),
+                },
+            )?;
+            to_json(&focus_view(conn, &timer)?)
+        })
+    }
+
+    #[tool(description = "Stop the running focus session and log it.")]
+    async fn stop_focus(&self, Parameters(_): Parameters<Nothing>) -> Result<String, String> {
+        self.run(|conn| match time_entries::stop(conn)? {
+            Some(entry) => Ok(format!(
+                "Logged {} minutes.",
+                entry.started_at.seconds_until(entry.ended_at) / 60
+            )),
+            None => Ok("No session was running.".to_owned()),
+        })
+    }
+
+    #[tool(description = "Take a break from the running focus session, or resume it.")]
+    async fn toggle_break(&self, Parameters(_): Parameters<Nothing>) -> Result<String, String> {
+        self.run(|conn| {
+            let current = time_entries::running(conn)?
+                .ok_or_else(|| AppError::invalid("No session is running."))?;
+            let timer = match current.paused_at {
+                Some(_) => time_entries::resume(conn)?,
+                None => time_entries::pause(conn)?,
+            };
+            to_json(&focus_view(conn, &timer)?)
+        })
+    }
+
+    #[tool(description = "Focus sessions logged between two days.")]
+    async fn focus_history(
+        &self,
+        Parameters(range): Parameters<FocusHistory>,
+    ) -> Result<String, String> {
+        self.run(|conn| {
+            let from = optional_date(range.from.as_deref())?.unwrap_or_else(Date::today);
+            let to = optional_date(range.to.as_deref())?.unwrap_or(from);
+            let all = tasks::list(conn)?;
+            let sessions: Vec<SpanView> = time_entries::list(conn, from, to.add_days(1))?
+                .into_iter()
+                .map(|entry| SpanView {
+                    title: entry
+                        .task_id
+                        .and_then(|id| all.iter().find(|task| task.id == id))
+                        .map_or(entry.description, |task| task.title.clone()),
+                    task_id: entry.task_id.map(|id| id.0),
+                    start: local_time(entry.started_at),
+                    end: local_time(entry.ended_at),
+                })
+                .collect();
+            to_json(&sessions)
+        })
+    }
+}
+
+#[tool_handler]
+impl ServerHandler for Planner {
+    fn get_info(&self) -> ServerConfig {
+        ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
+            .with_server_info(Implementation::new("skkil-time", env!("CARGO_PKG_VERSION")))
+            .with_instructions(INSTRUCTIONS)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reads_dates_and_times() {
+        assert_eq!(parse_date("tomorrow").unwrap(), Date::today().add_days(1));
+        assert_eq!(
+            parse_date("2026-11-09").unwrap().0.to_string(),
+            "2026-11-09"
+        );
+        assert!(parse_date("next week").is_err());
+        assert_eq!(parse_clock("09:30").unwrap(), 570);
+        assert!(parse_clock("24:00").is_err());
+        assert_eq!(optional_date(Some("")).unwrap(), None);
+    }
+
+    #[test]
+    fn finds_projects_by_name_or_id() {
+        let db = Db::in_memory();
+        db.call(|conn| {
+            let thesis = projects::create(
+                conn,
+                &projects::ProjectInput {
+                    name: "Thesis".into(),
+                    parent_id: None,
+                    color: "blue".into(),
+                },
+            )?;
+            assert_eq!(resolve_project(conn, "thesis")?, Some(thesis.id));
+            assert_eq!(
+                resolve_project(conn, &thesis.id.0.to_string())?,
+                Some(thesis.id)
+            );
+            assert_eq!(resolve_project(conn, "Inbox")?, None);
+            let missing = resolve_project(conn, "Home").unwrap_err().to_string();
+            assert!(missing.contains("Projects: Inbox, Thesis."));
+            Ok(())
+        })
+        .unwrap();
+    }
+}

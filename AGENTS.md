@@ -159,6 +159,13 @@ cargo clippy --all-targets
   column. Dates go through the Quick Add parser; anything it can't read is
   kept in the notes. Each file becomes a new project, removed again if a row
   fails, and Undo deletes the imported projects.
+- `skkil-time --mcp` (`src/mcp.rs`, checked in `main.rs` before Tauri starts)
+  is a stdio MCP server for Claude and other agents. It opens the same
+  database (or `SKKIL_TIME_DB`) and wraps the feature functions: projects,
+  today, list/add/update/complete tasks, and focus start/stop/break/history.
+  Both processes share the file through WAL and a 5 s busy timeout; the app
+  polls `external_changes` (`PRAGMA data_version`) every 10 s and on focus and
+  refetches everything when another process wrote. MCP changes have no Undo.
 - Quick capture (`features/capture.rs`): Ctrl/⌘+Alt+N is a global shortcut
   (off with the `capture_hotkey` setting), and a second launch with
   `--quick-add` is forwarded by the single-instance plugin; both emit

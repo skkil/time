@@ -32,6 +32,7 @@ impl Db {
     pub fn open(path: &Path) -> Result<Self> {
         let mut conn = Connection::open(path)?;
         conn.pragma_update(None, "journal_mode", "WAL")?;
+        conn.busy_timeout(Duration::from_secs(5))?;
         migrate(&mut conn)?;
         Ok(Self(Mutex::new(conn)))
     }

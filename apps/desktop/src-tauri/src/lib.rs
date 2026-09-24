@@ -2,6 +2,7 @@ mod activitywatch;
 mod db;
 mod error;
 mod features;
+pub mod mcp;
 mod recurrence;
 mod types;
 
@@ -143,6 +144,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
             records::set_record_phase_notes,
             records::set_task_phase,
             records::create_phase_task,
+            data::external_changes,
             import::pick_import_files,
             import::import_projects,
             capture::get_capture_hotkey,
@@ -186,6 +188,7 @@ pub fn run() {
             app.manage(db::Db::open(&dir.join("time.db"))?);
             app.manage(time_entries::Timer::default());
             app.manage(undo::UndoLog::default());
+            app.manage(data::SeenVersion::default());
             reminders::start(app.handle().clone());
             capture::start(app.handle());
             Ok(())

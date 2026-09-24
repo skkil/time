@@ -126,6 +126,7 @@ export const commands = {
 	setRecordPhaseNotes: (taskId: Id, statusId: Id, notes: string) => __TAURI_INVOKE<null>("set_record_phase_notes", { taskId, statusId, notes }),
 	setTaskPhase: (id: Id, phaseId: Id | null) => __TAURI_INVOKE<Task>("set_task_phase", { id, phaseId }),
 	createPhaseTask: (recordId: Id, phaseId: Id, title: string) => __TAURI_INVOKE<Task>("create_phase_task", { recordId, phaseId, title }),
+	externalChanges: () => __TAURI_INVOKE<boolean>("external_changes"),
 	pickImportFiles: () => __TAURI_INVOKE<ImportFile[]>("pick_import_files"),
 	importProjects: (projects: ImportProject[]) => __TAURI_INVOKE<Id[]>("import_projects", { projects }),
 	getCaptureHotkey: () => __TAURI_INVOKE<boolean>("get_capture_hotkey"),
