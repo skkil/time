@@ -278,3 +278,6 @@ All `[decide]`: likely user wants, not validated.
   - Records, dependencies, saved views, ActivityWatch and weather
   - Dropping a repeating task, which may delete the whole series (affects
     item 1)
+  - 2026-11-08, mocked preview at 900×600: Day, Week and Projects fit with no
+    horizontal scroll; Week titles truncate to a few letters per column. The
+    rest needs the real app (GPU, ActivityWatch, native pickers, drag).
