@@ -258,8 +258,10 @@ All `[decide]`: these are recommendations.
   - Migration 015 drops Pick musts and Time-block from Check out when its
     steps are still the default, and adds Habits. Both stay in Settings →
     Rituals.
-- [ ] **52. Hide advanced project setup** (types, statuses, milestones, stop-if
+- [x] **52. Hide advanced project setup** (types, statuses, milestones, stop-if
       rules, review rhythm) behind "Advanced".
+  - Project settings shows name, group, inside, colour, status and target
+    date; Advanced holds the rest and opens by itself when any of it is set.
 
 ## Product gaps
 
