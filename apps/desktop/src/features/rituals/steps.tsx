@@ -9,12 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Leftovers } from '@/features/day/Leftovers';
 import { earlierTasks, nextActions } from '@/features/day/plan';
 import { HabitCell } from '@/features/habits/HabitCell';
-import {
-  dayLookup,
-  useHabitDays,
-  useHabits,
-  useSetHabitStatus,
-} from '@/features/habits/api';
+import { useDueHabits, useSetHabitStatus } from '@/features/habits/api';
 import { useBlocks, useCreateBlock } from '@/features/planner/api';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { ProjectLink } from '@/features/projects/ProjectLink';
@@ -448,14 +443,8 @@ function NoteStep({ ctx }: { ctx: RitualContext }) {
 }
 
 function HabitStep({ ctx }: { ctx: RitualContext }) {
-  const { data: habits } = useHabits();
-  const { data: days } = useHabitDays(ctx.date, shiftKey(ctx.date, 1));
+  const { due = [], lookup } = useDueHabits(ctx.date);
   const setStatus = useSetHabitStatus();
-  const lookup = dayLookup(days);
-  const due = (habits ?? []).filter((habit) => {
-    const status = lookup(habit.id, ctx.date)?.status;
-    return status !== undefined && status !== 'off';
-  });
   return (
     <div className="grid gap-5">
       <StepHeading title="Habits">

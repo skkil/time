@@ -3,7 +3,8 @@ import { MoonIcon } from 'lucide-react';
 import { useRituals } from '@/features/rituals/api';
 import { STEPS } from '@/features/rituals/meta';
 import { useRitualRunner } from '@/features/rituals/runner-context';
-import { formatClockTime } from '@/lib/time';
+import { useShownSteps } from '@/features/rituals/shown-steps';
+import { formatClockTime, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 export function CheckOut({
@@ -39,9 +40,12 @@ export function CheckOutPrompt({
 }) {
   const runner = useRitualRunner();
   const { data: rituals } = useRituals();
-  const steps = (
-    rituals?.find((ritual) => ritual.kind === 'evening')?.steps ?? []
-  ).filter((step): step is keyof typeof STEPS => step in STEPS);
+  const steps = useShownSteps(
+    (rituals?.find((ritual) => ritual.kind === 'evening')?.steps ?? []).filter(
+      (step): step is keyof typeof STEPS => step in STEPS,
+    ),
+    todayKey(),
+  );
 
   return (
     <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-200 fade-in-0 slide-in-from-bottom-2 motion-reduce:animate-none">

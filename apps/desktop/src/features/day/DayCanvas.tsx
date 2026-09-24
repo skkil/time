@@ -9,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { HabitDots } from '@/features/habits/HabitDots';
 import { useRitualRuns } from '@/features/rituals/api';
 import { TaskPanel } from '@/features/tasks/TaskPanel';
 import { useTaskIndex } from '@/features/tasks/api';
@@ -251,7 +250,6 @@ function TodayLine({ tracked }: { tracked: number }) {
           .filter(Boolean)
           .join(' · ')}
       </p>
-      <HabitDots />
     </header>
   );
 }

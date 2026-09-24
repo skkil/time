@@ -55,7 +55,7 @@ export const STEPS: Record<
   { label: string; hint: string }
 > = {
   feel: { label: 'Feel', hint: 'One tap for how the day felt' },
-  what_moved: { label: 'What moved', hint: 'Finished tasks and tracked time' },
+  what_moved: { label: 'What moved', hint: 'Finished tasks and focus time' },
   leftovers: {
     label: 'Leftovers',
     hint: 'Give unfinished tasks a day or let go',

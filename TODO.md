@@ -110,7 +110,7 @@ user research.
 
 ## P1: Day
 
-- [ ] **20. Label habit dots.** Three bare circles under the date only make
+- [x] **20. Label habit dots.** Three bare circles under the date only make
       sense on hover.
   - Done when: each is identifiable without hovering, or it moves out of Day
     (see item 49).
@@ -247,10 +247,15 @@ user research.
 
 All `[decide]`: these are recommendations.
 
-- [ ] **49. Remove habit dots from Day,** or keep them with labels (item 20).
+- [x] **49. Remove habit dots from Day,** or keep them with labels (item 20).
+  - Decided 2026-11-08: removed from Day. Habits are a Check out step, hidden
+    when none are due that day.
 - [ ] **50. Merge "Start focus" and "Begin"** into one action.
-- [ ] **51. Make "Pick musts" and "Time-block" optional** in the default Check
+- [x] **51. Make "Pick musts" and "Time-block" optional** in the default Check
       out.
+  - Migration 015 drops Pick musts and Time-block from Check out when its
+    steps are still the default, and adds Habits. Both stay in Settings →
+    Rituals.
 - [ ] **52. Hide advanced project setup** (types, statuses, milestones, stop-if
       rules, review rhythm) behind "Advanced".
 

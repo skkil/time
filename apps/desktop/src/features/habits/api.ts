@@ -8,7 +8,7 @@ import {
   commands,
 } from '@/bindings';
 import { keys } from '@/lib/query';
-import type { DateKey } from '@/lib/time';
+import { type DateKey, shiftKey } from '@/lib/time';
 
 const SYNC_INTERVAL_MS = 5 * 60_000;
 
@@ -130,4 +130,18 @@ export function dayLookup(days: HabitDay[] | undefined) {
   const map = new Map<string, HabitDay>();
   for (const day of days ?? []) map.set(`${day.habitId}:${day.date}`, day);
   return (habitId: Id, date: DateKey) => map.get(`${habitId}:${date}`);
+}
+
+export function useDueHabits(date: DateKey) {
+  const { data: habits } = useHabits();
+  const { data: days } = useHabitDays(date, shiftKey(date, 1));
+  const lookup = dayLookup(days);
+  const due =
+    habits && days
+      ? habits.filter((habit) => {
+          const status = lookup(habit.id, date)?.status;
+          return status !== undefined && status !== 'off';
+        })
+      : undefined;
+  return { due, lookup };
 }

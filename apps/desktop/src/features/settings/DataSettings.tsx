@@ -105,7 +105,7 @@ export function DataSettings() {
             <AlertDialogHeader>
               <AlertDialogTitle>Delete everything?</AlertDialogTitle>
               <AlertDialogDescription>
-                Every project, task, tracked hour, habit and review is removed,
+                Every project, task, focus session, habit and review is removed,
                 and settings go back to their defaults. Only a backup you
                 exported can bring them back. Type “{CONFIRM}” to confirm.
               </AlertDialogDescription>

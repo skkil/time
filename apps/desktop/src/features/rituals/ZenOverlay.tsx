@@ -16,6 +16,7 @@ import {
   type StepKey,
   contextFor,
 } from './meta';
+import { useShownSteps } from './shown-steps';
 import { RitualStep } from './steps';
 
 const glass = {
@@ -126,7 +127,7 @@ export function ZenOverlay({
   const kind = ritual.kind as RitualKind;
   const meta = RITUALS[kind];
   const actions = useRunActions();
-  const steps = ritual.steps as StepKey[];
+  const steps = useShownSteps(ritual.steps as StepKey[], todayKey());
   const [index, setIndex] = useState(() =>
     Math.min(run.step, Math.max(0, steps.length - 1)),
   );
