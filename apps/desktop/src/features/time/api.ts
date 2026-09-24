@@ -5,6 +5,7 @@ import {
   type EntryInput,
   type Id,
   type RunningTimer,
+  type TimeEntry,
   commands,
 } from '@/bindings';
 import { keys } from '@/lib/query';
@@ -121,7 +122,13 @@ export function useUpdateEntry() {
 export function useDeleteEntry() {
   const refresh = useRefreshTracked();
   return useMutation({
-    mutationFn: (id: Id) => commands.deleteTimeEntry(id),
-    onSuccess: refresh,
+    mutationFn: (entry: TimeEntry) => commands.deleteTimeEntry(entry.id),
+    onSuccess: (_result, { id: _id, ...input }) => {
+      refresh();
+      offerUndo('Focus session deleted', async () => {
+        await commands.createTimeEntry(input);
+        refresh();
+      });
+    },
   });
 }

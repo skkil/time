@@ -265,6 +265,9 @@ All `[decide]`: likely user wants, not validated.
 - [ ] **57. Phone capture.**
 - [ ] Breaks in focus mode sessions, and a way to stop/resume them. Also there
       is no way to remove a focus session from the timeline.
+  - 2026-11-08: removing is done (Delete with Undo in the focus session
+    window, opened by clicking a session on Day or Week). Breaks and
+    pause/resume are still open.
 
 ## Still to test
 

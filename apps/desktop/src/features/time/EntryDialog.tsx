@@ -40,7 +40,7 @@ import {
   todayKey,
 } from '@/lib/time';
 
-import { useCreateEntry, useUpdateEntry } from './api';
+import { useCreateEntry, useDeleteEntry, useUpdateEntry } from './api';
 
 type EntryDialogProps = {
   open: boolean;
@@ -87,6 +87,7 @@ function EntryForm({
 }) {
   const create = useCreateEntry();
   const update = useUpdateEntry();
+  const remove = useDeleteEntry();
   const initialDay = entry ? dateKeyOf(entry.startedAt) : (date ?? todayKey());
   const fallback = defaultSpan(initialDay);
   const [details, setDetails] = useState<EntryDetails>(
@@ -130,7 +131,7 @@ function EntryForm({
     <form onSubmit={submit} className="grid gap-5">
       <DialogHeader>
         <DialogTitle>
-          {entry ? 'Edit time entry' : 'Add time entry'}
+          {entry ? 'Edit focus session' : 'Add focus session'}
         </DialogTitle>
         <DialogDescription>
           {valid
@@ -226,6 +227,17 @@ function EntryForm({
       </div>
 
       <DialogFooter>
+        {entry && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="mr-auto text-destructive hover:text-destructive"
+            disabled={remove.isPending}
+            onClick={() => remove.mutate(entry, { onSuccess: onDone })}
+          >
+            Delete
+          </Button>
+        )}
         <Button type="button" variant="ghost" onClick={onDone}>
           Cancel
         </Button>
@@ -233,7 +245,7 @@ function EntryForm({
           type="submit"
           disabled={!valid || create.isPending || update.isPending}
         >
-          {entry ? 'Save' : 'Add entry'}
+          {entry ? 'Save' : 'Add session'}
         </Button>
       </DialogFooter>
     </form>
