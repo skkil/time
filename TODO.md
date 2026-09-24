@@ -220,7 +220,7 @@ user research.
 - [x] **44. Unify dialogs.** Quick Add, Leftovers, Settings and the project
       wizard each use a different surface, and the Timeline table is opaque.
   - Done when: there is one dialog style and one table style.
-- [ ] **45. Reconcile sky and ocean.** `[decide]` Rituals switch to a realistic
+- [x] **45. Reconcile sky and ocean.** `[decide]` Rituals switch to a realistic
       ocean, a 12 MB file, while the app is a soft gradient.
   - Done when: rituals and the app feel like one product, whichever way you
     decide.

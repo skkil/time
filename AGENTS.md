@@ -66,8 +66,8 @@ in `.design/DESIGN.md`.
   `manual`), weekdays (Monday = bit 0) and ordered steps from a closed library.
   `due_ritual(event)` decides what opens; a run fires once a day unless snoozed
   (15 min, once). The frontend shows rituals in a full-window zen overlay
-  (`features/rituals`, backdrop in `features/zen`, WebGL2 water shader with a
-  static fallback; themes carry their own shader).
+  (`features/rituals`) over the same time-of-day sky as the app
+  (`features/zen/ZenBackdrop.tsx`, deepened); there are no image assets.
 - **Item type / Status / Milestone / Saved view** — per-project structure in
   `features/workflow.rs`. A type is a task or an **event** (happens at a time;
   never checked off; repeats expand into occurrences via `list_events`; may

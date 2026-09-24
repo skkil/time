@@ -4,6 +4,7 @@ import { type CSSProperties, type ReactNode, useState } from 'react';
 
 import type { Ritual, RitualRun } from '@/bindings';
 import { WeekReviewFlow } from '@/features/review/WeekReview';
+import { ZenBackdrop } from '@/features/zen/ZenBackdrop';
 import { mondayOf, shiftKey, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
@@ -33,33 +34,6 @@ const glass = {
   '--now-tint': 'rgba(255, 255, 255, 0.1)',
 } as CSSProperties;
 
-function Ocean() {
-  const [ready, setReady] = useState(false);
-  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  return (
-    <div aria-hidden className="absolute inset-0 overflow-hidden bg-[#0b1a22]">
-      <img
-        src="/checkout/ocean.jpg"
-        alt=""
-        className="absolute inset-0 size-full object-cover"
-      />
-      {!still && (
-        <img
-          src="/checkout/ocean.webp"
-          alt=""
-          decoding="async"
-          onLoad={() => setReady(true)}
-          className={cn(
-            'absolute inset-0 size-full object-cover transition-opacity duration-[2500ms] motion-safe:animate-[checkout-drift_60s_ease-in-out_infinite_alternate]',
-            ready ? 'opacity-100' : 'opacity-0',
-          )}
-        />
-      )}
-      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_45%,rgba(6,16,24,.05),rgba(6,16,24,.55))]" />
-    </div>
-  );
-}
-
 function ZenFrame({
   label,
   description,
@@ -83,7 +57,7 @@ function ZenFrame({
           onPointerDownOutside={(event) => event.preventDefault()}
           className="fixed inset-0 z-50 text-white outline-none data-open:animate-in data-open:duration-[1400ms] data-open:fade-in-0"
         >
-          <Ocean />
+          <ZenBackdrop deep className="absolute" />
           <DialogPrimitive.Title className="sr-only">
             {label}
           </DialogPrimitive.Title>
