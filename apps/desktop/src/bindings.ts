@@ -126,6 +126,8 @@ export const commands = {
 	setRecordPhaseNotes: (taskId: Id, statusId: Id, notes: string) => __TAURI_INVOKE<null>("set_record_phase_notes", { taskId, statusId, notes }),
 	setTaskPhase: (id: Id, phaseId: Id | null) => __TAURI_INVOKE<Task>("set_task_phase", { id, phaseId }),
 	createPhaseTask: (recordId: Id, phaseId: Id, title: string) => __TAURI_INVOKE<Task>("create_phase_task", { recordId, phaseId, title }),
+	pickImportFiles: () => __TAURI_INVOKE<ImportFile[]>("pick_import_files"),
+	importProjects: (projects: ImportProject[]) => __TAURI_INVOKE<Id[]>("import_projects", { projects }),
 	getCaptureHotkey: () => __TAURI_INVOKE<boolean>("get_capture_hotkey"),
 	setCaptureHotkey: (enabled: boolean) => __TAURI_INVOKE<null>("set_capture_hotkey", { enabled }),
 	getRemindersEnabled: () => __TAURI_INVOKE<boolean>("get_reminders_enabled"),
@@ -223,6 +225,28 @@ export type HabitInput = {
 };
 
 export type Id = number;
+
+export type ImportFile = {
+	name: string,
+	text: string,
+};
+
+export type ImportProject = {
+	name: string,
+	color: string,
+	tasks: ImportTask[],
+	sections: ImportSection[],
+};
+
+export type ImportSection = {
+	name: string,
+	tasks: ImportTask[],
+};
+
+export type ImportTask = {
+	task: TaskInput,
+	children: ImportTask[],
+};
 
 export type ItemStatus = {
 	id: Id,

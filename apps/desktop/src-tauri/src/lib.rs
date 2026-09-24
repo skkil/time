@@ -10,8 +10,8 @@ use tauri::Manager;
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
 
 use features::{
-    blocks, canvas, capture, data, dependencies, groups, habits, projects, records, reminders,
-    review, rituals, sections, tasks, time_entries, undo, workflow,
+    blocks, canvas, capture, data, dependencies, groups, habits, import, projects, records,
+    reminders, review, rituals, sections, tasks, time_entries, undo, workflow,
 };
 
 const BINDINGS_PATH: &str = "../src/bindings.ts";
@@ -143,6 +143,8 @@ fn specta_builder() -> Builder<tauri::Wry> {
             records::set_record_phase_notes,
             records::set_task_phase,
             records::create_phase_task,
+            import::pick_import_files,
+            import::import_projects,
             capture::get_capture_hotkey,
             capture::set_capture_hotkey,
             reminders::get_reminders_enabled,

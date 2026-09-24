@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useImportTasks } from '@/features/import/api';
 
 import { SettingRow } from './SettingRow';
 
@@ -28,6 +29,7 @@ function reopen() {
 
 export function DataSettings() {
   const [typed, setTyped] = useState('');
+  const importTasks = useImportTasks();
   const backup = useMutation({
     mutationFn: () => commands.exportData(),
     onSuccess: (path) => {
@@ -50,6 +52,19 @@ export function DataSettings() {
 
   return (
     <div>
+      <SettingRow
+        label="Import tasks"
+        description="Todoist exports (one CSV per project) or any CSV with a Title column. Each file becomes a new project."
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={importTasks.isPending}
+          onClick={() => importTasks.mutate()}
+        >
+          Import…
+        </Button>
+      </SettingRow>
       <SettingRow
         label="Export a backup"
         description="Saves all projects, tasks, time, habits and reviews to a file you choose."

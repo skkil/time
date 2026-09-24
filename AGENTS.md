@@ -153,6 +153,12 @@ cargo clippy --all-targets
 - Settings → Data exports with `VACUUM INTO` and restores through SQLite's backup
   API after staging, validating and migrating the file (`features/data.rs`); the
   current data is kept as `time-before-restore.db`.
+- Import (Settings → Data) reads CSV files picked in Rust
+  (`features/import.rs`) and converts them in `src/features/import/`: Todoist
+  exports (TYPE/CONTENT/INDENT, priority 4 = p1) or any CSV with a Title
+  column. Dates go through the Quick Add parser; anything it can't read is
+  kept in the notes. Each file becomes a new project, removed again if a row
+  fails, and Undo deletes the imported projects.
 - Quick capture (`features/capture.rs`): Ctrl/⌘+Alt+N is a global shortcut
   (off with the `capture_hotkey` setting), and a second launch with
   `--quick-add` is forwarded by the single-instance plugin; both emit

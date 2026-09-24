@@ -272,7 +272,9 @@ All `[decide]`: likely user wants, not validated.
     `skkil-time --quick-add` for Wayland compositors. Not tried in the real
     app yet.
 - [ ] **54. Calendar sync.**
-- [ ] **55. Import from other task apps.**
+- [x] **55. Import from other task apps.**
+  - Settings → Data → Import: Todoist CSV exports and plain CSVs. Not tried
+    with a real Todoist export yet.
 - [ ] **56. Light theme.**
 - [ ] **57. Phone capture.**
 - [x] Breaks in focus mode sessions, and a way to stop/resume them. Also there

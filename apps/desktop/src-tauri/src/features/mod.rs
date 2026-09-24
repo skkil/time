@@ -5,6 +5,7 @@ pub mod data;
 pub mod dependencies;
 pub mod groups;
 pub mod habits;
+pub mod import;
 pub mod projects;
 pub mod records;
 pub mod reminders;
