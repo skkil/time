@@ -1,5 +1,6 @@
 pub mod blocks;
 pub mod canvas;
+pub mod capture;
 pub mod data;
 pub mod dependencies;
 pub mod groups;
@@ -16,6 +17,7 @@ pub mod undo;
 pub mod workflow;
 
 use rusqlite::{Connection, OptionalExtension, params};
+use tauri::{AppHandle, Manager};
 
 use crate::error::{Error, Result};
 
@@ -66,4 +68,12 @@ pub(crate) fn ensure_changed(rows: usize, what: &str) -> Result<()> {
         return Err(Error::not_found(what));
     }
     Ok(())
+}
+
+pub(crate) fn show_main_window(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+    }
 }

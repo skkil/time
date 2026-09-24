@@ -5,7 +5,7 @@ use chrono::{Local, Timelike};
 use rusqlite::{Connection, params};
 use tauri::{AppHandle, Emitter, Manager, State};
 
-use super::{read_setting, write_setting};
+use super::{read_setting, show_main_window, write_setting};
 use crate::db::Db;
 use crate::error::Result;
 use crate::types::{Date, Id};
@@ -61,11 +61,7 @@ pub fn take_due(conn: &mut Connection, today: Date, minute: i32) -> Result<Vec<R
 }
 
 fn open_task(app: &AppHandle, task_id: Id) {
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.show();
-        let _ = window.unminimize();
-        let _ = window.set_focus();
-    }
+    show_main_window(app);
     let _ = app.emit(OPEN_TASK_EVENT, task_id);
 }
 

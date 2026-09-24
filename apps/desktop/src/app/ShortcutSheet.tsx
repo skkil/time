@@ -15,6 +15,7 @@ const GROUPS: { title: string; items: [string, string][] }[] = [
     items: [
       ['Q', 'Add a task'],
       ['Mod+N', 'Add a task, even while typing'],
+      ['Mod+Alt+N', 'Add a task from any app'],
       ['Mod+K', 'Search'],
       ['Mod+Z', 'Undo the last change'],
       ['Mod+,', 'Settings'],

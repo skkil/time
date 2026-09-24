@@ -267,7 +267,10 @@ All `[decide]`: these are recommendations.
 
 All `[decide]`: likely user wants, not validated.
 
-- [ ] **53. Global quick-capture hotkey.**
+- [x] **53. Global quick-capture hotkey.**
+  - Ctrl+Alt+N (⌘⌥N on macOS), toggled in Settings → Capture, plus
+    `skkil-time --quick-add` for Wayland compositors. Not tried in the real
+    app yet.
 - [ ] **54. Calendar sync.**
 - [ ] **55. Import from other task apps.**
 - [ ] **56. Light theme.**

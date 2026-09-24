@@ -10,8 +10,8 @@ use tauri::Manager;
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
 
 use features::{
-    blocks, canvas, data, dependencies, groups, habits, projects, records, reminders, review,
-    rituals, sections, tasks, time_entries, undo, workflow,
+    blocks, canvas, capture, data, dependencies, groups, habits, projects, records, reminders,
+    review, rituals, sections, tasks, time_entries, undo, workflow,
 };
 
 const BINDINGS_PATH: &str = "../src/bindings.ts";
@@ -143,6 +143,8 @@ fn specta_builder() -> Builder<tauri::Wry> {
             records::set_record_phase_notes,
             records::set_task_phase,
             records::create_phase_task,
+            capture::get_capture_hotkey,
+            capture::set_capture_hotkey,
             reminders::get_reminders_enabled,
             reminders::set_reminders_enabled,
             data::export_data,
@@ -170,8 +172,10 @@ pub fn run() {
     export_bindings(&builder);
 
     tauri::Builder::default()
+        .plugin(capture::single_instance())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(capture::plugin())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             builder.mount_events(app);
@@ -181,6 +185,7 @@ pub fn run() {
             app.manage(time_entries::Timer::default());
             app.manage(undo::UndoLog::default());
             reminders::start(app.handle().clone());
+            capture::start(app.handle());
             Ok(())
         })
         .run(tauri::generate_context!())

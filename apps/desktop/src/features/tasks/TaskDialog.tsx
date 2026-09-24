@@ -39,11 +39,13 @@ export function TaskDialogProvider({ children }: { children: ReactNode }) {
   const close = () => setState({ mode: 'closed' });
   useOnNavigate(close);
   useEffect(() => {
-    const unlisten = listen<Id>('open-task', ({ payload }) =>
-      openTask(payload),
-    );
-    return () => void unlisten.then((stop) => stop());
-  }, [openTask]);
+    const listeners = [
+      listen<Id>('open-task', ({ payload }) => openTask(payload)),
+      listen('quick-add', () => newTask()),
+    ];
+    return () =>
+      listeners.forEach((unlisten) => void unlisten.then((stop) => stop()));
+  }, [openTask, newTask]);
   const task = useTask(state.mode === 'edit' ? state.id : null);
 
   return (

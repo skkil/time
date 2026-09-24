@@ -3,6 +3,7 @@ import {
   CalendarRangeIcon,
   DatabaseIcon,
   FlagIcon,
+  KeyboardIcon,
   type LucideIcon,
   PaletteIcon,
   SunIcon,
@@ -18,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 
 import { AppearanceSettings } from './AppearanceSettings';
+import { CaptureSettings } from './CaptureSettings';
 import { DataSettings } from './DataSettings';
 import { PrioritySettings } from './PrioritySettings';
 import { ReminderSettings } from './ReminderSettings';
@@ -61,6 +63,13 @@ const sections: Section[] = [
     description: 'Alerts for tasks with a time.',
     icon: BellIcon,
     content: ReminderSettings,
+  },
+  {
+    id: 'capture',
+    label: 'Capture',
+    description: 'Add a task without switching to skkil time.',
+    icon: KeyboardIcon,
+    content: CaptureSettings,
   },
   {
     id: 'priorities',

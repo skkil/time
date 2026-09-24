@@ -153,6 +153,11 @@ cargo clippy --all-targets
 - Settings → Data exports with `VACUUM INTO` and restores through SQLite's backup
   API after staging, validating and migrating the file (`features/data.rs`); the
   current data is kept as `time-before-restore.db`.
+- Quick capture (`features/capture.rs`): Ctrl/⌘+Alt+N is a global shortcut
+  (off with the `capture_hotkey` setting), and a second launch with
+  `--quick-add` is forwarded by the single-instance plugin; both emit
+  `quick-add`, which opens Quick Add. Wayland blocks global shortcuts, so
+  there the user binds the command in their compositor.
 - Reminders run on a backend thread (`features/reminders.rs`, every 20 s). A
   timed task fires once per date and time through `task.reminded_for`; only
   Linux reports the click, which emits `open-task`.
