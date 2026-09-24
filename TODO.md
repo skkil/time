@@ -250,7 +250,9 @@ All `[decide]`: these are recommendations.
 - [x] **49. Remove habit dots from Day,** or keep them with labels (item 20).
   - Decided 2026-11-08: removed from Day. Habits are a Check out step, hidden
     when none are due that day.
-- [ ] **50. Merge "Start focus" and "Begin"** into one action.
+- [x] **50. Merge "Start focus" and "Begin"** into one action.
+  - Both started a focus session; the task window's Begin is now Start focus,
+    and Begin check out is Check out.
 - [x] **51. Make "Pick musts" and "Time-block" optional** in the default Check
       out.
   - Migration 015 drops Pick musts and Time-block from Check out when its

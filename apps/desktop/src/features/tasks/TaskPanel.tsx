@@ -419,7 +419,7 @@ function Actions({
             className="flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
           >
             <PlayIcon className="size-3.5 fill-current" />
-            Begin
+            Start focus
           </button>
         )
       )}
