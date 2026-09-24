@@ -270,6 +270,8 @@ pub fn week(conn: &Connection, date: Date) -> Result<Week> {
     })
 }
 
+const TIMED_TASK_MINUTES: i32 = 60;
+
 pub fn week_summary(conn: &Connection, start: Date) -> Result<WeekSummary> {
     let (from, to) = (start.start(), start.add_days(7).start());
     let events = workflow::counted_event_seconds(conn, start, start.add_days(7))?;
@@ -280,10 +282,15 @@ pub fn week_summary(conn: &Connection, start: Date) -> Result<WeekSummary> {
                 (SELECT COALESCE(SUM(ended_at - started_at), 0) FROM time_entry
                   WHERE started_at >= ?2 AND started_at < ?3),
                 (SELECT COALESCE(SUM(end_at - start_at), 0) FROM time_block
-                  WHERE start_at >= ?2 AND start_at < ?3),
+                  WHERE start_at >= ?2 AND start_at < ?3)
+                + (SELECT COALESCE(SUM(COALESCE(t.estimate_minutes, ?5)), 0) * 60 FROM task t
+                    WHERE t.due_date >= ?1 AND t.due_date < ?4 AND t.due_time IS NOT NULL
+                      AND NOT EXISTS (SELECT 1 FROM time_block b WHERE b.task_id = t.id)
+                      AND NOT EXISTS (SELECT 1 FROM item_type ty
+                                      WHERE ty.id = t.type_id AND ty.kind = 'event')),
                 (SELECT COUNT(*) FROM task WHERE completed_at >= ?2 AND completed_at < ?3)
            FROM (SELECT 1) LEFT JOIN week w ON w.start_date = ?1",
-        params![start, from, to],
+        params![start, from, to, start.add_days(7), TIMED_TASK_MINUTES],
         |row| {
             Ok(WeekSummary {
                 start_date: start,
@@ -852,11 +859,17 @@ mod tests {
                 },
             )?;
 
+            let mut timed = tasks::input("Call the bank", None);
+            timed.due_date = Some(monday.add_days(2));
+            timed.due_time = Some(600);
+            timed.estimate_minutes = Some(30);
+            tasks::create(conn, &timed)?;
+
             let summaries = weeks(conn, monday.add_days(-7), monday.add_days(7))?;
             assert_eq!(summaries.len(), 2);
             assert_eq!(summaries[0].start_date, monday);
             assert_eq!(summaries[0].tracked_seconds, Seconds(1800));
-            assert_eq!(summaries[0].planned_seconds, Seconds(7200));
+            assert_eq!(summaries[0].planned_seconds, Seconds(7200 + 1800));
             assert_eq!(summaries[1].tracked_seconds, Seconds(3600));
             assert_eq!(summaries[1].reviewed_at, None);
             Ok(())

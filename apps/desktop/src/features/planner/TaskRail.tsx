@@ -11,6 +11,7 @@ import {
   type DateKey,
   formatDayLabel,
   formatEstimate,
+  formatMinutesOfDay,
   todayKey,
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
@@ -66,8 +67,12 @@ export function DraggableTask({
           {task.estimateMinutes !== null && (
             <span>{formatEstimate(task.estimateMinutes)}</span>
           )}
-          {plannedCount > 0 && (
+          {plannedCount > 0 ? (
             <span>Planned{plannedCount > 1 ? ` ×${plannedCount}` : ''}</span>
+          ) : (
+            task.dueTime !== null && (
+              <span>Planned {formatMinutesOfDay(task.dueTime)}</span>
+            )
           )}
         </p>
       </div>

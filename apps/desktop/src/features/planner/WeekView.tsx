@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useRef } from 'react';
 
 import { Page, PageHeader, Stat, WeekSwitcher } from '@/components/page';
+import { useTasks } from '@/features/tasks/api';
 import { useTimeEntries } from '@/features/time/api';
 import { trackedFill } from '@/features/time/tracked';
 import { usePreference } from '@/lib/preferences';
@@ -22,6 +23,7 @@ import { ScheduleView } from './ScheduleView';
 import { WeekPicker } from './WeekPicker';
 import { WeekReflection } from './WeekReflection';
 import { useBlocks } from './api';
+import { plannedSeconds } from './planned';
 import { useWeekSwipe } from './use-week-swipe';
 
 export function WeekView({ week }: { week: DateKey }) {
@@ -33,10 +35,8 @@ export function WeekView({ week }: { week: DateKey }) {
   const body = useRef<HTMLDivElement>(null);
   const { data: blocks = [] } = useBlocks(start);
   const { data: entries = [] } = useTimeEntries(start, shiftKey(start, 7));
-  const planned = blocks.reduce(
-    (sum, block) => sum + block.endAt - block.startAt,
-    0,
-  );
+  const { data: tasks = [] } = useTasks();
+  const planned = plannedSeconds(blocks, tasks, start, shiftKey(start, 7));
   const tracked = entries.reduce(
     (sum, entry) => sum + secondsWithin(entry, start, shiftKey(start, 7)),
     0,
