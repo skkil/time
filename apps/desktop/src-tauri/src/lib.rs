@@ -6,7 +6,6 @@ pub mod mcp;
 mod recurrence;
 mod types;
 
-use specta_typescript::Typescript;
 use tauri::Manager;
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
 
@@ -15,6 +14,7 @@ use features::{
     reminders, review, rituals, sections, tasks, time_entries, undo, workflow,
 };
 
+#[cfg(any(debug_assertions, test))]
 const BINDINGS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../src/bindings.ts");
 
 fn specta_builder() -> Builder<tauri::Wry> {
@@ -157,9 +157,10 @@ fn specta_builder() -> Builder<tauri::Wry> {
         ])
 }
 
+#[cfg(any(debug_assertions, test))]
 fn export_bindings(builder: &Builder<tauri::Wry>) {
     builder
-        .export(Typescript::default(), BINDINGS_PATH)
+        .export(specta_typescript::Typescript::default(), BINDINGS_PATH)
         .expect("TypeScript bindings export");
 }
 
