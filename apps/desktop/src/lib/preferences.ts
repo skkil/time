@@ -24,6 +24,7 @@ export type Preferences = {
   weatherPlace: WeatherPlace | null;
   lastProject: string;
   weekHabitsOpen: boolean;
+  dayAnyTimeOpen: boolean;
   weekProjectsOpen: boolean;
   projectsSidebarOpen: boolean;
   lastViews: Record<string, number>;
@@ -43,6 +44,7 @@ const defaults: Preferences = {
   weatherPlace: null,
   lastProject: 'inbox',
   weekHabitsOpen: false,
+  dayAnyTimeOpen: true,
   weekProjectsOpen: false,
   projectsSidebarOpen: false,
   lastViews: {},

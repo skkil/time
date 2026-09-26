@@ -134,9 +134,31 @@ export function DayCanvas() {
 
   return (
     <div className="mx-auto flex h-full w-full max-w-[1180px] flex-col px-24 pt-6 pb-12">
-      <div className="flex items-end justify-between gap-6 pb-10">
-        <TodayLine tracked={tracked} />
-        <div className="flex shrink-0 items-center gap-2">
+      <div className="flex items-start justify-between gap-6 pb-8">
+        <div className="grid min-w-0 gap-5">
+          <TodayLine tracked={tracked} />
+          <div className="grid justify-items-start gap-2">
+            <AnyTimeList
+              tasks={anyTime}
+              finished={finished}
+              openId={openId}
+              runningId={timer?.taskId ?? null}
+              onPick={(taskId) => setChosen({ kind: 'task', taskId })}
+            />
+            {plan.earlier.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSorting(true)}
+                className="text-sm text-foreground/85 underline decoration-foreground/30 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground"
+              >
+                {plan.earlier.length === 1
+                  ? '1 task from earlier days'
+                  : `${plan.earlier.length} tasks from earlier days`}
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2 pt-4">
           <StartFocus
             open={
               panel?.kind === 'focus' ||
@@ -166,24 +188,6 @@ export function DayCanvas() {
             runningId={timer?.taskId ?? null}
             onPick={(taskId) => setChosen({ kind: 'task', taskId })}
           />
-          <AnyTimeList
-            tasks={anyTime}
-            finished={finished}
-            openId={openId}
-            runningId={timer?.taskId ?? null}
-            onPick={(taskId) => setChosen({ kind: 'task', taskId })}
-          />
-          {plan.earlier.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSorting(true)}
-              className="mb-4 self-start text-sm text-foreground/85 underline decoration-foreground/30 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground"
-            >
-              {plan.earlier.length === 1
-                ? '1 task from earlier days'
-                : `${plan.earlier.length} tasks from earlier days`}
-            </button>
-          )}
         </aside>
 
         {panel && (
