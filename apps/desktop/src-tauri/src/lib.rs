@@ -15,7 +15,10 @@ use features::{
 };
 
 #[cfg(any(debug_assertions, test))]
-const BINDINGS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../src/bindings.ts");
+const BINDINGS_PATH: &str = concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../shared/contract/src/bindings.ts"
+);
 
 fn specta_builder() -> Builder<tauri::Wry> {
     Builder::<tauri::Wry>::new()

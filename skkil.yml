@@ -11,9 +11,9 @@ requires:
   - name: Rust
     check: command -v cargo
     hint: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-  - name: desktop dependencies
-    check: test -d apps/desktop/node_modules
-    hint: cd apps/desktop && pnpm install
+  - name: workspace dependencies
+    check: test -d node_modules
+    hint: pnpm install
 
 dev:
   run:
@@ -105,11 +105,16 @@ ci:
       format: cargo fmt --check
       lint: cargo clippy --all-targets
       test: cargo test
-    - name: desktop
-      dir: apps/desktop
-      format: pnpm prettier --check .
+    - name: shared-app
+      dir: apps/shared/app
+      format: pnpm exec prettier --check .
       lint: pnpm lint
       test: pnpm test
+      build: pnpm compile
+    - name: desktop
+      dir: apps/desktop
+      format: pnpm exec prettier --check src
+      lint: pnpm lint
       build: pnpm tauri build
       depends_on:
         - core
