@@ -181,7 +181,7 @@ export function TaskItem({
         />
       )}
 
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 pr-7">
         <button
           type="button"
           onClick={() => openTask(task.id)}
@@ -219,7 +219,8 @@ export function TaskItem({
                 `about ${formatEstimate(task.estimateMinutes)}`,
               task.trackedSeconds > 0 &&
                 `${formatDuration(task.trackedSeconds)} focused`,
-              children.length > 0 && `${finished} of ${children.length} steps`,
+              children.length > 0 &&
+                `${finished} of ${children.length} ${children.length === 1 ? 'step' : 'steps'}`,
               task.priority < 4 && `priority ${task.priority}`,
               !done &&
                 task.rolloverCount >= 2 &&

@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import {
   CheckIcon,
   ChevronRightIcon,
+  CornerLeftUpIcon,
   EllipsisIcon,
   Link2Icon,
   PlayIcon,
@@ -131,20 +132,23 @@ export function TaskPanel({
           projectId={task.projectId}
           name={project?.name ?? 'Inbox'}
         />
-        {parent && (
-          <>
-            <Dot />
-            <button
-              type="button"
-              onClick={() => openTask(parent.id)}
-              className="truncate hover:text-foreground hover:underline"
-            >
-              {parent.title}
-            </button>
-          </>
-        )}
         <MoreMenu task={task} onWait={() => setWaiting(true)} />
       </div>
+      {parent && (
+        <button
+          type="button"
+          onClick={() => openTask(parent.id)}
+          className="mt-2 flex min-w-0 items-start gap-1.5 self-start text-left text-sm text-foreground/75 hover:text-foreground"
+        >
+          <CornerLeftUpIcon
+            className="mt-0.5 size-4 shrink-0"
+            strokeWidth={1.5}
+          />
+          <span className="min-w-0 hover:underline">
+            Step of {parent.title}
+          </span>
+        </button>
+      )}
 
       <textarea
         value={title}

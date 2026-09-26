@@ -8,6 +8,7 @@ import {
 import { type ReactNode, useState } from 'react';
 
 import type { Project, Task } from '@/bindings';
+import { InlineRename } from '@/components/InlineRename';
 import { Button } from '@/components/ui/button';
 import { CommandItem } from '@/components/ui/command';
 import { DueText } from '@/features/tasks/DueText';
@@ -18,7 +19,7 @@ import { NewProjectDialog } from './NewProjectDialog';
 import { ProjectDot } from './ProjectDot';
 import { ProjectLink } from './ProjectLink';
 import { ProjectPicker } from './ProjectPicker';
-import { useProjectIndex } from './api';
+import { useProjectIndex, useUpdateProject } from './api';
 import { useProjectGroup } from './groups';
 import { STATUSES, projectChain } from './tree';
 
@@ -27,9 +28,32 @@ export type ViewOption = { id: string; label: string };
 function ProjectSwitcher({ project }: { project?: Project }) {
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const update = useUpdateProject();
+  const chevron = (
+    <ChevronDownIcon
+      className="size-5 shrink-0 text-foreground/75 transition-colors group-hover/switch:text-foreground"
+      strokeWidth={1.5}
+    />
+  );
 
   return (
-    <>
+    <div className="flex min-w-0 items-center gap-2.5">
+      {project && <ProjectDot color={project.color} className="size-3" />}
+      {project && (
+        <InlineRename
+          value={project.name}
+          label="Project name"
+          editing={renaming}
+          onEditingChange={setRenaming}
+          onSave={(name) =>
+            update.mutate({
+              id: project.id,
+              input: { name, parentId: project.parentId, color: project.color },
+            })
+          }
+        />
+      )}
       <ProjectPicker
         value={project?.id ?? null}
         noneLabel="Inbox"
@@ -45,14 +69,10 @@ function ProjectSwitcher({ project }: { project?: Project }) {
           <button
             type="button"
             aria-label={`Switch project, now ${project?.name ?? 'Inbox'}`}
-            className="group/switch flex max-w-full items-center gap-2.5 rounded-md outline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
+            className="group/switch flex max-w-full shrink-0 items-center gap-2.5 rounded-md outline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
           >
-            {project && <ProjectDot color={project.color} className="size-3" />}
-            <span className="truncate">{project?.name ?? 'Inbox'}</span>
-            <ChevronDownIcon
-              className="size-5 shrink-0 text-foreground/75 transition-colors group-hover/switch:text-foreground"
-              strokeWidth={1.5}
-            />
+            {!project && <span className="truncate">Inbox</span>}
+            {chevron}
           </button>
         }
       >
@@ -73,7 +93,7 @@ function ProjectSwitcher({ project }: { project?: Project }) {
         onOpenChange={setCreating}
         parentId={null}
       />
-    </>
+    </div>
   );
 }
 

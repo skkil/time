@@ -29,7 +29,7 @@ import {
   AddSection,
   SectionHeader,
   SectionMenu,
-  SectionName,
+  SectionTitle,
 } from './SectionHeader';
 import { AddTaskRow, FlatTaskList, TaskList } from './TaskList';
 import { useCreateSection, useSections, useTaskIndex, useTasks } from './api';
@@ -474,16 +474,17 @@ function BoardColumn({
       className="group/section flex max-h-full w-72 shrink-0 flex-col"
     >
       <header className="flex h-9 shrink-0 items-center gap-1.5 px-1">
-        {section && renaming ? (
-          <SectionName section={section} onDone={() => setRenaming(false)} />
-        ) : (
-          <h2
-            className="truncate text-sm font-medium text-foreground/90"
-            onDoubleClick={() => section && setRenaming(true)}
-          >
-            {title}
-          </h2>
-        )}
+        <h2 className="flex min-w-0 items-center truncate text-sm font-medium text-foreground/90">
+          {section ? (
+            <SectionTitle
+              section={section}
+              editing={renaming}
+              onEditingChange={setRenaming}
+            />
+          ) : (
+            title
+          )}
+        </h2>
         <span className="text-xs text-foreground/75 tabular-nums">{count}</span>
         {section && (
           <div

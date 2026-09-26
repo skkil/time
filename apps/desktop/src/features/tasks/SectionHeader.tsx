@@ -7,6 +7,7 @@ import {
 import { useState } from 'react';
 
 import type { Section } from '@/bindings';
+import { InlineRename } from '@/components/InlineRename';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,35 +30,24 @@ import { cn } from '@/lib/utils';
 
 import { useCollapseSection, useDeleteSection, useRenameSection } from './api';
 
-export function SectionName({
+export function SectionTitle({
   section,
-  onDone,
+  editing,
+  onEditingChange,
 }: {
   section: Section;
-  onDone: () => void;
+  editing: boolean;
+  onEditingChange: (editing: boolean) => void;
 }) {
   const rename = useRenameSection();
-  const [name, setName] = useState(section.name);
   return (
-    <input
-      autoFocus
-      value={name}
-      maxLength={120}
-      aria-label="Section name"
-      className="min-w-0 flex-1 rounded-md bg-white/10 px-1.5 py-0.5 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-      onChange={(event) => setName(event.target.value)}
-      onBlur={() => {
-        if (name.trim() && name !== section.name)
-          rename.mutate({ id: section.id, name });
-        onDone();
-      }}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter') event.currentTarget.blur();
-        if (event.key === 'Escape') {
-          setName(section.name);
-          onDone();
-        }
-      }}
+    <InlineRename
+      value={section.name}
+      label="Section name"
+      editing={editing}
+      onEditingChange={onEditingChange}
+      onSave={(name) => rename.mutate({ id: section.id, name })}
+      className="text-sm font-medium text-foreground/90"
     />
   );
 }
@@ -154,16 +144,13 @@ export function SectionHeader({
           )}
         />
       </button>
-      {renaming ? (
-        <SectionName section={section} onDone={() => setRenaming(false)} />
-      ) : (
-        <h2
-          className="truncate text-sm font-medium text-foreground/90"
-          onDoubleClick={() => setRenaming(true)}
-        >
-          {section.name}
-        </h2>
-      )}
+      <h2 className="flex min-w-0 flex-1 items-center">
+        <SectionTitle
+          section={section}
+          editing={renaming}
+          onEditingChange={setRenaming}
+        />
+      </h2>
       {count > 0 && (
         <span className="text-xs text-foreground/75 tabular-nums">{count}</span>
       )}
