@@ -1,0 +1,39 @@
+{
+  "name": "@skkil-time/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "compile": "tsc -b",
+    "format": "prettier --write src",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@skkil-time/api": "workspace:*",
+    "@skkil-time/app": "workspace:*",
+    "@skkil-time/auth": "workspace:*",
+    "@skkil-time/contract": "workspace:*",
+    "@skkil-time/remote": "workspace:*",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^8.0.10",
+    "@rolldown/plugin-babel": "^0.3.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/babel__core": "^7.20.5",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^6.0.2",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.3",
+    "vite": "^8.0.16",
+    "vitest": "^5.0.5"
+  }
+}

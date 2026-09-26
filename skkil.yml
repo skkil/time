@@ -11,12 +11,27 @@ requires:
   - name: Rust
     check: command -v cargo
     hint: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  - name: Java 25
+    check: java -version 2>&1 | grep -q 'version "2[5-9]'
+    hint: install a JDK 25 (for example with sdkman)
+  - name: Docker
+    check: command -v docker
+    hint: install Docker for the local database and the server tests
   - name: workspace dependencies
     check: test -d node_modules
     hint: pnpm install
 
 dev:
   run:
+    - name: services
+      run: docker compose up
+      dir: apps/server
+    - name: server
+      run: ./gradlew bootRun
+      dir: apps/server
+    - name: web
+      run: pnpm dev
+      dir: apps/web
     - name: desktop
       run: pnpm tauri dev
       dir: apps/desktop
@@ -121,6 +136,16 @@ ci:
       lint: pnpm lint
       test: pnpm test
       build: pnpm compile
+    - name: server
+      dir: apps/server
+      format: ./gradlew spotlessCheck
+      test: ./gradlew test
+      build: ./gradlew bootJar
+    - name: web
+      dir: apps/web
+      format: pnpm exec prettier --check src
+      lint: pnpm lint
+      build: pnpm build
     - name: desktop
       dir: apps/desktop
       format: pnpm exec prettier --check src

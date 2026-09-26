@@ -23,6 +23,7 @@ export const tauriPlatform: Platform = {
   setZoom: (zoom) => void getCurrentWebview().setZoom(zoom),
   onOpenTask: (listener) => subscribe<Id>('open-task', listener),
   onQuickAdd: (listener) => subscribe<null>('quick-add', () => listener()),
+  account: null,
   features: {
     captureHotkey: true,
     reminders: true,

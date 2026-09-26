@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useImportTasks } from '@/features/import/api';
+import { platform } from '@/platform';
 
 import { SettingRow } from './SettingRow';
 
@@ -28,6 +29,8 @@ function reopen() {
 }
 
 export function DataSettings() {
+  const local = platform().features.databaseFile;
+  const where = local ? 'on this computer' : 'in your account';
   const [typed, setTyped] = useState('');
   const importTasks = useImportTasks();
   const backup = useMutation({
@@ -80,7 +83,7 @@ export function DataSettings() {
       </SettingRow>
       <SettingRow
         label="Restore from a backup"
-        description="Replaces the data on this computer with a backup file."
+        description={`Replaces the data ${where} with a backup file.`}
       >
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -92,9 +95,9 @@ export function DataSettings() {
             <AlertDialogHeader>
               <AlertDialogTitle>Restore from a backup?</AlertDialogTitle>
               <AlertDialogDescription>
-                Everything here is replaced by the file you pick. A copy of the
-                current data is saved as time-before-restore.db in the app’s
-                data folder first.
+                Everything here is replaced by the file you pick.
+                {local &&
+                  ' A copy of the current data is saved as time-before-restore.db in the app’s data folder first.'}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -108,7 +111,7 @@ export function DataSettings() {
       </SettingRow>
       <SettingRow
         label="Delete all data"
-        description="Projects, tasks, time, habits, reviews and settings on this computer. Export a backup first if you may want them back."
+        description={`Projects, tasks, time, habits, reviews and settings ${where}. Export a backup first if you may want them back.`}
       >
         <AlertDialog onOpenChange={() => setTyped('')}>
           <AlertDialogTrigger asChild>

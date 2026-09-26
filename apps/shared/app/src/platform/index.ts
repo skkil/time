@@ -2,6 +2,12 @@ import type { Id } from '@/backend';
 
 type Unsubscribe = () => void;
 
+export type Account = {
+  label: string;
+  signOut(): void;
+  deleteAccount(): Promise<void>;
+};
+
 export interface Platform {
   kind: 'desktop' | 'web';
   openUrl(url: string): void;
@@ -9,6 +15,7 @@ export interface Platform {
   setZoom(zoom: number): void;
   onOpenTask(listener: (id: Id) => void): Unsubscribe;
   onQuickAdd(listener: () => void): Unsubscribe;
+  account: Account | null;
   features: {
     captureHotkey: boolean;
     reminders: boolean;

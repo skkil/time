@@ -8,6 +8,7 @@ import {
   PaletteIcon,
   SunIcon,
   SunriseIcon,
+  UserIcon,
 } from 'lucide-react';
 import { type ComponentType, useState } from 'react';
 
@@ -17,7 +18,9 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { type Platform, platform } from '@/platform';
 
+import { AccountSettings } from './AccountSettings';
 import { AppearanceSettings } from './AppearanceSettings';
 import { CaptureSettings } from './CaptureSettings';
 import { DataSettings } from './DataSettings';
@@ -33,6 +36,7 @@ type Section = {
   description: string;
   icon: LucideIcon;
   content: ComponentType;
+  available?: (platform: Platform) => boolean;
 };
 
 const sections: Section[] = [
@@ -63,6 +67,7 @@ const sections: Section[] = [
     description: 'Alerts for tasks with a time.',
     icon: BellIcon,
     content: ReminderSettings,
+    available: (platform) => platform.features.reminders,
   },
   {
     id: 'capture',
@@ -70,6 +75,7 @@ const sections: Section[] = [
     description: 'Add a task without switching to skkil time.',
     icon: KeyboardIcon,
     content: CaptureSettings,
+    available: (platform) => platform.features.captureHotkey,
   },
   {
     id: 'priorities',
@@ -88,9 +94,17 @@ const sections: Section[] = [
   {
     id: 'data',
     label: 'Data',
-    description: 'Everything skkil time keeps on this computer.',
+    description: 'Import, back up or delete your data.',
     icon: DatabaseIcon,
     content: DataSettings,
+  },
+  {
+    id: 'account',
+    label: 'Account',
+    description: 'The account you are signed in with.',
+    icon: UserIcon,
+    content: AccountSettings,
+    available: (platform) => platform.account !== null,
   },
 ];
 
@@ -101,8 +115,11 @@ export function SettingsDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [activeId, setActiveId] = useState(sections[0].id);
-  const active = sections.find((section) => section.id === activeId)!;
+  const visible = sections.filter(
+    (section) => section.available?.(platform()) ?? true,
+  );
+  const [activeId, setActiveId] = useState(visible[0].id);
+  const active = visible.find((section) => section.id === activeId)!;
   const Content = active.content;
 
   return (
@@ -113,7 +130,7 @@ export function SettingsDialog({
           className="grid content-start gap-0.5 border-r bg-white/[.03] p-3"
         >
           <DialogTitle className="mb-2 px-2 text-sm">Settings</DialogTitle>
-          {sections.map(({ id, label, icon: Icon }) => (
+          {visible.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               type="button"

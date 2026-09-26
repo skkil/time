@@ -77,3 +77,7 @@ tasks.register<Test>("openApi") {
     systemProperty("openapi.write", "true")
     outputs.upToDateWhen { false }
 }
+
+tasks.named<Jar>("jar") {
+    enabled = false
+}

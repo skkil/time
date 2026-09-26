@@ -83,9 +83,9 @@ Each item is one commit. Check it off when it lands.
 
 ## 5. Web (`apps/web`)
 
-- [ ] 5.1 Scaffold: Vite + React shell around `apps/shared/app`
+- [x] 5.1 Scaffold: Vite + React shell around `apps/shared/app`
 - [ ] 5.2 HTTP `Backend` (`satisfies Backend`) and browser `Platform`
-- [ ] 5.3 `apps/shared/auth` + login flow (oidc-client-ts), signed-out page,
+- [x] 5.3 `apps/shared/auth` + login flow (oidc-client-ts), signed-out page,
       token refresh
 - [ ] 5.4 Browser replacements: file import, JSON export, change polling,
       notifications toggle
