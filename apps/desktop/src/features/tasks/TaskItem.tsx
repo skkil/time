@@ -109,11 +109,16 @@ export function TaskItem({
     task.statusId === null
       ? undefined
       : workflowIndex.statuses.get(task.statusId);
+  const { onKeyDown: dragKeys, ...dragPointer } = dragHandle?.listeners ?? {};
+  const dragKeyboard: Record<string, unknown> = dragKeys
+    ? { onKeyDown: dragKeys }
+    : {};
   const save = (patch: Partial<ReturnType<typeof taskToInput>>) =>
     update.mutate({ id: task.id, input: { ...taskToInput(task), ...patch } });
 
   return (
     <div
+      {...dragPointer}
       className={cn(
         'group/task relative flex items-start gap-2.5',
         variant === 'row'
@@ -136,7 +141,7 @@ export function TaskItem({
             aria-label={`Move ${task.title}`}
             className="cursor-grab rounded-sm p-0.5 text-muted-foreground opacity-0 group-hover/task:opacity-100 focus-visible:opacity-100 active:cursor-grabbing"
             {...dragHandle.attributes}
-            {...dragHandle.listeners}
+            {...dragKeyboard}
           >
             <GripVerticalIcon className="size-4" />
           </button>
@@ -250,7 +255,7 @@ export function TaskItem({
         >
           <div
             className={cn(
-              'flex items-center rounded-md bg-popover opacity-0 group-focus-within/task:opacity-100 group-hover/task:opacity-100 has-[[data-state=open]]:opacity-100',
+              'flex items-center rounded-md bg-popover opacity-0 group-hover/task:opacity-100 group-has-[:focus-visible]/task:opacity-100 has-[[data-state=open]]:opacity-100',
               variant === 'card' && 'bg-card',
             )}
           >
