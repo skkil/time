@@ -1,0 +1,13 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://issuer.test/
+          audiences: time-api
+management:
+  server:
+    port: 0
+time:
+  rate-limit:
+    requests-per-minute: 100000

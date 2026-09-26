@@ -1,0 +1,26 @@
+{
+  "name": "@skkil-time/remote",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "The app Backend over HTTP: every desktop command mapped to the server API",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "imports": {
+    "#*": "./src/*.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "compile": "tsc -b",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@skkil-time/api": "workspace:*",
+    "@skkil-time/contract": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.5"
+  }
+}

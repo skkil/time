@@ -14,7 +14,7 @@ function isCommandError(error: unknown): error is CommandError {
 
 export function errorMessage(error: unknown): string {
   if (isCommandError(error)) {
-    return error.kind === 'notFound'
+    return error.kind === 'notFound' && !/not found/i.test(error.message)
       ? `${error.message} not found.`
       : error.message;
   }
