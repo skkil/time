@@ -15,7 +15,7 @@ use features::{
     reminders, review, rituals, sections, tasks, time_entries, undo, workflow,
 };
 
-const BINDINGS_PATH: &str = "../src/bindings.ts";
+const BINDINGS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../src/bindings.ts");
 
 fn specta_builder() -> Builder<tauri::Wry> {
     Builder::<tauri::Wry>::new()
