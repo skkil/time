@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use crate::db::Db;
 use crate::error::{Error as AppError, Result as AppResult};
 use crate::features::time_entries::{self, EntryDetails, RunningTimer};
-use crate::features::{blocks, projects, sections, tasks};
+use crate::features::{blocks, groups, projects, sections, tasks};
 use crate::types::{Date, Id, Timestamp};
 
 pub const FLAG: &str = "--mcp";
@@ -89,6 +89,18 @@ struct ProjectView {
     parent_id: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     status: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    color: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    group: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    target_date: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    weekly_hours: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    stop_if: Option<String>,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    archived: bool,
     sections: Vec<SectionView>,
 }
 
@@ -173,6 +185,7 @@ fn optional_date(text: Option<&str>) -> AppResult<Option<Date>> {
 struct Names {
     projects: Vec<projects::Project>,
     sections: Vec<sections::Section>,
+    groups: Vec<groups::Group>,
 }
 
 impl Names {
@@ -180,7 +193,29 @@ impl Names {
         Ok(Self {
             projects: projects::list(conn)?,
             sections: sections::list(conn)?,
+            groups: groups::list(conn)?,
         })
+    }
+
+    fn project_view(&self, project: &projects::Project) -> ProjectView {
+        ProjectView {
+            id: Some(project.id.0),
+            name: project.name.clone(),
+            parent_id: project.parent_id.map(|id| id.0),
+            status: Some(project.status.clone()),
+            color: Some(project.color.clone()),
+            group: project
+                .group_id
+                .and_then(|id| self.groups.iter().find(|group| group.id == id))
+                .map(|group| group.name.clone()),
+            target_date: project.target_date.map(|date| date.0.to_string()),
+            weekly_hours: project
+                .weekly_minutes
+                .map(|minutes| f64::from(minutes) / 60.0),
+            stop_if: Some(project.kill_criteria.clone()).filter(|text| !text.is_empty()),
+            archived: project.archived,
+            sections: self.sections_of(Some(project.id)),
+        }
     }
 
     fn project(&self, id: Option<Id>) -> String {
@@ -261,6 +296,70 @@ fn resolve_project(conn: &Connection, text: &str) -> AppResult<Option<Id>> {
             names.join(", ")
         ))
     })
+}
+
+fn named_project(conn: &Connection, text: &str) -> AppResult<projects::Project> {
+    let text = text.trim();
+    if text.eq_ignore_ascii_case("inbox") {
+        return Err(AppError::invalid(
+            "The Inbox isn't a project; pick a project.",
+        ));
+    }
+    let all = projects::list(conn)?;
+    let mut found = all
+        .iter()
+        .filter(|project| matches(text, project.id, &project.name));
+    let pick = found
+        .clone()
+        .find(|project| !project.archived)
+        .or_else(|| found.next());
+    let id = pick
+        .map(|project| project.id)
+        .ok_or_else(|| AppError::invalid(format!("No project called “{text}”.")))?;
+    projects::get(conn, id)
+}
+
+fn resolve_group(conn: &Connection, text: &str) -> AppResult<Option<Id>> {
+    let text = text.trim();
+    if text.is_empty() {
+        return Ok(None);
+    }
+    let existing = groups::list(conn)?
+        .into_iter()
+        .find(|group| matches(text, group.id, &group.name));
+    match existing {
+        Some(group) => Ok(Some(group.id)),
+        None => Ok(Some(groups::create(conn, text)?.id)),
+    }
+}
+
+fn check_color(color: &str) -> AppResult<String> {
+    let color = color.trim().to_lowercase();
+    if projects::COLORS.contains(&color.as_str()) {
+        Ok(color)
+    } else {
+        Err(AppError::invalid(format!(
+            "Colours: {}.",
+            projects::COLORS.join(", ")
+        )))
+    }
+}
+
+fn hours_to_minutes(hours: f64) -> Option<i32> {
+    (hours > 0.0).then(|| (hours * 60.0).round() as i32)
+}
+
+fn settings_of(project: &projects::Project) -> projects::ProjectSettings {
+    projects::ProjectSettings {
+        group_id: project.group_id,
+        status: project.status.clone(),
+        outcome: project.outcome.clone(),
+        weekly_minutes: project.weekly_minutes,
+        target_date: project.target_date,
+        kill_criteria: project.kill_criteria.clone(),
+        review_every_weeks: project.review_every_weeks,
+        in_order: project.in_order,
+    }
 }
 
 fn view(task: &tasks::Task, names: &Names) -> TaskView {
@@ -402,6 +501,76 @@ struct FocusHistory {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+struct ListProjects {
+    #[schemars(description = "Also list archived projects.")]
+    include_archived: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct AddProject {
+    name: String,
+    #[schemars(description = "Put it inside this project (name or id). Projects nest three deep.")]
+    parent: Option<String>,
+    #[schemars(
+        description = "graphite, blue, teal, green, olive, amber, rust or plum (default blue)."
+    )]
+    color: Option<String>,
+    #[schemars(
+        description = "Group name for a top-level project; a new group is made if none has that name."
+    )]
+    group: Option<String>,
+    #[schemars(description = "YYYY-MM-DD. Leave out for ongoing work.")]
+    target_date: Option<String>,
+    weekly_hours: Option<f64>,
+    #[schemars(description = "When to drop the project, in a sentence.")]
+    stop_if: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct UpdateProject {
+    #[schemars(description = "The project to change, by name or id.")]
+    project: String,
+    name: Option<String>,
+    color: Option<String>,
+    #[schemars(
+        description = "Move inside this project (name or id); an empty string makes it top-level."
+    )]
+    parent: Option<String>,
+    #[schemars(
+        description = "Group name (made if new); an empty string takes it out of its group."
+    )]
+    group: Option<String>,
+    #[schemars(description = "active, paused, done or dropped.")]
+    status: Option<String>,
+    #[schemars(description = "YYYY-MM-DD; an empty string clears it.")]
+    target_date: Option<String>,
+    #[schemars(description = "Hours a week; 0 clears it.")]
+    weekly_hours: Option<f64>,
+    #[schemars(description = "An empty string clears it.")]
+    stop_if: Option<String>,
+    #[schemars(
+        description = "true archives the project and its sub-projects; false brings them back."
+    )]
+    archived: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct AddSection {
+    #[schemars(description = "Project name or id, or \"Inbox\".")]
+    project: String,
+    name: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct RenameSection {
+    #[schemars(description = "Project name or id, or \"Inbox\".")]
+    project: String,
+    #[schemars(description = "Current section name or id.")]
+    section: String,
+    name: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 struct Nothing {}
 
 #[derive(Clone)]
@@ -429,7 +598,10 @@ impl Planner {
     #[tool(
         description = "List the Inbox and the active projects, each with its sections and their ids."
     )]
-    async fn list_projects(&self, Parameters(_): Parameters<Nothing>) -> Result<String, String> {
+    async fn list_projects(
+        &self,
+        Parameters(query): Parameters<ListProjects>,
+    ) -> Result<String, String> {
         self.run(|conn| {
             let names = Names::load(conn)?;
             let inbox = ProjectView {
@@ -437,6 +609,12 @@ impl Planner {
                 name: "Inbox".to_owned(),
                 parent_id: None,
                 status: None,
+                color: None,
+                group: None,
+                target_date: None,
+                weekly_hours: None,
+                stop_if: None,
+                archived: false,
                 sections: names.sections_of(None),
             };
             let all: Vec<ProjectView> = std::iter::once(inbox)
@@ -444,14 +622,10 @@ impl Planner {
                     names
                         .projects
                         .iter()
-                        .filter(|project| !project.archived)
-                        .map(|project| ProjectView {
-                            id: Some(project.id.0),
-                            name: project.name.clone(),
-                            parent_id: project.parent_id.map(|id| id.0),
-                            status: Some(project.status.clone()),
-                            sections: names.sections_of(Some(project.id)),
-                        }),
+                        .filter(|project| {
+                            query.include_archived.unwrap_or(false) || !project.archived
+                        })
+                        .map(|project| names.project_view(project)),
                 )
                 .collect();
             to_json(&all)
@@ -742,6 +916,133 @@ impl Planner {
                 })
                 .collect();
             to_json(&sessions)
+        })
+    }
+
+    #[tool(description = "Create a project. Returns it with its id.")]
+    async fn add_project(
+        &self,
+        Parameters(input): Parameters<AddProject>,
+    ) -> Result<String, String> {
+        self.run(|conn| {
+            let parent_id = match input.parent.as_deref() {
+                Some(text) => Some(named_project(conn, text)?.id),
+                None => None,
+            };
+            let color = check_color(input.color.as_deref().unwrap_or("blue"))?;
+            let project = projects::create(
+                conn,
+                &projects::ProjectInput {
+                    name: input.name,
+                    parent_id,
+                    color,
+                },
+            )?;
+            let mut settings = settings_of(&project);
+            if parent_id.is_none() {
+                settings.group_id = input
+                    .group
+                    .as_deref()
+                    .map(|text| resolve_group(conn, text))
+                    .transpose()?
+                    .flatten();
+            }
+            settings.target_date = optional_date(input.target_date.as_deref())?;
+            settings.weekly_minutes = input.weekly_hours.and_then(hours_to_minutes);
+            settings.kill_criteria = input.stop_if.unwrap_or_default();
+            let project = projects::update_settings(conn, project.id, &settings)?;
+            to_json(&Names::load(conn)?.project_view(&project))
+        })
+    }
+
+    #[tool(
+        description = "Change a project: name, colour, parent, group, status, target date, weekly hours, stop rule, or archive it. Fields left out stay as they are."
+    )]
+    async fn update_project(
+        &self,
+        Parameters(change): Parameters<UpdateProject>,
+    ) -> Result<String, String> {
+        self.run(|conn| {
+            let mut project = named_project(conn, &change.project)?;
+            let id = project.id;
+            if change.name.is_some() || change.color.is_some() || change.parent.is_some() {
+                let parent_id = match change.parent.as_deref().map(str::trim) {
+                    Some("") => None,
+                    Some(text) => Some(named_project(conn, text)?.id),
+                    None => project.parent_id,
+                };
+                let color = match change.color.as_deref() {
+                    Some(text) => check_color(text)?,
+                    None => project.color.clone(),
+                };
+                project = projects::update(
+                    conn,
+                    id,
+                    &projects::ProjectInput {
+                        name: change.name.clone().unwrap_or(project.name.clone()),
+                        parent_id,
+                        color,
+                    },
+                )?;
+            }
+            let mut settings = settings_of(&project);
+            if let Some(text) = change.group.as_deref() {
+                if project.parent_id.is_some() {
+                    return Err(AppError::invalid(
+                        "Only top-level projects have a group; sub-projects follow theirs.",
+                    ));
+                }
+                settings.group_id = resolve_group(conn, text)?;
+            }
+            if let Some(status) = change.status {
+                settings.status = status.trim().to_lowercase();
+            }
+            if change.target_date.is_some() {
+                settings.target_date = optional_date(change.target_date.as_deref())?;
+            }
+            if let Some(hours) = change.weekly_hours {
+                settings.weekly_minutes = hours_to_minutes(hours);
+            }
+            if let Some(text) = change.stop_if {
+                settings.kill_criteria = text.trim().to_owned();
+            }
+            project = projects::update_settings(conn, id, &settings)?;
+            if let Some(archived) = change.archived {
+                projects::set_archived(conn, id, archived)?;
+                project = projects::get(conn, id)?;
+            }
+            to_json(&Names::load(conn)?.project_view(&project))
+        })
+    }
+
+    #[tool(description = "Add a section to a project or the Inbox.")]
+    async fn add_section(
+        &self,
+        Parameters(input): Parameters<AddSection>,
+    ) -> Result<String, String> {
+        self.run(|conn| {
+            let project_id = resolve_project(conn, &input.project)?;
+            let section = sections::create(conn, project_id, &input.name, None)?;
+            to_json(&SectionView {
+                id: section.id.0,
+                name: section.name,
+            })
+        })
+    }
+
+    #[tool(description = "Rename a section.")]
+    async fn rename_section(
+        &self,
+        Parameters(input): Parameters<RenameSection>,
+    ) -> Result<String, String> {
+        self.run(|conn| {
+            let project_id = resolve_project(conn, &input.project)?;
+            let id = resolve_section(conn, project_id, &input.section)?;
+            let section = sections::rename(conn, id, &input.name)?;
+            to_json(&SectionView {
+                id: section.id.0,
+                name: section.name,
+            })
         })
     }
 }
