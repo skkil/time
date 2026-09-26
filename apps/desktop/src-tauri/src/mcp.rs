@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use crate::db::Db;
 use crate::error::{Error as AppError, Result as AppResult};
 use crate::features::time_entries::{self, EntryDetails, RunningTimer};
-use crate::features::{blocks, projects, tasks};
+use crate::features::{blocks, projects, sections, tasks};
 use crate::types::{Date, Id, Timestamp};
 
 pub const FLAG: &str = "--mcp";
@@ -61,6 +61,8 @@ struct TaskView {
     title: String,
     project: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    section: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     parent_id: Option<i64>,
     priority: i32,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -81,11 +83,19 @@ struct TaskView {
 
 #[derive(Debug, Serialize)]
 struct ProjectView {
-    id: i64,
+    id: Option<i64>,
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     parent_id: Option<i64>,
-    status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    status: Option<String>,
+    sections: Vec<SectionView>,
+}
+
+#[derive(Debug, Serialize)]
+struct SectionView {
+    id: i64,
+    name: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -160,9 +170,73 @@ fn optional_date(text: Option<&str>) -> AppResult<Option<Date>> {
     }
 }
 
-fn project_name(all: &[projects::Project], id: Option<Id>) -> String {
-    id.and_then(|id| all.iter().find(|project| project.id == id))
-        .map_or_else(|| "Inbox".to_owned(), |project| project.name.clone())
+struct Names {
+    projects: Vec<projects::Project>,
+    sections: Vec<sections::Section>,
+}
+
+impl Names {
+    fn load(conn: &Connection) -> AppResult<Self> {
+        Ok(Self {
+            projects: projects::list(conn)?,
+            sections: sections::list(conn)?,
+        })
+    }
+
+    fn project(&self, id: Option<Id>) -> String {
+        id.and_then(|id| self.projects.iter().find(|project| project.id == id))
+            .map_or_else(|| "Inbox".to_owned(), |project| project.name.clone())
+    }
+
+    fn section(&self, id: Option<Id>) -> Option<String> {
+        id.and_then(|id| self.sections.iter().find(|section| section.id == id))
+            .map(|section| section.name.clone())
+    }
+
+    fn sections_of(&self, project_id: Option<Id>) -> Vec<SectionView> {
+        self.sections
+            .iter()
+            .filter(|section| section.project_id == project_id)
+            .map(|section| SectionView {
+                id: section.id.0,
+                name: section.name.clone(),
+            })
+            .collect()
+    }
+}
+
+fn matches(text: &str, id: Id, name: &str) -> bool {
+    match text.parse::<i64>() {
+        Ok(number) => id.0 == number,
+        Err(_) => name.eq_ignore_ascii_case(text),
+    }
+}
+
+fn resolve_section(conn: &Connection, project_id: Option<Id>, text: &str) -> AppResult<Id> {
+    let text = text.trim();
+    let names = Names::load(conn)?;
+    names
+        .sections
+        .iter()
+        .filter(|section| section.project_id == project_id)
+        .find(|section| matches(text, section.id, &section.name))
+        .map(|section| section.id)
+        .ok_or_else(|| {
+            let available: Vec<String> = names
+                .sections_of(project_id)
+                .into_iter()
+                .map(|section| section.name)
+                .collect();
+            let project = names.project(project_id);
+            AppError::invalid(if available.is_empty() {
+                format!("{project} has no sections.")
+            } else {
+                format!(
+                    "{project} has no section called “{text}”. Sections: {}.",
+                    available.join(", ")
+                )
+            })
+        })
 }
 
 fn resolve_project(conn: &Connection, text: &str) -> AppResult<Option<Id>> {
@@ -189,11 +263,12 @@ fn resolve_project(conn: &Connection, text: &str) -> AppResult<Option<Id>> {
     })
 }
 
-fn view(task: &tasks::Task, all: &[projects::Project]) -> TaskView {
+fn view(task: &tasks::Task, names: &Names) -> TaskView {
     TaskView {
         id: task.id.0,
         title: task.title.clone(),
-        project: project_name(all, task.project_id),
+        project: names.project(task.project_id),
+        section: names.section(task.section_id),
         parent_id: task.parent_id.map(|id| id.0),
         priority: task.priority,
         due: task.due_date.map(|date| match task.due_time {
@@ -236,6 +311,8 @@ fn to_json<T: Serialize>(value: &T) -> AppResult<String> {
 struct ListTasks {
     #[schemars(description = "Project name or id, or \"Inbox\". Leave out for every project.")]
     project: Option<String>,
+    #[schemars(description = "Section name or id. Searched within project when one is given.")]
+    section: Option<String>,
     #[schemars(
         description = "Only tasks due on or before this date (YYYY-MM-DD, today, tomorrow)."
     )]
@@ -254,7 +331,11 @@ struct AddTask {
     notes: Option<String>,
     #[schemars(description = "Project name or id, or \"Inbox\" (the default).")]
     project: Option<String>,
-    #[schemars(description = "Make it a sub-task of this task id; it joins that task's project.")]
+    #[schemars(description = "Section name or id inside that project.")]
+    section: Option<String>,
+    #[schemars(
+        description = "Make it a sub-task of this task id; it joins that task's project and section."
+    )]
     parent_id: Option<i64>,
     #[schemars(description = "1 (highest) to 4 (normal, the default).")]
     priority: Option<i32>,
@@ -272,6 +353,14 @@ struct AddTask {
 #[derive(Debug, Deserialize, JsonSchema)]
 struct UpdateTask {
     id: i64,
+    #[schemars(
+        description = "Move to this project (name, id or \"Inbox\"). A moved sub-task becomes a top-level task."
+    )]
+    project: Option<String>,
+    #[schemars(
+        description = "Move to this section (name or id) of the task's project, or of project when given; an empty string takes it out of its section."
+    )]
+    section: Option<String>,
     title: Option<String>,
     notes: Option<String>,
     #[schemars(description = "1 (highest) to 4 (normal).")]
@@ -337,18 +426,33 @@ impl Planner {
 
 #[tool_router]
 impl Planner {
-    #[tool(description = "List the active projects with their ids.")]
+    #[tool(
+        description = "List the Inbox and the active projects, each with its sections and their ids."
+    )]
     async fn list_projects(&self, Parameters(_): Parameters<Nothing>) -> Result<String, String> {
         self.run(|conn| {
-            let all: Vec<ProjectView> = projects::list(conn)?
-                .into_iter()
-                .filter(|project| !project.archived)
-                .map(|project| ProjectView {
-                    id: project.id.0,
-                    name: project.name,
-                    parent_id: project.parent_id.map(|id| id.0),
-                    status: project.status,
-                })
+            let names = Names::load(conn)?;
+            let inbox = ProjectView {
+                id: None,
+                name: "Inbox".to_owned(),
+                parent_id: None,
+                status: None,
+                sections: names.sections_of(None),
+            };
+            let all: Vec<ProjectView> = std::iter::once(inbox)
+                .chain(
+                    names
+                        .projects
+                        .iter()
+                        .filter(|project| !project.archived)
+                        .map(|project| ProjectView {
+                            id: Some(project.id.0),
+                            name: project.name.clone(),
+                            parent_id: project.parent_id.map(|id| id.0),
+                            status: Some(project.status.clone()),
+                            sections: names.sections_of(Some(project.id)),
+                        }),
+                )
                 .collect();
             to_json(&all)
         })
@@ -360,7 +464,7 @@ impl Planner {
     async fn today(&self, Parameters(_): Parameters<Nothing>) -> Result<String, String> {
         self.run(|conn| {
             let today = Date::today();
-            let all = projects::list(conn)?;
+            let names = Names::load(conn)?;
             let open: Vec<tasks::Task> = tasks::list(conn)?
                 .into_iter()
                 .filter(|task| task.completed_at.is_none() && !task.someday)
@@ -368,7 +472,7 @@ impl Planner {
             let pick = |keep: &dyn Fn(Date) -> bool| -> Vec<TaskView> {
                 open.iter()
                     .filter(|task| task.due_date.is_some_and(keep))
-                    .map(|task| view(task, &all))
+                    .map(|task| view(task, &names))
                     .collect()
             };
             let planned_blocks = blocks::list(conn, today, today.add_days(1))?
@@ -411,13 +515,39 @@ impl Planner {
                 .as_deref()
                 .map(|text| resolve_project(conn, text))
                 .transpose()?;
+            let names = Names::load(conn)?;
+            let section_ids: Option<Vec<Id>> = match (query.section.as_deref(), project) {
+                (None, _) => None,
+                (Some(text), Some(project_id)) => {
+                    Some(vec![resolve_section(conn, project_id, text)?])
+                }
+                (Some(text), None) => {
+                    let ids: Vec<Id> = names
+                        .sections
+                        .iter()
+                        .filter(|section| matches(text.trim(), section.id, &section.name))
+                        .map(|section| section.id)
+                        .collect();
+                    if ids.is_empty() {
+                        return Err(AppError::invalid(format!(
+                            "No section called “{}”. Use list_projects to see sections.",
+                            text.trim()
+                        )));
+                    }
+                    Some(ids)
+                }
+            };
             let due_by = optional_date(query.due_by.as_deref())?;
             let search = query.search.as_deref().map(str::to_lowercase);
-            let all = projects::list(conn)?;
             let found: Vec<TaskView> = tasks::list(conn)?
                 .iter()
                 .filter(|task| query.include_done.unwrap_or(false) || task.completed_at.is_none())
                 .filter(|task| project.is_none_or(|id| task.project_id == id))
+                .filter(|task| {
+                    section_ids
+                        .as_ref()
+                        .is_none_or(|ids| task.section_id.is_some_and(|id| ids.contains(&id)))
+                })
                 .filter(|task| due_by.is_none_or(|by| task.due_date.is_some_and(|date| date <= by)))
                 .filter(|task| {
                     search.as_deref().is_none_or(|text| {
@@ -426,7 +556,7 @@ impl Planner {
                     })
                 })
                 .take(query.limit.unwrap_or(DEFAULT_LIMIT))
-                .map(|task| view(task, &all))
+                .map(|task| view(task, &names))
                 .collect();
             to_json(&found)
         })
@@ -444,13 +574,18 @@ impl Planner {
                 (None, Some(text)) => resolve_project(conn, text)?,
                 (None, None) => None,
             };
+            let section_id = match (&parent, input.section.as_deref()) {
+                (Some(parent), _) => parent.section_id,
+                (None, Some(text)) => Some(resolve_section(conn, project_id, text)?),
+                (None, None) => None,
+            };
             let task = tasks::create(
                 conn,
                 &tasks::TaskInput {
                     title: input.title,
                     notes: input.notes.unwrap_or_default(),
                     project_id,
-                    section_id: parent.as_ref().and_then(|parent| parent.section_id),
+                    section_id,
                     parent_id: parent.map(|parent| parent.id),
                     priority: input.priority.unwrap_or(4),
                     due_date: optional_date(input.due_date.as_deref())?,
@@ -460,12 +595,12 @@ impl Planner {
                     estimate_minutes: input.estimate_minutes,
                 },
             )?;
-            to_json(&view(&task, &projects::list(conn)?))
+            to_json(&view(&task, &Names::load(conn)?))
         })
     }
 
     #[tool(
-        description = "Change a task's title, notes, priority, dates, repeat or estimate. Fields left out stay as they are."
+        description = "Change a task's title, notes, priority, dates, repeat or estimate, or move it to another project or section. Fields left out stay as they are."
     )]
     async fn update_task(
         &self,
@@ -504,8 +639,31 @@ impl Planner {
                 },
                 estimate_minutes: change.estimate_minutes.or(task.estimate_minutes),
             };
-            let task = tasks::update(conn, id, &input)?;
-            to_json(&view(&task, &projects::list(conn)?))
+            let mut task = tasks::update(conn, id, &input)?;
+            if change.project.is_some() || change.section.is_some() {
+                let project_id = match change.project.as_deref() {
+                    Some(text) => resolve_project(conn, text)?,
+                    None => task.project_id,
+                };
+                let section_id = match change.section.as_deref().map(str::trim) {
+                    Some("") => None,
+                    Some(text) => Some(resolve_section(conn, project_id, text)?),
+                    None if project_id == task.project_id => task.section_id,
+                    None => None,
+                };
+                let keeps_parent = project_id == task.project_id && section_id == task.section_id;
+                task = tasks::move_to(
+                    conn,
+                    id,
+                    tasks::TaskPlacement {
+                        project_id,
+                        section_id,
+                        parent_id: if keeps_parent { task.parent_id } else { None },
+                        before: None,
+                    },
+                )?;
+            }
+            to_json(&view(&task, &Names::load(conn)?))
         })
     }
 
@@ -516,7 +674,7 @@ impl Planner {
     ) -> Result<String, String> {
         self.run(|conn| {
             let task = tasks::set_completed(conn, Id(input.id), input.done.unwrap_or(true))?;
-            to_json(&view(&task, &projects::list(conn)?))
+            to_json(&view(&task, &Names::load(conn)?))
         })
     }
 
@@ -634,6 +792,13 @@ mod tests {
             assert_eq!(resolve_project(conn, "Inbox")?, None);
             let missing = resolve_project(conn, "Home").unwrap_err().to_string();
             assert!(missing.contains("Projects: Inbox, Thesis."));
+            let drafts = sections::create(conn, Some(thesis.id), "Drafts", None)?;
+            assert_eq!(resolve_section(conn, Some(thesis.id), "drafts")?, drafts.id);
+            assert!(resolve_section(conn, None, "Drafts").is_err());
+            let missing = resolve_section(conn, Some(thesis.id), "Ideas")
+                .unwrap_err()
+                .to_string();
+            assert!(missing.contains("Sections: Drafts."));
             Ok(())
         })
         .unwrap();
