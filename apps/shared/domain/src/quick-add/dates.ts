@@ -1,4 +1,11 @@
 import {
+  type DateKey,
+  fromDateKey,
+  mondayOf,
+  shiftKey,
+  toDateKey,
+} from '#time';
+import {
   addMonths,
   addYears,
   endOfMonth,
@@ -6,14 +13,6 @@ import {
   isValid,
   lastDayOfMonth,
 } from 'date-fns';
-
-import {
-  type DateKey,
-  fromDateKey,
-  mondayOf,
-  shiftKey,
-  toDateKey,
-} from '@/lib/time';
 
 import { KOREAN_DATE_RULES } from './korean';
 import { type PhraseRule, ruleTable } from './rules';

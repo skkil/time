@@ -1,3 +1,4 @@
+import { parseDatePhrase } from '@skkil-time/domain/quick-add/dates';
 import { format } from 'date-fns';
 import {
   CalendarIcon,
@@ -55,7 +56,6 @@ import {
   formatDue,
   priorityColor,
 } from './meta';
-import { parseDatePhrase } from './quick-add/parser/dates';
 
 type ChipProps = {
   icon: ReactNode;

@@ -1,8 +1,7 @@
+import type { Token } from '@skkil-time/domain/quick-add/types';
 import { type KeyboardEvent, useRef } from 'react';
 
 import { cn } from '@/lib/utils';
-
-import type { Token } from './parser/types';
 
 export function SmartInput({
   value,

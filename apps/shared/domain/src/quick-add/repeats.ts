@@ -1,6 +1,5 @@
+import { type DateKey, fromDateKey, shiftKey, toDateKey } from '#time';
 import { addMonths } from 'date-fns';
-
-import { type DateKey, fromDateKey, shiftKey, toDateKey } from '@/lib/time';
 
 import { DATE_PATTERN, parseDatePhrase } from './dates';
 import { DAY, MONTH, NTH, ORDINAL } from './vocabulary';

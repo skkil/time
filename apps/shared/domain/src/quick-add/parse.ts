@@ -1,5 +1,5 @@
-import type { Id } from '@/backend';
-import { shiftKey } from '@/lib/time';
+import { shiftKey } from '#time';
+import type { Id } from '@skkil-time/contract';
 
 import { DATE_PATTERN, parseDatePhrase } from './dates';
 import { DURATION_PATTERN, parseDuration } from './durations';

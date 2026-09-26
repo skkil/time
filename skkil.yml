@@ -105,9 +105,19 @@ ci:
       format: cargo fmt --check
       lint: cargo clippy --all-targets
       test: cargo test
+    - name: shared-domain
+      dir: apps/shared/domain
+      lint: pnpm lint
+      test: pnpm test
+      build: pnpm compile
+    - name: shared-tokens
+      dir: apps/shared/tokens
+      lint: pnpm lint
+      test: pnpm test
+      build: pnpm compile
     - name: shared-app
       dir: apps/shared/app
-      format: pnpm exec prettier --check .
+      format: pnpm exec prettier --check ..
       lint: pnpm lint
       test: pnpm test
       build: pnpm compile

@@ -1,4 +1,4 @@
-import { parseDurationInput } from '@/lib/time';
+import { parseDurationInput } from '#time';
 
 const MAX_MINUTES = 24 * 60;
 

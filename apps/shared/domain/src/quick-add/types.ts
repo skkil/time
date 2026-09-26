@@ -1,5 +1,5 @@
-import type { Id } from '@/backend';
-import type { DateKey } from '@/lib/time';
+import type { DateKey } from '#time';
+import type { Id } from '@skkil-time/contract';
 
 export type TokenKind =
   | 'date'

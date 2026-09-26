@@ -40,9 +40,9 @@ Each item is one commit. Check it off when it lands.
 - [x] 1.2 `apps/shared/contract`: Rust writes `bindings.ts` there
 - [x] 1.3 `apps/shared/app`: desktop UI moved behind `Backend` and `Platform`
       ports; desktop becomes a shell; all desktop tests pass
-- [ ] 1.4 `apps/shared/domain`: Quick Add parser, repeat phrases, date and
+- [x] 1.4 `apps/shared/domain`: Quick Add parser, repeat phrases, date and
       time helpers with no React or DOM (used by mobile)
-- [ ] 1.5 `apps/shared/tokens`: colours, type, spacing and sky palette as TS
+- [x] 1.5 `apps/shared/tokens`: colours, type, spacing and sky palette as TS
       plus the CSS variables the app already uses
 
 ## 2. Server foundation

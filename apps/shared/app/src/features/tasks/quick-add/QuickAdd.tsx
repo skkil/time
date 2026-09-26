@@ -1,3 +1,4 @@
+import { parseQuickAdd } from '@skkil-time/domain/quick-add/parse';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -23,7 +24,6 @@ import { quoted } from '@/lib/undo';
 import { cn } from '@/lib/utils';
 
 import { SmartInput } from './SmartInput';
-import { parseQuickAdd } from './parser/parse';
 
 export function QuickAdd({
   defaults = {},

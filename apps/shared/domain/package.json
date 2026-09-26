@@ -1,0 +1,26 @@
+{
+  "name": "@skkil-time/domain",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Platform-free planner logic: dates, durations and the Quick Add parser",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "imports": {
+    "#*": "./src/*.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "compile": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@skkil-time/contract": "workspace:*",
+    "date-fns": "^4.4.0"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.5"
+  }
+}

@@ -17,6 +17,8 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@fontsource-variable/hanken-grotesk": "^5.3.0",
     "@skkil-time/contract": "workspace:*",
+    "@skkil-time/domain": "workspace:*",
+    "@skkil-time/tokens": "workspace:*",
     "@tanstack/react-query": "^5.105.0",
     "@tanstack/react-router": "^1.170.46",
     "@tiptap/extension-list": "^3.32.2",

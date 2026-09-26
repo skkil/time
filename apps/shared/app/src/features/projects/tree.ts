@@ -1,17 +1,6 @@
 import type { Id, Project } from '@/backend';
 
-export const PROJECT_COLORS = [
-  'graphite',
-  'blue',
-  'teal',
-  'green',
-  'olive',
-  'amber',
-  'rust',
-  'plum',
-] as const;
-
-export type ProjectColor = (typeof PROJECT_COLORS)[number];
+export { PROJECT_COLORS, type ProjectColor } from '@skkil-time/tokens/colors';
 
 export const MAX_PROJECT_DEPTH = 3;
 

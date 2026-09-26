@@ -1,12 +1,11 @@
-import { addMonths } from 'date-fns';
-
 import {
   type DateKey,
   fromDateKey,
   mondayOf,
   shiftKey,
   toDateKey,
-} from '@/lib/time';
+} from '#time';
+import { addMonths } from 'date-fns';
 
 import type { PhraseRule } from './rules';
 

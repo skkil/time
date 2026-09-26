@@ -1,6 +1,7 @@
+import { parseQuickAdd } from '@skkil-time/domain/quick-add/parse';
+
 import type { ImportProject, ImportTask, TaskInput } from '@/backend';
 import { PROJECT_COLORS } from '@/features/projects/tree';
-import { parseQuickAdd } from '@/features/tasks/quick-add/parser/parse';
 import type { DateKey } from '@/lib/time';
 
 import { parseCsv } from './csv';

@@ -278,6 +278,12 @@ importers:
       '@skkil-time/contract':
         specifier: workspace:*
         version: link:../contract
+      '@skkil-time/domain':
+        specifier: workspace:*
+        version: link:../domain
+      '@skkil-time/tokens':
+        specifier: workspace:*
+        version: link:../tokens
       '@tanstack/react-query':
         specifier: ^5.105.0
         version: 5.107.1(@types/react@19.3.0)(react@19.3.1)
@@ -366,6 +372,34 @@ importers:
       '@tauri-apps/api':
         specifier: ^2
         version: 2.12.4
+
+  apps/shared/domain:
+    dependencies:
+      '@skkil-time/contract':
+        specifier: workspace:*
+        version: link:../contract
+      date-fns:
+        specifier: ^4.4.0
+        version: 4.4.0
+    devDependencies:
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.5
+        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0))
+
+  apps/shared/tokens:
+    devDependencies:
+      '@types/node':
+        specifier: ^26.6.6
+        version: 26.6.6
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.5
+        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0))
 
 packages:
 

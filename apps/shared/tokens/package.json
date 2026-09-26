@@ -1,0 +1,25 @@
+{
+  "name": "@skkil-time/tokens",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Design tokens shared by the desktop, web and mobile apps",
+  "exports": {
+    "./tokens.css": "./tokens.css",
+    "./*": "./src/*.ts"
+  },
+  "imports": {
+    "#*": "./src/*.ts"
+  },
+  "scripts": {
+    "generate": "node scripts/generate.ts",
+    "lint": "eslint .",
+    "compile": "tsc -b",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.5"
+  }
+}

@@ -1,10 +1,11 @@
+import type { WeekStart } from '@skkil-time/domain/time';
 import { useSyncExternalStore } from 'react';
 
 export type ZenBackdropMode = 'motion' | 'still';
 
 export type ProjectTab = 'graph' | 'timeline';
 
-export type WeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type { WeekStart };
 
 export type WeatherPlace = {
   name: string;
