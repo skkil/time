@@ -37,7 +37,7 @@ import { useTaskIndex, useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { EntryDialog } from '@/features/time/EntryDialog';
 import { useTimeEntries, useTimer } from '@/features/time/api';
-import { liveEntry } from '@/features/time/timer';
+import { liveEntry } from '@skkil-time/domain/timer';
 import { MIN_ENTRY_HEIGHT, trackedFill } from '@/features/time/tracked';
 import { useEvents } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';

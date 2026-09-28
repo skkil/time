@@ -1,4 +1,5 @@
 import { parseQuickAdd } from '@skkil-time/domain/quick-add/parse';
+import { taskFromParsed } from '@skkil-time/domain/quick-add/task';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -58,25 +59,7 @@ export function QuickAdd({
     [text, ignored, projects, sections, workflow, initial.projectId],
   );
 
-  const task: TaskInput = {
-    ...initial,
-    title: parsed.title,
-    dueDate: parsed.dueDate ?? initial.dueDate,
-    dueTime: parsed.dueTime ?? (parsed.dueDate ? null : initial.dueTime),
-    recurrence:
-      parsed.recurrence ?? (parsed.dueDate ? null : initial.recurrence),
-    deadline: parsed.deadline ?? initial.deadline,
-    priority: parsed.priority ?? initial.priority,
-    estimateMinutes: parsed.estimate ?? initial.estimateMinutes,
-    projectId:
-      parsed.projectId !== undefined ? parsed.projectId : initial.projectId,
-    sectionId:
-      parsed.sectionId !== undefined
-        ? parsed.sectionId
-        : parsed.projectId !== undefined
-          ? null
-          : initial.sectionId,
-  };
+  const task = taskFromParsed(initial, parsed);
   const project =
     task.projectId === null ? undefined : index.byId.get(task.projectId);
 

@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 
 import { PauseButton } from './PauseButton';
 import { useStopTimer, useTimer } from './api';
-import { focusedSeconds } from './timer';
+import { focusedSeconds } from '@skkil-time/domain/timer';
 
 const SUBJECT = 'ml-2 block max-w-40 truncate text-xs text-foreground/75';
 

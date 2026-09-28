@@ -93,15 +93,15 @@ Each item is one commit. Check it off when it lands.
 
 ## 6. Mobile (`apps/mobile`)
 
-- [ ] 6.1 Scaffold: Expo SDK 58, Expo Router, TypeScript, workspace packages
-- [ ] 6.2 HTTP backend + shared query layer, auth with expo-auth-session and
+- [x] 6.1 Scaffold: Expo SDK 58, Expo Router, TypeScript, workspace packages
+- [x] 6.2 HTTP backend + shared query layer, auth with expo-auth-session and
       secure storage
-- [ ] 6.3 Today: due and overdue tasks, musts, complete, open
-- [ ] 6.4 Quick Add with the shared parser
-- [ ] 6.5 Inbox, projects, project tasks, task detail and editing
-- [ ] 6.6 Focus timer (start, break, stop, history)
-- [ ] 6.7 Habits check-in
-- [ ] 6.8 Settings: account, sign out, delete account
+- [x] 6.3 Today: due and overdue tasks, musts, complete, open
+- [x] 6.4 Quick Add with the shared parser
+- [x] 6.5 Inbox, projects, project tasks, task detail and editing
+- [x] 6.6 Focus timer (start, break, stop, history)
+- [x] 6.7 Habits check-in
+- [x] 6.8 Settings: account, sign out, delete account
 - [ ] 6.9 Release config: app.config, icons and splash from `assets/icon.svg`,
       EAS profiles, deep links, privacy manifest
 

@@ -112,6 +112,20 @@ assets:
         dest: apps/desktop/src-tauri/icons/icon.ico
       - format: copy
         dest: apps/desktop/public/favicon.svg
+      - format: copy
+        dest: apps/web/public/favicon.svg
+      - format: png
+        size:
+          - 1024
+        dest: apps/mobile/assets/icon.png
+      - format: png
+        size:
+          - 512
+        dest: apps/mobile/assets/splash-icon.png
+      - format: png
+        size:
+          - 48
+        dest: apps/mobile/assets/favicon.png
 
 ci:
   tasks:
@@ -146,6 +160,11 @@ ci:
       format: pnpm exec prettier --check src
       lint: pnpm lint
       build: pnpm build
+    - name: mobile
+      dir: apps/mobile
+      format: pnpm exec prettier --check app src
+      lint: pnpm lint
+      build: pnpm compile
     - name: desktop
       dir: apps/desktop
       format: pnpm exec prettier --check src

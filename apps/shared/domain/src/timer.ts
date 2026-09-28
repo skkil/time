@@ -1,4 +1,4 @@
-import type { RunningTimer, TimeEntry } from '@/backend';
+import type { RunningTimer, TimeEntry } from '@skkil-time/contract';
 
 export function focusedSeconds(timer: RunningTimer, now: number) {
   const current =

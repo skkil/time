@@ -10,6 +10,8 @@ export default defineConfig([
     '**/dist',
     '**/build',
     '**/node_modules',
+    '**/.expo',
+    'apps/mobile/expo-env.d.ts',
     'apps/desktop/src-tauri',
     'apps/server',
     'apps/shared/contract/src/bindings.ts',
@@ -46,5 +48,9 @@ export default defineConfig([
         },
       ],
     },
+  },
+  {
+    files: ['apps/mobile/**/*.{ts,tsx}'],
+    rules: { 'react-refresh/only-export-components': 'off' },
   },
 ]);

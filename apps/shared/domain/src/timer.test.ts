@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RunningTimer } from '@/backend';
+import type { RunningTimer } from '@skkil-time/contract';
 
-import { focusedSeconds, liveEntry } from './timer';
+import { focusedSeconds, liveEntry } from '#timer';
 
 const timer = (patch: Partial<RunningTimer> = {}): RunningTimer => ({
   description: '',

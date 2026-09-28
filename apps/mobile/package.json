@@ -1,0 +1,47 @@
+{
+  "name": "@skkil-time/mobile",
+  "version": "0.1.0",
+  "main": "expo-router/entry",
+  "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
+    "@skkil-time/api": "workspace:*",
+    "@skkil-time/auth": "workspace:*",
+    "@skkil-time/contract": "workspace:*",
+    "@skkil-time/domain": "workspace:*",
+    "@skkil-time/remote": "workspace:*",
+    "@skkil-time/tokens": "workspace:*",
+    "@tanstack/react-query": "^5.107.1",
+    "date-fns": "^4.4.0",
+    "expo": "~58.0.23",
+    "expo-auth-session": "~58.0.17",
+    "expo-constants": "~58.0.15",
+    "expo-crypto": "~58.0.7",
+    "expo-haptics": "~58.0.7",
+    "expo-linking": "~58.0.16",
+    "expo-router": "~58.0.30",
+    "expo-secure-store": "~58.0.2",
+    "expo-splash-screen": "~58.0.13",
+    "expo-status-bar": "~58.0.4",
+    "expo-system-ui": "~58.0.7",
+    "expo-web-browser": "~58.0.7",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-gesture-handler": "~3.3.0",
+    "react-native-safe-area-context": "~5.11.1",
+    "react-native-screens": "~4.30.1"
+  },
+  "devDependencies": {
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "lint": "eslint .",
+    "compile": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "doctor": "expo-doctor"
+  },
+  "private": true
+}

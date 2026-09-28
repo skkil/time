@@ -13,7 +13,7 @@ import { useRitualRuns } from '@/features/rituals/api';
 import { TaskPanel } from '@/features/tasks/TaskPanel';
 import { useTaskIndex } from '@/features/tasks/api';
 import { useTimeEntries, useTimer } from '@/features/time/api';
-import { liveEntry } from '@/features/time/timer';
+import { liveEntry } from '@skkil-time/domain/timer';
 import { useEvents } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
 import { usePreference } from '@/lib/preferences';

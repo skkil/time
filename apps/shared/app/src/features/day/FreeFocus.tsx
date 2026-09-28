@@ -17,7 +17,7 @@ import {
   useStopTimer,
   useTimer,
 } from '@/features/time/api';
-import { focusedSeconds } from '@/features/time/timer';
+import { focusedSeconds } from '@skkil-time/domain/timer';
 import { useNow } from '@/hooks/use-now';
 import { formatClockTime, formatStopwatch } from '@/lib/time';
 

@@ -37,7 +37,7 @@ import { OutcomePicker } from '@/features/review/OutcomePicker';
 import { useWeek } from '@/features/review/api';
 import { PauseButton } from '@/features/time/PauseButton';
 import { useStartTimer, useStopTimer, useTimer } from '@/features/time/api';
-import { focusedSeconds } from '@/features/time/timer';
+import { focusedSeconds } from '@skkil-time/domain/timer';
 import { EventLine, WorkflowLine } from '@/features/workflow/TaskWorkflow';
 import { useProjectWorkflow } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
