@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+**/build
+**/.gradle
+**/.kotlin
+**/target
+**/.expo
+.git
+.claude
+apps/desktop/src-tauri

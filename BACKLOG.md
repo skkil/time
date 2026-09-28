@@ -89,7 +89,7 @@ Each item is one commit. Check it off when it lands.
       token refresh
 - [ ] 5.4 Browser replacements: file import, JSON export, change polling,
       notifications toggle
-- [ ] 5.5 Production build: env config, caching headers, error boundary, 404
+- [x] 5.5 Production build: env config, caching headers, error boundary, 404
 
 ## 6. Mobile (`apps/mobile`)
 
