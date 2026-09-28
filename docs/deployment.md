@@ -1,0 +1,93 @@
+# Deployment
+
+How the server, web and mobile apps run in production on AWS, following
+`../PLATFORM_PLAN.md`: one product section in `skkil.yml`, shared platform
+layers owning the infrastructure. The desktop app ships as a Tauri bundle and
+needs none of this.
+
+## Pieces
+
+| Piece | Artifact | Runs as |
+|---|---|---|
+| API | `apps/server/Dockerfile` (`docker build apps/server`) | Container on the shared app host or ECS; port 8080 public, 8081 private |
+| Web | `apps/web/Dockerfile` (`docker build -f apps/web/Dockerfile .`) | nginx container on port 8080, or the `dist/` folder on S3 + CloudFront |
+| Database | Postgres 17 (RDS) | Flyway migrates on API start; one database `time` |
+| Sign-in | Any OIDC provider (Auth0 per the platform plan) | One API, one SPA app, one native app |
+| Mobile | EAS builds | App Store and Play Store |
+
+## Sign-in provider
+
+Create, per environment:
+
+1. An **API** with identifier `time-api`, the audience the server checks.
+2. A **single-page application** for the web: Authorization Code + PKCE,
+   refresh token rotation on, allowed callback and logout URL
+   `https://<web host>/`, allowed web origin `https://<web host>`.
+3. A **native application** for mobile: Authorization Code + PKCE, refresh
+   token rotation on, callback `skkiltime://auth`, logout `skkiltime://`.
+
+Allow the scopes `openid profile email offline_access`. Moving to the skkil auth
+service later only changes `AUTH_ISSUER_URI` on the server and the authority
+and client ids in the web and mobile config. Users stay attached to their data
+through `user_identity (issuer, subject)`; link the new issuer's subject to the
+same `user_id` during the migration.
+
+## API
+
+Environment (secrets from Secrets Manager, the rest from SSM or `skkil.yml`):
+
+```
+DATABASE_URL=jdbc:postgresql://<rds host>:5432/time
+DATABASE_USERNAME=time
+DATABASE_PASSWORD=<secret>
+AUTH_ISSUER_URI=https://<tenant>/            # must match the token's iss exactly
+AUTH_AUDIENCE=time-api
+CORS_ALLOWED_ORIGINS=https://<web host>
+```
+
+- Health: `GET /readyz` (load balancer target), `GET /livez` (restart probe).
+- Metrics: `GET :8081/actuator/prometheus`. Keep 8081 off the public listener.
+- Logs: JSON (ECS format) on stdout with the `prod` profile, which the image
+  sets.
+- Shutdown is graceful (20 s), so rolling deploys drain requests.
+- The built-in rate limit is a per-address safety net. Put WAF rate rules at
+  the edge.
+- Scaling: the API is stateless; run two or more instances behind the load
+  balancer. Undo snapshots live in Postgres.
+
+## Web
+
+Serve the container behind the same load balancer or CloudFront, with
+`API_URL=https://<api host>`, `AUTH_AUTHORITY`, `AUTH_CLIENT_ID` and
+`AUTH_AUDIENCE=time-api`. Hashed assets cache for a year; `index.html` and
+`config.js` are never cached, so a deploy is live at once.
+
+## Database
+
+- RDS Postgres 17, `manage_master_user_password`, automated backups (7 to 35
+  days) and point-in-time recovery.
+- An app user owns the `time` database. Flyway runs on start under a lock, so
+  parallel starts are safe.
+- Never edit a shipped migration; add `V<n>__<what>.sql`.
+
+## Mobile
+
+1. `eas init` once, and put the project id in `EAS_PROJECT_ID`.
+2. In the EAS environments, set `EXPO_PUBLIC_API_URL`,
+   `EXPO_PUBLIC_AUTH_AUTHORITY`, `EXPO_PUBLIC_AUTH_CLIENT_ID`,
+   `EXPO_PUBLIC_AUTH_AUDIENCE` and `EXPO_PUBLIC_LEGAL_URL`.
+3. `eas build --profile production --platform all`, then `eas submit`.
+4. Store review needs a demo account on the production provider, the privacy
+   policy URL, and the in-app account deletion (Settings → Delete account).
+
+## Release checklist
+
+- [ ] `skkil ci` green: server tests, OpenAPI drift check, type checks, lint,
+      unit tests, builds.
+- [ ] Provider apps and API created for the environment.
+- [ ] Secrets set; `AUTH_ISSUER_URI` matches `iss` exactly, trailing slash
+      included.
+- [ ] `/readyz` healthy behind the load balancer; 8081 not public.
+- [ ] Web origin in `CORS_ALLOWED_ORIGINS` and in the provider's allowed
+      origins.
+- [ ] Privacy policy and terms published at `EXPO_PUBLIC_LEGAL_URL`.
