@@ -22,6 +22,9 @@ services:
       - "8090:8090"
     environment:
       SERVER_PORT: 8090
+      JSON_CONFIG: >-
+        {"interactiveLogin": true, "tokenCallbacks": [{"issuerId": "default", "tokenExpiry": 3600,
+        "requestMappings": [{"requestParam": "client_id", "match": "*", "claims": {"aud": ["time-api"]}}]}]}
 
 volumes:
   postgres:
