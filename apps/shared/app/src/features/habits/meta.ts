@@ -30,9 +30,15 @@ export const SOURCES: {
   value: string;
   label: string;
   icon: LucideIcon;
+  activity?: boolean;
 }[] = [
-  { value: 'website', label: 'Websites visited', icon: GlobeIcon },
-  { value: 'app', label: 'Apps used', icon: AppWindowIcon },
+  {
+    value: 'website',
+    label: 'Websites visited',
+    icon: GlobeIcon,
+    activity: true,
+  },
+  { value: 'app', label: 'Apps used', icon: AppWindowIcon, activity: true },
   { value: 'project', label: 'Time tracked on a project', icon: TimerIcon },
 ];
 

@@ -24,6 +24,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ProjectPicker } from '@/features/projects/ProjectPicker';
 import { todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
+import { platform } from '@/platform';
 
 import { useCreateHabit, useUpdateHabit } from './api';
 import { ALL_DAYS, SOURCES, TIMES_OF_DAY, WEEKDAY_LETTERS } from './meta';
@@ -344,7 +345,12 @@ function HabitForm({
           onChange={(source) => setTracking(source === OFF ? null : { source })}
           options={[
             { value: OFF, label: "Off, I'll log it myself" },
-            ...SOURCES,
+            ...SOURCES.filter(
+              (option) =>
+                !option.activity ||
+                platform().features.activityTracking ||
+                option.value === tracking?.source,
+            ),
           ]}
         />
         {tracking && tracking.source !== 'project' && (
