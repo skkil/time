@@ -167,6 +167,81 @@
         }
       }
     },
+    "/api/v1/tasks/{id}/phases/{statusId}/notes" : {
+      "put" : {
+        "tags" : [ "record-controller" ],
+        "operationId" : "setNotes",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "statusId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PhaseNotes"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/phase" : {
+      "put" : {
+        "tags" : [ "record-controller" ],
+        "operationId" : "setPhase",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskPhase"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/{id}/outcome" : {
       "put" : {
         "tags" : [ "task-controller" ],
@@ -1195,6 +1270,43 @@
         }
       }
     },
+    "/api/v1/tasks/{id}/phase-tasks" : {
+      "post" : {
+        "tags" : [ "record-controller" ],
+        "operationId" : "createTask",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PhaseTaskInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/{id}/move" : {
       "post" : {
         "tags" : [ "task-controller" ],
@@ -1736,6 +1848,36 @@
         }
       }
     },
+    "/api/v1/tasks/{id}/phases" : {
+      "get" : {
+        "tags" : [ "record-controller" ],
+        "operationId" : "phases",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/RecordPhase"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/presets" : {
       "get" : {
         "tags" : [ "workflow-controller" ],
@@ -2077,6 +2219,25 @@
           }
         },
         "required" : [ "statusId" ]
+      },
+      "PhaseNotes" : {
+        "type" : "object",
+        "properties" : {
+          "notes" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "notes" ]
+      },
+      "TaskPhase" : {
+        "type" : "object",
+        "properties" : {
+          "phaseId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "phaseId" ]
       },
       "TaskOutcome" : {
         "type" : "object",
@@ -2514,6 +2675,19 @@
         },
         "required" : [ "ids" ]
       },
+      "PhaseTaskInput" : {
+        "type" : "object",
+        "properties" : {
+          "phaseId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "phaseId", "title" ]
+      },
       "TaskPlacement" : {
         "type" : "object",
         "properties" : {
@@ -2766,6 +2940,19 @@
           }
         },
         "required" : [ "icon", "name", "seconds" ]
+      },
+      "RecordPhase" : {
+        "type" : "object",
+        "properties" : {
+          "statusId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "notes" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "notes", "statusId" ]
       },
       "Me" : {
         "type" : "object",

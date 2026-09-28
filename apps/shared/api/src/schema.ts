@@ -52,6 +52,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/tasks/{id}/phases/{statusId}/notes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setNotes'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/phase': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setPhase'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/tasks/{id}/outcome': {
     parameters: {
       query?: never;
@@ -452,6 +484,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/tasks/{id}/phase-tasks': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['createTask'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/tasks/{id}/move': {
     parameters: {
       query?: never;
@@ -708,6 +756,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/tasks/{id}/phases': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['phases'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/presets': {
     parameters: {
       query?: never;
@@ -876,6 +940,13 @@ export interface components {
       /** Format: int64 */
       statusId: number;
     };
+    PhaseNotes: {
+      notes: string;
+    };
+    TaskPhase: {
+      /** Format: int64 */
+      phaseId: number | null;
+    };
     TaskOutcome: {
       /** Format: int64 */
       outcomeId: number | null;
@@ -1035,6 +1106,11 @@ export interface components {
     TaskIds: {
       ids: number[];
     };
+    PhaseTaskInput: {
+      /** Format: int64 */
+      phaseId: number;
+      title: string;
+    };
     TaskPlacement: {
       /** Format: int64 */
       projectId: number | null;
@@ -1128,6 +1204,11 @@ export interface components {
       /** Format: int64 */
       seconds: number;
     };
+    RecordPhase: {
+      /** Format: int64 */
+      statusId: number;
+      notes: string;
+    };
     Me: {
       /** Format: int64 */
       id: number;
@@ -1159,6 +1240,8 @@ export type TaskInput = components['schemas']['TaskInput'];
 export type Task = components['schemas']['Task'];
 export type TaskTypeId = components['schemas']['TaskTypeId'];
 export type TaskStatusId = components['schemas']['TaskStatusId'];
+export type PhaseNotes = components['schemas']['PhaseNotes'];
+export type TaskPhase = components['schemas']['TaskPhase'];
 export type TaskOutcome = components['schemas']['TaskOutcome'];
 export type TaskNextStep = components['schemas']['TaskNextStep'];
 export type TaskMust = components['schemas']['TaskMust'];
@@ -1186,6 +1269,7 @@ export type StatusPlacement = components['schemas']['StatusPlacement'];
 export type GroupName = components['schemas']['GroupName'];
 export type Group = components['schemas']['Group'];
 export type TaskIds = components['schemas']['TaskIds'];
+export type PhaseTaskInput = components['schemas']['PhaseTaskInput'];
 export type TaskPlacement = components['schemas']['TaskPlacement'];
 export type TaskDependency = components['schemas']['TaskDependency'];
 export type TasksSomeday = components['schemas']['TasksSomeday'];
@@ -1198,6 +1282,7 @@ export type Milestone = components['schemas']['Milestone'];
 export type SavedView = components['schemas']['SavedView'];
 export type Workflow = components['schemas']['Workflow'];
 export type TypeTime = components['schemas']['TypeTime'];
+export type RecordPhase = components['schemas']['RecordPhase'];
 export type Me = components['schemas']['Me'];
 export type EventOccurrence = components['schemas']['EventOccurrence'];
 export type $defs = Record<string, never>;
@@ -1308,6 +1393,57 @@ export interface operations {
     requestBody: {
       content: {
         'application/json': components['schemas']['TaskStatusId'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  setNotes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+        statusId: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PhaseNotes'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  setPhase: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskPhase'];
       };
     };
     responses: {
@@ -2134,6 +2270,32 @@ export interface operations {
       };
     };
   };
+  createTask: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PhaseTaskInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
   move: {
     parameters: {
       query?: never;
@@ -2573,6 +2735,28 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['TypeTime'][];
+        };
+      };
+    };
+  };
+  phases: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RecordPhase'][];
         };
       };
     };
