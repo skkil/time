@@ -1,8 +1,11 @@
 # AGENTS.md
 
-skkil/time is a local-first personal planner: tasks, nested projects,
-time-blocking, time tracking, habits, and a weekly/quarterly review. All data
-lives in one SQLite file on the user's machine; there is no server and no sync.
+skkil/time is a personal planner: tasks, nested projects, time-blocking, time
+tracking, habits, and a weekly/quarterly review. The desktop app is
+local-first (one SQLite file, no account). The web and mobile apps use the same
+model through `apps/server` (Postgres, one account per user). Sync between
+desktop and server will come from the separate `../store` project; nothing here
+syncs yet.
 
 Product docs live at the repo root (`IMPROVEMENTS.md`, `OPEN-LOOPS.md`,
 `REEVALUATION-SUNSAMA.md`), the spec under `.jennifer/`, and the design memory
@@ -99,23 +102,45 @@ in `.design/DESIGN.md`.
 
 ## Repository structure
 
-Multi-app monorepo without a workspace manager:
+pnpm workspace (`pnpm-workspace.yaml`) plus a Gradle project for the server:
 
-- `apps/desktop/` - Tauri 2 desktop app (Rust backend + React frontend)
+- `apps/desktop/`: Tauri 2 desktop app (Rust backend + a thin React shell)
+- `apps/server/`: Kotlin Spring Boot API (see its README)
+- `apps/web/`: Vite + React web app, a thin shell like desktop
+- `apps/mobile/`: Expo React Native app
+- `apps/shared/*`: TypeScript packages; see `apps/shared/README.md`
+  - `contract`: `bindings.ts` generated from Rust, the type contract for every app
+  - `app`: the whole desktop/web UI, behind `Backend` and `Platform` ports
+  - `domain`: platform-free rules (dates, day plan, due dates, timer, Quick Add)
+  - `tokens`: colours and the sky; `pnpm generate` writes `tokens.css`
+  - `api`: the server's `openapi.json`, generated types, typed fetch client
+  - `remote`: the `Backend` over HTTP (`satisfies Backend`)
+  - `auth`: provider-neutral OIDC sign-in
 
-Each app is independent with its own package manager and build system.
+Run `pnpm install` once at the root. Root configs are shared: `eslint.config.js`,
+`.prettierrc`, `tsconfig.base.json`. `pnpm -r lint|compile|test` runs every
+package.
 
-`skkil.yml` wires the repo into the org CLI (`skkil`): `skkil dev`,
-`skkil doctor`, `skkil ci` (format, lint, test, build for both the Rust core and
-the frontend), and `skkil assets generate`, which renders every app icon from
-`assets/icon.svg`. `icon.icns` is not covered by skkil; regenerate it with
-`pnpm tauri icon` from a 1024px render of the same master.
+**Change once, reach every app.** UI goes in `apps/shared/app` (desktop and
+web), rules in `apps/shared/domain` (all three), colours in
+`apps/shared/tokens/src/colors.ts` (all three). Never copy logic into a shell
+app. A new backend command needs the Rust command, a Kotlin endpoint and a line
+in `apps/shared/remote`; `tsc` in `remote` fails until all three agree.
+
+`skkil.yml` wires the repo into the org CLI (`skkil`): `skkil dev` (Postgres,
+mock sign-in, server, web, desktop), `skkil doctor`, `skkil ci` (format, lint,
+test, build for every app), and `skkil assets generate`, which renders every app
+icon from `assets/icon.svg`. `icon.icns` is not covered by skkil; regenerate it
+with `pnpm tauri icon` from a 1024px render of the same master. Mobile's Android
+adaptive layers come from `apps/mobile/scripts/android-icons.sh`.
+
+Production setup is in `docs/deployment.md`; the open work list is
+`BACKLOG.md`.
 
 ## Desktop app (`apps/desktop/`)
 
 ```bash
 cd apps/desktop
-pnpm install
 pnpm tauri dev     # run the app with hot reload
 pnpm tauri build   # release bundle under src-tauri/target/release/bundle
 pnpm compile       # tsc -b
@@ -132,14 +157,15 @@ cargo clippy --all-targets
 
 - Quick add follows Todoist's syntax: dates and times in plain words, `every …`
   repeats, `{deadline}`, `p1`–`p4`, `#Project`, `/Section`, `+type`, `for 1h`.
-  It lives in `src/features/tasks/quick-add/`; each grammar in `parser/` is a
-  rule table or pattern with tests beside it, and `parser/parse.ts` runs them in
-  order. Clicking a highlighted phrase keeps it as plain text.
+  It lives in `apps/shared/domain/src/quick-add/` (the UI in
+  `apps/shared/app/src/features/tasks/quick-add/`); each grammar is a rule
+  table or pattern with tests beside it, and `parse.ts` runs them in order. Clicking a highlighted phrase keeps it as plain text.
 - Repeats are read, advanced and given their first date in
   `src-tauri/src/recurrence/`: rules in `rule.rs`, matchable days in
   `pattern.rs`, `every!` and end dates in `mod.rs`. The frontend only claims the
-  phrase. `parser/repeat-phrases.json` is read by both test suites, so a phrase
-  the backend can't store fails the build.
+  phrase. `apps/shared/domain/src/quick-add/repeat-phrases.json` is read by the
+  TypeScript, Rust and Kotlin (`apps/server/.../recurrence`) test suites, so a
+  phrase a backend can't store fails the build.
 
 ### Backend (`src-tauri/`)
 
@@ -177,12 +203,18 @@ cargo clippy --all-targets
 - `run()` sets `JSC_useJIT=0` on Linux: JavaScriptCore's JIT costs about 70 MB
   of web process memory in use and a planner doesn't need its speed.
 
-### Frontend (`src/`)
+### Frontend (`apps/shared/app/src/`, mounted by `apps/desktop/src/main.tsx`)
 
 - React 19 with React Compiler, TanStack Router (hash history) and TanStack
   Query, shadcn/ui (`src/components/ui`) on Tailwind v4, dnd-kit.
-- `src/bindings.ts` is generated by tauri-specta on every debug run and by
-  `cargo test`. Do not edit it; change the Rust types instead.
+- `apps/shared/contract/src/bindings.ts` is generated by tauri-specta on every
+  debug run and by `cargo test`. Do not edit it; change the Rust types instead.
+  UI code imports types and `commands` from `@/backend`, never from Tauri.
+- Anything that differs between desktop and web goes through `platform()`
+  (`src/platform/index.ts`): opening URLs, window focus, zoom, Tauri events, the
+  signed-in account and `features` flags (capture hotkey, reminders,
+  ActivityWatch, database-file backups). Settings sections declare
+  `available(platform)`.
 - `src/features/<domain>/api.ts` holds the queries and mutations for a domain;
   components live beside it.
 - A project page always opens on Tasks, with Notes and Focus beside it. List,
@@ -226,9 +258,28 @@ cargo clippy --all-targets
 - Habit auto-sync runs from the app shell (start, window focus at most every 5
   min) and when the Habits window opens.
 
-## No root-level tooling
+## Server (`apps/server/`)
 
-- No `pnpm-workspace.yaml` or root `package.json`
-- No GitHub Actions workflows
-- No shared ESLint, TypeScript, or prettier configs
-- Each app is self-contained
+- Kotlin 2.3, Spring Boot 4.1, Java 25, Postgres, Flyway, Spring `JdbcClient`
+  with explicit SQL. `./gradlew spotlessApply test` (Testcontainers);
+  `docker compose up -d` for local Postgres and a mock OIDC issuer.
+- `features/<domain>/` mirrors `src-tauri/src/features/<domain>.rs`: the same
+  rules, validation messages and JSON shapes. Every query filters by
+  `user_id`, and every referenced id is checked against the caller.
+- Controllers take a `Caller` (user id + time zone from `X-Time-Zone`); use
+  `caller.now()`/`caller.today()` wherever desktop uses local time.
+- Auth is an OAuth2 resource server only (`AUTH_ISSUER_URI`, `AUTH_AUDIENCE`);
+  users are `user_identity (issuer, subject)` → `app_user`. Errors are RFC 9457
+  problem details with a `kind` matching the desktop `Error`.
+- After an API change: `./gradlew openApi`, then `pnpm generate` in
+  `apps/shared/api`, then `pnpm exec tsc -b` in `apps/shared/remote`.
+  `OpenApiDocumentTest` fails while the committed document is stale.
+
+## Web and mobile
+
+- Web (`apps/web/`) is `mount()` from `apps/shared/app` with the remote backend,
+  a browser `Platform` and OIDC sign-in (`apps/shared/auth/web`). Config is
+  `VITE_*` at build time or `config.js` at container start.
+- Mobile (`apps/mobile/`) is Expo Router. It shares `domain`, `tokens`,
+  `contract`, `api` and `remote`, not DOM components; screens live in `app/`,
+  hooks in `src/queries.ts`. `pnpm compile` and `npx expo export` check it.
