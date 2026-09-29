@@ -80,6 +80,46 @@ Serve the container behind the same load balancer or CloudFront, with
 4. Store review needs a demo account on the production provider, the privacy
    policy URL, and the in-app account deletion (Settings → Delete account).
 
+## `skkil.yml` platform sections
+
+When the `skkil` CLI supports `resources`, `services`, `routes` and `auth`
+(platform plan P3; today it rejects them), add:
+
+```yaml
+resources:
+  db: { type: postgres }
+
+services:
+  server:
+    build: { dir: apps/server, image: Dockerfile }
+    port: 8080
+    health: { port: 8080, path: /readyz }
+    uses: [db]
+    secrets: [DATABASE_PASSWORD]
+    env:
+      AUTH_AUDIENCE: time-api
+      CORS_ALLOWED_ORIGINS: https://{host}
+  web:
+    build: { dir: ., image: apps/web/Dockerfile }
+    port: 8080
+    health: { port: 8080, path: /healthz }
+    env:
+      API_URL: https://{host}
+      AUTH_AUDIENCE: time-api
+
+routes:
+  host: { prod: time.skkil.org, dev: time.dev.skkil.org }
+  paths:
+    - { path: /api/, to: server }
+    - { path: /, to: web }
+
+auth:
+  api: { audience: time-api }
+  clients:
+    - { name: web, type: spa, callbacks: ["https://{host}/"] }
+    - { name: mobile, type: native, callbacks: ["skkiltime://auth"] }
+```
+
 ## Release checklist
 
 - [ ] `skkil ci` green: server tests, OpenAPI drift check, type checks, lint,
