@@ -4,6 +4,182 @@
  */
 
 export interface paths {
+  '/api/v1/tasks/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['get'];
+    put: operations['update'];
+    post?: never;
+    delete: operations['delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/type': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setType'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/status': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setStatus'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/phases/{statusId}/notes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setNotes'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/phase': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setPhase'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/outcome': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setOutcome'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/next-step': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setNextStep'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/must': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setMust'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/milestone': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setMilestone'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/event-details': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setEventDetails'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/completed': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setCompleted'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/sections/{id}/position': {
     parameters: {
       query?: never;
@@ -52,6 +228,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/saved-views/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['updateView'];
+    post?: never;
+    delete: operations['deleteView'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/projects/{id}': {
     parameters: {
       query?: never;
@@ -60,9 +252,9 @@ export interface paths {
       cookie?: never;
     };
     get?: never;
-    put: operations['update'];
+    put: operations['update_1'];
     post?: never;
-    delete: operations['delete'];
+    delete: operations['delete_1'];
     options?: never;
     head?: never;
     patch?: never;
@@ -93,6 +285,38 @@ export interface paths {
     };
     get?: never;
     put: operations['updateSettings'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/projects/{id}/preset': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['exportPreset'];
+    put: operations['applyPreset'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/projects/{id}/milestone-label': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setMilestoneLabel'];
     post?: never;
     delete?: never;
     options?: never;
@@ -132,6 +356,70 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/milestones/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['updateMilestone'];
+    post?: never;
+    delete: operations['deleteMilestone'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/item-types/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['updateType'];
+    post?: never;
+    delete: operations['deleteType'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/item-statuses/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['updateStatus'];
+    post?: never;
+    delete: operations['deleteStatus'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/item-statuses/{id}/position': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['reorderStatus'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/groups/{id}': {
     parameters: {
       query?: never;
@@ -142,13 +430,45 @@ export interface paths {
     get?: never;
     put: operations['rename_1'];
     post?: never;
-    delete: operations['delete_1'];
+    delete: operations['delete_2'];
     options?: never;
     head?: never;
     patch?: never;
     trace?: never;
   };
-  '/api/v1/sections': {
+  '/api/v1/undo-snapshots': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['capture'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/undo-snapshots/{id}/restore': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['restore'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks': {
     parameters: {
       query?: never;
       header?: never;
@@ -164,7 +484,103 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/projects': {
+  '/api/v1/tasks/{id}/phase-tasks': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['createTask'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/move': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['move'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/dependencies': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['addDependency'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/someday': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['setSomeday'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/reschedule': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['reschedule'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/delete': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['deleteMany'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/sections': {
     parameters: {
       query?: never;
       header?: never;
@@ -174,6 +590,38 @@ export interface paths {
     get: operations['list_1'];
     put?: never;
     post: operations['create_1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/projects': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['list_2'];
+    put?: never;
+    post: operations['create_2'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/projects/{id}/saved-views': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['createView'];
     delete?: never;
     options?: never;
     head?: never;
@@ -196,6 +644,70 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/projects/{id}/milestones': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['createMilestone'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/projects/{id}/item-types': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['createType'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/projects/{id}/item-statuses': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['createStatus'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/presets/read': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['readPreset'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/groups': {
     parameters: {
       query?: never;
@@ -203,9 +715,73 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['list_2'];
+    get: operations['list_3'];
     put?: never;
-    post: operations['create_2'];
+    post: operations['create_3'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workflow': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['get_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/time-by-type': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['timeByType'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/phases': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['phases'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/presets': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['presets'];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -222,7 +798,39 @@ export interface paths {
     get: operations['me'];
     put?: never;
     post?: never;
-    delete: operations['delete_2'];
+    delete: operations['delete_3'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/events': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['events'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/dependencies/{blockedById}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['removeDependency'];
     options?: never;
     head?: never;
     patch?: never;
@@ -238,7 +846,7 @@ export interface paths {
     get?: never;
     put?: never;
     post?: never;
-    delete: operations['delete_3'];
+    delete: operations['delete_4'];
     options?: never;
     head?: never;
     patch?: never;
@@ -248,6 +856,119 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    TaskInput: {
+      title: string;
+      notes: string;
+      /** Format: int64 */
+      projectId: number | null;
+      /** Format: int64 */
+      sectionId: number | null;
+      /** Format: int64 */
+      parentId: number | null;
+      /** Format: int32 */
+      priority: number;
+      /** Format: date */
+      dueDate: string | null;
+      /** Format: int32 */
+      dueTime: number | null;
+      /** Format: date */
+      deadline: string | null;
+      recurrence: string | null;
+      /** Format: int32 */
+      estimateMinutes: number | null;
+    };
+    Task: {
+      /** Format: int64 */
+      id: number;
+      title: string;
+      notes: string;
+      /** Format: int64 */
+      projectId: number | null;
+      /** Format: int64 */
+      sectionId: number | null;
+      /** Format: int64 */
+      parentId: number | null;
+      /** Format: int32 */
+      priority: number;
+      /** Format: date */
+      dueDate: string | null;
+      /** Format: int32 */
+      dueTime: number | null;
+      /** Format: date */
+      deadline: string | null;
+      recurrence: string | null;
+      /** Format: int32 */
+      estimateMinutes: number | null;
+      /** Format: int32 */
+      position: number;
+      /** Format: int64 */
+      completedAt: number | null;
+      /** Format: int64 */
+      createdAt: number;
+      /** Format: int64 */
+      trackedSeconds: number;
+      /** Format: int64 */
+      outcomeId: number | null;
+      /** Format: int32 */
+      rolloverCount: number;
+      someday: boolean;
+      nextStep: string;
+      /** Format: date */
+      mustOn: string | null;
+      /** Format: int64 */
+      typeId: number | null;
+      /** Format: int64 */
+      statusId: number | null;
+      /** Format: int64 */
+      milestoneId: number | null;
+      location: string;
+      countsAsTime: boolean;
+      /** Format: int64 */
+      statusChangedAt: number | null;
+      kind: string;
+      statusCategory: string | null;
+      blockedBy: number[];
+      waitingOn: number[];
+      /** Format: int64 */
+      phaseId: number | null;
+    };
+    TaskTypeId: {
+      /** Format: int64 */
+      typeId: number | null;
+    };
+    TaskStatusId: {
+      /** Format: int64 */
+      statusId: number;
+    };
+    PhaseNotes: {
+      notes: string;
+    };
+    TaskPhase: {
+      /** Format: int64 */
+      phaseId: number | null;
+    };
+    TaskOutcome: {
+      /** Format: int64 */
+      outcomeId: number | null;
+    };
+    TaskNextStep: {
+      nextStep: string;
+    };
+    TaskMust: {
+      /** Format: date */
+      mustOn: string | null;
+    };
+    TaskMilestoneId: {
+      /** Format: int64 */
+      milestoneId: number | null;
+    };
+    TaskEventDetails: {
+      location: string;
+      countsAsTime: boolean;
+    };
+    TaskCompleted: {
+      completed: boolean;
+    };
     SectionPlacement: {
       /** Format: int64 */
       before: number | null;
@@ -267,6 +988,13 @@ export interface components {
     };
     SectionCollapsed: {
       collapsed: boolean;
+    };
+    ViewInput: {
+      name: string;
+      layout: string;
+      groupBy: string;
+      filter: string;
+      sort: string;
     };
     ProjectInput: {
       name: string;
@@ -319,6 +1047,30 @@ export interface components {
       reviewEveryWeeks: number;
       inOrder: boolean;
     };
+    ItemTypeInput: {
+      name: string;
+      icon: string;
+      kind: string;
+      /** Format: int32 */
+      defaultMinutes: number | null;
+      checklist: string;
+    };
+    Preset: {
+      key: string;
+      name: string;
+      description: string;
+      types: components['schemas']['ItemTypeInput'][];
+      statuses: components['schemas']['StatusInput'][];
+      milestoneLabel: string;
+      views: components['schemas']['ViewInput'][];
+    };
+    StatusInput: {
+      name: string;
+      category: string;
+    };
+    MilestoneLabel: {
+      label: string;
+    };
     CanvasContent: {
       content: string;
     };
@@ -332,6 +1084,15 @@ export interface components {
     Archived: {
       archived: boolean;
     };
+    MilestoneInput: {
+      name: string;
+      /** Format: date */
+      date: string | null;
+    };
+    StatusPlacement: {
+      /** Format: int64 */
+      before: number | null;
+    };
     GroupName: {
       name: string;
     };
@@ -342,6 +1103,37 @@ export interface components {
       /** Format: int32 */
       position: number;
     };
+    TaskIds: {
+      ids: number[];
+    };
+    PhaseTaskInput: {
+      /** Format: int64 */
+      phaseId: number;
+      title: string;
+    };
+    TaskPlacement: {
+      /** Format: int64 */
+      projectId: number | null;
+      /** Format: int64 */
+      sectionId: number | null;
+      /** Format: int64 */
+      parentId: number | null;
+      /** Format: int64 */
+      before: number | null;
+    };
+    TaskDependency: {
+      /** Format: int64 */
+      blockedById: number;
+    };
+    TasksSomeday: {
+      ids: number[];
+      someday: boolean;
+    };
+    TaskReschedule: {
+      ids: number[];
+      /** Format: date */
+      dueDate: string | null;
+    };
     SectionInput: {
       /** Format: int64 */
       projectId: number | null;
@@ -349,10 +1141,93 @@ export interface components {
       /** Format: int64 */
       before: number | null;
     };
+    PresetText: {
+      text: string;
+    };
+    ItemStatus: {
+      /** Format: int64 */
+      id: number;
+      /** Format: int64 */
+      projectId: number;
+      name: string;
+      category: string;
+      /** Format: int32 */
+      position: number;
+    };
+    ItemType: {
+      /** Format: int64 */
+      id: number;
+      /** Format: int64 */
+      projectId: number;
+      name: string;
+      icon: string;
+      kind: string;
+      /** Format: int32 */
+      defaultMinutes: number | null;
+      checklist: string;
+      /** Format: int32 */
+      position: number;
+    };
+    Milestone: {
+      /** Format: int64 */
+      id: number;
+      /** Format: int64 */
+      projectId: number;
+      name: string;
+      /** Format: date */
+      date: string | null;
+      /** Format: int32 */
+      position: number;
+    };
+    SavedView: {
+      /** Format: int64 */
+      id: number;
+      /** Format: int64 */
+      projectId: number;
+      name: string;
+      layout: string;
+      groupBy: string;
+      filter: string;
+      sort: string;
+      /** Format: int32 */
+      position: number;
+    };
+    Workflow: {
+      types: components['schemas']['ItemType'][];
+      statuses: components['schemas']['ItemStatus'][];
+      milestones: components['schemas']['Milestone'][];
+      views: components['schemas']['SavedView'][];
+    };
+    TypeTime: {
+      name: string;
+      icon: string;
+      /** Format: int64 */
+      seconds: number;
+    };
+    RecordPhase: {
+      /** Format: int64 */
+      statusId: number;
+      notes: string;
+    };
     Me: {
       /** Format: int64 */
       id: number;
       timeZone: string;
+    };
+    EventOccurrence: {
+      /** Format: int64 */
+      taskId: number;
+      title: string;
+      /** Format: int64 */
+      projectId: number | null;
+      /** Format: int64 */
+      typeId: number | null;
+      /** Format: int64 */
+      startAt: number;
+      /** Format: int64 */
+      endAt: number;
+      location: string;
+      countsAsTime: boolean;
     };
   };
   responses: never;
@@ -361,23 +1236,384 @@ export interface components {
   headers: never;
   pathItems: never;
 }
+export type TaskInput = components['schemas']['TaskInput'];
+export type Task = components['schemas']['Task'];
+export type TaskTypeId = components['schemas']['TaskTypeId'];
+export type TaskStatusId = components['schemas']['TaskStatusId'];
+export type PhaseNotes = components['schemas']['PhaseNotes'];
+export type TaskPhase = components['schemas']['TaskPhase'];
+export type TaskOutcome = components['schemas']['TaskOutcome'];
+export type TaskNextStep = components['schemas']['TaskNextStep'];
+export type TaskMust = components['schemas']['TaskMust'];
+export type TaskMilestoneId = components['schemas']['TaskMilestoneId'];
+export type TaskEventDetails = components['schemas']['TaskEventDetails'];
+export type TaskCompleted = components['schemas']['TaskCompleted'];
 export type SectionPlacement = components['schemas']['SectionPlacement'];
 export type Section = components['schemas']['Section'];
 export type SectionName = components['schemas']['SectionName'];
 export type SectionCollapsed = components['schemas']['SectionCollapsed'];
+export type ViewInput = components['schemas']['ViewInput'];
 export type ProjectInput = components['schemas']['ProjectInput'];
 export type Project = components['schemas']['Project'];
 export type ProjectView = components['schemas']['ProjectView'];
 export type ProjectSettings = components['schemas']['ProjectSettings'];
+export type ItemTypeInput = components['schemas']['ItemTypeInput'];
+export type Preset = components['schemas']['Preset'];
+export type StatusInput = components['schemas']['StatusInput'];
+export type MilestoneLabel = components['schemas']['MilestoneLabel'];
 export type CanvasContent = components['schemas']['CanvasContent'];
 export type ProjectCanvas = components['schemas']['ProjectCanvas'];
 export type Archived = components['schemas']['Archived'];
+export type MilestoneInput = components['schemas']['MilestoneInput'];
+export type StatusPlacement = components['schemas']['StatusPlacement'];
 export type GroupName = components['schemas']['GroupName'];
 export type Group = components['schemas']['Group'];
+export type TaskIds = components['schemas']['TaskIds'];
+export type PhaseTaskInput = components['schemas']['PhaseTaskInput'];
+export type TaskPlacement = components['schemas']['TaskPlacement'];
+export type TaskDependency = components['schemas']['TaskDependency'];
+export type TasksSomeday = components['schemas']['TasksSomeday'];
+export type TaskReschedule = components['schemas']['TaskReschedule'];
 export type SectionInput = components['schemas']['SectionInput'];
+export type PresetText = components['schemas']['PresetText'];
+export type ItemStatus = components['schemas']['ItemStatus'];
+export type ItemType = components['schemas']['ItemType'];
+export type Milestone = components['schemas']['Milestone'];
+export type SavedView = components['schemas']['SavedView'];
+export type Workflow = components['schemas']['Workflow'];
+export type TypeTime = components['schemas']['TypeTime'];
+export type RecordPhase = components['schemas']['RecordPhase'];
 export type Me = components['schemas']['Me'];
+export type EventOccurrence = components['schemas']['EventOccurrence'];
 export type $defs = Record<string, never>;
 export interface operations {
+  get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  setType: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskTypeId'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  setStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskStatusId'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  setNotes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+        statusId: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PhaseNotes'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  setPhase: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskPhase'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  setOutcome: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskOutcome'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  setNextStep: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskNextStep'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  setMust: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskMust'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  setMilestone: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskMilestoneId'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  setEventDetails: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskEventDetails'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  setCompleted: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskCompleted'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
   reorder: {
     parameters: {
       query?: never;
@@ -456,7 +1692,51 @@ export interface operations {
       };
     };
   };
-  update: {
+  updateView: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ViewInput'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  deleteView: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  update_1: {
     parameters: {
       query?: never;
       header?: never;
@@ -482,7 +1762,7 @@ export interface operations {
       };
     };
   };
-  delete: {
+  delete_1: {
     parameters: {
       query?: never;
       header?: never;
@@ -551,6 +1831,76 @@ export interface operations {
         content: {
           '*/*': components['schemas']['Project'];
         };
+      };
+    };
+  };
+  exportPreset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Preset'];
+        };
+      };
+    };
+  };
+  applyPreset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Preset'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  setMilestoneLabel: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MilestoneLabel'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -626,6 +1976,166 @@ export interface operations {
       };
     };
   };
+  updateMilestone: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MilestoneInput'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  deleteMilestone: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  updateType: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ItemTypeInput'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  deleteType: {
+    parameters: {
+      query?: {
+        replacement?: number;
+      };
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  updateStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StatusInput'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  deleteStatus: {
+    parameters: {
+      query?: {
+        replacement?: number;
+      };
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  reorderStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StatusPlacement'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   rename_1: {
     parameters: {
       query?: never;
@@ -652,7 +2162,51 @@ export interface operations {
       };
     };
   };
-  delete_1: {
+  delete_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  capture: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskIds'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': number;
+        };
+      };
+    };
+  };
+  restore: {
     parameters: {
       query?: never;
       header?: never;
@@ -687,12 +2241,200 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': components['schemas']['Section'][];
+          '*/*': components['schemas']['Task'][];
         };
       };
     };
   };
   create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  createTask: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PhaseTaskInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  move: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskPlacement'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  addDependency: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskDependency'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  setSomeday: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TasksSomeday'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  reschedule: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskReschedule'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  deleteMany: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskIds'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  list_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Section'][];
+        };
+      };
+    };
+  };
+  create_1: {
     parameters: {
       query?: never;
       header?: never;
@@ -716,7 +2458,7 @@ export interface operations {
       };
     };
   };
-  list_1: {
+  list_2: {
     parameters: {
       query?: never;
       header?: never;
@@ -736,7 +2478,7 @@ export interface operations {
       };
     };
   };
-  create_1: {
+  create_2: {
     parameters: {
       query?: never;
       header?: never;
@@ -756,6 +2498,32 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['Project'];
+        };
+      };
+    };
+  };
+  createView: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ViewInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': number;
         };
       };
     };
@@ -782,7 +2550,109 @@ export interface operations {
       };
     };
   };
-  list_2: {
+  createMilestone: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MilestoneInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': number;
+        };
+      };
+    };
+  };
+  createType: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ItemTypeInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': number;
+        };
+      };
+    };
+  };
+  createStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StatusInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': number;
+        };
+      };
+    };
+  };
+  readPreset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PresetText'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Preset'];
+        };
+      };
+    };
+  };
+  list_3: {
     parameters: {
       query?: never;
       header?: never;
@@ -802,7 +2672,7 @@ export interface operations {
       };
     };
   };
-  create_2: {
+  create_3: {
     parameters: {
       query?: never;
       header?: never;
@@ -822,6 +2692,91 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['Group'];
+        };
+      };
+    };
+  };
+  get_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Workflow'];
+        };
+      };
+    };
+  };
+  timeByType: {
+    parameters: {
+      query: {
+        from: string;
+        to: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['TypeTime'][];
+        };
+      };
+    };
+  };
+  phases: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RecordPhase'][];
+        };
+      };
+    };
+  };
+  presets: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Preset'][];
         };
       };
     };
@@ -846,7 +2801,7 @@ export interface operations {
       };
     };
   };
-  delete_2: {
+  delete_3: {
     parameters: {
       query?: never;
       header?: never;
@@ -864,7 +2819,53 @@ export interface operations {
       };
     };
   };
-  delete_3: {
+  events: {
+    parameters: {
+      query: {
+        from: string;
+        to: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['EventOccurrence'][];
+        };
+      };
+    };
+  };
+  removeDependency: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+        blockedById: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  delete_4: {
     parameters: {
       query?: never;
       header?: never;

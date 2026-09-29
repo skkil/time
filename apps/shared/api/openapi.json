@@ -13,6 +13,457 @@
     "bearer" : [ ]
   } ],
   "paths" : {
+    "/api/v1/tasks/{id}" : {
+      "get" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "get",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "update",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "delete",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/type" : {
+      "put" : {
+        "tags" : [ "task-workflow-controller" ],
+        "operationId" : "setType",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskTypeId"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/status" : {
+      "put" : {
+        "tags" : [ "task-workflow-controller" ],
+        "operationId" : "setStatus",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskStatusId"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/phases/{statusId}/notes" : {
+      "put" : {
+        "tags" : [ "record-controller" ],
+        "operationId" : "setNotes",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "statusId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PhaseNotes"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/phase" : {
+      "put" : {
+        "tags" : [ "record-controller" ],
+        "operationId" : "setPhase",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskPhase"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/outcome" : {
+      "put" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "setOutcome",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskOutcome"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/next-step" : {
+      "put" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "setNextStep",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskNextStep"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/must" : {
+      "put" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "setMust",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskMust"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/milestone" : {
+      "put" : {
+        "tags" : [ "task-workflow-controller" ],
+        "operationId" : "setMilestone",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskMilestoneId"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/event-details" : {
+      "put" : {
+        "tags" : [ "task-workflow-controller" ],
+        "operationId" : "setEventDetails",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskEventDetails"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/completed" : {
+      "put" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "setCompleted",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskCompleted"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/sections/{id}/position" : {
       "put" : {
         "tags" : [ "section-controller" ],
@@ -124,10 +575,58 @@
         }
       }
     },
+    "/api/v1/saved-views/{id}" : {
+      "put" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "updateView",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ViewInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "deleteView",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/projects/{id}" : {
       "put" : {
         "tags" : [ "project-controller" ],
-        "operationId" : "update",
+        "operationId" : "update_1",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -162,7 +661,7 @@
       },
       "delete" : {
         "tags" : [ "project-controller" ],
-        "operationId" : "delete",
+        "operationId" : "delete_1",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -249,6 +748,91 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/preset" : {
+      "get" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "exportPreset",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Preset"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "applyPreset",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Preset"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/milestone-label" : {
+      "put" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "setMilestoneLabel",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MilestoneLabel"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
           }
         }
       }
@@ -345,6 +929,196 @@
         }
       }
     },
+    "/api/v1/milestones/{id}" : {
+      "put" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "updateMilestone",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MilestoneInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "deleteMilestone",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/item-types/{id}" : {
+      "put" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "updateType",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ItemTypeInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "deleteType",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "replacement",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/item-statuses/{id}" : {
+      "put" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "updateStatus",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StatusInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "deleteStatus",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "replacement",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/item-statuses/{id}/position" : {
+      "put" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "reorderStatus",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StatusPlacement"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/groups/{id}" : {
       "put" : {
         "tags" : [ "group-controller" ],
@@ -383,7 +1157,7 @@
       },
       "delete" : {
         "tags" : [ "group-controller" ],
-        "operationId" : "delete_1",
+        "operationId" : "delete_2",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -400,10 +1174,280 @@
         }
       }
     },
+    "/api/v1/undo-snapshots" : {
+      "post" : {
+        "tags" : [ "undo-controller" ],
+        "operationId" : "capture",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskIds"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "integer",
+                  "format" : "int64"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/undo-snapshots/{id}/restore" : {
+      "post" : {
+        "tags" : [ "undo-controller" ],
+        "operationId" : "restore",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/tasks" : {
+      "get" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "list",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Task"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "create",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/phase-tasks" : {
+      "post" : {
+        "tags" : [ "record-controller" ],
+        "operationId" : "createTask",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PhaseTaskInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/move" : {
+      "post" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "move",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskPlacement"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/dependencies" : {
+      "post" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "addDependency",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskDependency"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/someday" : {
+      "post" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "setSomeday",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TasksSomeday"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/reschedule" : {
+      "post" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "reschedule",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskReschedule"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/delete" : {
+      "post" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "deleteMany",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskIds"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/sections" : {
       "get" : {
         "tags" : [ "section-controller" ],
-        "operationId" : "list",
+        "operationId" : "list_1",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -422,7 +1466,7 @@
       },
       "post" : {
         "tags" : [ "section-controller" ],
-        "operationId" : "create",
+        "operationId" : "create_1",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -450,7 +1494,7 @@
     "/api/v1/projects" : {
       "get" : {
         "tags" : [ "project-controller" ],
-        "operationId" : "list_1",
+        "operationId" : "list_2",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -469,7 +1513,7 @@
       },
       "post" : {
         "tags" : [ "project-controller" ],
-        "operationId" : "create_1",
+        "operationId" : "create_2",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -487,6 +1531,44 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/Project"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/saved-views" : {
+      "post" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "createView",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ViewInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "integer",
+                  "format" : "int64"
                 }
               }
             }
@@ -521,10 +1603,152 @@
         }
       }
     },
+    "/api/v1/projects/{id}/milestones" : {
+      "post" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "createMilestone",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MilestoneInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "integer",
+                  "format" : "int64"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/item-types" : {
+      "post" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "createType",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ItemTypeInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "integer",
+                  "format" : "int64"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/item-statuses" : {
+      "post" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "createStatus",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StatusInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "integer",
+                  "format" : "int64"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/presets/read" : {
+      "post" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "readPreset",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PresetText"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Preset"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/groups" : {
       "get" : {
         "tags" : [ "group-controller" ],
-        "operationId" : "list_2",
+        "operationId" : "list_3",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -543,7 +1767,7 @@
       },
       "post" : {
         "tags" : [ "group-controller" ],
-        "operationId" : "create_2",
+        "operationId" : "create_3",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -561,6 +1785,113 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/Group"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workflow" : {
+      "get" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "get_1",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Workflow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/time-by-type" : {
+      "get" : {
+        "tags" : [ "task-workflow-controller" ],
+        "operationId" : "timeByType",
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TypeTime"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/phases" : {
+      "get" : {
+        "tags" : [ "record-controller" ],
+        "operationId" : "phases",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/RecordPhase"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/presets" : {
+      "get" : {
+        "tags" : [ "workflow-controller" ],
+        "operationId" : "presets",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Preset"
+                  }
                 }
               }
             }
@@ -587,7 +1918,7 @@
       },
       "delete" : {
         "tags" : [ "account-controller" ],
-        "operationId" : "delete_2",
+        "operationId" : "delete_3",
         "responses" : {
           "204" : {
             "description" : "No Content"
@@ -595,10 +1926,83 @@
         }
       }
     },
+    "/api/v1/events" : {
+      "get" : {
+        "tags" : [ "task-workflow-controller" ],
+        "operationId" : "events",
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/EventOccurrence"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/dependencies/{blockedById}" : {
+      "delete" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "removeDependency",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "blockedById",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/sections/{id}" : {
       "delete" : {
         "tags" : [ "section-controller" ],
-        "operationId" : "delete_3",
+        "operationId" : "delete_4",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -618,6 +2022,283 @@
   },
   "components" : {
     "schemas" : {
+      "TaskInput" : {
+        "type" : "object",
+        "properties" : {
+          "title" : {
+            "type" : "string"
+          },
+          "notes" : {
+            "type" : "string"
+          },
+          "projectId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "sectionId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "parentId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "priority" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "dueDate" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "dueTime" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          },
+          "deadline" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "recurrence" : {
+            "type" : [ "string", "null" ]
+          },
+          "estimateMinutes" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          }
+        },
+        "required" : [ "deadline", "dueDate", "dueTime", "estimateMinutes", "notes", "parentId", "priority", "projectId", "recurrence", "sectionId", "title" ]
+      },
+      "Task" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "notes" : {
+            "type" : "string"
+          },
+          "projectId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "sectionId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "parentId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "priority" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "dueDate" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "dueTime" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          },
+          "deadline" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "recurrence" : {
+            "type" : [ "string", "null" ]
+          },
+          "estimateMinutes" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          },
+          "position" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "completedAt" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "createdAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "trackedSeconds" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "outcomeId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "rolloverCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "someday" : {
+            "type" : "boolean"
+          },
+          "nextStep" : {
+            "type" : "string"
+          },
+          "mustOn" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "typeId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "statusId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "milestoneId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "location" : {
+            "type" : "string"
+          },
+          "countsAsTime" : {
+            "type" : "boolean"
+          },
+          "statusChangedAt" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "kind" : {
+            "type" : "string"
+          },
+          "statusCategory" : {
+            "type" : [ "string", "null" ]
+          },
+          "blockedBy" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int64"
+            }
+          },
+          "waitingOn" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int64"
+            }
+          },
+          "phaseId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "blockedBy", "completedAt", "countsAsTime", "createdAt", "deadline", "dueDate", "dueTime", "estimateMinutes", "id", "kind", "location", "milestoneId", "mustOn", "nextStep", "notes", "outcomeId", "parentId", "phaseId", "position", "priority", "projectId", "recurrence", "rolloverCount", "sectionId", "someday", "statusCategory", "statusChangedAt", "statusId", "title", "trackedSeconds", "typeId", "waitingOn" ]
+      },
+      "TaskTypeId" : {
+        "type" : "object",
+        "properties" : {
+          "typeId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "typeId" ]
+      },
+      "TaskStatusId" : {
+        "type" : "object",
+        "properties" : {
+          "statusId" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "statusId" ]
+      },
+      "PhaseNotes" : {
+        "type" : "object",
+        "properties" : {
+          "notes" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "notes" ]
+      },
+      "TaskPhase" : {
+        "type" : "object",
+        "properties" : {
+          "phaseId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "phaseId" ]
+      },
+      "TaskOutcome" : {
+        "type" : "object",
+        "properties" : {
+          "outcomeId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "outcomeId" ]
+      },
+      "TaskNextStep" : {
+        "type" : "object",
+        "properties" : {
+          "nextStep" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "nextStep" ]
+      },
+      "TaskMust" : {
+        "type" : "object",
+        "properties" : {
+          "mustOn" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          }
+        },
+        "required" : [ "mustOn" ]
+      },
+      "TaskMilestoneId" : {
+        "type" : "object",
+        "properties" : {
+          "milestoneId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "milestoneId" ]
+      },
+      "TaskEventDetails" : {
+        "type" : "object",
+        "properties" : {
+          "location" : {
+            "type" : "string"
+          },
+          "countsAsTime" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "countsAsTime", "location" ]
+      },
+      "TaskCompleted" : {
+        "type" : "object",
+        "properties" : {
+          "completed" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "completed" ]
+      },
       "SectionPlacement" : {
         "type" : "object",
         "properties" : {
@@ -669,6 +2350,27 @@
           }
         },
         "required" : [ "collapsed" ]
+      },
+      "ViewInput" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "layout" : {
+            "type" : "string"
+          },
+          "groupBy" : {
+            "type" : "string"
+          },
+          "filter" : {
+            "type" : "string"
+          },
+          "sort" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "filter", "groupBy", "layout", "name", "sort" ]
       },
       "ProjectInput" : {
         "type" : "object",
@@ -797,6 +2499,85 @@
         },
         "required" : [ "groupId", "inOrder", "killCriteria", "outcome", "reviewEveryWeeks", "status", "targetDate", "weeklyMinutes" ]
       },
+      "ItemTypeInput" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "icon" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "type" : "string"
+          },
+          "defaultMinutes" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          },
+          "checklist" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "checklist", "defaultMinutes", "icon", "kind", "name" ]
+      },
+      "Preset" : {
+        "type" : "object",
+        "properties" : {
+          "key" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "types" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ItemTypeInput"
+            }
+          },
+          "statuses" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StatusInput"
+            }
+          },
+          "milestoneLabel" : {
+            "type" : "string"
+          },
+          "views" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ViewInput"
+            }
+          }
+        },
+        "required" : [ "description", "key", "milestoneLabel", "name", "statuses", "types", "views" ]
+      },
+      "StatusInput" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "category", "name" ]
+      },
+      "MilestoneLabel" : {
+        "type" : "object",
+        "properties" : {
+          "label" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "label" ]
+      },
       "CanvasContent" : {
         "type" : "object",
         "properties" : {
@@ -832,6 +2613,29 @@
         },
         "required" : [ "archived" ]
       },
+      "MilestoneInput" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "date" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          }
+        },
+        "required" : [ "date", "name" ]
+      },
+      "StatusPlacement" : {
+        "type" : "object",
+        "properties" : {
+          "before" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "before" ]
+      },
       "GroupName" : {
         "type" : "object",
         "properties" : {
@@ -858,6 +2662,97 @@
         },
         "required" : [ "id", "name", "position" ]
       },
+      "TaskIds" : {
+        "type" : "object",
+        "properties" : {
+          "ids" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int64"
+            }
+          }
+        },
+        "required" : [ "ids" ]
+      },
+      "PhaseTaskInput" : {
+        "type" : "object",
+        "properties" : {
+          "phaseId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "phaseId", "title" ]
+      },
+      "TaskPlacement" : {
+        "type" : "object",
+        "properties" : {
+          "projectId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "sectionId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "parentId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "before" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "before", "parentId", "projectId", "sectionId" ]
+      },
+      "TaskDependency" : {
+        "type" : "object",
+        "properties" : {
+          "blockedById" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "blockedById" ]
+      },
+      "TasksSomeday" : {
+        "type" : "object",
+        "properties" : {
+          "ids" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int64"
+            }
+          },
+          "someday" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "ids", "someday" ]
+      },
+      "TaskReschedule" : {
+        "type" : "object",
+        "properties" : {
+          "ids" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int64"
+            }
+          },
+          "dueDate" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          }
+        },
+        "required" : [ "dueDate", "ids" ]
+      },
       "SectionInput" : {
         "type" : "object",
         "properties" : {
@@ -875,6 +2770,190 @@
         },
         "required" : [ "before", "name", "projectId" ]
       },
+      "PresetText" : {
+        "type" : "object",
+        "properties" : {
+          "text" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "text" ]
+      },
+      "ItemStatus" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "projectId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : "string"
+          },
+          "position" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "category", "id", "name", "position", "projectId" ]
+      },
+      "ItemType" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "projectId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "icon" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "type" : "string"
+          },
+          "defaultMinutes" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          },
+          "checklist" : {
+            "type" : "string"
+          },
+          "position" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "checklist", "defaultMinutes", "icon", "id", "kind", "name", "position", "projectId" ]
+      },
+      "Milestone" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "projectId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "date" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "position" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "date", "id", "name", "position", "projectId" ]
+      },
+      "SavedView" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "projectId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "layout" : {
+            "type" : "string"
+          },
+          "groupBy" : {
+            "type" : "string"
+          },
+          "filter" : {
+            "type" : "string"
+          },
+          "sort" : {
+            "type" : "string"
+          },
+          "position" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "filter", "groupBy", "id", "layout", "name", "position", "projectId", "sort" ]
+      },
+      "Workflow" : {
+        "type" : "object",
+        "properties" : {
+          "types" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ItemType"
+            }
+          },
+          "statuses" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ItemStatus"
+            }
+          },
+          "milestones" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Milestone"
+            }
+          },
+          "views" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SavedView"
+            }
+          }
+        },
+        "required" : [ "milestones", "statuses", "types", "views" ]
+      },
+      "TypeTime" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "icon" : {
+            "type" : "string"
+          },
+          "seconds" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "icon", "name", "seconds" ]
+      },
+      "RecordPhase" : {
+        "type" : "object",
+        "properties" : {
+          "statusId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "notes" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "notes", "statusId" ]
+      },
       "Me" : {
         "type" : "object",
         "properties" : {
@@ -887,6 +2966,41 @@
           }
         },
         "required" : [ "id", "timeZone" ]
+      },
+      "EventOccurrence" : {
+        "type" : "object",
+        "properties" : {
+          "taskId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "projectId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "typeId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "startAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "endAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "location" : {
+            "type" : "string"
+          },
+          "countsAsTime" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "countsAsTime", "endAt", "location", "projectId", "startAt", "taskId", "title", "typeId" ]
       }
     },
     "securitySchemes" : {
