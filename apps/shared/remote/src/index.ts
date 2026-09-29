@@ -3,6 +3,7 @@ import { habits } from '#habits';
 import { projects } from '#projects';
 import { records } from '#records';
 import { tasks } from '#tasks';
+import { time } from '#time';
 import { workflow } from '#workflow';
 import type { Api } from '@skkil-time/api';
 
@@ -14,4 +15,5 @@ export const createRemoteBackend = (api: Api): Partial<Backend> => ({
   ...records(api),
   ...workflow(api),
   ...habits(api),
+  ...time(api),
 });

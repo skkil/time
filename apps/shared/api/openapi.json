@@ -13,6 +13,140 @@
     "bearer" : [ ]
   } ],
   "paths" : {
+    "/api/v1/timer" : {
+      "get" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "getTimer",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RunningTimer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "editTimer",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EntryDetails"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RunningTimer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "startTimer",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EntryDetails"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RunningTimer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "discardTimer",
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/time-entries/{id}" : {
+      "put" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "updateTimeEntry",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EntryInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TimeEntry"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "deleteTimeEntry",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/tasks/{id}" : {
       "get" : {
         "tags" : [ "task-controller" ],
@@ -1249,6 +1383,61 @@
         }
       }
     },
+    "/api/v1/blocks/{id}" : {
+      "put" : {
+        "tags" : [ "block-controller" ],
+        "operationId" : "rescheduleBlock",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/BlockSpan"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TimeBlock"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "block-controller" ],
+        "operationId" : "deleteBlock",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/undo-snapshots" : {
       "post" : {
         "tags" : [ "undo-controller" ],
@@ -1294,6 +1483,152 @@
         "responses" : {
           "204" : {
             "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/timer/stop" : {
+      "post" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "stopTimer",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TimeEntry"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/timer/resume" : {
+      "post" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "resumeTimer",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RunningTimer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/timer/restore" : {
+      "post" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "restoreTimer",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RunningTimer"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RunningTimer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/timer/pause" : {
+      "post" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "pauseTimer",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RunningTimer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/time-entries" : {
+      "get" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "listTimeEntries",
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TimeEntry"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "createTimeEntry",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EntryInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TimeEntry"
+                }
+              }
+            }
           }
         }
       }
@@ -1449,6 +1784,43 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/blocks" : {
+      "post" : {
+        "tags" : [ "block-controller" ],
+        "operationId" : "createBlock",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/BlockSpan"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TimeBlock"
                 }
               }
             }
@@ -2046,6 +2418,36 @@
         }
       }
     },
+    "/api/v1/tasks/{id}/time-entries" : {
+      "get" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "listTaskEntries",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TrackedEntry"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/{id}/phases" : {
       "get" : {
         "tags" : [ "record-controller" ],
@@ -2068,6 +2470,36 @@
                   "type" : "array",
                   "items" : {
                     "$ref" : "#/components/schemas/RecordPhase"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/time-entries" : {
+      "get" : {
+        "tags" : [ "time-controller" ],
+        "operationId" : "listProjectEntries",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TrackedEntry"
                   }
                 }
               }
@@ -2200,6 +2632,44 @@
         }
       }
     },
+    "/api/v1/blocks" : {
+      "get" : {
+        "tags" : [ "block-controller" ],
+        "operationId" : "listBlocks",
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TimeBlock"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/{id}/dependencies/{blockedById}" : {
       "delete" : {
         "tags" : [ "task-controller" ],
@@ -2258,6 +2728,106 @@
   },
   "components" : {
     "schemas" : {
+      "EntryDetails" : {
+        "type" : "object",
+        "properties" : {
+          "description" : {
+            "type" : "string"
+          },
+          "projectId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "taskId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "description", "projectId", "taskId" ]
+      },
+      "RunningTimer" : {
+        "type" : "object",
+        "properties" : {
+          "description" : {
+            "type" : "string"
+          },
+          "projectId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "taskId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "startedAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "pausedAt" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "bankedSeconds" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "bankedSeconds", "description", "pausedAt", "projectId", "startedAt", "taskId" ]
+      },
+      "EntryInput" : {
+        "type" : "object",
+        "properties" : {
+          "description" : {
+            "type" : "string"
+          },
+          "projectId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "taskId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "startedAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "endedAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "description", "endedAt", "projectId", "startedAt", "taskId" ]
+      },
+      "TimeEntry" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "projectId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "taskId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "startedAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "endedAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "description", "endedAt", "id", "projectId", "startedAt", "taskId" ]
+      },
       "TaskInput" : {
         "type" : "object",
         "properties" : {
@@ -3037,6 +3607,56 @@
         },
         "required" : [ "id", "name", "position" ]
       },
+      "BlockSpan" : {
+        "type" : "object",
+        "properties" : {
+          "startAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "endAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "endAt", "startAt" ]
+      },
+      "TimeBlock" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "taskId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "projectId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "priority" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "completed" : {
+            "type" : "boolean"
+          },
+          "startAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "endAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "completed", "endAt", "id", "priority", "projectId", "startAt", "taskId", "title" ]
+      },
       "TaskIds" : {
         "type" : "object",
         "properties" : {
@@ -3344,6 +3964,41 @@
           }
         },
         "required" : [ "icon", "name", "seconds" ]
+      },
+      "TrackedEntry" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "projectId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "taskId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "startedAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "endedAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "taskTitle" : {
+            "type" : [ "string", "null" ]
+          },
+          "taskCompleted" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "description", "endedAt", "id", "projectId", "startedAt", "taskCompleted", "taskId", "taskTitle" ]
       },
       "RecordPhase" : {
         "type" : "object",
