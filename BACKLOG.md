@@ -64,7 +64,7 @@ Each item is one commit. Check it off when it lands.
 - [x] 3.4 Workflow (types, statuses, milestones, views, presets, events) and
       records
 - [ ] 3.5 Time blocks, time entries, running timer
-- [ ] 3.6 Habits (project-time tracking; website/app tracking stays desktop)
+- [x] 3.6 Habits (project-time tracking; website/app tracking stays desktop)
 - [ ] 3.7 Review (days, weeks, outcomes, quarters) and rituals
 - [ ] 3.8 Settings, import, data export (JSON), delete all data, delete account
 
