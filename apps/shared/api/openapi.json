@@ -1119,6 +1119,81 @@
         }
       }
     },
+    "/api/v1/habits/{id}" : {
+      "put" : {
+        "tags" : [ "habit-controller" ],
+        "operationId" : "update_2",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/HabitInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Habit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/habits/{id}/days/{date}/status" : {
+      "put" : {
+        "tags" : [ "habit-controller" ],
+        "operationId" : "setStatus_1",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "date",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/HabitStatus"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/groups/{id}" : {
       "put" : {
         "tags" : [ "group-controller" ],
@@ -1745,10 +1820,133 @@
         }
       }
     },
+    "/api/v1/habits" : {
+      "get" : {
+        "tags" : [ "habit-controller" ],
+        "operationId" : "list_3",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Habit"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "habit-controller" ],
+        "operationId" : "create_3",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/HabitInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Habit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/habits/{id}/days/{date}/value" : {
+      "post" : {
+        "tags" : [ "habit-controller" ],
+        "operationId" : "addValue",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "date",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/HabitDelta"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/habits/{id}/archive" : {
+      "post" : {
+        "tags" : [ "habit-controller" ],
+        "operationId" : "archive",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/habits/sync" : {
+      "post" : {
+        "tags" : [ "habit-controller" ],
+        "operationId" : "sync",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SyncReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/groups" : {
       "get" : {
         "tags" : [ "group-controller" ],
-        "operationId" : "list_3",
+        "operationId" : "list_4",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1767,7 +1965,7 @@
       },
       "post" : {
         "tags" : [ "group-controller" ],
-        "operationId" : "create_3",
+        "operationId" : "create_4",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -1922,6 +2120,44 @@
         "responses" : {
           "204" : {
             "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/habits/days" : {
+      "get" : {
+        "tags" : [ "habit-controller" ],
+        "operationId" : "days",
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/HabitDay"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -2636,6 +2872,145 @@
         },
         "required" : [ "before" ]
       },
+      "HabitInput" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "type" : "string"
+          },
+          "goal" : {
+            "type" : [ "number", "null" ],
+            "format" : "double"
+          },
+          "unit" : {
+            "type" : "string"
+          },
+          "days" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "timeOfDay" : {
+            "type" : "string"
+          },
+          "area" : {
+            "type" : "string"
+          },
+          "startDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "tracking" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Tracking"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "skipDays" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "anchor" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "anchor", "area", "days", "goal", "kind", "name", "skipDays", "startDate", "timeOfDay", "tracking", "unit" ]
+      },
+      "Tracking" : {
+        "type" : "object",
+        "properties" : {
+          "source" : {
+            "type" : "string"
+          },
+          "patterns" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "projectId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "patterns", "projectId", "source" ]
+      },
+      "Habit" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "type" : "string"
+          },
+          "goal" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "unit" : {
+            "type" : "string"
+          },
+          "days" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "timeOfDay" : {
+            "type" : "string"
+          },
+          "area" : {
+            "type" : "string"
+          },
+          "startDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "tracking" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Tracking"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "skipDays" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "anchor" : {
+            "type" : "string"
+          },
+          "doneDays" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "dueDays" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "cleanSince" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          }
+        },
+        "required" : [ "anchor", "area", "cleanSince", "days", "doneDays", "dueDays", "goal", "id", "kind", "name", "skipDays", "startDate", "timeOfDay", "tracking", "unit" ]
+      },
+      "HabitStatus" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : [ "string", "null" ],
+            "enum" : [ "done", "failed", "skipped" ]
+          }
+        },
+        "required" : [ "status" ]
+      },
       "GroupName" : {
         "type" : "object",
         "properties" : {
@@ -2778,6 +3153,35 @@
           }
         },
         "required" : [ "text" ]
+      },
+      "HabitDelta" : {
+        "type" : "object",
+        "properties" : {
+          "delta" : {
+            "type" : [ "number", "null" ],
+            "format" : "double"
+          }
+        },
+        "required" : [ "delta" ]
+      },
+      "SyncReport" : {
+        "type" : "object",
+        "properties" : {
+          "activitywatch" : {
+            "type" : "string",
+            "enum" : [ "notNeeded", "connected", "unreachable" ]
+          },
+          "hasWebData" : {
+            "type" : "boolean"
+          },
+          "hasWindowData" : {
+            "type" : "boolean"
+          },
+          "message" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "activitywatch", "hasWebData", "hasWindowData", "message" ]
       },
       "ItemStatus" : {
         "type" : "object",
@@ -2966,6 +3370,31 @@
           }
         },
         "required" : [ "id", "timeZone" ]
+      },
+      "HabitDay" : {
+        "type" : "object",
+        "properties" : {
+          "habitId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "done", "failed", "skipped", "pending", "missed", "off" ]
+          },
+          "value" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "manual" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "date", "habitId", "manual", "status", "value" ]
       },
       "EventOccurrence" : {
         "type" : "object",

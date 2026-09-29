@@ -420,6 +420,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/habits/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['update_2'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/habits/{id}/days/{date}/status': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setStatus_1'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/groups/{id}': {
     parameters: {
       query?: never;
@@ -708,7 +740,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/groups': {
+  '/api/v1/habits': {
     parameters: {
       query?: never;
       header?: never;
@@ -718,6 +750,70 @@ export interface paths {
     get: operations['list_3'];
     put?: never;
     post: operations['create_3'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/habits/{id}/days/{date}/value': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['addValue'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/habits/{id}/archive': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['archive'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/habits/sync': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['sync'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/groups': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['list_4'];
+    put?: never;
+    post: operations['create_4'];
     delete?: never;
     options?: never;
     head?: never;
@@ -799,6 +895,22 @@ export interface paths {
     put?: never;
     post?: never;
     delete: operations['delete_3'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/habits/days': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['days'];
+    put?: never;
+    post?: never;
+    delete?: never;
     options?: never;
     head?: never;
     patch?: never;
@@ -1093,6 +1205,58 @@ export interface components {
       /** Format: int64 */
       before: number | null;
     };
+    HabitInput: {
+      name: string;
+      kind: string;
+      /** Format: double */
+      goal: number | null;
+      unit: string;
+      /** Format: int32 */
+      days: number;
+      timeOfDay: string;
+      area: string;
+      /** Format: date */
+      startDate: string;
+      tracking: components['schemas']['Tracking'] | null;
+      /** Format: int32 */
+      skipDays: number;
+      anchor: string;
+    };
+    Tracking: {
+      source: string;
+      patterns: string[];
+      /** Format: int64 */
+      projectId: number | null;
+    };
+    Habit: {
+      /** Format: int64 */
+      id: number;
+      name: string;
+      kind: string;
+      /** Format: double */
+      goal: number;
+      unit: string;
+      /** Format: int32 */
+      days: number;
+      timeOfDay: string;
+      area: string;
+      /** Format: date */
+      startDate: string;
+      tracking: components['schemas']['Tracking'] | null;
+      /** Format: int32 */
+      skipDays: number;
+      anchor: string;
+      /** Format: int32 */
+      doneDays: number;
+      /** Format: int32 */
+      dueDays: number;
+      /** Format: date */
+      cleanSince: string | null;
+    };
+    HabitStatus: {
+      /** @enum {string|null} */
+      status: 'done' | 'failed' | 'skipped' | null;
+    };
     GroupName: {
       name: string;
     };
@@ -1143,6 +1307,17 @@ export interface components {
     };
     PresetText: {
       text: string;
+    };
+    HabitDelta: {
+      /** Format: double */
+      delta: number | null;
+    };
+    SyncReport: {
+      /** @enum {string} */
+      activitywatch: 'notNeeded' | 'connected' | 'unreachable';
+      hasWebData: boolean;
+      hasWindowData: boolean;
+      message: string | null;
     };
     ItemStatus: {
       /** Format: int64 */
@@ -1214,6 +1389,17 @@ export interface components {
       id: number;
       timeZone: string;
     };
+    HabitDay: {
+      /** Format: int64 */
+      habitId: number;
+      /** Format: date */
+      date: string;
+      /** @enum {string} */
+      status: 'done' | 'failed' | 'skipped' | 'pending' | 'missed' | 'off';
+      /** Format: double */
+      value: number;
+      manual: boolean;
+    };
     EventOccurrence: {
       /** Format: int64 */
       taskId: number;
@@ -1266,6 +1452,10 @@ export type ProjectCanvas = components['schemas']['ProjectCanvas'];
 export type Archived = components['schemas']['Archived'];
 export type MilestoneInput = components['schemas']['MilestoneInput'];
 export type StatusPlacement = components['schemas']['StatusPlacement'];
+export type HabitInput = components['schemas']['HabitInput'];
+export type Tracking = components['schemas']['Tracking'];
+export type Habit = components['schemas']['Habit'];
+export type HabitStatus = components['schemas']['HabitStatus'];
 export type GroupName = components['schemas']['GroupName'];
 export type Group = components['schemas']['Group'];
 export type TaskIds = components['schemas']['TaskIds'];
@@ -1276,6 +1466,8 @@ export type TasksSomeday = components['schemas']['TasksSomeday'];
 export type TaskReschedule = components['schemas']['TaskReschedule'];
 export type SectionInput = components['schemas']['SectionInput'];
 export type PresetText = components['schemas']['PresetText'];
+export type HabitDelta = components['schemas']['HabitDelta'];
+export type SyncReport = components['schemas']['SyncReport'];
 export type ItemStatus = components['schemas']['ItemStatus'];
 export type ItemType = components['schemas']['ItemType'];
 export type Milestone = components['schemas']['Milestone'];
@@ -1284,6 +1476,7 @@ export type Workflow = components['schemas']['Workflow'];
 export type TypeTime = components['schemas']['TypeTime'];
 export type RecordPhase = components['schemas']['RecordPhase'];
 export type Me = components['schemas']['Me'];
+export type HabitDay = components['schemas']['HabitDay'];
 export type EventOccurrence = components['schemas']['EventOccurrence'];
 export type $defs = Record<string, never>;
 export interface operations {
@@ -2136,6 +2329,57 @@ export interface operations {
       };
     };
   };
+  update_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['HabitInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Habit'];
+        };
+      };
+    };
+  };
+  setStatus_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+        date: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['HabitStatus'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   rename_1: {
     parameters: {
       query?: never;
@@ -2667,12 +2911,121 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': components['schemas']['Group'][];
+          '*/*': components['schemas']['Habit'][];
         };
       };
     };
   };
   create_3: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['HabitInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Habit'];
+        };
+      };
+    };
+  };
+  addValue: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+        date: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['HabitDelta'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  archive: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  sync: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SyncReport'];
+        };
+      };
+    };
+  };
+  list_4: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Group'][];
+        };
+      };
+    };
+  };
+  create_4: {
     parameters: {
       query?: never;
       header?: never;
@@ -2816,6 +3169,29 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  days: {
+    parameters: {
+      query: {
+        from: string;
+        to: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['HabitDay'][];
+        };
       };
     };
   };

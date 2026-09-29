@@ -1,4 +1,5 @@
 import type { Backend } from '#backend';
+import { habits } from '#habits';
 import { projects } from '#projects';
 import { records } from '#records';
 import { tasks } from '#tasks';
@@ -12,4 +13,5 @@ export const createRemoteBackend = (api: Api): Partial<Backend> => ({
   ...tasks(api),
   ...records(api),
   ...workflow(api),
+  ...habits(api),
 });
