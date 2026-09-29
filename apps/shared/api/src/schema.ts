@@ -4,6 +4,38 @@
  */
 
 export interface paths {
+  '/api/v1/timer': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getTimer'];
+    put: operations['editTimer'];
+    post: operations['startTimer'];
+    delete: operations['discardTimer'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/time-entries/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['updateTimeEntry'];
+    post?: never;
+    delete: operations['deleteTimeEntry'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/tasks/{id}': {
     parameters: {
       query?: never;
@@ -436,6 +468,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/blocks/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['rescheduleBlock'];
+    post?: never;
+    delete: operations['deleteBlock'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/undo-snapshots': {
     parameters: {
       query?: never;
@@ -462,6 +510,86 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations['restore'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/timer/stop': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['stopTimer'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/timer/resume': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['resumeTimer'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/timer/restore': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['restoreTimer'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/timer/pause': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['pauseTimer'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/time-entries': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listTimeEntries'];
+    put?: never;
+    post: operations['createTimeEntry'];
     delete?: never;
     options?: never;
     head?: never;
@@ -526,6 +654,22 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations['addDependency'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/tasks/{id}/blocks': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['createBlock'];
     delete?: never;
     options?: never;
     head?: never;
@@ -756,6 +900,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/tasks/{id}/time-entries': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listTaskEntries'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/tasks/{id}/phases': {
     parameters: {
       query?: never;
@@ -764,6 +924,22 @@ export interface paths {
       cookie?: never;
     };
     get: operations['phases'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/projects/{id}/time-entries': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listProjectEntries'];
     put?: never;
     post?: never;
     delete?: never;
@@ -820,6 +996,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/blocks': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listBlocks'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/tasks/{id}/dependencies/{blockedById}': {
     parameters: {
       query?: never;
@@ -856,6 +1048,50 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    EntryDetails: {
+      description: string;
+      /** Format: int64 */
+      projectId: number | null;
+      /** Format: int64 */
+      taskId: number | null;
+    };
+    RunningTimer: {
+      description: string;
+      /** Format: int64 */
+      projectId: number | null;
+      /** Format: int64 */
+      taskId: number | null;
+      /** Format: int64 */
+      startedAt: number;
+      /** Format: int64 */
+      pausedAt: number | null;
+      /** Format: int64 */
+      bankedSeconds: number;
+    };
+    EntryInput: {
+      description: string;
+      /** Format: int64 */
+      projectId: number | null;
+      /** Format: int64 */
+      taskId: number | null;
+      /** Format: int64 */
+      startedAt: number;
+      /** Format: int64 */
+      endedAt: number;
+    };
+    TimeEntry: {
+      /** Format: int64 */
+      id: number;
+      description: string;
+      /** Format: int64 */
+      projectId: number | null;
+      /** Format: int64 */
+      taskId: number | null;
+      /** Format: int64 */
+      startedAt: number;
+      /** Format: int64 */
+      endedAt: number;
+    };
     TaskInput: {
       title: string;
       notes: string;
@@ -1103,6 +1339,28 @@ export interface components {
       /** Format: int32 */
       position: number;
     };
+    BlockSpan: {
+      /** Format: int64 */
+      startAt: number;
+      /** Format: int64 */
+      endAt: number;
+    };
+    TimeBlock: {
+      /** Format: int64 */
+      id: number;
+      /** Format: int64 */
+      taskId: number;
+      title: string;
+      /** Format: int64 */
+      projectId: number | null;
+      /** Format: int32 */
+      priority: number;
+      completed: boolean;
+      /** Format: int64 */
+      startAt: number;
+      /** Format: int64 */
+      endAt: number;
+    };
     TaskIds: {
       ids: number[];
     };
@@ -1204,6 +1462,21 @@ export interface components {
       /** Format: int64 */
       seconds: number;
     };
+    TrackedEntry: {
+      /** Format: int64 */
+      id: number;
+      description: string;
+      /** Format: int64 */
+      projectId: number | null;
+      /** Format: int64 */
+      taskId: number | null;
+      /** Format: int64 */
+      startedAt: number;
+      /** Format: int64 */
+      endedAt: number;
+      taskTitle: string | null;
+      taskCompleted: boolean;
+    };
     RecordPhase: {
       /** Format: int64 */
       statusId: number;
@@ -1236,6 +1509,10 @@ export interface components {
   headers: never;
   pathItems: never;
 }
+export type EntryDetails = components['schemas']['EntryDetails'];
+export type RunningTimer = components['schemas']['RunningTimer'];
+export type EntryInput = components['schemas']['EntryInput'];
+export type TimeEntry = components['schemas']['TimeEntry'];
 export type TaskInput = components['schemas']['TaskInput'];
 export type Task = components['schemas']['Task'];
 export type TaskTypeId = components['schemas']['TaskTypeId'];
@@ -1268,6 +1545,8 @@ export type MilestoneInput = components['schemas']['MilestoneInput'];
 export type StatusPlacement = components['schemas']['StatusPlacement'];
 export type GroupName = components['schemas']['GroupName'];
 export type Group = components['schemas']['Group'];
+export type BlockSpan = components['schemas']['BlockSpan'];
+export type TimeBlock = components['schemas']['TimeBlock'];
 export type TaskIds = components['schemas']['TaskIds'];
 export type PhaseTaskInput = components['schemas']['PhaseTaskInput'];
 export type TaskPlacement = components['schemas']['TaskPlacement'];
@@ -1282,11 +1561,144 @@ export type Milestone = components['schemas']['Milestone'];
 export type SavedView = components['schemas']['SavedView'];
 export type Workflow = components['schemas']['Workflow'];
 export type TypeTime = components['schemas']['TypeTime'];
+export type TrackedEntry = components['schemas']['TrackedEntry'];
 export type RecordPhase = components['schemas']['RecordPhase'];
 export type Me = components['schemas']['Me'];
 export type EventOccurrence = components['schemas']['EventOccurrence'];
 export type $defs = Record<string, never>;
 export interface operations {
+  getTimer: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RunningTimer'];
+        };
+      };
+    };
+  };
+  editTimer: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EntryDetails'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RunningTimer'];
+        };
+      };
+    };
+  };
+  startTimer: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EntryDetails'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RunningTimer'];
+        };
+      };
+    };
+  };
+  discardTimer: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  updateTimeEntry: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EntryInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['TimeEntry'];
+        };
+      };
+    };
+  };
+  deleteTimeEntry: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   get: {
     parameters: {
       query?: never;
@@ -2182,6 +2594,52 @@ export interface operations {
       };
     };
   };
+  rescheduleBlock: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BlockSpan'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['TimeBlock'];
+        };
+      };
+    };
+  };
+  deleteBlock: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   capture: {
     parameters: {
       query?: never;
@@ -2223,6 +2681,137 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  stopTimer: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['TimeEntry'];
+        };
+      };
+    };
+  };
+  resumeTimer: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RunningTimer'];
+        };
+      };
+    };
+  };
+  restoreTimer: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RunningTimer'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RunningTimer'];
+        };
+      };
+    };
+  };
+  pauseTimer: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RunningTimer'];
+        };
+      };
+    };
+  };
+  listTimeEntries: {
+    parameters: {
+      query: {
+        from: string;
+        to: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['TimeEntry'][];
+        };
+      };
+    };
+  };
+  createTimeEntry: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EntryInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['TimeEntry'];
+        };
       };
     };
   };
@@ -2344,6 +2933,32 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  createBlock: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BlockSpan'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['TimeBlock'];
         };
       };
     };
@@ -2739,6 +3354,28 @@ export interface operations {
       };
     };
   };
+  listTaskEntries: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['TrackedEntry'][];
+        };
+      };
+    };
+  };
   phases: {
     parameters: {
       query?: never;
@@ -2757,6 +3394,28 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['RecordPhase'][];
+        };
+      };
+    };
+  };
+  listProjectEntries: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['TrackedEntry'][];
         };
       };
     };
@@ -2838,6 +3497,29 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['EventOccurrence'][];
+        };
+      };
+    };
+  };
+  listBlocks: {
+    parameters: {
+      query: {
+        from: string;
+        to: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['TimeBlock'][];
         };
       };
     };

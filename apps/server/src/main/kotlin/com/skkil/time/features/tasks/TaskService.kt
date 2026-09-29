@@ -10,6 +10,7 @@ import com.skkil.time.common.requiredText
 import com.skkil.time.features.projects.ProjectService
 import com.skkil.time.features.recurrence.Recurrence
 import com.skkil.time.features.sections.SectionService
+import com.skkil.time.features.time.TimerService
 import com.skkil.time.features.workflow.WorkflowSync
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
@@ -28,7 +29,7 @@ class TaskService(
     private val projects: ProjectService,
     private val sections: SectionService,
     private val workflow: WorkflowSync,
-    private val timer: TimerStop,
+    private val timer: TimerService,
 ) {
     private data class Valid(val title: String, val notes: String, val container: Container, val recurrence: String?)
 
