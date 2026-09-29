@@ -58,10 +58,10 @@ Each item is one commit. Check it off when it lands.
 
 ## 3. Server domains (port of `src-tauri/src/features`, tests beside each)
 
-- [ ] 3.1 Recurrence (`recurrence/`), checked against `repeat-phrases.json`
+- [x] 3.1 Recurrence (`recurrence/`), checked against `repeat-phrases.json`
 - [x] 3.2 Projects, groups, canvas, sections
-- [ ] 3.3 Tasks, dependencies, undo snapshots
-- [ ] 3.4 Workflow (types, statuses, milestones, views, presets, events) and
+- [x] 3.3 Tasks, dependencies, undo snapshots
+- [x] 3.4 Workflow (types, statuses, milestones, views, presets, events) and
       records
 - [ ] 3.5 Time blocks, time entries, running timer
 - [ ] 3.6 Habits (project-time tracking; website/app tracking stays desktop)
@@ -107,7 +107,8 @@ Each item is one commit. Check it off when it lands.
 
 ## 7. Release
 
-- [ ] 7.1 `skkil.yml`: dev, ci, services, routes and auth sections
+- [x] 7.1 `skkil.yml`: dev and ci sections (services, routes and auth are
+      in docs/deployment.md until the CLI accepts them)
 - [ ] 7.2 Docs: README per app, AGENTS.md, deployment guide
 - [ ] 7.3 Full CI pass: server tests, web/desktop/mobile type check, lint and
       tests, contract drift check
