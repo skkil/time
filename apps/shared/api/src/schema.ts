@@ -180,6 +180,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/settings/reminders': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['reminders'];
+    put: operations['setReminders'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/settings/capture-hotkey': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['captureHotkey'];
+    put: operations['setCaptureHotkey'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/sections/{id}/position': {
     parameters: {
       query?: never;
@@ -708,6 +740,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/import/projects': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['importProjects'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/groups': {
     parameters: {
       query?: never;
@@ -718,6 +766,22 @@ export interface paths {
     get: operations['list_3'];
     put?: never;
     post: operations['create_3'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/data/import': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['import'];
     delete?: never;
     options?: never;
     head?: never;
@@ -820,6 +884,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/data/export': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['export'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/changes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['changes'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/tasks/{id}/dependencies/{blockedById}': {
     parameters: {
       query?: never;
@@ -847,6 +943,22 @@ export interface paths {
     put?: never;
     post?: never;
     delete: operations['delete_4'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/data': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['deleteAll'];
     options?: never;
     head?: never;
     patch?: never;
@@ -968,6 +1080,9 @@ export interface components {
     };
     TaskCompleted: {
       completed: boolean;
+    };
+    Enabled: {
+      enabled: boolean;
     };
     SectionPlacement: {
       /** Format: int64 */
@@ -1144,6 +1259,20 @@ export interface components {
     PresetText: {
       text: string;
     };
+    ImportProject: {
+      name: string;
+      color: string;
+      tasks: components['schemas']['ImportTask'][];
+      sections: components['schemas']['ImportSection'][];
+    };
+    ImportSection: {
+      name: string;
+      tasks: components['schemas']['ImportTask'][];
+    };
+    ImportTask: {
+      task: components['schemas']['TaskInput'];
+      children: components['schemas']['ImportTask'][];
+    };
     ItemStatus: {
       /** Format: int64 */
       id: number;
@@ -1229,6 +1358,23 @@ export interface components {
       location: string;
       countsAsTime: boolean;
     };
+    DataExport: {
+      format: string;
+      /** Format: int32 */
+      version: number;
+      /** Format: int64 */
+      exportedAt: number;
+      tables: {
+        [key: string]: {
+          [key: string]: unknown;
+        }[];
+      };
+    };
+    Changes: {
+      /** Format: int64 */
+      version: number;
+      lastWriter: string | null;
+    };
   };
   responses: never;
   parameters: never;
@@ -1248,6 +1394,7 @@ export type TaskMust = components['schemas']['TaskMust'];
 export type TaskMilestoneId = components['schemas']['TaskMilestoneId'];
 export type TaskEventDetails = components['schemas']['TaskEventDetails'];
 export type TaskCompleted = components['schemas']['TaskCompleted'];
+export type Enabled = components['schemas']['Enabled'];
 export type SectionPlacement = components['schemas']['SectionPlacement'];
 export type Section = components['schemas']['Section'];
 export type SectionName = components['schemas']['SectionName'];
@@ -1276,6 +1423,9 @@ export type TasksSomeday = components['schemas']['TasksSomeday'];
 export type TaskReschedule = components['schemas']['TaskReschedule'];
 export type SectionInput = components['schemas']['SectionInput'];
 export type PresetText = components['schemas']['PresetText'];
+export type ImportProject = components['schemas']['ImportProject'];
+export type ImportSection = components['schemas']['ImportSection'];
+export type ImportTask = components['schemas']['ImportTask'];
 export type ItemStatus = components['schemas']['ItemStatus'];
 export type ItemType = components['schemas']['ItemType'];
 export type Milestone = components['schemas']['Milestone'];
@@ -1285,6 +1435,8 @@ export type TypeTime = components['schemas']['TypeTime'];
 export type RecordPhase = components['schemas']['RecordPhase'];
 export type Me = components['schemas']['Me'];
 export type EventOccurrence = components['schemas']['EventOccurrence'];
+export type DataExport = components['schemas']['DataExport'];
+export type Changes = components['schemas']['Changes'];
 export type $defs = Record<string, never>;
 export interface operations {
   get: {
@@ -1611,6 +1763,90 @@ export interface operations {
         content: {
           '*/*': components['schemas']['Task'];
         };
+      };
+    };
+  };
+  reminders: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': boolean;
+        };
+      };
+    };
+  };
+  setReminders: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Enabled'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  captureHotkey: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': boolean;
+        };
+      };
+    };
+  };
+  setCaptureHotkey: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Enabled'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -2652,6 +2888,30 @@ export interface operations {
       };
     };
   };
+  importProjects: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ImportProject'][];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': number[];
+        };
+      };
+    };
+  };
   list_3: {
     parameters: {
       query?: never;
@@ -2693,6 +2953,28 @@ export interface operations {
         content: {
           '*/*': components['schemas']['Group'];
         };
+      };
+    };
+  };
+  import: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': string;
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -2842,6 +3124,46 @@ export interface operations {
       };
     };
   };
+  export: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['DataExport'];
+        };
+      };
+    };
+  };
+  changes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Changes'];
+        };
+      };
+    };
+  };
   removeDependency: {
     parameters: {
       query?: never;
@@ -2872,6 +3194,24 @@ export interface operations {
       path: {
         id: number;
       };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  deleteAll: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
       cookie?: never;
     };
     requestBody?: never;

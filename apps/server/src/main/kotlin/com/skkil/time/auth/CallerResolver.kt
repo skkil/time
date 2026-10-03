@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.support.WebDataBinderFactory
 import org.springframework.web.context.request.NativeWebRequest
+import org.springframework.web.context.request.RequestAttributes
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.method.support.ModelAndViewContainer
 import java.time.ZoneId
@@ -35,9 +36,12 @@ class CallerResolver(private val accounts: Accounts) : HandlerMethodArgumentReso
                 name = jwt.getClaimAsString("name"),
             )
         val account = accounts.find(identity) ?: accounts.provision(identity)
+        webRequest.setAttribute(CALLER_ID_ATTRIBUTE, account.id, RequestAttributes.SCOPE_REQUEST)
         val requested =
             webRequest.getHeader(TIME_ZONE_HEADER)?.let { runCatching { ZoneId.of(it) }.getOrNull() }
         if (requested != null && requested != account.zone) accounts.saveZone(account.id, requested)
         return Caller(account.id, requested ?: account.zone)
     }
 }
+
+const val CALLER_ID_ATTRIBUTE = "com.skkil.time.callerId"
