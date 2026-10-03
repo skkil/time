@@ -13,6 +13,96 @@
     "bearer" : [ ]
   } ],
   "paths" : {
+    "/api/v1/weeks/{date}/step" : {
+      "put" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "reachReviewStep",
+        "parameters" : [ {
+          "name" : "date",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ReviewStep"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/weeks/{date}/notes" : {
+      "put" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "saveWeekNotes",
+        "parameters" : [ {
+          "name" : "date",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/WeekNotes"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/weeks/{date}/felt" : {
+      "put" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "rateWeek",
+        "parameters" : [ {
+          "name" : "date",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Felt"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/timer" : {
       "get" : {
         "tags" : [ "time-controller" ],
@@ -757,10 +847,121 @@
         }
       }
     },
+    "/api/v1/rituals/{kind}" : {
+      "put" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "update_1",
+        "parameters" : [ {
+          "name" : "kind",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RitualInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Ritual"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ritual-runs/{id}/step" : {
+      "put" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "reachStep",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RitualStep"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RitualRun"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quarters/{id}" : {
+      "put" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "updateQuarter",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QuarterInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "integer",
+                  "format" : "int64"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{id}" : {
       "put" : {
         "tags" : [ "project-controller" ],
-        "operationId" : "update_1",
+        "operationId" : "update_2",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -1063,6 +1264,179 @@
         }
       }
     },
+    "/api/v1/priorities/{id}" : {
+      "put" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "updatePriority",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PriorityInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "removePriority",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/planning-time" : {
+      "get" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "planningTime",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlanningTime"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "choosePlanningTime",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlanningChoice"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Ritual"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/outcomes/{id}" : {
+      "put" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "updateOutcome",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OutcomeInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "removeOutcome",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/outcomes/{id}/status" : {
+      "put" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "updateOutcomeStatus",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OutcomeStatusInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/milestones/{id}" : {
       "put" : {
         "tags" : [ "workflow-controller" ],
@@ -1256,7 +1630,7 @@
     "/api/v1/habits/{id}" : {
       "put" : {
         "tags" : [ "habit-controller" ],
-        "operationId" : "update_2",
+        "operationId" : "update_3",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -1383,6 +1757,66 @@
         }
       }
     },
+    "/api/v1/days/{date}/note" : {
+      "put" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "saveDayNote",
+        "parameters" : [ {
+          "name" : "date",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DayNote"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/days/{date}/felt" : {
+      "put" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "rateDay",
+        "parameters" : [ {
+          "name" : "date",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Felt"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/blocks/{id}" : {
       "put" : {
         "tags" : [ "block-controller" ],
@@ -1429,6 +1863,56 @@
           "schema" : {
             "type" : "integer",
             "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/weeks/{date}/outcomes" : {
+      "post" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "createOutcome",
+        "parameters" : [ {
+          "name" : "date",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OutcomeInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/weeks/{date}/finish" : {
+      "post" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "finishWeekReview",
+        "parameters" : [ {
+          "name" : "date",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
           }
         } ],
         "responses" : {
@@ -1938,6 +2422,216 @@
         }
       }
     },
+    "/api/v1/rituals/{kind}/runs" : {
+      "post" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "start",
+        "parameters" : [ {
+          "name" : "kind",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RitualTask"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RitualRun"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/rituals/due" : {
+      "post" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "due",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "oneOf" : [ {
+                  "$ref" : "#/components/schemas/RitualOpen"
+                }, {
+                  "$ref" : "#/components/schemas/RitualTick"
+                }, {
+                  "$ref" : "#/components/schemas/RitualTimerStopped"
+                } ]
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Ritual"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ritual-runs/{id}/snooze" : {
+      "post" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "snooze",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RitualRun"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ritual-runs/{id}/skip" : {
+      "post" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "skip",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RitualRun"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ritual-runs/{id}/finish" : {
+      "post" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "finish",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RitualRun"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quarters" : {
+      "post" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "createQuarter",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QuarterInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "integer",
+                  "format" : "int64"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quarters/{id}/priorities" : {
+      "post" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "createPriority",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PriorityTitle"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/projects" : {
       "get" : {
         "tags" : [ "project-controller" ],
@@ -2362,6 +3056,26 @@
         }
       }
     },
+    "/api/v1/days/{date}/skip" : {
+      "post" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "skipDay",
+        "parameters" : [ {
+          "name" : "date",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/workflow" : {
       "get" : {
         "tags" : [ "workflow-controller" ],
@@ -2373,6 +3087,71 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/Workflow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/weeks" : {
+      "get" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "weeks",
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/WeekSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/weeks/{date}" : {
+      "get" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "week",
+        "parameters" : [ {
+          "name" : "date",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Week"
                 }
               }
             }
@@ -2471,6 +3250,92 @@
                   "items" : {
                     "$ref" : "#/components/schemas/RecordPhase"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/rituals" : {
+      "get" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "list_5",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Ritual"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ritual-runs" : {
+      "get" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "runs",
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/RitualRun"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quarter" : {
+      "get" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "quarter",
+        "parameters" : [ {
+          "name" : "date",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Quarter"
                 }
               }
             }
@@ -2632,6 +3497,44 @@
         }
       }
     },
+    "/api/v1/days" : {
+      "get" : {
+        "tags" : [ "review-controller" ],
+        "operationId" : "days_1",
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Day"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/blocks" : {
       "get" : {
         "tags" : [ "block-controller" ],
@@ -2728,6 +3631,41 @@
   },
   "components" : {
     "schemas" : {
+      "ReviewStep" : {
+        "type" : "object",
+        "properties" : {
+          "step" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "step" ]
+      },
+      "WeekNotes" : {
+        "type" : "object",
+        "properties" : {
+          "worked" : {
+            "type" : "string"
+          },
+          "fellShort" : {
+            "type" : "string"
+          },
+          "change" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "change", "fellShort", "worked" ]
+      },
+      "Felt" : {
+        "type" : "object",
+        "properties" : {
+          "felt" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "felt" ]
+      },
       "EntryDetails" : {
         "type" : "object",
         "properties" : {
@@ -3178,6 +4116,128 @@
         },
         "required" : [ "filter", "groupBy", "layout", "name", "sort" ]
       },
+      "RitualInput" : {
+        "type" : "object",
+        "properties" : {
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "trigger" : {
+            "type" : "string"
+          },
+          "atMinute" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "weekdays" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "steps" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "atMinute", "enabled", "steps", "trigger", "weekdays" ]
+      },
+      "Ritual" : {
+        "type" : "object",
+        "properties" : {
+          "kind" : {
+            "type" : "string"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "trigger" : {
+            "type" : "string"
+          },
+          "atMinute" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "weekdays" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "minMinutes" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "steps" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "atMinute", "enabled", "kind", "minMinutes", "steps", "trigger", "weekdays" ]
+      },
+      "RitualStep" : {
+        "type" : "object",
+        "properties" : {
+          "step" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "step" ]
+      },
+      "RitualRun" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "kind" : {
+            "type" : "string"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "taskId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "startedAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "finishedAt" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "skipped" : {
+            "type" : "boolean"
+          },
+          "step" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "snoozedUntil" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "date", "finishedAt", "id", "kind", "skipped", "snoozedUntil", "startedAt", "step", "taskId" ]
+      },
+      "QuarterInput" : {
+        "type" : "object",
+        "properties" : {
+          "label" : {
+            "type" : "string"
+          },
+          "startDate" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "label", "startDate" ]
+      },
       "ProjectInput" : {
         "type" : "object",
         "properties" : {
@@ -3419,6 +4479,50 @@
         },
         "required" : [ "archived" ]
       },
+      "PriorityInput" : {
+        "type" : "object",
+        "properties" : {
+          "title" : {
+            "type" : "string"
+          },
+          "note" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "note", "title" ]
+      },
+      "PlanningChoice" : {
+        "type" : "object",
+        "properties" : {
+          "time" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "time" ]
+      },
+      "OutcomeInput" : {
+        "type" : "object",
+        "properties" : {
+          "title" : {
+            "type" : "string"
+          },
+          "priorityId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "priorityId", "title" ]
+      },
+      "OutcomeStatusInput" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "enum" : [ "open", "achieved", "carried", "dropped" ]
+          }
+        },
+        "required" : [ "status" ]
+      },
       "MilestoneInput" : {
         "type" : "object",
         "properties" : {
@@ -3607,6 +4711,15 @@
         },
         "required" : [ "id", "name", "position" ]
       },
+      "DayNote" : {
+        "type" : "object",
+        "properties" : {
+          "note" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "note" ]
+      },
       "BlockSpan" : {
         "type" : "object",
         "properties" : {
@@ -3764,6 +4877,65 @@
           }
         },
         "required" : [ "before", "name", "projectId" ]
+      },
+      "RitualTask" : {
+        "type" : "object",
+        "properties" : {
+          "taskId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "taskId" ]
+      },
+      "RitualEvent" : {
+        "discriminator" : {
+          "propertyName" : "kind",
+          "mapping" : {
+            "open" : "#/components/schemas/RitualOpen",
+            "tick" : "#/components/schemas/RitualTick",
+            "timerStopped" : "#/components/schemas/RitualTimerStopped"
+          }
+        },
+        "properties" : {
+          "kind" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "kind" ]
+      },
+      "RitualOpen" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/RitualEvent"
+        } ]
+      },
+      "RitualTick" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/RitualEvent"
+        } ]
+      },
+      "RitualTimerStopped" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/RitualEvent"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "minutes" : {
+              "type" : "integer",
+              "format" : "int32"
+            }
+          }
+        } ],
+        "required" : [ "minutes" ]
+      },
+      "PriorityTitle" : {
+        "type" : "object",
+        "properties" : {
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "title" ]
       },
       "PresetText" : {
         "type" : "object",
@@ -3949,6 +5121,120 @@
         },
         "required" : [ "milestones", "statuses", "types", "views" ]
       },
+      "WeekSummary" : {
+        "type" : "object",
+        "properties" : {
+          "startDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "felt" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          },
+          "step" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "reviewedAt" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "outcomesTotal" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "outcomesAchieved" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "trackedSeconds" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "plannedSeconds" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "tasksCompleted" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "felt", "outcomesAchieved", "outcomesTotal", "plannedSeconds", "reviewedAt", "startDate", "step", "tasksCompleted", "trackedSeconds" ]
+      },
+      "Outcome" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "open", "achieved", "carried", "dropped" ]
+          },
+          "priorityId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "carriedFrom" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "timesCarried" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tasksTotal" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tasksDone" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "trackedSeconds" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "carriedFrom", "id", "priorityId", "status", "tasksDone", "tasksTotal", "timesCarried", "title", "trackedSeconds" ]
+      },
+      "Week" : {
+        "type" : "object",
+        "properties" : {
+          "startDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "felt" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          },
+          "step" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "reviewedAt" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "notes" : {
+            "$ref" : "#/components/schemas/WeekNotes"
+          },
+          "outcomes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Outcome"
+            }
+          }
+        },
+        "required" : [ "felt", "notes", "outcomes", "reviewedAt", "startDate", "step" ]
+      },
       "TypeTime" : {
         "type" : "object",
         "properties" : {
@@ -4012,6 +5298,62 @@
           }
         },
         "required" : [ "notes", "statusId" ]
+      },
+      "Priority" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "note" : {
+            "type" : "string"
+          },
+          "achieved" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "achieved", "id", "note", "title" ]
+      },
+      "Quarter" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "startDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "weekNo" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "priorities" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Priority"
+            }
+          }
+        },
+        "required" : [ "id", "label", "priorities", "startDate", "weekNo" ]
+      },
+      "PlanningTime" : {
+        "type" : "object",
+        "properties" : {
+          "time" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "time" ]
       },
       "Me" : {
         "type" : "object",
@@ -4085,6 +5427,26 @@
           }
         },
         "required" : [ "countsAsTime", "endAt", "location", "projectId", "startAt", "taskId", "title", "typeId" ]
+      },
+      "Day" : {
+        "type" : "object",
+        "properties" : {
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "felt" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32"
+          },
+          "note" : {
+            "type" : "string"
+          },
+          "skipped" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "date", "felt", "note", "skipped" ]
       }
     },
     "securitySchemes" : {
