@@ -4,6 +4,54 @@
  */
 
 export interface paths {
+  '/api/v1/weeks/{date}/step': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['reachReviewStep'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/weeks/{date}/notes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['saveWeekNotes'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/weeks/{date}/felt': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['rateWeek'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/tasks/{id}': {
     parameters: {
       query?: never;
@@ -244,7 +292,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/projects/{id}': {
+  '/api/v1/rituals/{kind}': {
     parameters: {
       query?: never;
       header?: never;
@@ -253,6 +301,54 @@ export interface paths {
     };
     get?: never;
     put: operations['update_1'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/ritual-runs/{id}/step': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['reachStep'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/quarters/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['updateQuarter'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/projects/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['update_2'];
     post?: never;
     delete: operations['delete_1'];
     options?: never;
@@ -356,6 +452,70 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/priorities/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['updatePriority'];
+    post?: never;
+    delete: operations['removePriority'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/planning-time': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['planningTime'];
+    put: operations['choosePlanningTime'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/outcomes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['updateOutcome'];
+    post?: never;
+    delete: operations['removeOutcome'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/outcomes/{id}/status': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['updateOutcomeStatus'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/milestones/{id}': {
     parameters: {
       query?: never;
@@ -431,6 +591,70 @@ export interface paths {
     put: operations['rename_1'];
     post?: never;
     delete: operations['delete_2'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/days/{date}/note': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['saveDayNote'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/days/{date}/felt': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['rateDay'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/weeks/{date}/outcomes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['createOutcome'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/weeks/{date}/finish': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['finishWeekReview'];
+    delete?: never;
     options?: never;
     head?: never;
     patch?: never;
@@ -596,6 +820,118 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/rituals/{kind}/runs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['start'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/rituals/due': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['due'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/ritual-runs/{id}/snooze': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['snooze'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/ritual-runs/{id}/skip': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['skip'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/ritual-runs/{id}/finish': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['finish'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/quarters': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['createQuarter'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/quarters/{id}/priorities': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['createPriority'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/projects': {
     parameters: {
       query?: never;
@@ -724,6 +1060,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/days/{date}/skip': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['skipDay'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/workflow': {
     parameters: {
       query?: never;
@@ -732,6 +1084,38 @@ export interface paths {
       cookie?: never;
     };
     get: operations['get_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/weeks': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['weeks'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/weeks/{date}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['week'];
     put?: never;
     post?: never;
     delete?: never;
@@ -764,6 +1148,54 @@ export interface paths {
       cookie?: never;
     };
     get: operations['phases'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/rituals': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['list_4'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/ritual-runs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['runs'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/quarter': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['quarter'];
     put?: never;
     post?: never;
     delete?: never;
@@ -820,6 +1252,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/days': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['days'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/tasks/{id}/dependencies/{blockedById}': {
     parameters: {
       query?: never;
@@ -856,6 +1304,19 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    ReviewStep: {
+      /** Format: int32 */
+      step: number;
+    };
+    WeekNotes: {
+      worked: string;
+      fellShort: string;
+      change: string;
+    };
+    Felt: {
+      /** Format: int32 */
+      felt: number;
+    };
     TaskInput: {
       title: string;
       notes: string;
@@ -996,6 +1457,54 @@ export interface components {
       filter: string;
       sort: string;
     };
+    RitualInput: {
+      enabled: boolean;
+      trigger: string;
+      /** Format: int32 */
+      atMinute: number;
+      /** Format: int32 */
+      weekdays: number;
+      steps: string[];
+    };
+    Ritual: {
+      kind: string;
+      enabled: boolean;
+      trigger: string;
+      /** Format: int32 */
+      atMinute: number;
+      /** Format: int32 */
+      weekdays: number;
+      /** Format: int32 */
+      minMinutes: number;
+      steps: string[];
+    };
+    RitualStep: {
+      /** Format: int32 */
+      step: number;
+    };
+    RitualRun: {
+      /** Format: int64 */
+      id: number;
+      kind: string;
+      /** Format: date */
+      date: string;
+      /** Format: int64 */
+      taskId: number | null;
+      /** Format: int64 */
+      startedAt: number;
+      /** Format: int64 */
+      finishedAt: number | null;
+      skipped: boolean;
+      /** Format: int32 */
+      step: number;
+      /** Format: int64 */
+      snoozedUntil: number | null;
+    };
+    QuarterInput: {
+      label: string;
+      /** Format: date */
+      startDate: string;
+    };
     ProjectInput: {
       name: string;
       /** Format: int64 */
@@ -1084,6 +1593,22 @@ export interface components {
     Archived: {
       archived: boolean;
     };
+    PriorityInput: {
+      title: string;
+      note: string;
+    };
+    PlanningChoice: {
+      time: string;
+    };
+    OutcomeInput: {
+      title: string;
+      /** Format: int64 */
+      priorityId: number | null;
+    };
+    OutcomeStatusInput: {
+      /** @enum {string} */
+      status: 'open' | 'achieved' | 'carried' | 'dropped';
+    };
     MilestoneInput: {
       name: string;
       /** Format: date */
@@ -1102,6 +1627,9 @@ export interface components {
       name: string;
       /** Format: int32 */
       position: number;
+    };
+    DayNote: {
+      note: string;
     };
     TaskIds: {
       ids: number[];
@@ -1140,6 +1668,40 @@ export interface components {
       name: string;
       /** Format: int64 */
       before: number | null;
+    };
+    RitualTask: {
+      /** Format: int64 */
+      taskId: number | null;
+    };
+    RitualEvent: {
+      kind: string;
+    };
+    RitualOpen: Omit<components['schemas']['RitualEvent'], 'kind'> & {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'open';
+    };
+    RitualTick: Omit<components['schemas']['RitualEvent'], 'kind'> & {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'tick';
+    };
+    RitualTimerStopped: Omit<components['schemas']['RitualEvent'], 'kind'> & {
+      /** Format: int32 */
+      minutes: number;
+    } & {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'timerStopped';
+    };
+    PriorityTitle: {
+      title: string;
     };
     PresetText: {
       text: string;
@@ -1198,6 +1760,57 @@ export interface components {
       milestones: components['schemas']['Milestone'][];
       views: components['schemas']['SavedView'][];
     };
+    WeekSummary: {
+      /** Format: date */
+      startDate: string;
+      /** Format: int32 */
+      felt: number | null;
+      /** Format: int32 */
+      step: number;
+      /** Format: int64 */
+      reviewedAt: number | null;
+      /** Format: int32 */
+      outcomesTotal: number;
+      /** Format: int32 */
+      outcomesAchieved: number;
+      /** Format: int64 */
+      trackedSeconds: number;
+      /** Format: int64 */
+      plannedSeconds: number;
+      /** Format: int32 */
+      tasksCompleted: number;
+    };
+    Outcome: {
+      /** Format: int64 */
+      id: number;
+      title: string;
+      /** @enum {string} */
+      status: 'open' | 'achieved' | 'carried' | 'dropped';
+      /** Format: int64 */
+      priorityId: number | null;
+      /** Format: int64 */
+      carriedFrom: number | null;
+      /** Format: int32 */
+      timesCarried: number;
+      /** Format: int32 */
+      tasksTotal: number;
+      /** Format: int32 */
+      tasksDone: number;
+      /** Format: int64 */
+      trackedSeconds: number;
+    };
+    Week: {
+      /** Format: date */
+      startDate: string;
+      /** Format: int32 */
+      felt: number | null;
+      /** Format: int32 */
+      step: number;
+      /** Format: int64 */
+      reviewedAt: number | null;
+      notes: components['schemas']['WeekNotes'];
+      outcomes: components['schemas']['Outcome'][];
+    };
     TypeTime: {
       name: string;
       icon: string;
@@ -1208,6 +1821,27 @@ export interface components {
       /** Format: int64 */
       statusId: number;
       notes: string;
+    };
+    Priority: {
+      /** Format: int64 */
+      id: number;
+      title: string;
+      note: string;
+      /** Format: int32 */
+      achieved: number;
+    };
+    Quarter: {
+      /** Format: int64 */
+      id: number;
+      label: string;
+      /** Format: date */
+      startDate: string;
+      /** Format: int32 */
+      weekNo: number;
+      priorities: components['schemas']['Priority'][];
+    };
+    PlanningTime: {
+      time: string | null;
     };
     Me: {
       /** Format: int64 */
@@ -1229,6 +1863,14 @@ export interface components {
       location: string;
       countsAsTime: boolean;
     };
+    Day: {
+      /** Format: date */
+      date: string;
+      /** Format: int32 */
+      felt: number | null;
+      note: string;
+      skipped: boolean;
+    };
   };
   responses: never;
   parameters: never;
@@ -1236,6 +1878,9 @@ export interface components {
   headers: never;
   pathItems: never;
 }
+export type ReviewStep = components['schemas']['ReviewStep'];
+export type WeekNotes = components['schemas']['WeekNotes'];
+export type Felt = components['schemas']['Felt'];
 export type TaskInput = components['schemas']['TaskInput'];
 export type Task = components['schemas']['Task'];
 export type TaskTypeId = components['schemas']['TaskTypeId'];
@@ -1253,6 +1898,11 @@ export type Section = components['schemas']['Section'];
 export type SectionName = components['schemas']['SectionName'];
 export type SectionCollapsed = components['schemas']['SectionCollapsed'];
 export type ViewInput = components['schemas']['ViewInput'];
+export type RitualInput = components['schemas']['RitualInput'];
+export type Ritual = components['schemas']['Ritual'];
+export type RitualStep = components['schemas']['RitualStep'];
+export type RitualRun = components['schemas']['RitualRun'];
+export type QuarterInput = components['schemas']['QuarterInput'];
 export type ProjectInput = components['schemas']['ProjectInput'];
 export type Project = components['schemas']['Project'];
 export type ProjectView = components['schemas']['ProjectView'];
@@ -1264,10 +1914,15 @@ export type MilestoneLabel = components['schemas']['MilestoneLabel'];
 export type CanvasContent = components['schemas']['CanvasContent'];
 export type ProjectCanvas = components['schemas']['ProjectCanvas'];
 export type Archived = components['schemas']['Archived'];
+export type PriorityInput = components['schemas']['PriorityInput'];
+export type PlanningChoice = components['schemas']['PlanningChoice'];
+export type OutcomeInput = components['schemas']['OutcomeInput'];
+export type OutcomeStatusInput = components['schemas']['OutcomeStatusInput'];
 export type MilestoneInput = components['schemas']['MilestoneInput'];
 export type StatusPlacement = components['schemas']['StatusPlacement'];
 export type GroupName = components['schemas']['GroupName'];
 export type Group = components['schemas']['Group'];
+export type DayNote = components['schemas']['DayNote'];
 export type TaskIds = components['schemas']['TaskIds'];
 export type PhaseTaskInput = components['schemas']['PhaseTaskInput'];
 export type TaskPlacement = components['schemas']['TaskPlacement'];
@@ -1275,18 +1930,103 @@ export type TaskDependency = components['schemas']['TaskDependency'];
 export type TasksSomeday = components['schemas']['TasksSomeday'];
 export type TaskReschedule = components['schemas']['TaskReschedule'];
 export type SectionInput = components['schemas']['SectionInput'];
+export type RitualTask = components['schemas']['RitualTask'];
+export type RitualEvent = components['schemas']['RitualEvent'];
+export type RitualOpen = components['schemas']['RitualOpen'];
+export type RitualTick = components['schemas']['RitualTick'];
+export type RitualTimerStopped = components['schemas']['RitualTimerStopped'];
+export type PriorityTitle = components['schemas']['PriorityTitle'];
 export type PresetText = components['schemas']['PresetText'];
 export type ItemStatus = components['schemas']['ItemStatus'];
 export type ItemType = components['schemas']['ItemType'];
 export type Milestone = components['schemas']['Milestone'];
 export type SavedView = components['schemas']['SavedView'];
 export type Workflow = components['schemas']['Workflow'];
+export type WeekSummary = components['schemas']['WeekSummary'];
+export type Outcome = components['schemas']['Outcome'];
+export type Week = components['schemas']['Week'];
 export type TypeTime = components['schemas']['TypeTime'];
 export type RecordPhase = components['schemas']['RecordPhase'];
+export type Priority = components['schemas']['Priority'];
+export type Quarter = components['schemas']['Quarter'];
+export type PlanningTime = components['schemas']['PlanningTime'];
 export type Me = components['schemas']['Me'];
 export type EventOccurrence = components['schemas']['EventOccurrence'];
+export type Day = components['schemas']['Day'];
 export type $defs = Record<string, never>;
 export interface operations {
+  reachReviewStep: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        date: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ReviewStep'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  saveWeekNotes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        date: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['WeekNotes'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  rateWeek: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        date: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Felt'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   get: {
     parameters: {
       query?: never;
@@ -1741,6 +2481,84 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        kind: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RitualInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Ritual'];
+        };
+      };
+    };
+  };
+  reachStep: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RitualStep'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RitualRun'];
+        };
+      };
+    };
+  };
+  updateQuarter: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['QuarterInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': number;
+        };
+      };
+    };
+  };
+  update_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
         id: number;
       };
       cookie?: never;
@@ -1976,6 +2794,162 @@ export interface operations {
       };
     };
   };
+  updatePriority: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PriorityInput'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  removePriority: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  planningTime: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PlanningTime'];
+        };
+      };
+    };
+  };
+  choosePlanningTime: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PlanningChoice'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Ritual'][];
+        };
+      };
+    };
+  };
+  updateOutcome: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OutcomeInput'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  removeOutcome: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  updateOutcomeStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OutcomeStatusInput'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   updateMilestone: {
     parameters: {
       query?: never;
@@ -2168,6 +3142,98 @@ export interface operations {
       header?: never;
       path: {
         id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  saveDayNote: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        date: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DayNote'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  rateDay: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        date: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Felt'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  createOutcome: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        date: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OutcomeInput'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  finishWeekReview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        date: string;
       };
       cookie?: never;
     };
@@ -2458,6 +3524,173 @@ export interface operations {
       };
     };
   };
+  start: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        kind: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RitualTask'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RitualRun'];
+        };
+      };
+    };
+  };
+  due: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json':
+          | components['schemas']['RitualOpen']
+          | components['schemas']['RitualTick']
+          | components['schemas']['RitualTimerStopped'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Ritual'];
+        };
+      };
+    };
+  };
+  snooze: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RitualRun'];
+        };
+      };
+    };
+  };
+  skip: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RitualRun'];
+        };
+      };
+    };
+  };
+  finish: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RitualRun'];
+        };
+      };
+    };
+  };
+  createQuarter: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['QuarterInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': number;
+        };
+      };
+    };
+  };
+  createPriority: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PriorityTitle'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   list_2: {
     parameters: {
       query?: never;
@@ -2696,6 +3929,26 @@ export interface operations {
       };
     };
   };
+  skipDay: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        date: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   get_1: {
     parameters: {
       query?: never;
@@ -2712,6 +3965,51 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['Workflow'];
+        };
+      };
+    };
+  };
+  weeks: {
+    parameters: {
+      query: {
+        from: string;
+        to: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['WeekSummary'][];
+        };
+      };
+    };
+  };
+  week: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        date: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Week'];
         };
       };
     };
@@ -2757,6 +4055,71 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['RecordPhase'][];
+        };
+      };
+    };
+  };
+  list_4: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Ritual'][];
+        };
+      };
+    };
+  };
+  runs: {
+    parameters: {
+      query: {
+        from: string;
+        to: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RitualRun'][];
+        };
+      };
+    };
+  };
+  quarter: {
+    parameters: {
+      query: {
+        date: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Quarter'];
         };
       };
     };
@@ -2838,6 +4201,29 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['EventOccurrence'][];
+        };
+      };
+    };
+  };
+  days: {
+    parameters: {
+      query: {
+        from: string;
+        to: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Day'][];
         };
       };
     };
