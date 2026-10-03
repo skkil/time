@@ -7,6 +7,7 @@ import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { SelectionProvider } from '@/layout';
 import { queryClient } from '@/queries';
 import { SessionProvider, useSession } from '@/session';
 import { useTheme } from '@/theme';
@@ -67,7 +68,9 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <SessionProvider>
-            <Routes />
+            <SelectionProvider>
+              <Routes />
+            </SelectionProvider>
           </SessionProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

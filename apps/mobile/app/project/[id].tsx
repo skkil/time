@@ -39,6 +39,7 @@ export default function ProjectScreen() {
         }}
       />
       <Screen
+        split
         refreshing={tasks.isRefetching}
         onRefresh={() => void tasks.refetch()}
       >

@@ -53,6 +53,7 @@ export default function Today() {
 
   return (
     <Screen
+      split
       title="Today"
       subtitle={format(new Date(), 'EEEE d MMMM')}
       refreshing={tasks.isRefetching}

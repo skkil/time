@@ -1,9 +1,10 @@
 import type { Project, Task } from '@skkil-time/contract';
 import { formatDue, isOverdue } from '@skkil-time/domain/due';
 import * as Haptics from 'expo-haptics';
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useSelection, useWide } from '@/layout';
 import { useCompleteTask } from '@/queries';
 import { spacing, type, useProjectColor, useTheme } from '@/theme';
 
@@ -19,6 +20,8 @@ export function TaskRow({
   const theme = useTheme();
   const colorOf = useProjectColor();
   const complete = useCompleteTask();
+  const wide = useWide();
+  const { selected, select } = useSelection();
   const done = task.completedAt !== null;
   const ring =
     task.priority < 4
@@ -53,57 +56,62 @@ export function TaskRow({
           { borderColor: ring, backgroundColor: done ? ring : 'transparent' },
         ]}
       />
-      <Link href={{ pathname: '/task/[id]', params: { id: task.id } }} asChild>
-        <Pressable style={styles.body} accessibilityRole="button">
-          <Text
-            numberOfLines={2}
-            style={[
-              type.body,
-              { color: done ? theme['muted-foreground'] : theme.foreground },
-              done && styles.done,
-            ]}
-          >
-            {task.title}
-          </Text>
-          {(due || project || task.recurrence) && (
-            <View style={styles.meta}>
-              {due !== '' && (
-                <Text
+      <Pressable
+        style={[styles.body, selected === task.id && wide && { opacity: 0.7 }]}
+        accessibilityRole="button"
+        accessibilityState={{ selected: wide && selected === task.id }}
+        onPress={() =>
+          wide
+            ? select(task.id)
+            : router.push({ pathname: '/task/[id]', params: { id: task.id } })
+        }
+      >
+        <Text
+          numberOfLines={2}
+          style={[
+            type.body,
+            { color: done ? theme['muted-foreground'] : theme.foreground },
+            done && styles.done,
+          ]}
+        >
+          {task.title}
+        </Text>
+        {(due || project || task.recurrence) && (
+          <View style={styles.meta}>
+            {due !== '' && (
+              <Text
+                style={[
+                  type.small,
+                  { color: overdue ? theme.p1 : theme['muted-foreground'] },
+                ]}
+              >
+                {due}
+              </Text>
+            )}
+            {task.recurrence && (
+              <Text style={[type.small, { color: theme['muted-foreground'] }]}>
+                ↻ {task.recurrence}
+              </Text>
+            )}
+            {project && (
+              <View style={styles.project}>
+                <View
                   style={[
-                    type.small,
-                    { color: overdue ? theme.p1 : theme['muted-foreground'] },
+                    styles.dot,
+                    { backgroundColor: colorOf(project.color) },
                   ]}
-                >
-                  {due}
-                </Text>
-              )}
-              {task.recurrence && (
+                />
                 <Text
                   style={[type.small, { color: theme['muted-foreground'] }]}
+                  numberOfLines={1}
                 >
-                  ↻ {task.recurrence}
+                  {project.name}
                 </Text>
-              )}
-              {project && (
-                <View style={styles.project}>
-                  <View
-                    style={[
-                      styles.dot,
-                      { backgroundColor: colorOf(project.color) },
-                    ]}
-                  />
-                  <Text
-                    style={[type.small, { color: theme['muted-foreground'] }]}
-                    numberOfLines={1}
-                  >
-                    {project.name}
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
-        </Pressable>
-      </Link>
+              </View>
+            )}
+          </View>
+        )}
+      </Pressable>
     </View>
   );
 }

@@ -105,6 +105,23 @@ Each item is one commit. Check it off when it lands.
 - [ ] 6.9 Release config: app.config, icons and splash from `assets/icon.svg`,
       EAS profiles, deep links, privacy manifest
 
+## 8. Cross-device (added 2026-11-08)
+
+- [ ] 8.1 Tablet: mobile orientation unlocked, two-pane layouts on wide
+      screens (list + task detail); web checked at tablet widths
+- [ ] 8.2 Realtime server: `/api/v1/realtime` websocket with one-time
+      tickets, Postgres LISTEN/NOTIFY fan-out across instances, a change event
+      after every write
+- [ ] 8.3 Realtime clients: shared client invalidates queries on web and
+      mobile, reconnects with backoff, polling stays as the fallback
+- [ ] 8.4 Shared focus timer: one `running_timer` per account, live on every
+      device through realtime (verify start/pause/stop across web and phone)
+- [ ] 8.5 Shared settings: account-wide preferences stored on the server,
+      per-device ones stay local; pluggable preference store in the shared app
+- [ ] 8.6 Notifications: server reminder job (one sender via advisory lock),
+      device registrations, Expo push for mobile, Web Push + service worker
+      for web, per-device toggle
+
 ## 7. Release
 
 - [x] 7.1 `skkil.yml`: dev and ci sections (services, routes and auth are

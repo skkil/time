@@ -28,6 +28,7 @@ export default function Inbox() {
 
   return (
     <Screen
+      split
       title="Inbox"
       action={<AddButton />}
       refreshing={tasks.isRefetching}
