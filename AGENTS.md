@@ -274,12 +274,28 @@ cargo clippy --all-targets
 - After an API change: `./gradlew openApi`, then `pnpm generate` in
   `apps/shared/api`, then `pnpm exec tsc -b` in `apps/shared/remote`.
   `OpenApiDocumentTest` fails while the committed document is stale.
+- Instant updates: `ChangeTracking` (`features/data/Changes.kt`) bumps the
+  user's `data_version` after every successful write and publishes a
+  `ChangeEvent` (topic = first path segment) on Postgres `LISTEN/NOTIFY`
+  (`features/realtime/RealtimeBus.kt`); each instance forwards it to that
+  user's websockets at `/api/v1/realtime`, opened with a one-time ticket from
+  `POST /api/v1/realtime/tickets`. Events carry no data, only "refetch".
+- Account-wide preferences are one JSON object (`features/preferences`,
+  `PATCH` merges, `null` removes a key).
 
 ## Web and mobile
 
 - Web (`apps/web/`) is `mount()` from `apps/shared/app` with the remote backend,
   a browser `Platform` and OIDC sign-in (`apps/shared/auth/web`). Config is
   `VITE_*` at build time or `config.js` at container start.
+- `Platform.onRemoteChange` and `Platform.preferences` are optional ports:
+  web fills them from `connectRealtime` (`apps/shared/api/realtime`) and the
+  preferences endpoint, desktop leaves them out. `SHARED_KEYS` in
+  `lib/preferences.ts` decides which preferences follow the account; the rest
+  stay on the device.
 - Mobile (`apps/mobile/`) is Expo Router. It shares `domain`, `tokens`,
   `contract`, `api` and `remote`, not DOM components; screens live in `app/`,
   hooks in `src/queries.ts`. `pnpm compile` and `npx expo export` check it.
+  Screens passing `split` to `Screen` show the task beside the list on
+  screens 768pt or wider (`src/layout.tsx`); `useRealtime` refetches on
+  other devices' writes.
