@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { SignIn } from '~/SignIn';
 import { config } from '~/config';
 import { webHost } from '~/host';
+import { setUpWebPush } from '~/notifications';
 import { webPlatform } from '~/platform';
 
 import { mount } from '@/mount';
@@ -35,11 +36,17 @@ async function start() {
     clientId: host.clientId,
     onUnauthorized: () => void auth.signIn(),
   });
+  const notifications = await setUpWebPush(api);
   mount({
     backend: createRemoteBackend(api, host),
-    platform: webPlatform(auth, session, async () => {
-      await unwrap(api.DELETE('/api/v1/me'));
-    }),
+    platform: webPlatform(
+      auth,
+      session,
+      async () => {
+        await unwrap(api.DELETE('/api/v1/me'));
+      },
+      notifications,
+    ),
   });
 }
 

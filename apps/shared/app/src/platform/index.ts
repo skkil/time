@@ -8,6 +8,14 @@ export type Account = {
   deleteAccount(): Promise<void>;
 };
 
+/** Push delivery to this device, for platforms where reminders arrive as push. */
+export type Notifications = {
+  isEnabled(): Promise<boolean>;
+  /** Resolves false when the user refuses notification permission. */
+  enable(): Promise<boolean>;
+  disable(): Promise<void>;
+};
+
 export interface Platform {
   kind: 'desktop' | 'web';
   openUrl(url: string): void;
@@ -16,6 +24,7 @@ export interface Platform {
   onOpenTask(listener: (id: Id) => void): Unsubscribe;
   onQuickAdd(listener: () => void): Unsubscribe;
   account: Account | null;
+  notifications?: Notifications;
   features: {
     captureHotkey: boolean;
     reminders: boolean;

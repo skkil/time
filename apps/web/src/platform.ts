@@ -1,6 +1,7 @@
 import type { Auth, Session } from '@skkil-time/auth';
+import { onOpenTask } from '~/notifications';
 
-import type { Platform } from '@/platform';
+import type { Notifications, Platform } from '@/platform';
 
 const noop = () => () => undefined;
 
@@ -8,6 +9,7 @@ export function webPlatform(
   auth: Auth,
   session: Session,
   deleteAccount: () => Promise<void>,
+  notifications: Notifications | null,
 ): Platform {
   return {
     kind: 'web',
@@ -25,7 +27,7 @@ export function webPlatform(
     setZoom: (zoom) => {
       document.documentElement.style.zoom = zoom === 1 ? '' : String(zoom);
     },
-    onOpenTask: noop,
+    onOpenTask,
     onQuickAdd: noop,
     account: {
       label: session.email ?? session.name ?? 'Signed in',
@@ -35,9 +37,10 @@ export function webPlatform(
         await auth.signOut();
       },
     },
+    notifications: notifications ?? undefined,
     features: {
       captureHotkey: false,
-      reminders: false,
+      reminders: notifications !== null,
       activityTracking: false,
       databaseFile: false,
     },
