@@ -1,0 +1,2 @@
+ALTER TABLE app_user ADD COLUMN data_version BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE app_user ADD COLUMN last_writer TEXT;

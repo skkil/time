@@ -58,7 +58,7 @@ class SecurityConfig(private val properties: AppProperties) {
             CorsConfiguration().apply {
                 allowedOrigins = properties.cors.allowedOrigins
                 allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-                allowedHeaders = listOf("Authorization", "Content-Type", TIME_ZONE_HEADER)
+                allowedHeaders = listOf("Authorization", "Content-Type", TIME_ZONE_HEADER, CLIENT_ID_HEADER)
                 maxAge = 3600
             }
         return UrlBasedCorsConfigurationSource().apply { registerCorsConfiguration("/api/**", config) }
@@ -66,3 +66,5 @@ class SecurityConfig(private val properties: AppProperties) {
 }
 
 const val TIME_ZONE_HEADER = "X-Time-Zone"
+
+const val CLIENT_ID_HEADER = "X-Client-Id"

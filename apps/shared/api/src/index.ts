@@ -19,6 +19,8 @@ export type ApiOptions = {
   baseUrl: string;
   getToken: () => Promise<string | null>;
   timeZone?: () => string;
+  /** Sent as `X-Client-Id`, so this client can ignore change notices for its own writes. */
+  clientId?: string;
   onUnauthorized?: () => void;
   fetch?: typeof globalThis.fetch;
 };
@@ -35,6 +37,7 @@ export function createApi({
   baseUrl,
   getToken,
   timeZone = localTimeZone,
+  clientId,
   onUnauthorized,
   fetch,
 }: ApiOptions) {
@@ -44,6 +47,7 @@ export function createApi({
       const token = await getToken();
       if (token) request.headers.set('Authorization', `Bearer ${token}`);
       request.headers.set('X-Time-Zone', timeZone());
+      if (clientId) request.headers.set('X-Client-Id', clientId);
       return request;
     },
     onResponse({ response }) {

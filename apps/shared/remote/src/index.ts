@@ -1,4 +1,5 @@
-import type { Backend } from '#backend';
+import type { Backend, RemoteHost } from '#backend';
+import { data } from '#data';
 import { habits } from '#habits';
 import { projects } from '#projects';
 import { records } from '#records';
@@ -9,15 +10,17 @@ import { time } from '#time';
 import { workflow } from '#workflow';
 import type { Api } from '@skkil-time/api';
 
-export type { Backend };
+export type { Backend, RemoteHost };
 
-export const createRemoteBackend = (api: Api): Partial<Backend> => ({
-  ...projects(api),
-  ...tasks(api),
-  ...records(api),
-  ...workflow(api),
-  ...habits(api),
-  ...time(api),
-  ...review(api),
-  ...rituals(api),
-});
+export const createRemoteBackend = (api: Api, host: RemoteHost): Backend =>
+  ({
+    ...projects(api),
+    ...tasks(api),
+    ...records(api),
+    ...workflow(api),
+    ...habits(api),
+    ...time(api),
+    ...review(api),
+    ...rituals(api),
+    ...data(api, host),
+  }) satisfies Backend;

@@ -688,6 +688,80 @@
         }
       }
     },
+    "/api/v1/settings/reminders" : {
+      "get" : {
+        "tags" : [ "settings-controller" ],
+        "operationId" : "reminders",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "settings-controller" ],
+        "operationId" : "setReminders",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Enabled"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/settings/capture-hotkey" : {
+      "get" : {
+        "tags" : [ "settings-controller" ],
+        "operationId" : "captureHotkey",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "settings-controller" ],
+        "operationId" : "setCaptureHotkey",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Enabled"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/sections/{id}/position" : {
       "put" : {
         "tags" : [ "section-controller" ],
@@ -2886,6 +2960,41 @@
         }
       }
     },
+    "/api/v1/import/projects" : {
+      "post" : {
+        "tags" : [ "import-controller" ],
+        "operationId" : "importProjects",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "array",
+                "items" : {
+                  "$ref" : "#/components/schemas/ImportProject"
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/habits" : {
       "get" : {
         "tags" : [ "habit-controller" ],
@@ -3069,6 +3178,27 @@
             "format" : "date"
           }
         } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/data/import" : {
+      "post" : {
+        "tags" : [ "data-controller" ],
+        "operationId" : "import",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          },
+          "required" : true
+        },
         "responses" : {
           "204" : {
             "description" : "No Content"
@@ -3535,6 +3665,42 @@
         }
       }
     },
+    "/api/v1/data/export" : {
+      "get" : {
+        "tags" : [ "data-controller" ],
+        "operationId" : "export",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DataExport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/changes" : {
+      "get" : {
+        "tags" : [ "change-controller" ],
+        "operationId" : "changes",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Changes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/blocks" : {
       "get" : {
         "tags" : [ "block-controller" ],
@@ -3621,6 +3787,17 @@
             "format" : "int64"
           }
         } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/data" : {
+      "delete" : {
+        "tags" : [ "data-controller" ],
+        "operationId" : "deleteAll",
         "responses" : {
           "204" : {
             "description" : "No Content"
@@ -4042,6 +4219,15 @@
           }
         },
         "required" : [ "completed" ]
+      },
+      "Enabled" : {
+        "type" : "object",
+        "properties" : {
+          "enabled" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "enabled" ]
       },
       "SectionPlacement" : {
         "type" : "object",
@@ -4946,6 +5132,60 @@
         },
         "required" : [ "text" ]
       },
+      "ImportProject" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ImportTask"
+            }
+          },
+          "sections" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ImportSection"
+            }
+          }
+        },
+        "required" : [ "color", "name", "sections", "tasks" ]
+      },
+      "ImportSection" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ImportTask"
+            }
+          }
+        },
+        "required" : [ "name", "tasks" ]
+      },
+      "ImportTask" : {
+        "type" : "object",
+        "properties" : {
+          "task" : {
+            "$ref" : "#/components/schemas/TaskInput"
+          },
+          "children" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ImportTask"
+            }
+          }
+        },
+        "required" : [ "children", "task" ]
+      },
       "HabitDelta" : {
         "type" : "object",
         "properties" : {
@@ -5447,6 +5687,46 @@
           }
         },
         "required" : [ "date", "felt", "note", "skipped" ]
+      },
+      "DataExport" : {
+        "type" : "object",
+        "properties" : {
+          "format" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "exportedAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "tables" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "array",
+              "items" : {
+                "type" : "object",
+                "additionalProperties" : { }
+              }
+            }
+          }
+        },
+        "required" : [ "exportedAt", "format", "tables", "version" ]
+      },
+      "Changes" : {
+        "type" : "object",
+        "properties" : {
+          "version" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "lastWriter" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "lastWriter", "version" ]
       }
     },
     "securitySchemes" : {

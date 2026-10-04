@@ -36,7 +36,10 @@ export function DataSettings() {
   const backup = useMutation({
     mutationFn: () => commands.exportData(),
     onSuccess: (path) => {
-      if (path) toast.success(`Backup saved to ${path}`);
+      if (path)
+        toast.success(
+          local ? `Backup saved to ${path}` : `Backup downloaded as ${path}`,
+        );
     },
   });
   const restore = useMutation({
@@ -70,7 +73,7 @@ export function DataSettings() {
       </SettingRow>
       <SettingRow
         label="Export a backup"
-        description="Saves all projects, tasks, time, habits and reviews to a file you choose."
+        description={`${local ? 'Saves' : 'Downloads'} all projects, tasks, time, habits and reviews ${local ? 'to a file you choose' : 'as a file'}.`}
       >
         <Button
           variant="outline"

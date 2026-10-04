@@ -4,9 +4,9 @@ import { createRemoteBackend } from '@skkil-time/remote';
 import { createRoot } from 'react-dom/client';
 import { SignIn } from '~/SignIn';
 import { config } from '~/config';
+import { webHost } from '~/host';
 import { webPlatform } from '~/platform';
 
-import type { Backend } from '@/backend';
 import { mount } from '@/mount';
 import '@/styles/globals.css';
 
@@ -28,13 +28,15 @@ async function start() {
   const session = await auth.session();
   if (!session) return showSignIn(error);
 
+  const host = webHost();
   const api = createApi({
     baseUrl: config.apiUrl,
     getToken: auth.getToken,
+    clientId: host.clientId,
     onUnauthorized: () => void auth.signIn(),
   });
   mount({
-    backend: createRemoteBackend(api) as Backend,
+    backend: createRemoteBackend(api, host),
     platform: webPlatform(auth, session, async () => {
       await unwrap(api.DELETE('/api/v1/me'));
     }),
