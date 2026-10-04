@@ -133,7 +133,7 @@ ci:
       dir: apps/desktop/src-tauri
       format: cargo fmt --check
       lint: cargo clippy --all-targets
-      test: cargo test
+      test: cargo test && git diff --exit-code -- ../../shared/contract/src/bindings.ts
     - name: shared-domain
       dir: apps/shared/domain
       lint: pnpm lint
@@ -149,6 +149,24 @@ ci:
       format: pnpm exec prettier --check ..
       lint: pnpm lint
       test: pnpm test
+      build: pnpm compile
+    - name: shared-api
+      dir: apps/shared/api
+      lint: pnpm lint
+      test: pnpm check:generated
+      build: pnpm compile
+      depends_on:
+        - server
+    - name: shared-remote
+      dir: apps/shared/remote
+      lint: pnpm lint
+      build: pnpm compile
+      depends_on:
+        - core
+        - shared-api
+    - name: shared-auth
+      dir: apps/shared/auth
+      lint: pnpm lint
       build: pnpm compile
     - name: server
       dir: apps/server

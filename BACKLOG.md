@@ -78,7 +78,7 @@ Each item is one commit. Check it off when it lands.
 - [x] 4.2b `apps/shared/remote`: the app `Backend` over HTTP, one file per
       domain, typed against the Rust contract (complete when it
       `satisfies Backend`)
-- [ ] 4.3 Drift check: CI regenerates spec, client and bindings and fails on any
+- [x] 4.3 Drift check: CI regenerates spec, client and bindings and fails on any
       diff
 
 ## 5. Web (`apps/web`)

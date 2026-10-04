@@ -16,7 +16,8 @@
     "generate": "openapi-typescript openapi.json --output src/schema.ts --root-types --root-types-no-schema-prefix && prettier --write src/schema.ts",
     "lint": "eslint .",
     "compile": "tsc -b",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "check:generated": "pnpm generate && git diff --exit-code -- src/schema.ts"
   },
   "dependencies": {
     "openapi-fetch": "^0.17.0"
