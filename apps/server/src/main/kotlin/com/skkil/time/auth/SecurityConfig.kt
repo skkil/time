@@ -41,7 +41,7 @@ class SecurityConfig(private val properties: AppProperties) {
                 it
                     .requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
-                    .requestMatchers("/livez", "/readyz", "/actuator/**", "/v3/api-docs/**")
+                    .requestMatchers("/livez", "/readyz", "/actuator/**", "/v3/api-docs/**", "/api/v1/realtime")
                     .permitAll()
                     .anyRequest()
                     .authenticated()

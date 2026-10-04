@@ -2647,6 +2647,24 @@
         }
       }
     },
+    "/api/v1/realtime/tickets" : {
+      "post" : {
+        "tags" : [ "realtime-controller" ],
+        "operationId" : "issueTicket",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Ticket"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/quarters" : {
       "post" : {
         "tags" : [ "review-controller" ],
@@ -3202,6 +3220,53 @@
         "responses" : {
           "204" : {
             "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/preferences" : {
+      "get" : {
+        "tags" : [ "preference-controller" ],
+        "operationId" : "readPreferences",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : { }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "preference-controller" ],
+        "operationId" : "mergePreferences",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "additionalProperties" : { }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : { }
+                }
+              }
+            }
           }
         }
       }
@@ -5113,6 +5178,19 @@
           }
         } ],
         "required" : [ "minutes" ]
+      },
+      "Ticket" : {
+        "type" : "object",
+        "properties" : {
+          "ticket" : {
+            "type" : "string"
+          },
+          "expiresIn" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "expiresIn", "ticket" ]
       },
       "PriorityTitle" : {
         "type" : "object",

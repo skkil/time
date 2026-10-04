@@ -14,6 +14,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { syncColorScheme } from '@/hooks/use-color-scheme';
 import { syncExternalChanges } from '@/lib/external-changes';
 import { syncIdle } from '@/lib/idle';
+import { syncSharedPreferences } from '@/lib/preferences';
 import { syncPriorityColors } from '@/lib/priority-colors';
 import { queryClient } from '@/lib/query';
 import { syncZoom } from '@/lib/zoom';
@@ -37,6 +38,7 @@ export function mount({
   syncIdle();
   syncZoom();
   syncPriorityColors();
+  syncSharedPreferences();
   syncExternalChanges();
 
   createRoot(document.getElementById('root') as HTMLElement).render(

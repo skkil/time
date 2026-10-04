@@ -1,4 +1,5 @@
 import { createApi, unwrap } from '@skkil-time/api';
+import { connectRealtime } from '@skkil-time/api/realtime';
 import { createWebAuth } from '@skkil-time/auth/web';
 import { createRemoteBackend } from '@skkil-time/remote';
 import { createRoot } from 'react-dom/client';
@@ -8,6 +9,7 @@ import { webHost } from '~/host';
 import { webPlatform } from '~/platform';
 
 import { mount } from '@/mount';
+import type { RemoteChange } from '@/platform';
 import '@/styles/globals.css';
 
 const auth = createWebAuth(config.auth);
@@ -35,10 +37,37 @@ async function start() {
     clientId: host.clientId,
     onUnauthorized: () => void auth.signIn(),
   });
+  const listeners = new Set<(change: RemoteChange) => void>();
+  const realtime = connectRealtime({
+    api,
+    baseUrl: config.apiUrl,
+    clientId: host.clientId,
+    onChange: ({ topic }) =>
+      listeners.forEach((listener) => listener({ topic })),
+    onReconnect: () =>
+      listeners.forEach((listener) => listener({ topic: 'reconnect' })),
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) realtime.resume();
+  });
+  window.addEventListener('online', () => realtime.resume());
+
   mount({
     backend: createRemoteBackend(api, host),
-    platform: webPlatform(auth, session, async () => {
-      await unwrap(api.DELETE('/api/v1/me'));
+    platform: webPlatform(auth, session, {
+      deleteAccount: async () => {
+        await unwrap(api.DELETE('/api/v1/me'));
+      },
+      preferences: {
+        load: async () => unwrap(api.GET('/api/v1/preferences')),
+        save: async (changes) => {
+          await unwrap(api.PATCH('/api/v1/preferences', { body: changes }));
+        },
+      },
+      onRemoteChange: (listener) => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
     }),
   });
 }

@@ -1108,6 +1108,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/realtime/tickets': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['issueTicket'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/quarters': {
     parameters: {
       query?: never;
@@ -1378,6 +1394,22 @@ export interface paths {
     options?: never;
     head?: never;
     patch?: never;
+    trace?: never;
+  };
+  '/api/v1/preferences': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['readPreferences'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations['mergePreferences'];
     trace?: never;
   };
   '/api/v1/workflow': {
@@ -2237,6 +2269,11 @@ export interface components {
        */
       kind: 'timerStopped';
     };
+    Ticket: {
+      ticket: string;
+      /** Format: int64 */
+      expiresIn: number;
+    };
     PriorityTitle: {
       title: string;
     };
@@ -2551,6 +2588,7 @@ export type RitualEvent = components['schemas']['RitualEvent'];
 export type RitualOpen = components['schemas']['RitualOpen'];
 export type RitualTick = components['schemas']['RitualTick'];
 export type RitualTimerStopped = components['schemas']['RitualTimerStopped'];
+export type Ticket = components['schemas']['Ticket'];
 export type PriorityTitle = components['schemas']['PriorityTitle'];
 export type PresetText = components['schemas']['PresetText'];
 export type ImportProject = components['schemas']['ImportProject'];
@@ -4738,6 +4776,26 @@ export interface operations {
       };
     };
   };
+  issueTicket: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Ticket'];
+        };
+      };
+    };
+  };
   createQuarter: {
     parameters: {
       query?: never;
@@ -5196,6 +5254,56 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  readPreferences: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': {
+            [key: string]: unknown;
+          };
+        };
+      };
+    };
+  };
+  mergePreferences: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          [key: string]: unknown;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': {
+            [key: string]: unknown;
+          };
+        };
       };
     };
   };

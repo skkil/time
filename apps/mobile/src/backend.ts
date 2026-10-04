@@ -7,7 +7,7 @@ import { config } from '@/config';
 
 export const auth = createNativeAuth(config.auth);
 
-const host: RemoteHost = {
+export const host: RemoteHost = {
   clientId: randomUUID(),
   saveFile: async () => null,
   openFile: async () => null,

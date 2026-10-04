@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { SelectionProvider } from '@/layout';
 import { queryClient } from '@/queries';
+import { useRealtime } from '@/realtime';
 import { SessionProvider, useSession } from '@/session';
 import { useTheme } from '@/theme';
 
@@ -21,6 +22,7 @@ AppState.addEventListener('change', (status) =>
 function Routes() {
   const theme = useTheme();
   const { session, loading } = useSession();
+  useRealtime(session !== null);
   useEffect(() => {
     if (!loading) void SplashScreen.hideAsync();
   }, [loading]);

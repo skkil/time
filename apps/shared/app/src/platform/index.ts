@@ -8,6 +8,13 @@ export type Account = {
   deleteAccount(): Promise<void>;
 };
 
+export type SharedPreferences = {
+  load(): Promise<Record<string, unknown>>;
+  save(changes: Record<string, unknown>): Promise<void>;
+};
+
+export type RemoteChange = { topic: string };
+
 export interface Platform {
   kind: 'desktop' | 'web';
   openUrl(url: string): void;
@@ -16,6 +23,10 @@ export interface Platform {
   onOpenTask(listener: (id: Id) => void): Unsubscribe;
   onQuickAdd(listener: () => void): Unsubscribe;
   account: Account | null;
+  /** Pushes other devices' writes as they happen; without it the app polls. */
+  onRemoteChange?(listener: (change: RemoteChange) => void): Unsubscribe;
+  /** Account-wide preferences; without it every preference stays on this device. */
+  preferences?: SharedPreferences;
   features: {
     captureHotkey: boolean;
     reminders: boolean;

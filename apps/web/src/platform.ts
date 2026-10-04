@@ -1,15 +1,23 @@
 import type { Auth, Session } from '@skkil-time/auth';
 
-import type { Platform } from '@/platform';
+import type { Platform, RemoteChange, SharedPreferences } from '@/platform';
 
 const noop = () => () => undefined;
+
+export type WebServices = {
+  deleteAccount: () => Promise<void>;
+  preferences: SharedPreferences;
+  onRemoteChange: (listener: (change: RemoteChange) => void) => () => void;
+};
 
 export function webPlatform(
   auth: Auth,
   session: Session,
-  deleteAccount: () => Promise<void>,
+  { deleteAccount, preferences, onRemoteChange }: WebServices,
 ): Platform {
   return {
+    onRemoteChange,
+    preferences,
     kind: 'web',
     openUrl: (url) => void window.open(url, '_blank', 'noopener,noreferrer'),
     onFocusChange(listener) {
