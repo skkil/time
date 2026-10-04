@@ -32,6 +32,11 @@ class AccountTest : ApiTest() {
     }
 
     @Test
+    fun `answers unknown routes as not found`() {
+        expectProblem(get("/api/v1/no-such-route"), 404, "notFound")
+    }
+
+    @Test
     fun `deletes the account and everything it owns`() {
         val id = userId()
         delete("/api/v1/me").andExpect { status { isNoContent() } }

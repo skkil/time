@@ -38,7 +38,11 @@ class ProblemHandler : ResponseEntityExceptionHandler() {
         request: WebRequest,
     ): ResponseEntity<Any>? {
         val detail = (body as? ProblemDetail) ?: ProblemDetail.forStatus(statusCode)
-        detail.setProperty("kind", if (statusCode.is4xxClientError) ErrorKind.INVALID.code else ErrorKind.DATABASE.code)
+        val kind = ErrorKind.entries.firstOrNull { it.status.value() == statusCode.value() }
+        detail.setProperty(
+            "kind",
+            (kind ?: if (statusCode.is4xxClientError) ErrorKind.INVALID else ErrorKind.DATABASE).code,
+        )
         return super.handleExceptionInternal(ex, detail, headers, statusCode, request)
     }
 
