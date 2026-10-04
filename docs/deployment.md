@@ -52,8 +52,13 @@ CORS_ALLOWED_ORIGINS=https://<web host>
 - Shutdown is graceful (20 s), so rolling deploys drain requests.
 - The built-in rate limit is a per-address safety net. Put WAF rate rules at
   the edge.
-- Scaling: the API is stateless; run two or more instances behind the load
-  balancer. Undo snapshots live in Postgres.
+- Scaling: the API holds no state of its own; run two or more instances behind
+  the load balancer. Undo snapshots and realtime tickets live in Postgres, and
+  change events reach every instance through Postgres `LISTEN/NOTIFY`.
+- Websockets: `/api/v1/realtime` upgrades on the same port. Raise the load
+  balancer's idle timeout above 30 s (the server pings every 25 s); no sticky
+  sessions are needed. Behind RDS Proxy, `LISTEN` pins a connection, which is
+  expected: one per instance.
 
 ## Web
 
@@ -77,7 +82,11 @@ Serve the container behind the same load balancer or CloudFront, with
    `EXPO_PUBLIC_AUTH_AUTHORITY`, `EXPO_PUBLIC_AUTH_CLIENT_ID`,
    `EXPO_PUBLIC_AUTH_AUDIENCE` and `EXPO_PUBLIC_LEGAL_URL`.
 3. `eas build --profile production --platform all`, then `eas submit`.
-4. Store review needs a demo account on the production provider, the privacy
+4. Deep links use the `skkiltime://` scheme (for example
+   `skkiltime://task/42`). For https universal links, add the production
+   domain to `ios.associatedDomains` and an Android intent filter, and serve
+   `apple-app-site-association` and `assetlinks.json` from the web host.
+5. Store review needs a demo account on the production provider, the privacy
    policy URL, and the in-app account deletion (Settings → Delete account).
 
 ## `skkil.yml` platform sections

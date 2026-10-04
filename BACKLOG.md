@@ -102,7 +102,7 @@ Each item is one commit. Check it off when it lands.
 - [x] 6.6 Focus timer (start, break, stop, history)
 - [x] 6.7 Habits check-in
 - [x] 6.8 Settings: account, sign out, delete account
-- [ ] 6.9 Release config: app.config, icons and splash from `assets/icon.svg`,
+- [x] 6.9 Release config: app.config, icons and splash from `assets/icon.svg`,
       EAS profiles, deep links, privacy manifest
 
 ## 8. Cross-device (added 2026-11-08)
