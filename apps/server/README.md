@@ -37,6 +37,10 @@ types still match the Rust contract the UI is built on.
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | Comma-separated web origins |
 | `RATE_LIMIT_PER_MINUTE` | `600` | Requests per client address per minute |
 | `PORT` / `MANAGEMENT_PORT` | `8080` / `8081` | API and actuator ports |
+| `PUSH_REMINDERS` | `true` | Run the reminder job (every 20 s; one instance sends at a time) |
+| `EXPO_ACCESS_TOKEN` | unset | Bearer token for Expo push, when the Expo project requires one |
+| `WEB_PUSH_PUBLIC_KEY` / `WEB_PUSH_PRIVATE_KEY` | unset | VAPID keys, base64url (`npx web-push generate-vapid-keys`); web push is off without them |
+| `WEB_PUSH_SUBJECT` | unset | VAPID contact, `mailto:` or `https:` URL; required for web push |
 | `SPRING_PROFILES_ACTIVE` | `prod` in the image | `prod` logs JSON (ECS) |
 
 Probes: `GET /livez` and `GET /readyz` on the API port. Prometheus metrics are at

@@ -1252,6 +1252,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/notifications/devices': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['list_3'];
+    put?: never;
+    post: operations['register'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/import/projects': {
     parameters: {
       query?: never;
@@ -1275,7 +1291,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['list_3'];
+    get: operations['list_4'];
     put?: never;
     post: operations['create_3'];
     delete?: never;
@@ -1339,7 +1355,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['list_4'];
+    get: operations['list_5'];
     put?: never;
     post: operations['create_4'];
     delete?: never;
@@ -1483,7 +1499,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['list_5'];
+    get: operations['list_6'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1548,6 +1564,22 @@ export interface paths {
       cookie?: never;
     };
     get: operations['presets'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/notifications/config': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['config'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1695,6 +1727,22 @@ export interface paths {
     put?: never;
     post?: never;
     delete: operations['delete_4'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/notifications/devices/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['delete_5'];
     options?: never;
     head?: never;
     patch?: never;
@@ -2243,6 +2291,17 @@ export interface components {
     PresetText: {
       text: string;
     };
+    DeviceInput: {
+      kind: string;
+      token: string;
+      p256dh: string | null;
+      auth: string | null;
+      label: string | null;
+    };
+    DeviceId: {
+      /** Format: int64 */
+      id: number;
+    };
     ImportProject: {
       name: string;
       color: string;
@@ -2420,6 +2479,19 @@ export interface components {
     PlanningTime: {
       time: string | null;
     };
+    Device: {
+      /** Format: int64 */
+      id: number;
+      kind: string;
+      label: string;
+      /** Format: int64 */
+      createdAt: number;
+      /** Format: int64 */
+      lastSeenAt: number;
+    };
+    PushConfig: {
+      webPushPublicKey: string | null;
+    };
     Me: {
       /** Format: int64 */
       id: number;
@@ -2553,6 +2625,8 @@ export type RitualTick = components['schemas']['RitualTick'];
 export type RitualTimerStopped = components['schemas']['RitualTimerStopped'];
 export type PriorityTitle = components['schemas']['PriorityTitle'];
 export type PresetText = components['schemas']['PresetText'];
+export type DeviceInput = components['schemas']['DeviceInput'];
+export type DeviceId = components['schemas']['DeviceId'];
 export type ImportProject = components['schemas']['ImportProject'];
 export type ImportSection = components['schemas']['ImportSection'];
 export type ImportTask = components['schemas']['ImportTask'];
@@ -2572,6 +2646,8 @@ export type RecordPhase = components['schemas']['RecordPhase'];
 export type Priority = components['schemas']['Priority'];
 export type Quarter = components['schemas']['Quarter'];
 export type PlanningTime = components['schemas']['PlanningTime'];
+export type Device = components['schemas']['Device'];
+export type PushConfig = components['schemas']['PushConfig'];
 export type Me = components['schemas']['Me'];
 export type HabitDay = components['schemas']['HabitDay'];
 export type EventOccurrence = components['schemas']['EventOccurrence'];
@@ -4980,6 +5056,50 @@ export interface operations {
       };
     };
   };
+  list_3: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Device'][];
+        };
+      };
+    };
+  };
+  register: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DeviceInput'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['DeviceId'];
+        };
+      };
+    };
+  };
   importProjects: {
     parameters: {
       query?: never;
@@ -5004,7 +5124,7 @@ export interface operations {
       };
     };
   };
-  list_3: {
+  list_4: {
     parameters: {
       query?: never;
       header?: never;
@@ -5113,7 +5233,7 @@ export interface operations {
       };
     };
   };
-  list_4: {
+  list_5: {
     parameters: {
       query?: never;
       header?: never;
@@ -5331,7 +5451,7 @@ export interface operations {
       };
     };
   };
-  list_5: {
+  list_6: {
     parameters: {
       query?: never;
       header?: never;
@@ -5434,6 +5554,26 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['Preset'][];
+        };
+      };
+    };
+  };
+  config: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PushConfig'];
         };
       };
     };
@@ -5632,6 +5772,26 @@ export interface operations {
     };
   };
   delete_4: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  delete_5: {
     parameters: {
       query?: never;
       header?: never;

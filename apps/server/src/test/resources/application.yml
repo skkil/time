@@ -11,3 +11,5 @@ management:
 time:
   rate-limit:
     requests-per-minute: 100000
+  push:
+    reminders: false
