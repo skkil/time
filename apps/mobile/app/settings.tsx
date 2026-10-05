@@ -1,12 +1,74 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 
-import { auth, deleteAccount } from '@/backend';
+import { auth, commands, deleteAccount } from '@/backend';
 import { Group } from '@/components/Group';
 import { Button } from '@/components/States';
+import {
+  disableReminders,
+  enableReminders,
+  remindersAllowed,
+} from '@/notifications';
 import { useSession } from '@/session';
 import { spacing, type, useTheme } from '@/theme';
+
+const REMINDERS_KEY = ['reminders'];
+
+function Reminders() {
+  const theme = useTheme();
+  const client = useQueryClient();
+  const { data: on } = useQuery({
+    queryKey: REMINDERS_KEY,
+    queryFn: async () =>
+      (await commands.getRemindersEnabled()) && (await remindersAllowed()),
+  });
+  const toggle = useMutation({
+    mutationFn: async (next: boolean) => {
+      if (next && !(await enableReminders())) {
+        Alert.alert(
+          'Notifications are off',
+          'Allow notifications for skkil time in your device settings, then turn reminders on again.',
+        );
+        return false;
+      }
+      if (!next) await disableReminders();
+      await commands.setRemindersEnabled(next);
+      return next;
+    },
+    onSuccess: (next) => client.setQueryData(REMINDERS_KEY, next),
+    onError: () =>
+      Alert.alert(
+        'Couldn’t change reminders',
+        'Nothing was changed. Try again.',
+      ),
+  });
+
+  return (
+    <View style={[styles.row, styles.setting]}>
+      <View style={styles.label}>
+        <Text style={[type.body, { color: theme.foreground }]}>Reminders</Text>
+        <Text style={[type.small, { color: theme['muted-foreground'] }]}>
+          Notifies you when a task reaches its time.
+        </Text>
+      </View>
+      <Switch
+        accessibilityLabel="Reminders"
+        value={on ?? false}
+        disabled={toggle.isPending}
+        onValueChange={(next) => toggle.mutate(next)}
+      />
+    </View>
+  );
+}
 
 const LEGAL_URL =
   process.env.EXPO_PUBLIC_LEGAL_URL ?? 'https://time.skkil.org/legal';
@@ -47,6 +109,9 @@ export default function Settings() {
           </Text>
         </View>
       </Group>
+      <Group title="Notifications">
+        <Reminders />
+      </Group>
       <Button
         label="Sign out"
         tone="secondary"
@@ -78,5 +143,7 @@ export default function Settings() {
 const styles = StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.md },
   row: { padding: spacing.md },
+  setting: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  label: { flex: 1, gap: 2 },
   version: { textAlign: 'center', marginTop: spacing.lg },
 });

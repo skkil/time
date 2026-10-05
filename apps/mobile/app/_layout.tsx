@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { SelectionProvider } from '@/layout';
+import { useReminders } from '@/notifications';
 import { queryClient } from '@/queries';
 import { SessionProvider, useSession } from '@/session';
 import { useTheme } from '@/theme';
@@ -21,6 +22,7 @@ AppState.addEventListener('change', (status) =>
 function Routes() {
   const theme = useTheme();
   const { session, loading } = useSession();
+  useReminders(session !== null);
   useEffect(() => {
     if (!loading) void SplashScreen.hideAsync();
   }, [loading]);
