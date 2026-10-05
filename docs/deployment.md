@@ -43,6 +43,10 @@ DATABASE_PASSWORD=<secret>
 AUTH_ISSUER_URI=https://<tenant>/            # must match the token's iss exactly
 AUTH_AUDIENCE=time-api
 CORS_ALLOWED_ORIGINS=https://<web host>
+WEB_PUSH_PUBLIC_KEY=<vapid public>           # npx web-push generate-vapid-keys
+WEB_PUSH_PRIVATE_KEY=<secret>
+WEB_PUSH_SUBJECT=mailto:<contact>
+EXPO_ACCESS_TOKEN=<secret, optional>
 ```
 
 - Health: `GET /readyz` (load balancer target), `GET /livez` (restart probe).
@@ -139,4 +143,6 @@ auth:
 - [ ] `/readyz` healthy behind the load balancer; 8081 not public.
 - [ ] Web origin in `CORS_ALLOWED_ORIGINS` and in the provider's allowed
       origins.
+- [ ] VAPID keys set (web reminders) and EAS push credentials uploaded
+      (APNs key, FCM v1) for mobile reminders.
 - [ ] Privacy policy and terms published at `EXPO_PUBLIC_LEGAL_URL`.

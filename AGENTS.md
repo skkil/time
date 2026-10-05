@@ -280,6 +280,11 @@ cargo clippy --all-targets
   (`features/realtime/RealtimeBus.kt`); each instance forwards it to that
   user's websockets at `/api/v1/realtime`, opened with a one-time ticket from
   `POST /api/v1/realtime/tickets`. Events carry no data, only "refetch".
+- Reminders on web and mobile are push (`features/notifications`): a job
+  every 20 s, one sender across instances via `pg_try_advisory_xact_lock`,
+  fires each timed task once per date and time through `reminded_for` (as
+  desktop does) to every `push_device` (Expo or Web Push/VAPID). Web uses
+  `public/sw.js` and `Platform.notifications`; mobile `src/notifications.ts`.
 - Account-wide preferences are one JSON object (`features/preferences`,
   `PATCH` merges, `null` removes a key).
 

@@ -126,6 +126,6 @@ Each item is one commit. Check it off when it lands.
 
 - [x] 7.1 `skkil.yml`: dev and ci sections (services, routes and auth are
       in docs/deployment.md until the CLI accepts them)
-- [ ] 7.2 Docs: README per app, AGENTS.md, deployment guide
-- [ ] 7.3 Full CI pass: server tests, web/desktop/mobile type check, lint and
+- [x] 7.2 Docs: README per app, AGENTS.md, deployment guide
+- [x] 7.3 Full CI pass: server tests, web/desktop/mobile type check, lint and
       tests, contract drift check
