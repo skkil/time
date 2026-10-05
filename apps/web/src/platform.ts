@@ -1,6 +1,12 @@
 import type { Auth, Session } from '@skkil-time/auth';
+import { onOpenTask } from '~/notifications';
 
-import type { Platform, RemoteChange, SharedPreferences } from '@/platform';
+import type {
+  Notifications,
+  Platform,
+  RemoteChange,
+  SharedPreferences,
+} from '@/platform';
 
 const noop = () => () => undefined;
 
@@ -8,12 +14,13 @@ export type WebServices = {
   deleteAccount: () => Promise<void>;
   preferences: SharedPreferences;
   onRemoteChange: (listener: (change: RemoteChange) => void) => () => void;
+  notifications: Notifications | null;
 };
 
 export function webPlatform(
   auth: Auth,
   session: Session,
-  { deleteAccount, preferences, onRemoteChange }: WebServices,
+  { deleteAccount, preferences, onRemoteChange, notifications }: WebServices,
 ): Platform {
   return {
     onRemoteChange,
@@ -33,7 +40,7 @@ export function webPlatform(
     setZoom: (zoom) => {
       document.documentElement.style.zoom = zoom === 1 ? '' : String(zoom);
     },
-    onOpenTask: noop,
+    onOpenTask,
     onQuickAdd: noop,
     account: {
       label: session.email ?? session.name ?? 'Signed in',
@@ -43,9 +50,10 @@ export function webPlatform(
         await auth.signOut();
       },
     },
+    notifications: notifications ?? undefined,
     features: {
       captureHotkey: false,
-      reminders: false,
+      reminders: notifications !== null,
       activityTracking: false,
       databaseFile: false,
     },

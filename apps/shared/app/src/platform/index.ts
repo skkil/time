@@ -15,6 +15,14 @@ export type SharedPreferences = {
 
 export type RemoteChange = { topic: string };
 
+/** Push delivery to this device, for platforms where reminders arrive as push. */
+export type Notifications = {
+  isEnabled(): Promise<boolean>;
+  /** Resolves false when the user refuses notification permission. */
+  enable(): Promise<boolean>;
+  disable(): Promise<void>;
+};
+
 export interface Platform {
   kind: 'desktop' | 'web';
   openUrl(url: string): void;
@@ -27,6 +35,7 @@ export interface Platform {
   onRemoteChange?(listener: (change: RemoteChange) => void): Unsubscribe;
   /** Account-wide preferences; without it every preference stays on this device. */
   preferences?: SharedPreferences;
+  notifications?: Notifications;
   features: {
     captureHotkey: boolean;
     reminders: boolean;

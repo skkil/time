@@ -33,6 +33,7 @@ dependencies {
     implementation("tools.jackson.module:jackson-module-kotlin")
     implementation(libs.springdoc.webmvc)
     implementation("org.postgresql:postgresql")
+    implementation(libs.webpush)
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     testImplementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")

@@ -118,7 +118,7 @@ Each item is one commit. Check it off when it lands.
       device through realtime (verify start/pause/stop across web and phone)
 - [x] 8.5 Shared settings: account-wide preferences stored on the server,
       per-device ones stay local; pluggable preference store in the shared app
-- [ ] 8.6 Notifications: server reminder job (one sender via advisory lock),
+- [x] 8.6 Notifications: server reminder job (one sender via advisory lock),
       device registrations, Expo push for mobile, Web Push + service worker
       for web, per-device toggle
 

@@ -2978,6 +2978,53 @@
         }
       }
     },
+    "/api/v1/notifications/devices" : {
+      "get" : {
+        "tags" : [ "notification-controller" ],
+        "operationId" : "list_3",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Device"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "notification-controller" ],
+        "operationId" : "register",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeviceInput"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceId"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/import/projects" : {
       "post" : {
         "tags" : [ "import-controller" ],
@@ -3016,7 +3063,7 @@
     "/api/v1/habits" : {
       "get" : {
         "tags" : [ "habit-controller" ],
-        "operationId" : "list_3",
+        "operationId" : "list_4",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3139,7 +3186,7 @@
     "/api/v1/groups" : {
       "get" : {
         "tags" : [ "group-controller" ],
-        "operationId" : "list_4",
+        "operationId" : "list_5",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3455,7 +3502,7 @@
     "/api/v1/rituals" : {
       "get" : {
         "tags" : [ "ritual-controller" ],
-        "operationId" : "list_5",
+        "operationId" : "list_6",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3582,6 +3629,24 @@
                   "items" : {
                     "$ref" : "#/components/schemas/Preset"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/config" : {
+      "get" : {
+        "tags" : [ "notification-controller" ],
+        "operationId" : "config",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PushConfig"
                 }
               }
             }
@@ -3843,6 +3908,26 @@
       "delete" : {
         "tags" : [ "section-controller" ],
         "operationId" : "delete_4",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/devices/{id}" : {
+      "delete" : {
+        "tags" : [ "notification-controller" ],
+        "operationId" : "delete_5",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -5210,6 +5295,37 @@
         },
         "required" : [ "text" ]
       },
+      "DeviceInput" : {
+        "type" : "object",
+        "properties" : {
+          "kind" : {
+            "type" : "string"
+          },
+          "token" : {
+            "type" : "string"
+          },
+          "p256dh" : {
+            "type" : [ "string", "null" ]
+          },
+          "auth" : {
+            "type" : [ "string", "null" ]
+          },
+          "label" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "auth", "kind", "label", "p256dh", "token" ]
+      },
+      "DeviceId" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "id" ]
+      },
       "ImportProject" : {
         "type" : "object",
         "properties" : {
@@ -5672,6 +5788,39 @@
           }
         },
         "required" : [ "time" ]
+      },
+      "Device" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "kind" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "lastSeenAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "createdAt", "id", "kind", "label", "lastSeenAt" ]
+      },
+      "PushConfig" : {
+        "type" : "object",
+        "properties" : {
+          "webPushPublicKey" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "webPushPublicKey" ]
       },
       "Me" : {
         "type" : "object",

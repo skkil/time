@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { SignIn } from '~/SignIn';
 import { config } from '~/config';
 import { webHost } from '~/host';
+import { setUpWebPush } from '~/notifications';
 import { webPlatform } from '~/platform';
 
 import { mount } from '@/mount';
@@ -52,6 +53,7 @@ async function start() {
   });
   window.addEventListener('online', () => realtime.resume());
 
+  const notifications = await setUpWebPush(api);
   mount({
     backend: createRemoteBackend(api, host),
     platform: webPlatform(auth, session, {
@@ -64,6 +66,7 @@ async function start() {
           await unwrap(api.PATCH('/api/v1/preferences', { body: changes }));
         },
       },
+      notifications,
       onRemoteChange: (listener) => {
         listeners.add(listener);
         return () => listeners.delete(listener);
