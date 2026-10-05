@@ -9,3 +9,4 @@ apps/shared/api/src/schema.ts
 apps/shared/api/openapi.json
 .gradle
 .expo
+apps/shared/tokens/tokens.css

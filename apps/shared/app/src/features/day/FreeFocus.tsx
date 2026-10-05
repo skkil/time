@@ -1,3 +1,4 @@
+import { focusedSeconds } from '@skkil-time/domain/timer';
 import { InboxIcon, ListTodoIcon, PlayIcon, SquareIcon } from 'lucide-react';
 import { useRef } from 'react';
 
@@ -17,7 +18,6 @@ import {
   useStopTimer,
   useTimer,
 } from '@/features/time/api';
-import { focusedSeconds } from '@skkil-time/domain/timer';
 import { useNow } from '@/hooks/use-now';
 import { formatClockTime, formatStopwatch } from '@/lib/time';
 
