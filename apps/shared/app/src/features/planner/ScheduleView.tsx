@@ -86,6 +86,8 @@ import {
 import { type RangeSelection, useRangeSelect } from './use-range-select';
 
 type DragData = TaskDragData | BlockDragData;
+
+const TIME_GUTTER = 44;
 type Preview = { day: DateKey; start: number; end: number };
 type Span = { start: number; end: number };
 
@@ -123,6 +125,8 @@ export function ScheduleView({
   const now = useNow(60_000);
 
   const scroller = useRef<HTMLDivElement>(null);
+  const sideways = useRef<HTMLDivElement>(null);
+  const [showing, setShowing] = useState<'grid' | 'rail'>('grid');
   const columns = useRef(new Map<DateKey, HTMLElement>());
   const grabOffset = useRef(0);
   const pointer = useRef<{ x: number; y: number } | null>(null);
@@ -164,6 +168,13 @@ export function ScheduleView({
   useLayoutEffect(() => {
     scroller.current?.scrollTo({ top: scale.top(FIT_FROM_HOUR * 60) - 6 });
   }, [scale]);
+
+  useLayoutEffect(() => {
+    const area = sideways.current;
+    const column = columns.current.get(days.includes(today) ? today : days[0]);
+    if (!area || !column || showing !== 'grid') return;
+    area.scrollLeft = column.offsetLeft - TIME_GUTTER;
+  }, [days, today, showing]);
 
   const trackedByDay = useMemo(() => {
     const totals = new Map<DateKey, number>();
@@ -321,77 +332,114 @@ export function ScheduleView({
         onDragCancel={finishDrag}
         autoScroll={{ threshold: { x: 0, y: 0.15 } }}
       >
-        <div className="flex min-h-0 flex-1">
-          <div className="flex min-w-0 flex-1 flex-col">
-            <div className="grid shrink-0 [scrollbar-gutter:stable] grid-cols-[56px_repeat(7,minmax(0,1fr))] overflow-y-hidden border-b border-white/10">
-              <div />
-              {days.map((day) => (
-                <DayHeader
-                  key={day}
-                  day={day}
-                  today={today}
-                  due={dueByDay.get(day) ?? []}
-                  tracked={trackedByDay.get(day) ?? 0}
-                />
-              ))}
-            </div>
-
-            <div
-              ref={scroller}
-              className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto"
+        <div
+          role="tablist"
+          aria-label="Week panel"
+          className="mx-4 mb-3 grid shrink-0 grid-cols-2 rounded-full bg-white/[.07] p-1 sm:mx-8 lg:hidden"
+        >
+          {(['grid', 'rail'] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="tab"
+              aria-selected={showing === option}
+              data-rail-toggle={option === 'rail' ? '' : undefined}
+              onClick={() => setShowing(option)}
+              className={cn(
+                'h-8 rounded-full text-[13px] text-foreground/75 transition-colors pointer-coarse:h-9',
+                showing === option && 'bg-white/[.14] text-foreground',
+              )}
             >
-              <div
-                className="relative grid grid-cols-[56px_repeat(7,minmax(0,1fr))]"
-                style={{ height: scale.height }}
-              >
-                <div className="relative">
-                  {scale.marks.map((minute) => (
-                    <span
-                      key={minute}
-                      className="absolute right-2 -translate-y-1/2 text-[11px] text-muted-foreground"
-                      style={{ top: scale.top(minute) }}
-                    >
-                      {formatMinutesOfDay(minute)}
-                    </span>
-                  ))}
-                </div>
+              {option === 'grid' ? 'Schedule' : aside ? 'Reflection' : 'Plan'}
+            </button>
+          ))}
+        </div>
+        <div className="flex min-h-0 flex-1">
+          <div
+            ref={sideways}
+            className={cn(
+              'flex min-w-0 flex-1 flex-col max-lg:overflow-x-auto max-lg:overscroll-x-contain',
+              showing === 'rail' && 'max-lg:hidden',
+            )}
+          >
+            <div className="flex min-h-0 flex-1 flex-col max-lg:min-w-[calc(44px+7*6rem)]">
+              <div className="grid shrink-0 [scrollbar-gutter:stable] grid-cols-[44px_repeat(7,minmax(0,1fr))] overflow-y-hidden border-b border-white/10 lg:grid-cols-[56px_repeat(7,minmax(0,1fr))]">
+                <div />
                 {days.map((day) => (
-                  <DayColumn
+                  <DayHeader
                     key={day}
                     day={day}
-                    isToday={day === today}
-                    now={now}
-                    blocks={blocks}
-                    events={events}
-                    timed={timedByDay.get(day) ?? []}
-                    entries={
-                      runningEntry ? [...entries, runningEntry] : entries
-                    }
-                    runningTaskId={timer?.taskId ?? null}
-                    preview={preview?.day === day ? preview : null}
-                    register={registerColumn}
-                    selection={
-                      range.selection?.day === day ? range.selection : null
-                    }
-                    onEmptyPointerDown={(event) => range.begin(day, event)}
-                    onResize={(block, end) =>
-                      reschedule.mutate({
-                        id: block.id,
-                        span: {
-                          startAt: block.startAt,
-                          endAt: atMinutes(day, end),
-                        },
-                      })
-                    }
-                    onRemove={(block) => removeBlock.mutate(block.id)}
-                    onOpenEntry={setEditingEntry}
+                    today={today}
+                    due={dueByDay.get(day) ?? []}
+                    tracked={trackedByDay.get(day) ?? 0}
                   />
                 ))}
+              </div>
+
+              <div
+                ref={scroller}
+                className="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto"
+              >
+                <div
+                  className="relative grid grid-cols-[44px_repeat(7,minmax(0,1fr))] lg:grid-cols-[56px_repeat(7,minmax(0,1fr))]"
+                  style={{ height: scale.height }}
+                >
+                  <div className="relative">
+                    {scale.marks.map((minute) => (
+                      <span
+                        key={minute}
+                        className="absolute right-2 -translate-y-1/2 text-[11px] text-muted-foreground"
+                        style={{ top: scale.top(minute) }}
+                      >
+                        {formatMinutesOfDay(minute)}
+                      </span>
+                    ))}
+                  </div>
+                  {days.map((day) => (
+                    <DayColumn
+                      key={day}
+                      day={day}
+                      isToday={day === today}
+                      now={now}
+                      blocks={blocks}
+                      events={events}
+                      timed={timedByDay.get(day) ?? []}
+                      entries={
+                        runningEntry ? [...entries, runningEntry] : entries
+                      }
+                      runningTaskId={timer?.taskId ?? null}
+                      preview={preview?.day === day ? preview : null}
+                      register={registerColumn}
+                      selection={
+                        range.selection?.day === day ? range.selection : null
+                      }
+                      onEmptyPointerDown={(event) => range.begin(day, event)}
+                      onResize={(block, end) =>
+                        reschedule.mutate({
+                          id: block.id,
+                          span: {
+                            startAt: block.startAt,
+                            endAt: atMinutes(day, end),
+                          },
+                        })
+                      }
+                      onRemove={(block) => removeBlock.mutate(block.id)}
+                      onOpenEntry={setEditingEntry}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
-          {aside ?? <TaskRail week={week} plannedCounts={plannedCounts} />}
+          <div
+            className={cn(
+              'flex min-h-0 max-lg:flex-1 max-lg:*:w-full max-lg:*:border-l-0',
+              showing === 'grid' && 'max-lg:hidden',
+            )}
+          >
+            {aside ?? <TaskRail week={week} plannedCounts={plannedCounts} />}
+          </div>
         </div>
 
         <DragOverlay dropAnimation={null}>

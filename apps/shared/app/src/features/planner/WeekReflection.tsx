@@ -57,7 +57,7 @@ export function WeekReflection({
   return (
     <aside
       aria-label={`Week ${isoWeekNumber(week)} in review`}
-      className="grid w-80 shrink-0 content-start gap-7 overflow-y-auto border-l border-white/10 bg-[rgba(6,18,26,.35)] p-6 backdrop-blur-xl"
+      className="grid w-80 shrink-0 content-start gap-7 overflow-y-auto border-l border-white/10 bg-[rgba(6,18,26,.35)] p-6 backdrop-blur-xl max-lg:pb-20"
     >
       {isPending ? null : reviewed ? (
         <p className="flex items-baseline justify-between text-sm text-foreground/75">
