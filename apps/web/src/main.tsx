@@ -5,10 +5,12 @@ import { createRemoteBackend } from '@skkil-time/remote';
 import { createRoot } from 'react-dom/client';
 import { SignIn } from '~/SignIn';
 import { config } from '~/config';
+import { createConnection } from '~/connection';
 import { webHost } from '~/host';
 import { setUpWebPush } from '~/notifications';
 import { webPlatform } from '~/platform';
 
+import { syncColorScheme } from '@/hooks/use-color-scheme';
 import { mount } from '@/mount';
 import type { RemoteChange } from '@/platform';
 import '@/styles/globals.css';
@@ -16,6 +18,7 @@ import '@/styles/globals.css';
 const auth = createWebAuth(config.auth);
 
 function showSignIn(error?: string) {
+  syncColorScheme();
   createRoot(document.getElementById('root') as HTMLElement).render(
     <SignIn onSignIn={() => void auth.signIn()} error={error} />,
   );
@@ -32,11 +35,12 @@ async function start() {
   if (!session) return showSignIn(error);
 
   const host = webHost();
+  const connection = createConnection();
   const api = createApi({
     baseUrl: config.apiUrl,
     getToken: auth.getToken,
     clientId: host.clientId,
-    onUnauthorized: () => void auth.signIn(),
+    onUnauthorized: connection.signedOut,
   });
   const listeners = new Set<(change: RemoteChange) => void>();
   const realtime = connectRealtime({
@@ -47,6 +51,7 @@ async function start() {
       listeners.forEach((listener) => listener({ topic })),
     onReconnect: () =>
       listeners.forEach((listener) => listener({ topic: 'reconnect' })),
+    onStatus: connection.realtime,
   });
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) realtime.resume();
@@ -67,6 +72,7 @@ async function start() {
         },
       },
       notifications,
+      onConnectionChange: connection.subscribe,
       onRemoteChange: (listener) => {
         listeners.add(listener);
         return () => listeners.delete(listener);

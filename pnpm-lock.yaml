@@ -560,6 +560,9 @@ importers:
       '@skkil-time/remote':
         specifier: workspace:*
         version: link:../shared/remote
+      lucide-react:
+        specifier: ^1.70.0
+        version: 1.70.0(@types/react@19.3.0)(react@19.3.1)
       react:
         specifier: ^19.1.0
         version: 19.3.1

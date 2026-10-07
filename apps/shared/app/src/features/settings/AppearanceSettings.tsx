@@ -18,6 +18,7 @@ export function AppearanceSettings() {
   return (
     <SettingRow
       label="Zoom"
+      device
       description={`${formatShortcut('Mod++')} and ${formatShortcut('Mod+-')} to change, ${formatShortcut('Mod+0')} to reset.`}
     >
       <div className="flex items-center gap-1">

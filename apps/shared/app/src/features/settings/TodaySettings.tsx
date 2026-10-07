@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { findPlace } from '@/features/day/weather';
 import { setPreference, usePreference } from '@/lib/preferences';
+import { platform } from '@/platform';
 
 import { SettingRow } from './SettingRow';
 
@@ -16,6 +17,7 @@ const PARTS = [
 
 export function TodaySettings() {
   const name = usePreference('profileName');
+  const accountName = platform().account?.name ?? '';
   const place = usePreference('weatherPlace');
   const weekday = usePreference('showWeekday');
   const date = usePreference('showDate');
@@ -40,9 +42,18 @@ export function TodaySettings() {
 
   return (
     <div>
-      <SettingRow label="Your name" description="Shown on the profile circle.">
+      <SettingRow
+        label="Your name"
+        description={
+          accountName
+            ? `Shown on the profile circle. Leave empty to use “${accountName}” from your account.`
+            : 'Shown on the profile circle.'
+        }
+      >
         <Input
           className="h-8 w-48"
+          aria-label="Your name"
+          placeholder={accountName}
           value={name}
           maxLength={40}
           onChange={(event) => setPreference('profileName', event.target.value)}

@@ -1,6 +1,7 @@
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import {
   KeyboardIcon,
+  LogOutIcon,
   PlusIcon,
   SearchIcon,
   SettingsIcon,
@@ -27,13 +28,16 @@ import { TaskDialogProvider } from '@/features/tasks/TaskDialog';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { TimerPill } from '@/features/time/TimerPill';
 import { ZenBackdrop } from '@/features/zen/ZenBackdrop';
-import { getPreference, setPreference, usePreference } from '@/lib/preferences';
+import { getPreference, setPreference } from '@/lib/preferences';
+import { initialOf, useDisplayName } from '@/lib/profile';
 import { formatShortcut, useShortcuts } from '@/lib/shortcuts';
 import { todayKey, weekStartOf } from '@/lib/time';
 import { undoLatest } from '@/lib/undo';
 import { cn } from '@/lib/utils';
 import { zoomShortcuts } from '@/lib/zoom';
+import { platform } from '@/platform';
 
+import { ConnectionNotice } from './ConnectionNotice';
 import { SearchDialog } from './SearchDialog';
 import { ShortcutSheet } from './ShortcutSheet';
 
@@ -139,6 +143,7 @@ function Canvas() {
       <SearchDialog open={searching} onOpenChange={setSearching} />
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
       <ShortcutSheet open={sheetOpen} onOpenChange={setSheetOpen} />
+      <ConnectionNotice />
     </div>
   );
 }
@@ -198,24 +203,33 @@ function ProfileMenu({
   onShortcuts: () => void;
   onAdd: () => void;
 }) {
-  const name = usePreference('profileName').trim();
+  const name = useDisplayName();
+  const account = platform().account;
+  const email = account?.email ?? null;
+  const initial = initialOf(name, email);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label="Menu"
+          aria-label={name ? `Menu for ${name}` : 'Menu'}
           className="grid size-9 place-items-center rounded-full bg-white/10 text-[13px] font-medium text-foreground ring-1 ring-white/20 backdrop-blur-md transition-colors outline-none hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/60"
         >
-          {name ? (
-            name[0].toUpperCase()
-          ) : (
-            <UserIcon className="size-4" strokeWidth={1.5} />
-          )}
+          {initial || <UserIcon className="size-4" strokeWidth={1.5} />}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" sideOffset={10} className="w-56">
-        {name && <DropdownMenuLabel>{name}</DropdownMenuLabel>}
+      <DropdownMenuContent align="end" sideOffset={10} className="w-60">
+        {(name || email) && (
+          <DropdownMenuLabel className="grid gap-0.5 font-normal">
+            {name && <span className="truncate font-medium">{name}</span>}
+            {email && email !== name && (
+              <span className="truncate text-xs text-muted-foreground">
+                {email}
+              </span>
+            )}
+          </DropdownMenuLabel>
+        )}
+        {(name || email) && <DropdownMenuSeparator />}
         <DropdownMenuItem onSelect={onAdd}>
           <PlusIcon />
           Add a task
@@ -237,6 +251,12 @@ function ProfileMenu({
           Settings
           <DropdownMenuShortcut>{formatShortcut('Mod+,')}</DropdownMenuShortcut>
         </DropdownMenuItem>
+        {account && (
+          <DropdownMenuItem onSelect={account.signOut}>
+            <LogOutIcon />
+            Sign out
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

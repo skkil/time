@@ -33,7 +33,7 @@ import { WeekSettings } from './WeekSettings';
 type Section = {
   id: string;
   label: string;
-  description: string;
+  description: string | ((platform: Platform) => string);
   icon: LucideIcon;
   content: ComponentType;
   available?: (platform: Platform) => boolean;
@@ -43,7 +43,10 @@ const sections: Section[] = [
   {
     id: 'appearance',
     label: 'Appearance',
-    description: 'How skkil time looks on this computer.',
+    description: (platform) =>
+      platform.kind === 'desktop'
+        ? 'How skkil time looks on this computer.'
+        : 'How skkil time looks in this browser.',
     icon: PaletteIcon,
     content: AppearanceSettings,
   },
@@ -101,7 +104,7 @@ const sections: Section[] = [
   {
     id: 'account',
     label: 'Account',
-    description: 'The account you are signed in with.',
+    description: 'The account you’re signed in with.',
     icon: UserIcon,
     content: AccountSettings,
     available: (platform) => platform.account !== null,
@@ -124,19 +127,27 @@ export function SettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="grid h-[560px] grid-cols-[180px_minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-3xl">
+      <DialogContent className="flex h-[min(560px,calc(100dvh-2rem))] flex-col gap-0 overflow-hidden p-0 sm:grid sm:max-w-3xl sm:grid-cols-[180px_minmax(0,1fr)]">
         <nav
           aria-label="Settings"
-          className="grid content-start gap-0.5 border-r bg-white/[.03] p-3"
+          className="flex shrink-0 items-center gap-0.5 overflow-x-auto border-b bg-white/[.03] p-2 pr-12 sm:grid sm:content-start sm:items-stretch sm:border-r sm:border-b-0 sm:p-3"
         >
-          <DialogTitle className="mb-2 px-2 text-sm">Settings</DialogTitle>
+          <DialogTitle className="sr-only text-sm sm:not-sr-only sm:mb-2 sm:px-2">
+            Settings
+          </DialogTitle>
           {visible.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               type="button"
               aria-current={id === activeId ? 'page' : undefined}
-              onClick={() => setActiveId(id)}
-              className="flex h-8 items-center gap-2.5 rounded-md px-2 text-sm text-sidebar-foreground/85 outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:bg-sidebar-accent aria-[current=page]:font-medium aria-[current=page]:text-sidebar-foreground"
+              onClick={(event) => {
+                setActiveId(id);
+                event.currentTarget.scrollIntoView({
+                  block: 'nearest',
+                  inline: 'nearest',
+                });
+              }}
+              className="flex h-8 shrink-0 items-center gap-2.5 rounded-md px-2 text-sm text-sidebar-foreground/85 outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:bg-sidebar-accent aria-[current=page]:font-medium aria-[current=page]:text-sidebar-foreground"
             >
               <Icon
                 className="size-4 text-muted-foreground"
@@ -146,10 +157,12 @@ export function SettingsDialog({
             </button>
           ))}
         </nav>
-        <section className="min-h-0 overflow-y-auto p-6">
+        <section className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
           <h3 className="font-heading text-base font-bold">{active.label}</h3>
           <DialogDescription className="mb-4">
-            {active.description}
+            {typeof active.description === 'function'
+              ? active.description(platform())
+              : active.description}
           </DialogDescription>
           <Content />
         </section>

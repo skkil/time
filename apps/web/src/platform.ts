@@ -2,6 +2,7 @@ import type { Auth, Session } from '@skkil-time/auth';
 import { onOpenTask } from '~/notifications';
 
 import type {
+  ConnectionStatus,
   Notifications,
   Platform,
   RemoteChange,
@@ -15,15 +16,25 @@ export type WebServices = {
   preferences: SharedPreferences;
   onRemoteChange: (listener: (change: RemoteChange) => void) => () => void;
   notifications: Notifications | null;
+  onConnectionChange: (
+    listener: (status: ConnectionStatus) => void,
+  ) => () => void;
 };
 
 export function webPlatform(
   auth: Auth,
   session: Session,
-  { deleteAccount, preferences, onRemoteChange, notifications }: WebServices,
+  {
+    deleteAccount,
+    preferences,
+    onRemoteChange,
+    notifications,
+    onConnectionChange,
+  }: WebServices,
 ): Platform {
   return {
     onRemoteChange,
+    onConnectionChange,
     preferences,
     kind: 'web',
     openUrl: (url) => void window.open(url, '_blank', 'noopener,noreferrer'),
@@ -44,6 +55,9 @@ export function webPlatform(
     onQuickAdd: noop,
     account: {
       label: session.email ?? session.name ?? 'Signed in',
+      name: session.name,
+      email: session.email,
+      signInAgain: () => void auth.signIn(),
       signOut: () => void auth.signOut(),
       deleteAccount: async () => {
         await deleteAccount();

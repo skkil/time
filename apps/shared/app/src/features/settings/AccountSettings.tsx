@@ -29,11 +29,21 @@ export function AccountSettings() {
 
   return (
     <div>
-      <SettingRow label="Signed in as" description={account.label}>
+      <SettingRow
+        label={account.name ?? account.email ?? 'Signed in'}
+        description={account.name && account.email ? account.email : undefined}
+      >
         <Button variant="outline" size="sm" onClick={account.signOut}>
           Sign out
         </Button>
       </SettingRow>
+      {platform().preferences && (
+        <p className="border-b py-3 text-xs text-muted-foreground">
+          Your tasks, focus time and settings follow this account to every
+          device you sign in on. Settings marked “This device” stay where you
+          set them.
+        </p>
+      )}
       <SettingRow
         label="Delete account"
         description="Removes your account and every project, task, focus session, habit and review in it. This can’t be undone."

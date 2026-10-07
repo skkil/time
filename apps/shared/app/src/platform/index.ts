@@ -4,6 +4,9 @@ type Unsubscribe = () => void;
 
 export type Account = {
   label: string;
+  name: string | null;
+  email: string | null;
+  signInAgain(): void;
   signOut(): void;
   deleteAccount(): Promise<void>;
 };
@@ -14,6 +17,10 @@ export type SharedPreferences = {
 };
 
 export type RemoteChange = { topic: string };
+
+/** `unreachable`: the browser is online but the server can't be reached. */
+export type ConnectionStatus =
+  'online' | 'offline' | 'unreachable' | 'signedOut';
 
 /** Push delivery to this device, for platforms where reminders arrive as push. */
 export type Notifications = {
@@ -33,6 +40,10 @@ export interface Platform {
   account: Account | null;
   /** Pushes other devices' writes as they happen; without it the app polls. */
   onRemoteChange?(listener: (change: RemoteChange) => void): Unsubscribe;
+  /** Reports lost connections and ended sessions; desktop never loses either. */
+  onConnectionChange?(
+    listener: (status: ConnectionStatus) => void,
+  ): Unsubscribe;
   /** Account-wide preferences; without it every preference stays on this device. */
   preferences?: SharedPreferences;
   notifications?: Notifications;
