@@ -1,5 +1,6 @@
 import { MoonIcon } from 'lucide-react';
 
+import { DAY_PANEL } from '@/components/surfaces';
 import { useRituals } from '@/features/rituals/api';
 import { STEPS } from '@/features/rituals/meta';
 import { useRitualRunner } from '@/features/rituals/runner-context';
@@ -22,7 +23,7 @@ export function CheckOut({
       aria-pressed={open}
       onClick={() => onToggle(!open)}
       className={cn(
-        'flex h-9 items-center gap-2 rounded-full px-4 text-sm ring-1 ring-white/20 transition-colors hover:bg-white/15 hover:text-foreground',
+        'flex h-9 items-center gap-2 rounded-full px-4 text-sm ring-1 ring-white/20 transition-colors hover:bg-white/15 hover:text-foreground pointer-coarse:h-10',
         open && 'bg-white/15',
         done && !open ? 'text-foreground/75' : 'text-foreground',
       )}
@@ -48,7 +49,7 @@ export function CheckOutPrompt({
   );
 
   return (
-    <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-200 fade-in-0 slide-in-from-bottom-2 motion-reduce:animate-none">
+    <div className={DAY_PANEL}>
       <p className="text-sm text-foreground/75">End of day</p>
       <h2 className="mt-2 text-3xl font-light">
         {checkedOutAt

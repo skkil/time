@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { useMemo, useState } from 'react';
 
 import type { Id, Task, TimeEntry } from '@/backend';
+import { DAY_PANEL } from '@/components/surfaces';
 import {
   Dialog,
   DialogContent,
@@ -133,11 +134,11 @@ export function DayCanvas() {
   useShortcuts([{ keys: 'Escape', run: () => setChosen(null), idle: true }]);
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-[1180px] flex-col px-24 pt-6 pb-12">
-      <div className="flex items-start justify-between gap-6 pb-8">
-        <div className="grid min-w-0 gap-5">
+    <div className="mx-auto flex h-full w-full max-w-[1180px] flex-col px-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-8 lg:px-24 lg:pt-6 lg:pb-12">
+      <div className="flex flex-col gap-4 pb-5 lg:flex-row lg:items-start lg:justify-between lg:gap-6 lg:pb-8">
+        <div className="grid min-w-0 gap-5 max-lg:contents">
           <TodayLine tracked={tracked} />
-          <div className="grid justify-items-start gap-2">
+          <div className="grid min-w-0 justify-items-start gap-2 max-lg:order-1">
             <AnyTimeList
               tasks={anyTime}
               finished={finished}
@@ -158,7 +159,7 @@ export function DayCanvas() {
             )}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2 pt-4">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 lg:pt-4">
           <StartFocus
             open={
               panel?.kind === 'focus' ||
@@ -177,7 +178,7 @@ export function DayCanvas() {
         <aside
           className={cn(
             'flex min-h-0 shrink-0 flex-col transition-[width] duration-200 ease-[cubic-bezier(.16,1,.3,1)] motion-reduce:transition-none',
-            panel ? 'w-[clamp(300px,40%,380px)]' : 'w-full',
+            panel ? 'w-full lg:w-[clamp(300px,40%,380px)]' : 'w-full',
           )}
         >
           <DayThread
@@ -192,7 +193,7 @@ export function DayCanvas() {
 
         {panel && (
           <section
-            className="min-h-0 min-w-0 flex-1 pl-16"
+            className="min-h-0 min-w-0 flex-1 pl-16 max-lg:fixed max-lg:inset-0 max-lg:z-40 max-lg:flex max-lg:animate-in max-lg:flex-col max-lg:justify-end max-lg:bg-black/40 max-lg:pt-[calc(4.5rem+env(safe-area-inset-top))] max-lg:pl-0 max-lg:duration-200 max-lg:fade-in-0"
             onClick={(event) => {
               if (event.target === event.currentTarget) setChosen(null);
             }}
@@ -259,7 +260,7 @@ function Focus({ taskId }: { taskId: Id }) {
   if (!task) return null;
 
   return (
-    <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-200 fade-in-0 slide-in-from-bottom-2">
+    <div className={DAY_PANEL}>
       <TaskPanel key={task.id} task={task} />
     </div>
   );
