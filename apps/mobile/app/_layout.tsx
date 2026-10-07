@@ -7,6 +7,7 @@ import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ConnectionNotice } from '@/connection';
 import { SelectionProvider } from '@/layout';
 import { useReminders } from '@/notifications';
 import { queryClient } from '@/queries';
@@ -62,6 +63,7 @@ function Routes() {
           <Stack.Screen name="sign-in" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack>
+      {session && <ConnectionNotice />}
     </>
   );
 }

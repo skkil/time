@@ -18,6 +18,7 @@ import {
   enableReminders,
   remindersAllowed,
 } from '@/notifications';
+import { useDisplayName } from '@/profile';
 import { useSession } from '@/session';
 import { spacing, type, useTheme } from '@/theme';
 
@@ -76,6 +77,7 @@ const LEGAL_URL =
 export default function Settings() {
   const theme = useTheme();
   const { session } = useSession();
+  const name = useDisplayName();
 
   const confirmDelete = () =>
     Alert.alert(
@@ -103,9 +105,20 @@ export default function Settings() {
       contentContainerStyle={styles.content}
     >
       <Group title="Account">
-        <View style={styles.row}>
+        <View style={[styles.row, styles.label]}>
           <Text style={[type.body, { color: theme.foreground }]}>
-            {session?.email ?? session?.name ?? 'Signed in'}
+            {name || session?.email || 'Signed in'}
+          </Text>
+          {name && session?.email && (
+            <Text style={[type.small, { color: theme['muted-foreground'] }]}>
+              {session.email}
+            </Text>
+          )}
+        </View>
+        <View style={styles.row}>
+          <Text style={[type.small, { color: theme['muted-foreground'] }]}>
+            Your tasks, focus time and settings follow this account to every
+            device you sign in on.
           </Text>
         </View>
       </Group>

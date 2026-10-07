@@ -10,18 +10,22 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { Link } from 'expo-router';
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { commands } from '@/backend';
 import { AddButton } from '@/components/AddButton';
 import { Screen } from '@/components/Screen';
 import { Empty, Failed, Loading } from '@/components/States';
 import { TaskList } from '@/components/TaskList';
+import { initialOf, useDisplayName } from '@/profile';
 import { useProjects, useTasks } from '@/queries';
-import { spacing, useTheme } from '@/theme';
+import { useSession } from '@/session';
+import { spacing, type, useTheme } from '@/theme';
 
 export default function Today() {
   const theme = useTheme();
+  const name = useDisplayName();
+  const initial = initialOf(name, useSession().session?.email ?? null);
   const today = todayKey();
   const monday = mondayOf(today);
   const tasks = useTasks();
@@ -69,14 +73,30 @@ export default function Today() {
           <Link href="/settings" asChild>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Settings"
+              accessibilityLabel={name ? `Settings for ${name}` : 'Settings'}
               hitSlop={8}
+              style={[
+                styles.avatar,
+                { borderColor: theme.border, backgroundColor: theme.card },
+              ]}
             >
-              <Ionicons
-                name="settings-outline"
-                size={22}
-                color={theme['muted-foreground']}
-              />
+              {initial ? (
+                <Text
+                  style={[
+                    type.small,
+                    styles.initial,
+                    { color: theme.foreground },
+                  ]}
+                >
+                  {initial}
+                </Text>
+              ) : (
+                <Ionicons
+                  name="person-outline"
+                  size={16}
+                  color={theme['muted-foreground']}
+                />
+              )}
             </Pressable>
           </Link>
           <AddButton />
@@ -130,4 +150,13 @@ export default function Today() {
 
 const styles = StyleSheet.create({
   actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  initial: { fontWeight: '600' },
 });

@@ -1,16 +1,18 @@
 import icon from '@assets/icon.png';
+import { rgb, skyAt } from '@skkil-time/tokens/sky';
 import { useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { auth } from '@/backend';
 import { Button } from '@/components/States';
-import { spacing, type, useTheme } from '@/theme';
+import { spacing, type } from '@/theme';
 
 export default function SignIn() {
-  const theme = useTheme();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const now = new Date();
+  const sky = skyAt(now.getHours() + now.getMinutes() / 60);
 
   const signIn = async () => {
     setBusy(true);
@@ -25,18 +27,28 @@ export default function SignIn() {
   };
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: theme.chrome }]}>
+    <SafeAreaView style={[styles.root, { backgroundColor: rgb(sky.top) }]}>
+      <View
+        pointerEvents="none"
+        style={[styles.horizon, { backgroundColor: rgb(sky.bottom) }]}
+      />
+      <View
+        pointerEvents="none"
+        style={[styles.glow, { backgroundColor: rgb(sky.glows[1], 0.35) }]}
+      />
       <View style={styles.brand}>
         <Image
           source={icon}
           style={styles.icon}
           accessibilityIgnoresInvertColors
         />
-        <Text style={[type.title, { color: theme['chrome-foreground'] }]}>
-          skkil time
-        </Text>
+        <Text style={[type.title, { color: '#fff' }]}>skkil time</Text>
         <Text
-          style={[type.body, styles.tagline, { color: theme['chrome-muted'] }]}
+          style={[
+            type.body,
+            styles.tagline,
+            { color: 'rgba(255,255,255,0.75)' },
+          ]}
         >
           Plan your week, block your time and see where it went.
         </Text>
@@ -48,13 +60,18 @@ export default function SignIn() {
           disabled={busy}
           onPress={signIn}
         />
+        <Text
+          style={[type.small, styles.hint, { color: 'rgba(255,255,255,0.6)' }]}
+        >
+          New here? You can create an account on the next screen.
+        </Text>
         {error && (
           <Text
             accessibilityRole="alert"
             style={[
               type.small,
               styles.tagline,
-              { color: theme['chrome-muted'] },
+              { color: 'rgba(255,255,255,0.75)' },
             ]}
           >
             {error}
@@ -76,4 +93,21 @@ const styles = StyleSheet.create({
   icon: { width: 72, height: 72, borderRadius: 16 },
   tagline: { textAlign: 'center', maxWidth: 300 },
   actions: { gap: spacing.md },
+  horizon: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '45%',
+    opacity: 0.85,
+  },
+  glow: {
+    position: 'absolute',
+    width: 520,
+    height: 520,
+    borderRadius: 260,
+    top: -160,
+    right: -200,
+  },
+  hint: { textAlign: 'center' },
 });

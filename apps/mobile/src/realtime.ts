@@ -4,6 +4,7 @@ import { AppState } from 'react-native';
 
 import { api, host } from '@/backend';
 import { config } from '@/config';
+import { reportRealtime } from '@/connection';
 import { queryClient } from '@/queries';
 
 const BURST_MS = 150;
@@ -23,6 +24,7 @@ export function useRealtime(signedIn: boolean) {
       clientId: host.clientId,
       onChange: refetch,
       onReconnect: refetch,
+      onStatus: reportRealtime,
     });
     const foreground = AppState.addEventListener('change', (status) => {
       if (status === 'active') realtime.resume();
