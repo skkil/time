@@ -1,6 +1,7 @@
 import type { Auth, Session } from '@skkil-time/auth';
 import { onOpenTask } from '~/notifications';
 
+import { forgetAccountPreferences } from '@/lib/preferences';
 import type {
   ConnectionStatus,
   Notifications,
@@ -58,9 +59,13 @@ export function webPlatform(
       name: session.name,
       email: session.email,
       signInAgain: () => void auth.signIn(),
-      signOut: () => void auth.signOut(),
+      signOut: () => {
+        forgetAccountPreferences();
+        void auth.signOut();
+      },
       deleteAccount: async () => {
         await deleteAccount();
+        forgetAccountPreferences();
         await auth.signOut();
       },
     },

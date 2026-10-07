@@ -1,7 +1,7 @@
 import type { WeekStart } from '@skkil-time/domain/time';
 import { useSyncExternalStore } from 'react';
 
-import { platform } from '@/platform';
+import { installedPlatform } from '@/platform';
 
 export type ZenBackdropMode = 'motion' | 'still';
 
@@ -70,6 +70,16 @@ const SHARED_KEYS = new Set<keyof Preferences>([
   'zenBackdrop',
 ]);
 
+/** Belong to whoever is signed in: shared settings plus ids from their projects. */
+const ACCOUNT_KEYS = new Set<keyof Preferences>([
+  ...SHARED_KEYS,
+  'lastProject',
+  'lastViews',
+  'projectTabs',
+]);
+
+const ownerKey = 'preferences-owner';
+
 const BACKDROP_MODES: ZenBackdropMode[] = ['motion', 'still'];
 
 const storageKey = 'preferences';
@@ -112,13 +122,37 @@ export function setPreference<K extends keyof Preferences>(
   if (read()[key] === value) return;
   store({ ...read(), [key]: value });
   if (SHARED_KEYS.has(key))
-    void platform()
-      .preferences?.save({ [key]: value })
+    void installedPlatform()
+      ?.preferences?.save({ [key]: value })
       .catch(() => undefined);
 }
 
+/** Drops the previous account's preferences when a different account signs in. */
+export function claimPreferences(owner: string) {
+  try {
+    if (localStorage.getItem(ownerKey) !== owner) forgetAccountPreferences();
+    localStorage.setItem(ownerKey, owner);
+  } catch {
+    return;
+  }
+}
+
+export function forgetAccountPreferences() {
+  const kept = Object.fromEntries(
+    Object.entries(read()).filter(
+      ([key]) => !ACCOUNT_KEYS.has(key as keyof Preferences),
+    ),
+  );
+  store(sanitize(kept));
+  try {
+    localStorage.removeItem(ownerKey);
+  } catch {
+    return;
+  }
+}
+
 async function pullShared() {
-  const shared = platform().preferences;
+  const shared = installedPlatform()?.preferences;
   if (!shared) return;
   const remote = await shared.load();
   const picked = Object.fromEntries(
@@ -131,9 +165,10 @@ async function pullShared() {
 
 /** Loads account-wide preferences and keeps them current as other devices change them. */
 export function syncSharedPreferences() {
-  if (!platform().preferences) return;
+  const current = installedPlatform();
+  if (!current?.preferences) return;
   void pullShared().catch(() => undefined);
-  platform().onRemoteChange?.((change) => {
+  current.onRemoteChange?.((change) => {
     if (change.topic === 'preferences')
       void pullShared().catch(() => undefined);
   });

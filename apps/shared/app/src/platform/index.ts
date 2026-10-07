@@ -61,6 +61,10 @@ export function installPlatform(next: Platform) {
   installed = next;
 }
 
+export function installedPlatform(): Platform | null {
+  return installed;
+}
+
 export function platform(): Platform {
   if (!installed) throw new Error('No platform installed');
   return installed;

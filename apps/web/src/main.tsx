@@ -11,6 +11,7 @@ import { setUpWebPush } from '~/notifications';
 import { webPlatform } from '~/platform';
 
 import { syncColorScheme } from '@/hooks/use-color-scheme';
+import { claimPreferences } from '@/lib/preferences';
 import { mount } from '@/mount';
 import type { RemoteChange } from '@/platform';
 import '@/styles/globals.css';
@@ -33,6 +34,7 @@ async function start() {
   }
   const session = await auth.session();
   if (!session) return showSignIn(error);
+  claimPreferences(session.subject);
 
   const host = webHost();
   const connection = createConnection();
