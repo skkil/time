@@ -74,7 +74,7 @@ export function TaskDialogProvider({ children }: { children: ReactNode }) {
       >
         <DialogContent
           showCloseButton={false}
-          className="flex h-[min(680px,84vh)] flex-col gap-0 p-12 sm:max-w-3xl"
+          className="flex h-[min(680px,84dvh)] flex-col gap-0 p-6 sm:max-w-3xl sm:p-12"
         >
           <DialogTitle className="sr-only">{task?.title ?? 'Task'}</DialogTitle>
           <DialogDescription className="sr-only">
