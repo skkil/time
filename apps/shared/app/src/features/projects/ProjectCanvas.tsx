@@ -130,7 +130,7 @@ function CanvasEditor({
     <div className="flex min-h-0 flex-1 flex-col">
       <Toolbar editor={editor} status={status} />
       <div
-        className="min-h-0 flex-1 cursor-text overflow-y-auto px-10 pt-6 pb-24"
+        className="min-h-0 flex-1 cursor-text overflow-y-auto px-4 pt-6 pb-24 sm:px-10"
         onClick={(event) => {
           if (event.target === event.currentTarget)
             editor.chain().focus('end').run();

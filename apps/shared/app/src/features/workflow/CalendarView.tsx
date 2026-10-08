@@ -54,7 +54,7 @@ export function CalendarView({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col px-10 py-4">
+    <div className="flex min-h-0 flex-1 flex-col px-4 py-4 sm:px-10">
       <div className="mb-3 flex items-center gap-2 text-sm text-foreground/75">
         <button
           type="button"

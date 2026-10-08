@@ -51,7 +51,7 @@ export function GraphView({
   ).length;
 
   return (
-    <div className="min-h-0 flex-1 overflow-auto px-10 py-6">
+    <div className="min-h-0 flex-1 overflow-auto px-4 py-6 sm:px-10">
       {unlinked > 0 && (
         <p className="mb-6 text-sm text-foreground/75">
           {unlinked} {unlinked === 1 ? 'task has' : 'tasks have'} no links and

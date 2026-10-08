@@ -74,7 +74,7 @@ export function TableView({
   };
 
   return (
-    <div className="min-h-0 flex-1 overflow-auto px-10 py-4">
+    <div className="min-h-0 flex-1 overflow-auto px-4 py-4 sm:px-10">
       <table
         className={cn(
           TABLE_SURFACE,

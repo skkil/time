@@ -21,7 +21,7 @@ export function GroupedList({
     (group) => group.tasks.length > 0 || groups.length === 1,
   );
   return (
-    <div className="mx-auto grid max-w-3xl gap-8 pl-10">
+    <div className="mx-auto grid max-w-3xl gap-8 sm:pl-10">
       {shown.map((group) => (
         <section key={group.key} aria-label={group.label}>
           {groups.length > 1 && (

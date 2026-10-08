@@ -46,7 +46,7 @@ export function ProjectTimeline({
   }));
 
   return (
-    <PageBody className="flex min-h-0 flex-col px-10 pt-5 pb-6">
+    <PageBody className="flex min-h-0 flex-col px-4 pt-5 pb-6 sm:px-10">
       {rows.length === 0 ? (
         <p className="text-sm text-foreground/75">
           No open task has a due date or deadline yet. Give tasks dates to see

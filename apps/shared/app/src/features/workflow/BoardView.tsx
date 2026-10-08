@@ -74,7 +74,7 @@ export function BoardView({
 
   return (
     <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
-      <div className="flex h-full items-start gap-3 px-10 py-4">
+      <div className="flex h-full items-start gap-3 px-4 py-4 sm:px-10">
         <DndContext sensors={sensors} onDragEnd={drop}>
           {groups.map((group) => (
             <Column

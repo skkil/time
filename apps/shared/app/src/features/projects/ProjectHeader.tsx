@@ -130,7 +130,7 @@ export function ProjectHeader({
         key="next"
         taskId={next.id}
         label={`Open ${next.title}`}
-        className="max-w-xl truncate text-base text-foreground"
+        className="max-w-full truncate text-base text-foreground sm:max-w-xl"
       >
         Next: {next.title}
         {next.dueDate && (
@@ -146,7 +146,7 @@ export function ProjectHeader({
   ].filter(Boolean);
 
   return (
-    <header className="w-full shrink-0 px-10 pt-4">
+    <header className="w-full shrink-0 px-4 pt-4 sm:px-10">
       {(group || parents.length > 0) && (
         <nav
           aria-label="Breadcrumb"
@@ -169,8 +169,8 @@ export function ProjectHeader({
           ))}
         </nav>
       )}
-      <div className="flex items-center gap-3">
-        <h1 className="min-w-0 flex-1 text-3xl leading-tight font-light tracking-tight">
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="min-w-0 flex-1 text-3xl leading-tight font-light tracking-tight max-sm:basis-full">
           <ProjectSwitcher project={project} />
         </h1>
         {!project?.archived && (
@@ -188,7 +188,7 @@ export function ProjectHeader({
       </div>
       <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-foreground/75">
         {details.map((detail, i) => (
-          <span key={i} className="flex items-center gap-2">
+          <span key={i} className="flex max-w-full min-w-0 items-center gap-2">
             {i > 0 && <span aria-hidden>·</span>}
             {detail}
           </span>
