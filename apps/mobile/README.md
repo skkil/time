@@ -17,6 +17,26 @@ Sign-in is OIDC Authorization Code + PKCE in the system browser with the
 redirect `skkiltime://auth`; register that redirect with the provider. Tokens
 are kept in the keychain (`expo-secure-store`).
 
+## Code layout
+
+```
+app/                    Expo Router routes only: each file re-exports a screen
+src/
+├── core/               app-wide services, no UI
+│   ├── api/            HTTP client and backend (client.ts), query client and keys
+│   ├── auth/           OIDC sign-in (native-auth.ts) and the session provider
+│   ├── realtime/       live updates and connection status
+│   ├── notifications/  push registration and reminder taps
+│   └── config.ts       EXPO_PUBLIC_* settings
+├── features/<name>/    one folder per feature: *Screen.tsx, components/, hooks.ts
+│                       (today, inbox, projects, tasks, focus, habits, account)
+├── ui/                 theme, Screen, Group, loading/empty/error states, notices
+└── types/
+```
+
+`core` and `ui` never import from `features`; a feature may use `core`, `ui`
+and another feature's components (Today shows task rows).
+
 ## Release
 
 ```bash

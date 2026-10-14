@@ -1,0 +1,26 @@
+import type { Id, TaskInput } from '@skkil-time/contract';
+import { useMutation, useQuery } from '@tanstack/react-query';
+
+import { commands } from '@/core/api/client';
+import { keys } from '@/core/api/query-client';
+
+export const useTasks = () =>
+  useQuery({ queryKey: keys.tasks, queryFn: commands.listTasks });
+
+export const useCompleteTask = () =>
+  useMutation({
+    mutationFn: ({ id, completed }: { id: Id; completed: boolean }) =>
+      commands.setTaskCompleted(id, completed),
+  });
+
+export const useCreateTask = () =>
+  useMutation({ mutationFn: (input: TaskInput) => commands.createTask(input) });
+
+export const useUpdateTask = () =>
+  useMutation({
+    mutationFn: ({ id, input }: { id: Id; input: TaskInput }) =>
+      commands.updateTask(id, input),
+  });
+
+export const useDeleteTask = () =>
+  useMutation({ mutationFn: (id: Id) => commands.deleteTask(id) });

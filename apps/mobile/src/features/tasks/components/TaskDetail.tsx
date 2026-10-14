@@ -15,17 +15,17 @@ import {
   View,
 } from 'react-native';
 
-import { commands } from '@/backend';
-import { Button, Failed, Loading } from '@/components/States';
+import { commands } from '@/core/api/client';
+import { useTimerActions } from '@/features/focus/hooks';
+import { useProjects } from '@/features/projects/hooks';
 import {
   useCompleteTask,
   useDeleteTask,
-  useProjects,
   useTasks,
-  useTimerActions,
   useUpdateTask,
-} from '@/queries';
-import { radius, spacing, type, useTheme } from '@/theme';
+} from '@/features/tasks/hooks';
+import { Button, Failed, Loading } from '@/ui/States';
+import { radius, spacing, type, useTheme } from '@/ui/theme';
 
 const inputOf = (task: Task): TaskInput => ({
   title: task.title,

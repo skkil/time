@@ -7,13 +7,13 @@ import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { ConnectionNotice } from '@/connection';
-import { SelectionProvider } from '@/layout';
-import { useReminders } from '@/notifications';
-import { queryClient } from '@/queries';
-import { useRealtime } from '@/realtime';
-import { SessionProvider, useSession } from '@/session';
-import { useTheme } from '@/theme';
+import { queryClient } from '@/core/api/query-client';
+import { SessionProvider, useSession } from '@/core/auth/session';
+import { useReminders } from '@/core/notifications/reminders';
+import { useRealtime } from '@/core/realtime/use-realtime';
+import { SelectionProvider } from '@/features/tasks/selection';
+import { ConnectionNotice } from '@/ui/ConnectionNotice';
+import { useTheme } from '@/ui/theme';
 
 void SplashScreen.preventAutoHideAsync();
 

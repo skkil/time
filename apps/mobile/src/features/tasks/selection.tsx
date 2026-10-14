@@ -1,9 +1,4 @@
 import { type ReactNode, createContext, use, useMemo, useState } from 'react';
-import { useWindowDimensions } from 'react-native';
-
-export const WIDE_MIN_WIDTH = 768;
-
-export const useWide = () => useWindowDimensions().width >= WIDE_MIN_WIDTH;
 
 type Selection = {
   selected: number | null;

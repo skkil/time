@@ -2,10 +2,10 @@ import { connectRealtime } from '@skkil-time/api/realtime';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 
-import { api, host } from '@/backend';
-import { config } from '@/config';
-import { reportRealtime } from '@/connection';
-import { queryClient } from '@/queries';
+import { api, host } from '@/core/api/client';
+import { queryClient } from '@/core/api/query-client';
+import { config } from '@/core/config';
+import { reportRealtime } from '@/core/realtime/connection-status';
 
 const BURST_MS = 150;
 

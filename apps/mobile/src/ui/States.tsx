@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 
-import { radius, spacing, type, useTheme } from '@/theme';
+import { radius, spacing, type, useTheme } from '@/ui/theme';
 
 export function Empty({ title, detail }: { title: string; detail?: string }) {
   const theme = useTheme();

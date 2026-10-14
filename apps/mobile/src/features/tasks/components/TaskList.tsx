@@ -1,7 +1,7 @@
 import type { Project, Task } from '@skkil-time/contract';
 
-import { Group } from '@/components/Group';
-import { TaskRow } from '@/components/TaskRow';
+import { TaskRow } from '@/features/tasks/components/TaskRow';
+import { Group } from '@/ui/Group';
 
 export function TaskList({
   title,

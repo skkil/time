@@ -4,9 +4,10 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { useSelection, useWide } from '@/layout';
-import { useCompleteTask } from '@/queries';
-import { spacing, type, useProjectColor, useTheme } from '@/theme';
+import { useCompleteTask } from '@/features/tasks/hooks';
+import { useSelection } from '@/features/tasks/selection';
+import { useWide } from '@/ui/responsive';
+import { spacing, type, useProjectColor, useTheme } from '@/ui/theme';
 
 export function TaskRow({
   task,

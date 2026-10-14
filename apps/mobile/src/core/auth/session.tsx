@@ -1,8 +1,8 @@
 import type { Session } from '@skkil-time/auth';
 import { type ReactNode, createContext, use, useEffect, useState } from 'react';
 
-import { auth } from '@/backend';
-import { queryClient } from '@/queries';
+import { auth } from '@/core/api/client';
+import { queryClient } from '@/core/api/query-client';
 
 type SessionState = { session: Session | null; loading: boolean };
 

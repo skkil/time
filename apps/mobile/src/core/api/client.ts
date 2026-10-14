@@ -2,8 +2,8 @@ import { createApi, unwrap } from '@skkil-time/api';
 import { type RemoteHost, createRemoteBackend } from '@skkil-time/remote';
 import { randomUUID } from 'expo-crypto';
 
-import { createNativeAuth } from '@/auth';
-import { config } from '@/config';
+import { createNativeAuth } from '@/core/auth/native-auth';
+import { config } from '@/core/config';
 
 export const auth = createNativeAuth(config.auth);
 

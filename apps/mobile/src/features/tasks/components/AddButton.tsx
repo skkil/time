@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet } from 'react-native';
 
-import { useTheme } from '@/theme';
+import { useTheme } from '@/ui/theme';
 
 export function AddButton({ projectId }: { projectId?: number | null }) {
   const theme = useTheme();

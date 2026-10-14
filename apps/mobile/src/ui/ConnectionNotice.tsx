@@ -1,42 +1,15 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import type { RealtimeStatus } from '@skkil-time/api/realtime';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { radius, spacing, type } from '@/theme';
-
-const UNREACHABLE_AFTER_MS = 5_000;
-const listeners = new Set<(down: boolean) => void>();
-let down = false;
-let timer: ReturnType<typeof setTimeout> | undefined;
-
-const publish = (next: boolean) => {
-  if (next === down) return;
-  down = next;
-  listeners.forEach((listener) => listener(next));
-};
-
-/** Fed by the live connection: a socket that stays closed means the server can't be reached. */
-export function reportRealtime(status: RealtimeStatus) {
-  if (status === 'open') {
-    clearTimeout(timer);
-    timer = undefined;
-    return publish(false);
-  }
-  if (status === 'closed' && timer === undefined)
-    timer = setTimeout(() => publish(true), UNREACHABLE_AFTER_MS);
-}
+import { isDown, subscribeConnection } from '@/core/realtime/connection-status';
+import { radius, spacing, type } from '@/ui/theme';
 
 export function ConnectionNotice() {
   const insets = useSafeAreaInsets();
-  const [unreachable, setUnreachable] = useState(down);
-  useEffect(() => {
-    listeners.add(setUnreachable);
-    return () => {
-      listeners.delete(setUnreachable);
-    };
-  }, []);
+  const [unreachable, setUnreachable] = useState(isDown);
+  useEffect(() => subscribeConnection(setUnreachable), []);
   if (!unreachable) return null;
 
   return (

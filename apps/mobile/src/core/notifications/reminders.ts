@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
-import { api, commands } from '@/backend';
+import { api, commands } from '@/core/api/client';
 
 const REMINDER_CHANNEL = 'reminders';
 

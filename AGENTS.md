@@ -304,9 +304,14 @@ cargo clippy --all-targets
   preferences endpoint, desktop leaves them out. `SHARED_KEYS` in
   `lib/preferences.ts` decides which preferences follow the account; the rest
   stay on the device.
+- Web's `src/` is `app/` (bootstrap, config), `auth/`, `platform/` (the
+  browser `Platform`: host, connection, live updates, account preferences) and
+  `notifications/`; `main.tsx` only starts the app.
 - Mobile (`apps/mobile/`) is Expo Router. It shares `domain`, `tokens`,
-  `contract`, `api` and `remote`, not DOM components; screens live in `app/`,
-  hooks in `src/queries.ts`. `pnpm compile` and `npx expo export` check it.
-  Screens passing `split` to `Screen` show the task beside the list on
-  screens 768pt or wider (`src/layout.tsx`); `useRealtime` refetches on
-  other devices' writes.
+  `contract`, `api` and `remote`, not DOM components. `app/` holds routes
+  only; screens, components and hooks live in `src/features/<name>/`,
+  services in `src/core/`, shared UI in `src/ui/` (see its README).
+  `pnpm compile` and `npx expo export` check it.
+  Screens pass `aside={<TaskAside />}` to `Screen` to show the task beside
+  the list on screens 768pt or wider (`ui/responsive.ts`); `useRealtime`
+  refetches on other devices' writes.

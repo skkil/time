@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { radius, spacing, type, useTheme } from '@/theme';
+import { radius, spacing, type, useTheme } from '@/ui/theme';
 
 export function Group({
   title,

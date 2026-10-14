@@ -8,9 +8,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { TaskDetail } from '@/components/TaskDetail';
-import { useSelection, useWide } from '@/layout';
-import { spacing, type, useTheme } from '@/theme';
+import { useWide } from '@/ui/responsive';
+import { spacing, type, useTheme } from '@/ui/theme';
 
 type ScreenProps = {
   title?: string;
@@ -20,7 +19,8 @@ type ScreenProps = {
   refreshing?: boolean;
   onRefresh?: () => void;
   scroll?: boolean;
-  split?: boolean;
+  /** Shown beside the content when the screen is wide enough for two panes. */
+  aside?: ReactNode;
 };
 
 const LIST_WIDTH = 440;
@@ -34,12 +34,11 @@ export function Screen({
   refreshing = false,
   onRefresh,
   scroll = true,
-  split = false,
+  aside,
 }: ScreenProps) {
   const theme = useTheme();
   const wide = useWide();
-  const { selected, select } = useSelection();
-  const twoPanes = wide && split;
+  const twoPanes = wide && aside !== undefined;
   const header = title && (
     <View style={styles.header}>
       <View style={styles.titles}>
@@ -101,20 +100,7 @@ export function Screen({
               { borderLeftColor: theme.border, backgroundColor: theme.card },
             ]}
           >
-            {selected === null ? (
-              <View style={styles.placeholder}>
-                <Text style={[type.body, { color: theme['muted-foreground'] }]}>
-                  Pick a task to see it here.
-                </Text>
-              </View>
-            ) : (
-              <TaskDetail
-                key={selected}
-                id={selected}
-                embedded
-                onClose={() => select(null)}
-              />
-            )}
+            {aside}
           </View>
         </View>
       ) : (
@@ -129,7 +115,6 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   panes: { flex: 1, flexDirection: 'row' },
   detail: { flex: 1, borderLeftWidth: StyleSheet.hairlineWidth },
-  placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,

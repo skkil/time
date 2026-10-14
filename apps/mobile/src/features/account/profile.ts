@@ -1,8 +1,8 @@
 import { unwrap } from '@skkil-time/api';
 import { useQuery } from '@tanstack/react-query';
 
-import { api } from '@/backend';
-import { useSession } from '@/session';
+import { api } from '@/core/api/client';
+import { useSession } from '@/core/auth/session';
 
 export const preferencesKey = ['preferences'];
 
