@@ -46,12 +46,29 @@ types still match the Rust contract the UI is built on.
 Probes: `GET /livez` and `GET /readyz` on the API port. Prometheus metrics are at
 `/actuator/prometheus` on the management port, which must stay private.
 
-## Layout
+## Code layout
 
-- `common/`: caller and time zone, errors as problem details, settings, OpenAPI
-  setup, rate limiting.
-- `auth/`: security, user provisioning from `(issuer, subject)`.
-- `features/<domain>/`: models, repository or service, controller, one per
-  desktop feature.
-- `src/main/resources/db/migration`: Flyway migrations. Never edit a shipped
-  one; add a new one.
+Package by feature, layered inside. Each file holds one top-level class and is
+named after it. Under `src/main/kotlin/com/skkil/time/`:
+
+| Package | Holds |
+|---|---|
+| `config/` | `@Configuration` and properties: `AppProperties`, `OpenApiConfig` (with `KotlinNullability`), `WebConfig`, `ReminderSchedulingConfig` |
+| `security/` | `SecurityConfig`, `CallerResolver`, `AccountService` (provisioning from `(issuer, subject)`), header constants |
+| `common/error/` | `DomainException`, `ErrorKind`, `ensure`/`orNotFound` helpers, `ProblemHandler` |
+| `common/web/` | `Caller`, `RateLimitFilter` |
+| `common/persistence/` | `ResultSet` helpers |
+| `common/text/` | Text validation helpers |
+| `features/<domain>/api/` | `@RestController` classes and request bodies used only at the HTTP edge |
+| `features/<domain>/service/` | `@Service` classes: rules and transactions |
+| `features/<domain>/repository/` | `JdbcClient` queries, where they are kept apart from the service |
+| `features/<domain>/domain/` | Models, enums and pure rules shared by service and API |
+
+A feature only has the layers it needs. A few have their own: `changes/web/`
+(the write-tracking filter), `realtime/websocket/`, `notifications/push/` (the
+Expo and Web Push senders) and `notifications/job/` (`ReminderJob`).
+
+Tests in `src/test/kotlin` sit in the same packages as what they test; most are
+HTTP-level and sit at the feature root. `support/` holds the test base classes.
+Flyway migrations are in `src/main/resources/db/migration`. Never edit a
+shipped one; add a new one.
