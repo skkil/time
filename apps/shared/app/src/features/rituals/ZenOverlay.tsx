@@ -67,16 +67,16 @@ function ZenFrame({
           <button
             type="button"
             onClick={onEscape}
-            className="absolute top-6 left-7 z-10 flex items-center gap-2 rounded-full px-3 py-2 text-sm text-white/70 transition-colors outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-white/50"
+            className="absolute top-[max(1.5rem,env(safe-area-inset-top))] left-[max(1.75rem,env(safe-area-inset-left))] z-10 flex items-center gap-2 rounded-full px-3 py-2 text-sm text-white/70 transition-colors outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-white/50 max-sm:left-3 pointer-coarse:min-h-10"
           >
             <XIcon className="size-4" strokeWidth={1.5} />
             {leaveLabel}
           </button>
-          <div className="relative grid h-full place-items-center p-8">
+          <div className="relative grid h-full place-items-center p-8 max-sm:px-3 max-sm:pt-[calc(4.5rem+env(safe-area-inset-top))] max-sm:pb-[max(1rem,env(safe-area-inset-bottom))]">
             <div
               style={glass}
               className={cn(
-                'flex max-h-full min-h-0 w-full animate-in flex-col gap-8 rounded-[40px] bg-white/[.07] px-12 py-11 shadow-[0_40px_120px_rgba(0,0,0,.28)] ring-1 ring-white/15 backdrop-blur-[48px] backdrop-saturate-150 delay-300 duration-[1200ms] fade-in-0 fill-mode-both zoom-in-[.97]',
+                'flex max-h-full min-h-0 w-full animate-in flex-col gap-8 rounded-[40px] bg-white/[.07] px-12 py-11 shadow-[0_40px_120px_rgba(0,0,0,.28)] ring-1 ring-white/15 backdrop-blur-[48px] backdrop-saturate-150 delay-300 duration-[1200ms] fade-in-0 fill-mode-both zoom-in-[.97] max-sm:rounded-[32px] max-sm:px-5 max-sm:py-8',
                 wide ? 'max-w-4xl' : 'max-w-[600px]',
               )}
             >
@@ -219,7 +219,7 @@ export function ZenOverlay({
         <button
           type="button"
           onClick={next}
-          className="ml-auto flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#0b1a22] transition-colors hover:bg-white"
+          className="ml-auto flex h-9 shrink-0 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium whitespace-nowrap text-[#0b1a22] transition-colors hover:bg-white pointer-coarse:h-10"
         >
           {last ? 'Finish' : 'Continue'}
           {!last && <ArrowRightIcon className="size-4" strokeWidth={1.5} />}
