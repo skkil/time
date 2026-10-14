@@ -1,4 +1,4 @@
-package com.skkil.time.common
+package com.skkil.time.common.error
 
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException

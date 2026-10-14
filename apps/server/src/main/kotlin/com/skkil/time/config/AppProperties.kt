@@ -1,4 +1,4 @@
-package com.skkil.time.common
+package com.skkil.time.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

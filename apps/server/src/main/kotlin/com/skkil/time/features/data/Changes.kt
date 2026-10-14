@@ -1,10 +1,10 @@
 package com.skkil.time.features.data
 
-import com.skkil.time.auth.CALLER_ID_ATTRIBUTE
-import com.skkil.time.auth.CLIENT_ID_HEADER
-import com.skkil.time.common.Caller
+import com.skkil.time.common.web.Caller
 import com.skkil.time.features.realtime.ChangeEvent
 import com.skkil.time.features.realtime.RealtimeBus
+import com.skkil.time.security.CALLER_ID_ATTRIBUTE
+import com.skkil.time.security.CLIENT_ID_HEADER
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

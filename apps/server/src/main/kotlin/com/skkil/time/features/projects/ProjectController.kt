@@ -1,6 +1,6 @@
 package com.skkil.time.features.projects
 
-import com.skkil.time.common.Caller
+import com.skkil.time.common.web.Caller
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping

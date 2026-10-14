@@ -1,6 +1,6 @@
 package com.skkil.time.features.rituals
 
-import com.skkil.time.common.Caller
+import com.skkil.time.common.web.Caller
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

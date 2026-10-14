@@ -2,7 +2,7 @@ package com.skkil.time.features.rituals
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.skkil.time.common.Caller
+import com.skkil.time.common.web.Caller
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.Instant

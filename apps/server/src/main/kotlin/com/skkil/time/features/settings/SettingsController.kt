@@ -1,7 +1,7 @@
 package com.skkil.time.features.settings
 
-import com.skkil.time.common.Caller
-import com.skkil.time.common.Settings
+import com.skkil.time.common.web.Caller
+import com.skkil.time.features.settings.repository.SettingsRepository
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -15,7 +15,7 @@ data class Enabled(val enabled: Boolean)
 /** Desktop switches kept per user, with the desktop keys. Both stay on until turned off. */
 @RestController
 @RequestMapping("/api/v1/settings")
-class SettingsController(private val settings: Settings) {
+class SettingsController(private val settings: SettingsRepository) {
     @GetMapping("/capture-hotkey")
     fun captureHotkey(caller: Caller): Boolean = isOn(caller, CAPTURE_HOTKEY)
 

@@ -1,6 +1,6 @@
 package com.skkil.time.features.workflow
 
-import com.skkil.time.common.longOrNull
+import com.skkil.time.common.persistence.longOrNull
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Component
 

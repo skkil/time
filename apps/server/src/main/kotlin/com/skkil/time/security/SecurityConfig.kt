@@ -1,8 +1,8 @@
-package com.skkil.time.auth
+package com.skkil.time.security
 
-import com.skkil.time.common.AppProperties
-import com.skkil.time.common.ErrorKind
-import com.skkil.time.common.ProblemHandler
+import com.skkil.time.common.error.ErrorKind
+import com.skkil.time.common.error.ProblemHandler
+import com.skkil.time.config.AppProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -64,7 +64,3 @@ class SecurityConfig(private val properties: AppProperties) {
         return UrlBasedCorsConfigurationSource().apply { registerCorsConfiguration("/api/**", config) }
     }
 }
-
-const val TIME_ZONE_HEADER = "X-Time-Zone"
-
-const val CLIENT_ID_HEADER = "X-Client-Id"

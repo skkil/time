@@ -1,10 +1,10 @@
 package com.skkil.time.features.tasks
 
-import com.skkil.time.common.dateOrNull
-import com.skkil.time.common.intOrNull
-import com.skkil.time.common.longOrNull
-import com.skkil.time.common.longs
-import com.skkil.time.common.orNotFound
+import com.skkil.time.common.error.orNotFound
+import com.skkil.time.common.persistence.dateOrNull
+import com.skkil.time.common.persistence.intOrNull
+import com.skkil.time.common.persistence.longOrNull
+import com.skkil.time.common.persistence.longs
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Repository

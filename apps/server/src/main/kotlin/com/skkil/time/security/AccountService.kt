@@ -1,4 +1,4 @@
-package com.skkil.time.auth
+package com.skkil.time.security
 
 import com.skkil.time.features.rituals.RitualDefaults
 import org.springframework.jdbc.core.simple.JdbcClient
@@ -7,12 +7,8 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.ZoneId
 
-data class Identity(val issuer: String, val subject: String, val email: String?, val name: String?)
-
-data class Account(val id: Long, val zone: ZoneId)
-
 @Service
-class Accounts(private val jdbc: JdbcClient, private val rituals: RitualDefaults) {
+class AccountService(private val jdbc: JdbcClient, private val rituals: RitualDefaults) {
     fun find(identity: Identity): Account? =
         jdbc
             .sql(

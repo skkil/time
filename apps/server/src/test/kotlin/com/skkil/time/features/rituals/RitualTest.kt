@@ -1,7 +1,7 @@
 package com.skkil.time.features.rituals
 
-import com.skkil.time.common.Caller
-import com.skkil.time.common.DomainException
+import com.skkil.time.common.error.DomainException
+import com.skkil.time.common.web.Caller
 import com.skkil.time.features.tasks.TaskApiTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

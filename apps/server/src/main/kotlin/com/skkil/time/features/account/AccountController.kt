@@ -1,7 +1,7 @@
 package com.skkil.time.features.account
 
-import com.skkil.time.auth.Accounts
-import com.skkil.time.common.Caller
+import com.skkil.time.common.web.Caller
+import com.skkil.time.security.AccountService
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -13,7 +13,7 @@ data class Me(val id: Long, val timeZone: String)
 
 @RestController
 @RequestMapping("/api/v1/me")
-class AccountController(private val accounts: Accounts) {
+class AccountController(private val accounts: AccountService) {
     @GetMapping
     fun me(caller: Caller) = Me(caller.id, caller.zone.id)
 

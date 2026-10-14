@@ -1,12 +1,12 @@
 package com.skkil.time.features.rituals
 
-import com.skkil.time.common.Caller
-import com.skkil.time.common.Settings
-import com.skkil.time.common.ensure
-import com.skkil.time.common.ensureChanged
-import com.skkil.time.common.longOrNull
-import com.skkil.time.common.orNotFound
+import com.skkil.time.common.error.ensure
+import com.skkil.time.common.error.ensureChanged
+import com.skkil.time.common.error.orNotFound
+import com.skkil.time.common.persistence.longOrNull
+import com.skkil.time.common.web.Caller
 import com.skkil.time.features.review.monday
+import com.skkil.time.features.settings.repository.SettingsRepository
 import com.skkil.time.features.tasks.TaskService
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.simple.JdbcClient
@@ -17,7 +17,11 @@ import java.time.LocalDate
 /** Configurable routines and their runs; [due] decides which one opens for an app event. */
 @Service
 @Transactional
-class RitualService(private val jdbc: JdbcClient, private val settings: Settings, private val tasks: TaskService) {
+class RitualService(
+    private val jdbc: JdbcClient,
+    private val settings: SettingsRepository,
+    private val tasks: TaskService,
+) {
     @Transactional(readOnly = true)
     fun get(user: Long, kind: String): Ritual =
         jdbc

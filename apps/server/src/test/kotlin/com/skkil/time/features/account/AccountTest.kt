@@ -1,4 +1,4 @@
-package com.skkil.time
+package com.skkil.time.features.account
 
 import com.skkil.time.support.ApiTest
 import org.junit.jupiter.api.Test

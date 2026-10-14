@@ -1,6 +1,6 @@
 package com.skkil.time.features.realtime
 
-import com.skkil.time.common.AppProperties
+import com.skkil.time.config.AppProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse

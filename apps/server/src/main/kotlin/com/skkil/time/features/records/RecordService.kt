@@ -1,10 +1,10 @@
 package com.skkil.time.features.records
 
-import com.skkil.time.common.Caller
-import com.skkil.time.common.ensure
-import com.skkil.time.common.invalid
-import com.skkil.time.common.optionalText
-import com.skkil.time.common.orNotFound
+import com.skkil.time.common.error.ensure
+import com.skkil.time.common.error.invalid
+import com.skkil.time.common.error.orNotFound
+import com.skkil.time.common.text.optionalText
+import com.skkil.time.common.web.Caller
 import com.skkil.time.features.tasks.Task
 import com.skkil.time.features.tasks.TaskInput
 import com.skkil.time.features.tasks.TaskService

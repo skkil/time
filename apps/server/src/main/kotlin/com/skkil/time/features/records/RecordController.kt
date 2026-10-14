@@ -1,6 +1,6 @@
 package com.skkil.time.features.records
 
-import com.skkil.time.common.Caller
+import com.skkil.time.common.web.Caller
 import com.skkil.time.features.tasks.Task
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping

@@ -1,6 +1,6 @@
 package com.skkil.time.features.time
 
-import com.skkil.time.common.Caller
+import com.skkil.time.common.web.Caller
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

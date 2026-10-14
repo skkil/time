@@ -1,6 +1,6 @@
-package com.skkil.time.common
+package com.skkil.time.config
 
-import com.skkil.time.auth.CallerResolver
+import com.skkil.time.security.CallerResolver
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer

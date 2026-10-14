@@ -1,8 +1,8 @@
 package com.skkil.time.features.projects
 
-import com.skkil.time.common.dateOrNull
-import com.skkil.time.common.intOrNull
-import com.skkil.time.common.longOrNull
+import com.skkil.time.common.persistence.dateOrNull
+import com.skkil.time.common.persistence.intOrNull
+import com.skkil.time.common.persistence.longOrNull
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Repository

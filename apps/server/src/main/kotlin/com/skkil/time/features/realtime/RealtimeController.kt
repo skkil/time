@@ -1,6 +1,6 @@
 package com.skkil.time.features.realtime
 
-import com.skkil.time.common.Caller
+import com.skkil.time.common.web.Caller
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 

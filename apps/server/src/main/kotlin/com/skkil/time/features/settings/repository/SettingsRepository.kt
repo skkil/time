@@ -1,11 +1,11 @@
-package com.skkil.time.common
+package com.skkil.time.features.settings.repository
 
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Component
 
 /** Per-user key/value settings, as the desktop `setting` table. */
 @Component
-class Settings(private val jdbc: JdbcClient) {
+class SettingsRepository(private val jdbc: JdbcClient) {
     fun read(user: Long, key: String): String? =
         jdbc
             .sql("SELECT value FROM setting WHERE user_id = :user AND key = :key")

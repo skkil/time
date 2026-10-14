@@ -1,4 +1,4 @@
-package com.skkil.time.common
+package com.skkil.time.common.web
 
 import java.time.Instant
 import java.time.LocalDate

@@ -2,7 +2,7 @@ package com.skkil.time.features.notifications
 
 import com.interaso.webpush.VapidKeys
 import com.interaso.webpush.WebPush
-import com.skkil.time.common.AppProperties
+import com.skkil.time.config.AppProperties
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import tools.jackson.databind.json.JsonMapper

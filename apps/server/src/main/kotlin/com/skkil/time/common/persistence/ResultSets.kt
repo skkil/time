@@ -1,4 +1,4 @@
-package com.skkil.time.common
+package com.skkil.time.common.persistence
 
 import java.sql.ResultSet
 import java.time.LocalDate

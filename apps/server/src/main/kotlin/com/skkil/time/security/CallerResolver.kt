@@ -1,8 +1,8 @@
-package com.skkil.time.auth
+package com.skkil.time.security
 
-import com.skkil.time.common.Caller
-import com.skkil.time.common.DomainException
-import com.skkil.time.common.ErrorKind
+import com.skkil.time.common.error.DomainException
+import com.skkil.time.common.error.ErrorKind
+import com.skkil.time.common.web.Caller
 import org.springframework.core.MethodParameter
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
@@ -16,7 +16,7 @@ import java.time.ZoneId
 
 /** Resolves a [Caller] controller parameter from the bearer token, creating the user on first sight. */
 @Component
-class CallerResolver(private val accounts: Accounts) : HandlerMethodArgumentResolver {
+class CallerResolver(private val accounts: AccountService) : HandlerMethodArgumentResolver {
     override fun supportsParameter(parameter: MethodParameter) = parameter.parameterType == Caller::class.java
 
     override fun resolveArgument(

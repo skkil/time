@@ -1,9 +1,9 @@
 package com.skkil.time.features.notifications
 
-import com.skkil.time.common.ensure
-import com.skkil.time.common.ensureChanged
-import com.skkil.time.common.optionalText
-import com.skkil.time.common.requiredText
+import com.skkil.time.common.error.ensure
+import com.skkil.time.common.error.ensureChanged
+import com.skkil.time.common.text.optionalText
+import com.skkil.time.common.text.requiredText
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import java.time.Instant

@@ -1,7 +1,7 @@
 package com.skkil.time.features.tasks
 
-import com.skkil.time.common.ensure
-import com.skkil.time.common.invalid
+import com.skkil.time.common.error.ensure
+import com.skkil.time.common.error.invalid
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

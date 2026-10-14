@@ -1,7 +1,7 @@
 package com.skkil.time.features.projects
 
-import com.skkil.time.common.Caller
-import com.skkil.time.common.ensure
+import com.skkil.time.common.error.ensure
+import com.skkil.time.common.web.Caller
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
