@@ -1,9 +1,22 @@
 package com.skkil.time.features.workflow
 
-import com.skkil.time.features.tasks.TaskApiTest
-import com.skkil.time.features.tasks.TaskCompleted
-import com.skkil.time.features.tasks.TaskDependency
-import com.skkil.time.features.tasks.TaskPlacement
+import com.skkil.time.features.tasks.api.TaskCompleted
+import com.skkil.time.features.tasks.api.TaskDependency
+import com.skkil.time.features.tasks.domain.TaskPlacement
+import com.skkil.time.features.workflow.api.MilestoneLabel
+import com.skkil.time.features.workflow.api.PresetText
+import com.skkil.time.features.workflow.api.StatusPlacement
+import com.skkil.time.features.workflow.api.TaskEventDetails
+import com.skkil.time.features.workflow.api.TaskMilestoneId
+import com.skkil.time.features.workflow.api.TaskStatusId
+import com.skkil.time.features.workflow.api.TaskTypeId
+import com.skkil.time.features.workflow.domain.ItemTypeInput
+import com.skkil.time.features.workflow.domain.MilestoneInput
+import com.skkil.time.features.workflow.domain.PRESETS
+import com.skkil.time.features.workflow.domain.Preset
+import com.skkil.time.features.workflow.domain.StatusInput
+import com.skkil.time.features.workflow.domain.ViewInput
+import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.JsonNode
 import java.time.LocalDate

@@ -272,6 +272,10 @@ cargo clippy --all-targets
 - `features/<domain>/` mirrors `src-tauri/src/features/<domain>.rs`: the same
   rules, validation messages and JSON shapes. Every query filters by
   `user_id`, and every referenced id is checked against the caller.
+- Package by feature, layered inside: `features/<domain>/{api,service,
+  repository,domain}` (only the layers a feature needs), one top-level class
+  per file named after it. Shared code lives in `config/`, `security/` and
+  `common/{error,web,persistence,text}`; see the server README's "Code layout".
 - Controllers take a `Caller` (user id + time zone from `X-Time-Zone`); use
   `caller.now()`/`caller.today()` wherever desktop uses local time.
 - Auth is an OAuth2 resource server only (`AUTH_ISSUER_URI`, `AUTH_AUDIENCE`);
@@ -280,17 +284,19 @@ cargo clippy --all-targets
 - After an API change: `./gradlew openApi`, then `pnpm generate` in
   `apps/shared/api`, then `pnpm exec tsc -b` in `apps/shared/remote`.
   `OpenApiDocumentTest` fails while the committed document is stale.
-- Instant updates: `ChangeTracking` (`features/data/Changes.kt`) bumps the
-  user's `data_version` after every successful write and publishes a
-  `ChangeEvent` (topic = first path segment) on Postgres `LISTEN/NOTIFY`
-  (`features/realtime/RealtimeBus.kt`); each instance forwards it to that
-  user's websockets at `/api/v1/realtime`, opened with a one-time ticket from
+- Instant updates: `ChangeTrackingFilter` (`features/changes/web/`) has
+  `ChangeService` bump the user's `data_version` after every successful write
+  and publish a `ChangeEvent` (topic = first path segment) on Postgres
+  `LISTEN/NOTIFY` (`features/realtime/service/RealtimeBus.kt`); each instance
+  forwards it to that user's websockets at `/api/v1/realtime`
+  (`features/realtime/websocket/`), opened with a one-time ticket from
   `POST /api/v1/realtime/tickets`. Events carry no data, only "refetch".
-- Reminders on web and mobile are push (`features/notifications`): a job
-  every 20 s, one sender across instances via `pg_try_advisory_xact_lock`,
-  fires each timed task once per date and time through `reminded_for` (as
-  desktop does) to every `push_device` (Expo or Web Push/VAPID). Web uses
-  `public/sw.js` and `Platform.notifications`; mobile `src/notifications.ts`.
+- Reminders on web and mobile are push (`features/notifications`):
+  `job/ReminderJob.kt` runs every 20 s, one sender across instances via
+  `pg_try_advisory_xact_lock`, and fires each timed task once per date and
+  time through `reminded_for` (as desktop does) to every `push_device` through
+  the senders in `push/` (Expo or Web Push/VAPID). Web uses `public/sw.js` and
+  `Platform.notifications`; mobile `src/notifications.ts`.
 - Account-wide preferences are one JSON object (`features/preferences`,
   `PATCH` merges, `null` removes a key).
 

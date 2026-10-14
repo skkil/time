@@ -1,7 +1,11 @@
 package com.skkil.time.features.sections
 
-import com.skkil.time.features.projects.Archived
-import com.skkil.time.features.projects.ProjectInput
+import com.skkil.time.features.projects.api.Archived
+import com.skkil.time.features.projects.domain.ProjectInput
+import com.skkil.time.features.sections.api.SectionCollapsed
+import com.skkil.time.features.sections.api.SectionName
+import com.skkil.time.features.sections.api.SectionPlacement
+import com.skkil.time.features.sections.domain.SectionInput
 import com.skkil.time.support.ApiTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

@@ -1,5 +1,6 @@
 package com.skkil.time.features.settings
 
+import com.skkil.time.features.settings.api.Enabled
 import com.skkil.time.support.ApiTest
 import org.junit.jupiter.api.Test
 import java.util.UUID

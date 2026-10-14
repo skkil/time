@@ -1,10 +1,11 @@
 package com.skkil.time.features.data
 
-import com.skkil.time.features.projects.CanvasContent
-import com.skkil.time.features.projects.ProjectInput
-import com.skkil.time.features.settings.Enabled
-import com.skkil.time.features.tasks.TaskApiTest
-import com.skkil.time.features.tasks.TaskDependency
+import com.skkil.time.features.data.domain.TABLES
+import com.skkil.time.features.projects.api.CanvasContent
+import com.skkil.time.features.projects.domain.ProjectInput
+import com.skkil.time.features.settings.api.Enabled
+import com.skkil.time.features.tasks.api.TaskDependency
+import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.node.ObjectNode
