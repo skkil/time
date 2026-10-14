@@ -2,6 +2,7 @@ package com.skkil.time.features.time
 
 import com.skkil.time.features.projects.domain.ProjectInput
 import com.skkil.time.features.tasks.domain.TaskPlacement
+import com.skkil.time.features.time.domain.EntryInput
 import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.JsonNode

@@ -8,7 +8,7 @@ import com.skkil.time.common.text.optionalText
 import com.skkil.time.common.text.requiredText
 import com.skkil.time.common.web.Caller
 import com.skkil.time.features.projects.service.ProjectService
-import com.skkil.time.features.recurrence.Recurrence
+import com.skkil.time.features.recurrence.domain.Recurrence
 import com.skkil.time.features.sections.service.SectionService
 import com.skkil.time.features.tasks.domain.Container
 import com.skkil.time.features.tasks.domain.Task
@@ -16,8 +16,8 @@ import com.skkil.time.features.tasks.domain.TaskInput
 import com.skkil.time.features.tasks.domain.TaskPlacement
 import com.skkil.time.features.tasks.domain.TaskRules
 import com.skkil.time.features.tasks.repository.TaskRepository
-import com.skkil.time.features.time.TimerService
-import com.skkil.time.features.workflow.WorkflowSync
+import com.skkil.time.features.time.service.TimerService
+import com.skkil.time.features.workflow.service.WorkflowSync
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

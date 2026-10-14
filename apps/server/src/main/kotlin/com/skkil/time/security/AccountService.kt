@@ -1,6 +1,6 @@
 package com.skkil.time.security
 
-import com.skkil.time.features.rituals.RitualDefaults
+import com.skkil.time.features.rituals.service.RitualDefaults
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

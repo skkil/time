@@ -6,7 +6,7 @@ import com.skkil.time.common.persistence.doubleOrNull
 import com.skkil.time.common.persistence.intOrNull
 import com.skkil.time.common.persistence.longOrNull
 import com.skkil.time.common.web.Caller
-import com.skkil.time.features.rituals.RitualDefaults
+import com.skkil.time.features.rituals.service.RitualDefaults
 import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service

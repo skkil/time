@@ -1,5 +1,6 @@
 package com.skkil.time.features.time
 
+import com.skkil.time.features.time.domain.BlockSpan
 import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
