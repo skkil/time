@@ -1,5 +1,6 @@
-package com.skkil.time.features.realtime
+package com.skkil.time.features.realtime.service
 
+import com.skkil.time.features.realtime.domain.Ticket
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -12,7 +13,7 @@ import java.util.Base64
  * They live in Postgres because the handshake may reach a different instance than the one that issued the ticket.
  */
 @Service
-class RealtimeTickets(private val jdbc: JdbcClient) {
+class RealtimeTicketService(private val jdbc: JdbcClient) {
     private val random = SecureRandom()
 
     fun issue(user: Long): Ticket {

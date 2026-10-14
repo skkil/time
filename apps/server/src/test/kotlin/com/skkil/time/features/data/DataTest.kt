@@ -1,5 +1,6 @@
 package com.skkil.time.features.data
 
+import com.skkil.time.features.data.domain.TABLES
 import com.skkil.time.features.projects.api.CanvasContent
 import com.skkil.time.features.projects.domain.ProjectInput
 import com.skkil.time.features.settings.api.Enabled

@@ -1,17 +1,4 @@
-package com.skkil.time.features.data
-
-enum class ColumnType { TEXT, BIGINT, INT, BOOL, DOUBLE, DATE }
-
-/** A column of a backed-up table. [references] names the table whose `id` it points at. */
-data class Column(val name: String, val type: ColumnType, val references: String? = null)
-
-/**
- * A table in the backup document. [owner] selects the user's rows when the table has no `user_id`
- * (its rows belong to the user through a parent). [identity] tables get fresh ids on restore.
- */
-data class Table(val name: String, val identity: Boolean, val columns: List<Column>, val owner: String? = null) {
-    val ownedDirectly = owner == null
-}
+package com.skkil.time.features.data.domain
 
 private fun text(name: String) = Column(name, ColumnType.TEXT)
 

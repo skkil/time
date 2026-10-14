@@ -1,4 +1,4 @@
-package com.skkil.time.features.data
+package com.skkil.time.features.data.service
 
 import com.skkil.time.common.error.ensure
 import com.skkil.time.common.error.invalid
@@ -6,6 +6,11 @@ import com.skkil.time.common.persistence.doubleOrNull
 import com.skkil.time.common.persistence.intOrNull
 import com.skkil.time.common.persistence.longOrNull
 import com.skkil.time.common.web.Caller
+import com.skkil.time.features.data.domain.Column
+import com.skkil.time.features.data.domain.ColumnType
+import com.skkil.time.features.data.domain.DataExport
+import com.skkil.time.features.data.domain.TABLES
+import com.skkil.time.features.data.domain.Table
 import com.skkil.time.features.rituals.service.RitualDefaults
 import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.core.simple.JdbcClient
@@ -19,14 +24,6 @@ import java.time.format.DateTimeParseException
 
 /** Old id to new id for one table during a restore. */
 private typealias IdMap = Map<Long, Long>
-
-/** A whole account as one versioned document: table name to rows, keyed by column name. */
-data class DataExport(
-    val format: String,
-    val version: Int,
-    val exportedAt: Long,
-    val tables: Map<String, List<Map<String, Any?>>>,
-)
 
 @Service
 @Transactional

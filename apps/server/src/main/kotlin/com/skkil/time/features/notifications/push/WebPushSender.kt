@@ -1,8 +1,11 @@
-package com.skkil.time.features.notifications
+package com.skkil.time.features.notifications.push
 
 import com.interaso.webpush.VapidKeys
 import com.interaso.webpush.WebPush
 import com.skkil.time.config.AppProperties
+import com.skkil.time.features.notifications.domain.Push
+import com.skkil.time.features.notifications.domain.PushMessage
+import com.skkil.time.features.notifications.domain.WEB
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import tools.jackson.databind.json.JsonMapper

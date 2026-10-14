@@ -1,10 +1,11 @@
-package com.skkil.time.features.notifications
+package com.skkil.time.features.notifications.job
 
+import com.skkil.time.features.notifications.domain.Push
+import com.skkil.time.features.notifications.domain.PushMessage
+import com.skkil.time.features.notifications.push.PushSender
+import com.skkil.time.features.notifications.service.DeviceService
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty
-import org.springframework.context.annotation.Configuration
 import org.springframework.jdbc.core.simple.JdbcClient
-import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.PlatformTransactionManager
@@ -15,11 +16,6 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
-
-@Configuration
-@EnableScheduling
-@ConditionalOnBooleanProperty("time.push.reminders", matchIfMissing = true)
-class ReminderScheduling
 
 /** Advisory lock that lets one server instance send reminders at a time. */
 internal const val REMINDER_LOCK_KEY = 0x736B6B696C_0001L

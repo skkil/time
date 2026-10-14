@@ -1,4 +1,4 @@
-package com.skkil.time.features.notifications
+package com.skkil.time.features.notifications.push
 
 import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter

@@ -1,4 +1,4 @@
-package com.skkil.time.features.realtime
+package com.skkil.time.features.realtime.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled

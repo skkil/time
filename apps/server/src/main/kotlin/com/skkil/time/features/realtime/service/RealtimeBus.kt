@@ -1,5 +1,6 @@
-package com.skkil.time.features.realtime
+package com.skkil.time.features.realtime.service
 
+import com.skkil.time.features.realtime.domain.ChangeEvent
 import org.postgresql.PGConnection
 import org.slf4j.LoggerFactory
 import org.springframework.context.SmartLifecycle
