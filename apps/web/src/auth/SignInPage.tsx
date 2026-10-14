@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ZenBackdrop } from '@/features/zen/ZenBackdrop';
 
-export function SignIn({
+export function SignInPage({
   onSignIn,
   error,
 }: {

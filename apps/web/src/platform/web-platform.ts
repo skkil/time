@@ -1,5 +1,5 @@
 import type { Auth, Session } from '@skkil-time/auth';
-import { onOpenTask } from '~/notifications';
+import { onOpenTask } from '~/notifications/web-push';
 
 import { forgetAccountPreferences } from '@/lib/preferences';
 import type {
