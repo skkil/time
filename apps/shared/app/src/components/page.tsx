@@ -36,7 +36,7 @@ export function PageHeader({
   children?: ReactNode;
 }) {
   return (
-    <header className="flex shrink-0 flex-col gap-4 px-8 pt-4 pb-4">
+    <header className="flex shrink-0 flex-col gap-4 px-4 pt-2 pb-4 sm:px-8 lg:pt-4">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div className="min-w-0">
           <h1 className="truncate text-3xl leading-tight font-light tracking-tight">
@@ -69,7 +69,12 @@ export function PageBody({
   className?: string;
 }) {
   return (
-    <div className={cn('min-h-0 flex-1 overflow-y-auto px-8 py-6', className)}>
+    <div
+      className={cn(
+        'min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-8',
+        className,
+      )}
+    >
       {children}
     </div>
   );

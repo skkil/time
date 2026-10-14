@@ -100,7 +100,7 @@ export function GroupView({ groupId }: { groupId: Id }) {
 
   if (!group)
     return (
-      <p className="px-10 pt-6 text-sm text-foreground/75">
+      <p className="px-4 pt-6 text-sm text-foreground/75 sm:px-10">
         This group no longer exists.
       </p>
     );
@@ -131,7 +131,7 @@ export function GroupView({ groupId }: { groupId: Id }) {
 
   return (
     <div className="flex h-full flex-col overflow-y-auto pb-10">
-      <header className="w-full shrink-0 px-10 pt-4">
+      <header className="w-full shrink-0 px-4 pt-4 sm:px-10">
         <p className="mb-1 text-sm text-foreground/75">Group</p>
         <GroupTitle
           groupId={group.id}
@@ -149,7 +149,7 @@ export function GroupView({ groupId }: { groupId: Id }) {
         <div className="mt-5 border-b border-white/10" />
       </header>
 
-      <div className="px-10 pt-6">
+      <div className="px-4 pt-6 sm:px-10">
         {summaries.length === 0 ? (
           <button
             type="button"
@@ -250,8 +250,8 @@ function GroupTitle({
   const [renaming, setRenaming] = useState(false);
 
   return (
-    <div className="flex items-center gap-3">
-      <h1 className="flex min-w-0 flex-1 items-center gap-2.5 text-3xl leading-tight font-light tracking-tight">
+    <div className="flex flex-wrap items-center gap-3">
+      <h1 className="flex min-w-0 flex-1 items-center gap-2.5 text-3xl leading-tight font-light tracking-tight max-sm:basis-full">
         <FoldersIcon
           className="size-6 shrink-0 text-foreground/75"
           strokeWidth={1.5}
@@ -298,7 +298,7 @@ function ProjectGrid({
   today: string;
 }) {
   return (
-    <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
+    <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-4">
       {summaries.map((summary) => (
         <li key={summary.node.id}>
           <ProjectCard summary={summary} today={today} />

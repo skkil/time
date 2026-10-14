@@ -77,7 +77,7 @@ export function WeekPicker({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="max-h-[70vh] w-[420px] overflow-y-auto rounded-2xl p-2"
+        className="max-h-[70dvh] w-[min(420px,calc(100vw-2rem))] overflow-y-auto rounded-2xl p-2"
       >
         <ul>
           {items.map((item) =>

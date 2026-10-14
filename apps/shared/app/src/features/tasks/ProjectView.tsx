@@ -109,7 +109,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
   const next = nextUp(own, todayKey());
 
   const sectionList = (
-    <PageBody className="px-10 pt-4">
+    <PageBody className="px-4 pt-4 sm:px-10">
       <div>
         <TaskDnd>
           <TaskList
@@ -412,7 +412,7 @@ function BoardLayout({
 }) {
   return (
     <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
-      <div className="flex h-full items-start gap-4 px-10 py-5">
+      <div className="flex h-full items-start gap-4 px-4 py-5 sm:px-10">
         <TaskDnd>
           {(unsectioned.length > 0 || sections.length === 0) && (
             <BoardColumn

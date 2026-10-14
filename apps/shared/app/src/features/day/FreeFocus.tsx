@@ -3,6 +3,7 @@ import { InboxIcon, ListTodoIcon, PlayIcon, SquareIcon } from 'lucide-react';
 import { useRef } from 'react';
 
 import type { EntryDetails } from '@/backend';
+import { DAY_PANEL } from '@/components/surfaces';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { ProjectJump } from '@/features/projects/ProjectLink';
 import { ProjectPicker } from '@/features/projects/ProjectPicker';
@@ -40,7 +41,7 @@ export function StartFocus({
       <button
         type="button"
         onClick={onOpen}
-        className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] tabular-nums transition-colors hover:bg-white"
+        className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] tabular-nums transition-colors hover:bg-white pointer-coarse:h-10"
       >
         <span className="size-2 rounded-full bg-[#08161e]" />
         {open
@@ -61,7 +62,7 @@ export function StartFocus({
           { onSuccess: onOpen },
         )
       }
-      className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
+      className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white pointer-coarse:h-10"
     >
       <PlayIcon className="size-3.5 fill-current" />
       Start focus
@@ -90,7 +91,7 @@ export function FreeFocus() {
   const task = timer.taskId === null ? undefined : tasks.byId.get(timer.taskId);
 
   return (
-    <div className="flex h-full max-h-[720px] animate-in flex-col rounded-[32px] bg-[rgba(6,18,26,.38)] p-12 ring-1 ring-white/[.08] backdrop-blur-xl duration-200 fade-in-0 slide-in-from-bottom-2">
+    <div className={DAY_PANEL}>
       <p className="text-sm text-foreground/75">
         {timer.pausedAt === null ? 'Focusing' : 'On a break'}
       </p>

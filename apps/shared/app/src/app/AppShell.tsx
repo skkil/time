@@ -122,13 +122,17 @@ function Canvas() {
   return (
     <div className="relative h-full overflow-hidden text-foreground">
       <ZenBackdrop deep={active !== null} className="fixed" />
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 grid grid-cols-[1fr_auto_1fr] items-center px-6 pt-5">
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 grid grid-cols-[1fr_auto_1fr] items-center gap-2 pt-[max(1.25rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] sm:pr-[max(1.5rem,env(safe-area-inset-right))] sm:pl-[max(1.5rem,env(safe-area-inset-left))]">
         <div className="pointer-events-auto justify-self-start">
           {space === 'projects' && <ProjectsNavToggle />}
         </div>
         <SpaceToggle value={space} onChange={go} />
         <div className="pointer-events-auto flex items-center gap-2 justify-self-end">
-          {space !== 'day' && <TimerPill />}
+          {space !== 'day' && (
+            <div className="max-lg:fixed max-lg:bottom-[max(1rem,env(safe-area-inset-bottom))] max-lg:left-1/2 max-lg:z-30 max-lg:-translate-x-1/2 max-lg:rounded-full max-lg:bg-[rgba(10,18,32,.85)] max-lg:shadow-[0_12px_40px_rgba(0,0,0,.35)]">
+              <TimerPill />
+            </div>
+          )}
           <ProfileMenu
             onSearch={() => setSearching(true)}
             onSettings={() => setSettingsOpen(true)}
@@ -137,7 +141,7 @@ function Canvas() {
           />
         </div>
       </header>
-      <main className="relative z-10 h-full pt-20">
+      <main className="relative z-10 h-full pt-[calc(5rem+env(safe-area-inset-top))]">
         <Outlet />
       </main>
       <SearchDialog open={searching} onOpenChange={setSearching} />
@@ -178,7 +182,7 @@ function SpaceToggle({
             aria-selected={option.id === value}
             onClick={() => onChange(option.id)}
             className={cn(
-              'relative h-7 w-20 rounded-full text-[13px] tracking-wide transition-colors duration-300 outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+              'relative h-7 w-16 rounded-full text-[13px] tracking-wide transition-colors duration-300 outline-none focus-visible:ring-2 focus-visible:ring-white/50 sm:w-20 pointer-coarse:h-9',
               option.id === value
                 ? 'text-foreground'
                 : 'text-foreground/75 hover:text-foreground/85',

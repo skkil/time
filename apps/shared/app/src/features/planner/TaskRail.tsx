@@ -112,7 +112,7 @@ export function TaskRail({
   return (
     <aside
       aria-label="Plan the week"
-      className="flex w-72 shrink-0 flex-col overflow-y-auto border-l border-white/10 bg-[rgba(6,18,26,.35)] backdrop-blur-xl"
+      className="flex w-72 shrink-0 flex-col overflow-y-auto border-l border-white/10 bg-[rgba(6,18,26,.35)] backdrop-blur-xl max-lg:pb-20"
     >
       <WeekPlan start={week} />
       <div className="grid gap-2 p-3">

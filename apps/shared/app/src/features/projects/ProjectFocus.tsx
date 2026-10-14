@@ -11,7 +11,7 @@ export function ProjectFocus({ projectId }: { projectId: Id }) {
   if (isPending) return null;
   if (!entries || entries.length === 0)
     return (
-      <PageBody className="px-10">
+      <PageBody className="px-4 sm:px-10">
         <EmptyState title="No focus time yet.">
           Sessions on this project and its tasks show up here.
         </EmptyState>
@@ -19,7 +19,7 @@ export function ProjectFocus({ projectId }: { projectId: Id }) {
     );
 
   return (
-    <PageBody className="px-10">
+    <PageBody className="px-4 sm:px-10">
       <p className="mb-5 text-sm text-foreground/75">
         {formatDuration(totalSeconds(entries))} · {sessionCount(entries.length)}
       </p>
