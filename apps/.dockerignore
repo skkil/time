@@ -4,7 +4,8 @@
 **/.gradle
 **/.kotlin
 **/target
+server
 **/.expo
 .git
 .claude
-apps/desktop/src-tauri
+desktop/src-tauri

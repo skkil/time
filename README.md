@@ -16,7 +16,7 @@ review, on desktop, web and phone.
 ## Run
 
 ```bash
-pnpm install
+(cd apps && pnpm install)
 skkil dev            # Postgres, mock sign-in, server, web and desktop
 ```
 

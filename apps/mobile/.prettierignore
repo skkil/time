@@ -1,0 +1,6 @@
+dist
+build
+.expo
+ios
+android
+expo-env.d.ts

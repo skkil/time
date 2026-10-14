@@ -6,7 +6,7 @@ Tauri 2 desktop app. Data is stored in `<app data dir>/com.skkil.time/time.db`
 and platform.
 
 ```bash
-pnpm install       # from the repo root
+pnpm install       # from apps/
 pnpm tauri dev     # development
 pnpm tauri build   # installable bundle in src-tauri/target/release/bundle
 ```

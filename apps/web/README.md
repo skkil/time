@@ -12,7 +12,7 @@ pnpm build     # dist/
 
 Configuration comes from `VITE_API_URL`, `VITE_AUTH_AUTHORITY`,
 `VITE_AUTH_CLIENT_ID` and `VITE_AUTH_AUDIENCE` (see `.env.example`). In the
-container (`docker build -f apps/web/Dockerfile .` from the repo root),
+container (`docker build -f web/Dockerfile .` from `apps/`),
 `API_URL`, `AUTH_AUTHORITY`, `AUTH_CLIENT_ID` and `AUTH_AUDIENCE` are written
 to `config.js` at start, so one image serves every environment.
 

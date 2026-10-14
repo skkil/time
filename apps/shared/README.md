@@ -12,6 +12,7 @@ TypeScript packages the apps share. They are source-only workspace packages
 | `api` (`@skkil-time/api`)           | web, mobile  | `openapi.json` from the server, generated types and a typed `fetch` client                                           |
 | `remote` (`@skkil-time/remote`)     | web, mobile  | The `Backend` over HTTP. It must `satisfies Backend`, so `tsc` fails when Kotlin and Rust types drift                |
 | `auth` (`@skkil-time/auth`)         | web, mobile  | Provider-neutral sign-in interface; `auth/web` implements it with `oidc-client-ts`                                   |
+| `tooling` (`@skkil-time/tooling`)   | all          | The shared ESLint, Prettier and TypeScript configs                                                                   |
 
 Where a change lands:
 

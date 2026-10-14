@@ -18,8 +18,8 @@ requires:
     check: command -v docker
     hint: install Docker for the local database and the server tests
   - name: workspace dependencies
-    check: test -d node_modules
-    hint: pnpm install
+    check: test -d apps/node_modules
+    hint: cd apps && pnpm install
 
 dev:
   run:
@@ -136,22 +136,25 @@ ci:
       test: cargo test && git diff --exit-code -- ../../shared/contract/src/bindings.ts
     - name: shared-domain
       dir: apps/shared/domain
+      format: pnpm format:check
       lint: pnpm lint
       test: pnpm test
       build: pnpm compile
     - name: shared-tokens
       dir: apps/shared/tokens
+      format: pnpm format:check
       lint: pnpm lint
       test: pnpm test
       build: pnpm compile
     - name: shared-app
       dir: apps/shared/app
-      format: pnpm exec prettier --check ..
+      format: pnpm format:check
       lint: pnpm lint
       test: pnpm test
       build: pnpm compile
     - name: shared-api
       dir: apps/shared/api
+      format: pnpm format:check
       lint: pnpm lint
       test: pnpm check:generated
       build: pnpm compile
@@ -159,13 +162,18 @@ ci:
         - server
     - name: shared-remote
       dir: apps/shared/remote
+      format: pnpm format:check
       lint: pnpm lint
       build: pnpm compile
       depends_on:
         - core
         - shared-api
+    - name: shared-contract
+      dir: apps/shared/contract
+      format: pnpm format:check
     - name: shared-auth
       dir: apps/shared/auth
+      format: pnpm format:check
       lint: pnpm lint
       build: pnpm compile
     - name: server
@@ -175,17 +183,17 @@ ci:
       build: ./gradlew bootJar
     - name: web
       dir: apps/web
-      format: pnpm exec prettier --check src
+      format: pnpm format:check
       lint: pnpm lint
       build: pnpm build
     - name: mobile
       dir: apps/mobile
-      format: pnpm exec prettier --check app src
+      format: pnpm format:check
       lint: pnpm lint
       build: pnpm compile
     - name: desktop
       dir: apps/desktop
-      format: pnpm exec prettier --check src
+      format: pnpm format:check
       lint: pnpm lint
       build: pnpm tauri build
       depends_on:

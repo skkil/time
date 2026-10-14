@@ -1,0 +1,4 @@
+dist
+build
+src/schema.ts
+openapi.json

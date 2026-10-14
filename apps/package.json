@@ -1,0 +1,16 @@
+{
+  "name": "skkil-time-apps",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "lint": "pnpm -r --parallel lint",
+    "compile": "pnpm -r compile",
+    "test": "pnpm -r test",
+    "format": "pnpm -r format",
+    "format:check": "pnpm -r format:check"
+  }
+}

@@ -17,14 +17,20 @@
     "lint": "eslint .",
     "compile": "tsc -b",
     "test": "vitest run --passWithNoTests",
-    "check:generated": "pnpm generate && git diff --exit-code -- src/schema.ts"
+    "check:generated": "pnpm generate && git diff --exit-code -- src/schema.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
+    "@skkil-time/tooling": "workspace:*",
+    "eslint": "^10.14.0",
     "openapi-typescript": "^7.13.0",
+    "prettier": "^3.9.10",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
-  }
+  },
+  "prettier": "@skkil-time/tooling/prettier"
 }

@@ -102,7 +102,9 @@ in `.design/DESIGN.md`.
 
 ## Repository structure
 
-pnpm workspace (`pnpm-workspace.yaml`) plus a Gradle project for the server:
+All code lives under `apps/`; the repo root holds only docs, `assets/` and
+`skkil.yml`. TypeScript apps share a pnpm workspace rooted at `apps/`, and the
+server is its own Gradle project:
 
 - `apps/desktop/`: Tauri 2 desktop app (Rust backend + a thin React shell)
 - `apps/server/`: Kotlin Spring Boot API (see its README)
@@ -116,10 +118,14 @@ pnpm workspace (`pnpm-workspace.yaml`) plus a Gradle project for the server:
   - `api`: the server's `openapi.json`, generated types, typed fetch client
   - `remote`: the `Backend` over HTTP (`satisfies Backend`)
   - `auth`: provider-neutral OIDC sign-in
+  - `tooling`: the ESLint, Prettier and TypeScript configs every package uses
 
-Run `pnpm install` once at the root. Root configs are shared: `eslint.config.js`,
-`.prettierrc`, `tsconfig.base.json`. `pnpm -r lint|compile|test` runs every
-package.
+Run `pnpm install` once in `apps/`; `pnpm lint|compile|test|format:check` there
+runs every package. `apps/package.json`, `pnpm-workspace.yaml` and the lockfile
+are the only files at that level. Each package has its own `eslint.config.js`
+(`config({ ignores })` from `@skkil-time/tooling/eslint`), uses
+`@skkil-time/tooling/prettier`, extends `tooling/tsconfig.base.json`, and lists
+the tools its scripts run.
 
 **Change once, reach every app.** UI goes in `apps/shared/app` (desktop and
 web), rules in `apps/shared/domain` (all three), colours in

@@ -14,13 +14,19 @@
   "scripts": {
     "lint": "eslint .",
     "compile": "tsc -b",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "oidc-client-ts": "^3.5.0"
   },
   "devDependencies": {
+    "@skkil-time/tooling": "workspace:*",
+    "eslint": "^10.14.0",
+    "prettier": "^3.9.10",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
-  }
+  },
+  "prettier": "@skkil-time/tooling/prettier"
 }
