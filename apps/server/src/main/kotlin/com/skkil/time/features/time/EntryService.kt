@@ -6,8 +6,8 @@ import com.skkil.time.common.error.orNotFound
 import com.skkil.time.common.persistence.longOrNull
 import com.skkil.time.common.text.optionalText
 import com.skkil.time.common.web.Caller
-import com.skkil.time.features.projects.ProjectService
-import com.skkil.time.features.tasks.TaskRepository
+import com.skkil.time.features.projects.service.ProjectService
+import com.skkil.time.features.tasks.repository.TaskRepository
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service

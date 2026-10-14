@@ -9,7 +9,7 @@ import com.skkil.time.common.persistence.longOrNull
 import com.skkil.time.common.text.optionalText
 import com.skkil.time.common.text.requiredText
 import com.skkil.time.common.web.Caller
-import com.skkil.time.features.projects.ProjectService
+import com.skkil.time.features.projects.service.ProjectService
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

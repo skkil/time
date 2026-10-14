@@ -1,7 +1,7 @@
 package com.skkil.time.features.workflow
 
 import com.skkil.time.common.web.Caller
-import com.skkil.time.features.tasks.Task
+import com.skkil.time.features.tasks.domain.Task
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping

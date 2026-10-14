@@ -2,8 +2,8 @@ package com.skkil.time.features.time
 
 import com.skkil.time.common.error.invalid
 import com.skkil.time.common.persistence.longOrNull
-import com.skkil.time.features.projects.ProjectService
-import com.skkil.time.features.tasks.TaskRepository
+import com.skkil.time.features.projects.service.ProjectService
+import com.skkil.time.features.tasks.repository.TaskRepository
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

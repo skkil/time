@@ -1,7 +1,7 @@
 package com.skkil.time.features.notifications
 
-import com.skkil.time.features.settings.Enabled
-import com.skkil.time.features.tasks.TaskApiTest
+import com.skkil.time.features.settings.api.Enabled
+import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito

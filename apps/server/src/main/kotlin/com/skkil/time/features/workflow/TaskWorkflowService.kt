@@ -7,8 +7,8 @@ import com.skkil.time.common.persistence.longOrNull
 import com.skkil.time.common.text.optionalText
 import com.skkil.time.common.web.Caller
 import com.skkil.time.features.recurrence.Recurrence
-import com.skkil.time.features.tasks.Task
-import com.skkil.time.features.tasks.TaskService
+import com.skkil.time.features.tasks.domain.Task
+import com.skkil.time.features.tasks.service.TaskService
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

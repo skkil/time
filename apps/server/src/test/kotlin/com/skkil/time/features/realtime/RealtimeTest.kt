@@ -1,6 +1,6 @@
 package com.skkil.time.features.realtime
 
-import com.skkil.time.features.projects.ProjectInput
+import com.skkil.time.features.projects.domain.ProjectInput
 import com.skkil.time.support.ApiTest
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest

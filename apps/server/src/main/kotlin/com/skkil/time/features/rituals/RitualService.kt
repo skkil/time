@@ -7,7 +7,7 @@ import com.skkil.time.common.persistence.longOrNull
 import com.skkil.time.common.web.Caller
 import com.skkil.time.features.review.monday
 import com.skkil.time.features.settings.repository.SettingsRepository
-import com.skkil.time.features.tasks.TaskService
+import com.skkil.time.features.tasks.service.TaskService
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service

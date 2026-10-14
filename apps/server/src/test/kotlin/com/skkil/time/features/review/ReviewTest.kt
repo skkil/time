@@ -1,7 +1,7 @@
 package com.skkil.time.features.review
 
-import com.skkil.time.features.tasks.TaskApiTest
-import com.skkil.time.features.tasks.TaskOutcome
+import com.skkil.time.features.tasks.api.TaskOutcome
+import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.JsonNode
 import java.time.LocalDate
