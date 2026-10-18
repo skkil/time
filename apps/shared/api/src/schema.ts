@@ -1815,17 +1815,17 @@ export interface components {
     };
     EntryDetails: {
       description: string;
-      /** Format: int64 */
-      projectId: number | null;
-      /** Format: int64 */
-      taskId: number | null;
+      /** Format: uuid */
+      projectId: string | null;
+      /** Format: uuid */
+      taskId: string | null;
     };
     RunningTimer: {
       description: string;
-      /** Format: int64 */
-      projectId: number | null;
-      /** Format: int64 */
-      taskId: number | null;
+      /** Format: uuid */
+      projectId: string | null;
+      /** Format: uuid */
+      taskId: string | null;
       /** Format: int64 */
       startedAt: number;
       /** Format: int64 */
@@ -1835,23 +1835,23 @@ export interface components {
     };
     EntryInput: {
       description: string;
-      /** Format: int64 */
-      projectId: number | null;
-      /** Format: int64 */
-      taskId: number | null;
+      /** Format: uuid */
+      projectId: string | null;
+      /** Format: uuid */
+      taskId: string | null;
       /** Format: int64 */
       startedAt: number;
       /** Format: int64 */
       endedAt: number;
     };
     TimeEntry: {
-      /** Format: int64 */
-      id: number;
+      /** Format: uuid */
+      id: string;
       description: string;
-      /** Format: int64 */
-      projectId: number | null;
-      /** Format: int64 */
-      taskId: number | null;
+      /** Format: uuid */
+      projectId: string | null;
+      /** Format: uuid */
+      taskId: string | null;
       /** Format: int64 */
       startedAt: number;
       /** Format: int64 */
@@ -1860,12 +1860,12 @@ export interface components {
     TaskInput: {
       title: string;
       notes: string;
-      /** Format: int64 */
-      projectId: number | null;
-      /** Format: int64 */
-      sectionId: number | null;
-      /** Format: int64 */
-      parentId: number | null;
+      /** Format: uuid */
+      projectId: string | null;
+      /** Format: uuid */
+      sectionId: string | null;
+      /** Format: uuid */
+      parentId: string | null;
       /** Format: int32 */
       priority: number;
       /** Format: date */
@@ -1879,16 +1879,16 @@ export interface components {
       estimateMinutes: number | null;
     };
     Task: {
-      /** Format: int64 */
-      id: number;
+      /** Format: uuid */
+      id: string;
       title: string;
       notes: string;
-      /** Format: int64 */
-      projectId: number | null;
-      /** Format: int64 */
-      sectionId: number | null;
-      /** Format: int64 */
-      parentId: number | null;
+      /** Format: uuid */
+      projectId: string | null;
+      /** Format: uuid */
+      sectionId: string | null;
+      /** Format: uuid */
+      parentId: string | null;
       /** Format: int32 */
       priority: number;
       /** Format: date */
@@ -1908,49 +1908,49 @@ export interface components {
       createdAt: number;
       /** Format: int64 */
       trackedSeconds: number;
-      /** Format: int64 */
-      outcomeId: number | null;
+      /** Format: uuid */
+      outcomeId: string | null;
       /** Format: int32 */
       rolloverCount: number;
       someday: boolean;
       nextStep: string;
       /** Format: date */
       mustOn: string | null;
-      /** Format: int64 */
-      typeId: number | null;
-      /** Format: int64 */
-      statusId: number | null;
-      /** Format: int64 */
-      milestoneId: number | null;
+      /** Format: uuid */
+      typeId: string | null;
+      /** Format: uuid */
+      statusId: string | null;
+      /** Format: uuid */
+      milestoneId: string | null;
       location: string;
       countsAsTime: boolean;
       /** Format: int64 */
       statusChangedAt: number | null;
       kind: string;
       statusCategory: string | null;
-      blockedBy: number[];
-      waitingOn: number[];
-      /** Format: int64 */
-      phaseId: number | null;
+      blockedBy: string[];
+      waitingOn: string[];
+      /** Format: uuid */
+      phaseId: string | null;
     };
     TaskTypeId: {
-      /** Format: int64 */
-      typeId: number | null;
+      /** Format: uuid */
+      typeId: string | null;
     };
     TaskStatusId: {
-      /** Format: int64 */
-      statusId: number;
+      /** Format: uuid */
+      statusId: string;
     };
     PhaseNotes: {
       notes: string;
     };
     TaskPhase: {
-      /** Format: int64 */
-      phaseId: number | null;
+      /** Format: uuid */
+      phaseId: string | null;
     };
     TaskOutcome: {
-      /** Format: int64 */
-      outcomeId: number | null;
+      /** Format: uuid */
+      outcomeId: string | null;
     };
     TaskNextStep: {
       nextStep: string;
@@ -1960,8 +1960,8 @@ export interface components {
       mustOn: string | null;
     };
     TaskMilestoneId: {
-      /** Format: int64 */
-      milestoneId: number | null;
+      /** Format: uuid */
+      milestoneId: string | null;
     };
     TaskEventDetails: {
       location: string;
@@ -1974,14 +1974,14 @@ export interface components {
       enabled: boolean;
     };
     SectionPlacement: {
-      /** Format: int64 */
-      before: number | null;
+      /** Format: uuid */
+      before: string | null;
     };
     Section: {
-      /** Format: int64 */
-      id: number;
-      /** Format: int64 */
-      projectId: number | null;
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      projectId: string | null;
       name: string;
       /** Format: int32 */
       position: number;
@@ -2026,13 +2026,13 @@ export interface components {
       step: number;
     };
     RitualRun: {
-      /** Format: int64 */
-      id: number;
+      /** Format: uuid */
+      id: string;
       kind: string;
       /** Format: date */
       date: string;
-      /** Format: int64 */
-      taskId: number | null;
+      /** Format: uuid */
+      taskId: string | null;
       /** Format: int64 */
       startedAt: number;
       /** Format: int64 */
@@ -2050,23 +2050,23 @@ export interface components {
     };
     ProjectInput: {
       name: string;
-      /** Format: int64 */
-      parentId: number | null;
+      /** Format: uuid */
+      parentId: string | null;
       color: string;
     };
     Project: {
-      /** Format: int64 */
-      id: number;
-      /** Format: int64 */
-      parentId: number | null;
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      parentId: string | null;
       name: string;
       color: string;
       /** Format: int32 */
       position: number;
       archived: boolean;
       view: string;
-      /** Format: int64 */
-      groupId: number | null;
+      /** Format: uuid */
+      groupId: string | null;
       status: string;
       outcome: string;
       /** Format: int32 */
@@ -2086,8 +2086,8 @@ export interface components {
       view: string;
     };
     ProjectSettings: {
-      /** Format: int64 */
-      groupId: number | null;
+      /** Format: uuid */
+      groupId: string | null;
       status: string;
       outcome: string;
       /** Format: int32 */
@@ -2127,8 +2127,8 @@ export interface components {
       content: string;
     };
     ProjectCanvas: {
-      /** Format: int64 */
-      projectId: number;
+      /** Format: uuid */
+      projectId: string;
       content: string;
       /** Format: int64 */
       updatedAt: number | null;
@@ -2145,8 +2145,8 @@ export interface components {
     };
     OutcomeInput: {
       title: string;
-      /** Format: int64 */
-      priorityId: number | null;
+      /** Format: uuid */
+      priorityId: string | null;
     };
     OutcomeStatusInput: {
       /** @enum {string} */
@@ -2158,8 +2158,8 @@ export interface components {
       date: string | null;
     };
     StatusPlacement: {
-      /** Format: int64 */
-      before: number | null;
+      /** Format: uuid */
+      before: string | null;
     };
     HabitInput: {
       name: string;
@@ -2181,12 +2181,12 @@ export interface components {
     Tracking: {
       source: string;
       patterns: string[];
-      /** Format: int64 */
-      projectId: number | null;
+      /** Format: uuid */
+      projectId: string | null;
     };
     Habit: {
-      /** Format: int64 */
-      id: number;
+      /** Format: uuid */
+      id: string;
       name: string;
       kind: string;
       /** Format: double */
@@ -2217,8 +2217,8 @@ export interface components {
       name: string;
     };
     Group: {
-      /** Format: int64 */
-      id: number;
+      /** Format: uuid */
+      id: string;
       name: string;
       /** Format: int32 */
       position: number;
@@ -2233,13 +2233,13 @@ export interface components {
       endAt: number;
     };
     TimeBlock: {
-      /** Format: int64 */
-      id: number;
-      /** Format: int64 */
-      taskId: number;
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      taskId: string;
       title: string;
-      /** Format: int64 */
-      projectId: number | null;
+      /** Format: uuid */
+      projectId: string | null;
       /** Format: int32 */
       priority: number;
       completed: boolean;
@@ -2249,46 +2249,46 @@ export interface components {
       endAt: number;
     };
     TaskIds: {
-      ids: number[];
+      ids: string[];
     };
     PhaseTaskInput: {
-      /** Format: int64 */
-      phaseId: number;
+      /** Format: uuid */
+      phaseId: string;
       title: string;
     };
     TaskPlacement: {
-      /** Format: int64 */
-      projectId: number | null;
-      /** Format: int64 */
-      sectionId: number | null;
-      /** Format: int64 */
-      parentId: number | null;
-      /** Format: int64 */
-      before: number | null;
+      /** Format: uuid */
+      projectId: string | null;
+      /** Format: uuid */
+      sectionId: string | null;
+      /** Format: uuid */
+      parentId: string | null;
+      /** Format: uuid */
+      before: string | null;
     };
     TaskDependency: {
-      /** Format: int64 */
-      blockedById: number;
+      /** Format: uuid */
+      blockedById: string;
     };
     TasksSomeday: {
-      ids: number[];
+      ids: string[];
       someday: boolean;
     };
     TaskReschedule: {
-      ids: number[];
+      ids: string[];
       /** Format: date */
       dueDate: string | null;
     };
     SectionInput: {
-      /** Format: int64 */
-      projectId: number | null;
+      /** Format: uuid */
+      projectId: string | null;
       name: string;
-      /** Format: int64 */
-      before: number | null;
+      /** Format: uuid */
+      before: string | null;
     };
     RitualTask: {
-      /** Format: int64 */
-      taskId: number | null;
+      /** Format: uuid */
+      taskId: string | null;
     };
     RitualEvent: {
       kind: string;
@@ -2365,20 +2365,20 @@ export interface components {
       message: string | null;
     };
     ItemStatus: {
-      /** Format: int64 */
-      id: number;
-      /** Format: int64 */
-      projectId: number;
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      projectId: string;
       name: string;
       category: string;
       /** Format: int32 */
       position: number;
     };
     ItemType: {
-      /** Format: int64 */
-      id: number;
-      /** Format: int64 */
-      projectId: number;
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      projectId: string;
       name: string;
       icon: string;
       kind: string;
@@ -2389,10 +2389,10 @@ export interface components {
       position: number;
     };
     Milestone: {
-      /** Format: int64 */
-      id: number;
-      /** Format: int64 */
-      projectId: number;
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      projectId: string;
       name: string;
       /** Format: date */
       date: string | null;
@@ -2400,10 +2400,10 @@ export interface components {
       position: number;
     };
     SavedView: {
-      /** Format: int64 */
-      id: number;
-      /** Format: int64 */
-      projectId: number;
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      projectId: string;
       name: string;
       layout: string;
       groupBy: string;
@@ -2439,15 +2439,15 @@ export interface components {
       tasksCompleted: number;
     };
     Outcome: {
-      /** Format: int64 */
-      id: number;
+      /** Format: uuid */
+      id: string;
       title: string;
       /** @enum {string} */
       status: 'open' | 'achieved' | 'carried' | 'dropped';
-      /** Format: int64 */
-      priorityId: number | null;
-      /** Format: int64 */
-      carriedFrom: number | null;
+      /** Format: uuid */
+      priorityId: string | null;
+      /** Format: uuid */
+      carriedFrom: string | null;
       /** Format: int32 */
       timesCarried: number;
       /** Format: int32 */
@@ -2476,13 +2476,13 @@ export interface components {
       seconds: number;
     };
     TrackedEntry: {
-      /** Format: int64 */
-      id: number;
+      /** Format: uuid */
+      id: string;
       description: string;
-      /** Format: int64 */
-      projectId: number | null;
-      /** Format: int64 */
-      taskId: number | null;
+      /** Format: uuid */
+      projectId: string | null;
+      /** Format: uuid */
+      taskId: string | null;
       /** Format: int64 */
       startedAt: number;
       /** Format: int64 */
@@ -2491,21 +2491,21 @@ export interface components {
       taskCompleted: boolean;
     };
     RecordPhase: {
-      /** Format: int64 */
-      statusId: number;
+      /** Format: uuid */
+      statusId: string;
       notes: string;
     };
     Priority: {
-      /** Format: int64 */
-      id: number;
+      /** Format: uuid */
+      id: string;
       title: string;
       note: string;
       /** Format: int32 */
       achieved: number;
     };
     Quarter: {
-      /** Format: int64 */
-      id: number;
+      /** Format: uuid */
+      id: string;
       label: string;
       /** Format: date */
       startDate: string;
@@ -2535,8 +2535,8 @@ export interface components {
       timeZone: string;
     };
     HabitDay: {
-      /** Format: int64 */
-      habitId: number;
+      /** Format: uuid */
+      habitId: string;
       /** Format: date */
       date: string;
       /** @enum {string} */
@@ -2546,13 +2546,13 @@ export interface components {
       manual: boolean;
     };
     EventOccurrence: {
-      /** Format: int64 */
-      taskId: number;
+      /** Format: uuid */
+      taskId: string;
       title: string;
-      /** Format: int64 */
-      projectId: number | null;
-      /** Format: int64 */
-      typeId: number | null;
+      /** Format: uuid */
+      projectId: string | null;
+      /** Format: uuid */
+      typeId: string | null;
       /** Format: int64 */
       startAt: number;
       /** Format: int64 */
@@ -2857,7 +2857,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -2883,7 +2883,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -2903,7 +2903,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -2925,7 +2925,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -2951,7 +2951,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -2971,7 +2971,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -2997,7 +2997,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3023,8 +3023,8 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
-        statusId: number;
+        id: string;
+        statusId: string;
       };
       cookie?: never;
     };
@@ -3048,7 +3048,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3074,7 +3074,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3100,7 +3100,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3126,7 +3126,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3152,7 +3152,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3178,7 +3178,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3204,7 +3204,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3314,7 +3314,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3340,7 +3340,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3366,7 +3366,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3392,7 +3392,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3416,7 +3416,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3462,7 +3462,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3488,7 +3488,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3504,7 +3504,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': number;
+          '*/*': string;
         };
       };
     };
@@ -3514,7 +3514,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3540,7 +3540,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3560,7 +3560,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3586,7 +3586,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3612,7 +3612,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3634,7 +3634,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3658,7 +3658,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3682,7 +3682,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3704,7 +3704,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3730,7 +3730,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3754,7 +3754,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3778,7 +3778,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3842,7 +3842,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3866,7 +3866,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3886,7 +3886,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3910,7 +3910,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3934,7 +3934,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3954,7 +3954,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -3976,11 +3976,11 @@ export interface operations {
   deleteType: {
     parameters: {
       query?: {
-        replacement?: number;
+        replacement?: string;
       };
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4000,7 +4000,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4022,11 +4022,11 @@ export interface operations {
   deleteStatus: {
     parameters: {
       query?: {
-        replacement?: number;
+        replacement?: string;
       };
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4046,7 +4046,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4070,7 +4070,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4096,7 +4096,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
         date: string;
       };
       cookie?: never;
@@ -4121,7 +4121,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4147,7 +4147,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4215,7 +4215,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4241,7 +4241,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4319,7 +4319,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': number;
+          '*/*': string;
         };
       };
     };
@@ -4329,7 +4329,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4524,7 +4524,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4550,7 +4550,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4576,7 +4576,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4602,7 +4602,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4791,7 +4791,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4813,7 +4813,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4835,7 +4835,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4891,7 +4891,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': number;
+          '*/*': string;
         };
       };
     };
@@ -4901,7 +4901,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4969,7 +4969,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -4985,7 +4985,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': number;
+          '*/*': string;
         };
       };
     };
@@ -4995,7 +4995,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -5017,7 +5017,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -5033,7 +5033,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': number;
+          '*/*': string;
         };
       };
     };
@@ -5043,7 +5043,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -5059,7 +5059,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': number;
+          '*/*': string;
         };
       };
     };
@@ -5069,7 +5069,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -5085,7 +5085,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': number;
+          '*/*': string;
         };
       };
     };
@@ -5177,7 +5177,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': number[];
+          '*/*': string[];
         };
       };
     };
@@ -5231,7 +5231,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
         date: string;
       };
       cookie?: never;
@@ -5256,7 +5256,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -5520,7 +5520,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -5542,7 +5542,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -5629,7 +5629,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
@@ -5861,8 +5861,8 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
-        blockedById: number;
+        id: string;
+        blockedById: string;
       };
       cookie?: never;
     };
@@ -5884,7 +5884,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        id: number;
+        id: string;
       };
       cookie?: never;
     };
