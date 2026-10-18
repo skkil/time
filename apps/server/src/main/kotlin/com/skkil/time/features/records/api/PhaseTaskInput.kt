@@ -1,3 +1,5 @@
 package com.skkil.time.features.records.api
 
-data class PhaseTaskInput(val phaseId: Long, val title: String)
+import java.util.UUID
+
+data class PhaseTaskInput(val phaseId: UUID, val title: String)

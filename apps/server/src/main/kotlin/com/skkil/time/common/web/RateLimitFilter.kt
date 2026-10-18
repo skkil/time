@@ -1,5 +1,6 @@
 package com.skkil.time.common.web
 
+import com.skkil.time.common.clock.MutationClock
 import com.skkil.time.common.error.ErrorKind
 import com.skkil.time.common.error.ProblemHandler
 import com.skkil.time.config.AppProperties
@@ -12,14 +13,17 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import tools.jackson.databind.json.JsonMapper
-import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 /** A per-client fixed-window limit. The edge (load balancer, WAF) is the main defence; this caps runaway clients. */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
-class RateLimitFilter(private val properties: AppProperties, private val mapper: JsonMapper) : OncePerRequestFilter() {
+class RateLimitFilter(
+    private val properties: AppProperties,
+    private val mapper: JsonMapper,
+    private val clock: MutationClock,
+) : OncePerRequestFilter() {
     private data class Window(val minute: Long, val count: AtomicInteger)
 
     private val windows = ConcurrentHashMap<String, Window>()
@@ -27,7 +31,7 @@ class RateLimitFilter(private val properties: AppProperties, private val mapper:
     override fun shouldNotFilter(request: HttpServletRequest) = !request.requestURI.startsWith("/api/")
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
-        val minute = Instant.now().epochSecond / 60
+        val minute = clock.now().epochSecond / 60
         if (windows.size > MAX_CLIENTS) windows.entries.removeIf { it.value.minute < minute }
         val window =
             windows.compute(request.remoteAddr) { _, current ->

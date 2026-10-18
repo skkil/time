@@ -1,10 +1,12 @@
 package com.skkil.time.features.time.domain
 
+import java.util.UUID
+
 data class TrackedEntry(
-    val id: Long,
+    val id: UUID,
     val description: String,
-    val projectId: Long?,
-    val taskId: Long?,
+    val projectId: UUID?,
+    val taskId: UUID?,
     val startedAt: Long,
     val endedAt: Long,
     val taskTitle: String?,

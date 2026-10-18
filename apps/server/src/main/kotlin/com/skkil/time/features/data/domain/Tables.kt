@@ -1,5 +1,7 @@
 package com.skkil.time.features.data.domain
 
+import java.util.UUID
+
 private fun text(name: String) = Column(name, ColumnType.TEXT)
 
 private fun long(name: String) = Column(name, ColumnType.BIGINT)
@@ -12,23 +14,25 @@ private fun double(name: String) = Column(name, ColumnType.DOUBLE)
 
 private fun date(name: String) = Column(name, ColumnType.DATE)
 
-private fun ref(name: String, table: String) = Column(name, ColumnType.BIGINT, table)
+private fun ref(name: String, table: String) = Column(name, ColumnType.UUID, table)
+
+private fun id() = Column(ID, ColumnType.UUID)
 
 private const val ID = "id"
 
 private fun projectOwned(name: String, vararg columns: Column) =
-    Table(name, true, listOf(long(ID), ref("project_id", "project")) + columns)
+    Table(name, true, listOf(id(), ref("project_id", "project")) + columns)
 
 /** Every table a user owns, in an order where each table comes after the tables it references. */
 val TABLES: List<Table> =
     listOf(
         Table("setting", false, listOf(text("key"), text("value"))),
-        Table("project_group", true, listOf(long(ID), text("name"), long("position"))),
+        Table("project_group", true, listOf(id(), text("name"), long("position"))),
         Table(
             "project",
             true,
             listOf(
-                long(ID),
+                id(),
                 ref("parent_id", "project"),
                 text("name"),
                 text("color"),
@@ -59,7 +63,7 @@ val TABLES: List<Table> =
             "section",
             true,
             listOf(
-                long(ID),
+                id(),
                 ref("project_id", "project"),
                 text("name"),
                 long("position"),
@@ -87,8 +91,8 @@ val TABLES: List<Table> =
             text("sort"),
             long("position"),
         ),
-        Table("quarter", true, listOf(long(ID), text("label"), date("start_date"))),
-        Table("priority", true, listOf(long(ID), ref("quarter_id", "quarter"), text("title"), text("note"))),
+        Table("quarter", true, listOf(id(), text("label"), date("start_date"))),
+        Table("priority", true, listOf(id(), ref("quarter_id", "quarter"), text("title"), text("note"))),
         Table(
             "week",
             false,
@@ -106,7 +110,7 @@ val TABLES: List<Table> =
             "outcome",
             true,
             listOf(
-                long(ID),
+                id(),
                 date("week_start"),
                 ref("priority_id", "priority"),
                 text("title"),
@@ -123,7 +127,7 @@ val TABLES: List<Table> =
             "task",
             true,
             listOf(
-                long(ID),
+                id(),
                 text("title"),
                 text("notes"),
                 ref("project_id", "project"),
@@ -166,12 +170,12 @@ val TABLES: List<Table> =
             listOf(ref("task_id", "task"), ref("status_id", "item_status"), text("notes")),
             owner = "task_id IN (SELECT id FROM task WHERE user_id = :user)",
         ),
-        Table("time_block", true, listOf(long(ID), ref("task_id", "task"), long("start_at"), long("end_at"))),
+        Table("time_block", true, listOf(id(), ref("task_id", "task"), long("start_at"), long("end_at"))),
         Table(
             "time_entry",
             true,
             listOf(
-                long(ID),
+                id(),
                 text("description"),
                 ref("project_id", "project"),
                 ref("task_id", "task"),
@@ -195,7 +199,7 @@ val TABLES: List<Table> =
             "habit",
             true,
             listOf(
-                long(ID),
+                id(),
                 text("name"),
                 bool("archived"),
                 text("kind"),
@@ -236,7 +240,7 @@ val TABLES: List<Table> =
             "ritual_run",
             true,
             listOf(
-                long(ID),
+                id(),
                 text("kind"),
                 date("date"),
                 ref("task_id", "task"),

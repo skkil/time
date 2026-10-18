@@ -21,9 +21,10 @@ import tools.jackson.databind.json.JsonMapper
 import java.sql.ResultSet
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
+import java.util.UUID
 
 /** Old id to new id for one table during a restore. */
-private typealias IdMap = Map<Long, Long>
+private typealias IdMap = Map<String, UUID>
 
 @Service
 @Transactional
@@ -38,8 +39,8 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
         try {
             wipe(caller.id)
             val ids = mutableMapOf<String, IdMap>()
-            for (table in TABLES) ids[table.name] = insert(caller.id, table, backup[table.name].orEmpty(), ids)
-            rituals.seed(caller.id)
+            for (table in TABLES) ids[table.name] = insert(caller, table, backup[table.name].orEmpty(), ids)
+            rituals.seed(caller.id, caller.ids)
         } catch (_: DataAccessException) {
             invalid(NOT_A_BACKUP)
         }
@@ -47,7 +48,7 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
 
     fun deleteAll(caller: Caller) {
         wipe(caller.id)
-        rituals.seed(caller.id)
+        rituals.seed(caller.id, caller.ids)
     }
 
     private fun rows(user: Long, table: Table): List<Map<String, Any?>> =
@@ -63,7 +64,7 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
 
     private fun ResultSet.read(column: Column): Any? =
         when (column.type) {
-            ColumnType.TEXT, ColumnType.DATE -> getString(column.name)
+            ColumnType.TEXT, ColumnType.DATE, ColumnType.UUID -> getString(column.name)
             ColumnType.BIGINT -> longOrNull(column.name)
             ColumnType.INT -> intOrNull(column.name)
             ColumnType.BOOL -> getObject(column.name, java.lang.Boolean::class.java)?.booleanValue()
@@ -85,7 +86,7 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
         val version = root.path("version")
         ensure(version.isIntegralNumber) { NOT_A_BACKUP }
         ensure(version.asLong() <= VERSION) { "That backup comes from a newer version of skkil time." }
-        ensure(version.asLong() == VERSION.toLong() && root.path("tables").isObject) { NOT_A_BACKUP }
+        ensure(version.asLong() >= FIRST_VERSION && root.path("tables").isObject) { NOT_A_BACKUP }
         val known = TABLES.map { it.name }.toSet()
         return root.path("tables").properties().associate { (name, rows) ->
             ensure(name in known && rows.isArray && rows.all { it.isObject }) { NOT_A_BACKUP }
@@ -93,36 +94,34 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
         }
     }
 
-    private fun insert(user: Long, table: Table, rows: List<JsonNode>, ids: Map<String, IdMap>): IdMap {
-        val created = mutableMapOf<Long, Long>()
-        val links = mutableListOf<Triple<Long, Column, Long>>()
+    private fun insert(caller: Caller, table: Table, rows: List<JsonNode>, ids: Map<String, IdMap>): IdMap {
+        val user = caller.id
+        val created = mutableMapOf<String, UUID>()
+        val links = mutableListOf<Triple<UUID, Column, String>>()
         val columns = table.columns.filter { it.name != ID }
         val owner = if (table.ownedDirectly) listOf("user_id") else emptyList()
         val sql =
             """
-            INSERT INTO ${table.name} (${(owner + columns.map { quoted(it.name) }).joinToString()})
-            VALUES (${(owner + columns.map { it.name }).joinToString { ":$it" }})
-            ${if (table.identity) "RETURNING id" else ""}
+            INSERT INTO ${table.name} (${(listOf(ID) + owner + columns.map { quoted(it.name) }).joinToString()})
+            VALUES (${(listOf(ID) + owner + columns.map { it.name }).joinToString { ":$it" }})
             """
         for (row in rows) {
-            var statement = jdbc.sql(sql).param("user_id", user)
-            val pending = mutableListOf<Pair<Column, Long>>()
+            val id = caller.nextId()
+            var statement = jdbc.sql(sql).param(ID, id).param("user_id", user)
+            val pending = mutableListOf<Pair<Column, String>>()
             for (column in columns) {
                 val value = value(row.path(column.name), column)
                 val linked =
                     when {
                         value == null || column.references == null -> value
-                        column.references == table.name -> null.also { pending += column to value as Long }
+                        column.references == table.name -> null.also { pending += column to value as String }
                         else -> ids[column.references]?.get(value) ?: invalid(NOT_A_BACKUP)
                     }
                 statement = statement.param(column.name, linked)
             }
-            if (!table.identity) {
-                statement.update()
-                continue
-            }
-            val old = value(row.path(ID), table.columns.first()) as? Long ?: invalid(NOT_A_BACKUP)
-            val id = statement.query(Long::class.java).single()
+            statement.update()
+            if (!table.identity) continue
+            val old = value(row.path(ID), table.columns.first()) as? String ?: invalid(NOT_A_BACKUP)
             ensure(created.put(old, id) == null) { NOT_A_BACKUP }
             pending.forEach { (column, target) -> links += Triple(id, column, target) }
         }
@@ -142,6 +141,7 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
         val fits =
             when (column.type) {
                 ColumnType.TEXT, ColumnType.DATE -> node.isString
+                ColumnType.UUID -> node.isString || node.isIntegralNumber
                 ColumnType.BIGINT -> node.isIntegralNumber && node.canConvertToLong()
                 ColumnType.INT -> node.isIntegralNumber && node.canConvertToInt()
                 ColumnType.BOOL -> node.isBoolean
@@ -150,6 +150,10 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
         ensure(fits) { NOT_A_BACKUP }
         return when (column.type) {
             ColumnType.TEXT -> {
+                node.asString()
+            }
+
+            ColumnType.UUID -> {
                 node.asString()
             }
 
@@ -183,7 +187,8 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
 
     private companion object {
         const val FORMAT = "skkil-time"
-        const val VERSION = 1
+        const val VERSION = 2
+        const val FIRST_VERSION = 1
         const val ID = "id"
         const val NOT_A_BACKUP = "That file isn't a skkil time backup."
         val UNDO = Table("undo_snapshot", true, emptyList())

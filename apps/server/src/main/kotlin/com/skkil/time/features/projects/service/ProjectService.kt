@@ -14,29 +14,32 @@ import com.skkil.time.features.projects.domain.ProjectSettings
 import com.skkil.time.features.projects.repository.ProjectRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 @Transactional
 class ProjectService(private val projects: ProjectRepository, private val groups: GroupService) {
     @Transactional(readOnly = true)
-    fun get(user: Long, id: Long): Project = projects.find(user, id).orNotFound("Project")
+    fun get(user: Long, id: UUID): Project = projects.find(user, id).orNotFound("Project")
 
     @Transactional(readOnly = true)
     fun list(user: Long): List<Project> = projects.list(user)
 
-    fun create(user: Long, input: ProjectInput): Project {
-        val name = validate(user, input, moving = null)
-        return get(user, projects.insert(user, input.parentId, name, input.color))
+    fun create(caller: Caller, input: ProjectInput, id: UUID? = null): Project {
+        val name = validate(caller.id, input, moving = null)
+        val id = id ?: caller.nextId()
+        projects.insert(id, caller.id, input.parentId, name, input.color)
+        return get(caller.id, id)
     }
 
-    fun update(user: Long, id: Long, input: ProjectInput): Project {
+    fun update(user: Long, id: UUID, input: ProjectInput): Project {
         val current = get(user, id)
         val name = validate(user, input, moving = id.takeIf { current.parentId != input.parentId })
         projects.update(user, id, input.parentId, name, input.color)
         return get(user, id)
     }
 
-    fun setArchived(user: Long, id: Long, archived: Boolean) {
+    fun setArchived(user: Long, id: UUID, archived: Boolean) {
         val subtree = projects.subtree(user, id)
         if (subtree.isEmpty()) get(user, id)
         if (!archived) {
@@ -47,13 +50,13 @@ class ProjectService(private val projects: ProjectRepository, private val groups
         projects.setArchived(subtree.map { it.first }, archived)
     }
 
-    fun setView(user: Long, id: Long, view: String): Project {
+    fun setView(user: Long, id: UUID, view: String): Project {
         ensure(view in ProjectRules.VIEWS) { "Unknown view: $view" }
         ensureChanged(projects.setView(user, id, view), "Project")
         return get(user, id)
     }
 
-    fun updateSettings(user: Long, id: Long, settings: ProjectSettings): Project {
+    fun updateSettings(user: Long, id: UUID, settings: ProjectSettings): Project {
         val current = get(user, id)
         ensure(settings.status in ProjectRules.STATUSES) { "Unknown status: ${settings.status}" }
         ensure(settings.reviewEveryWeeks in ProjectRules.REVIEW_WEEKS) { "Review every 1, 2 or 4 weeks." }
@@ -68,14 +71,14 @@ class ProjectService(private val projects: ProjectRepository, private val groups
         return get(user, id)
     }
 
-    fun markReviewed(caller: Caller, id: Long): Project {
+    fun markReviewed(caller: Caller, id: UUID): Project {
         ensureChanged(projects.markReviewed(caller.id, id, caller.now()), "Project")
         return get(caller.id, id)
     }
 
-    fun delete(user: Long, id: Long) = ensureChanged(projects.delete(user, id), "Project")
+    fun delete(user: Long, id: UUID) = ensureChanged(projects.delete(user, id), "Project")
 
-    private fun validate(user: Long, input: ProjectInput, moving: Long?): String {
+    private fun validate(user: Long, input: ProjectInput, moving: UUID?): String {
         val name = requiredText(input.name, "Project name", 120)
         ensure(input.color in ProjectRules.COLORS) { "Unknown color: ${input.color}" }
         val parentId = input.parentId ?: return name

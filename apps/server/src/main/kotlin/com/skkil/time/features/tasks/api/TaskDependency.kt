@@ -1,3 +1,5 @@
 package com.skkil.time.features.tasks.api
 
-data class TaskDependency(val blockedById: Long)
+import java.util.UUID
+
+data class TaskDependency(val blockedById: UUID)

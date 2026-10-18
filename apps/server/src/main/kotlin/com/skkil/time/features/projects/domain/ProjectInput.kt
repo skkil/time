@@ -1,3 +1,5 @@
 package com.skkil.time.features.projects.domain
 
-data class ProjectInput(val name: String, val parentId: Long?, val color: String)
+import java.util.UUID
+
+data class ProjectInput(val name: String, val parentId: UUID?, val color: String)

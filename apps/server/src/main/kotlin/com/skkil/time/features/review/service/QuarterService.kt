@@ -3,8 +3,10 @@ package com.skkil.time.features.review.service
 import com.skkil.time.common.error.ensure
 import com.skkil.time.common.error.ensureChanged
 import com.skkil.time.common.error.orNotFound
+import com.skkil.time.common.persistence.uuid
 import com.skkil.time.common.text.optionalText
 import com.skkil.time.common.text.requiredText
+import com.skkil.time.common.web.Caller
 import com.skkil.time.features.review.domain.Priority
 import com.skkil.time.features.review.domain.PriorityInput
 import com.skkil.time.features.review.domain.Quarter
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 /** Quarters of 13 weeks, each with up to three priorities that weekly outcomes can serve. */
 @Service
@@ -33,7 +36,7 @@ class QuarterService(private val jdbc: JdbcClient) {
                 ).param("user", user)
                 .param("monday", monday)
                 .query { rs, _ ->
-                    Triple(rs.getLong("id"), rs.getString("label"), rs.getObject("start_date", LocalDate::class.java))
+                    Triple(rs.uuid("id"), rs.getString("label"), rs.getObject("start_date", LocalDate::class.java))
                 }.optional()
                 .orElse(null) ?: return null
         val weekNo = ChronoUnit.DAYS.between(startDate, monday) / 7 + 1
@@ -53,21 +56,24 @@ class QuarterService(private val jdbc: JdbcClient) {
                 .param("user", user)
                 .param("quarter", id)
                 .query { rs, _ ->
-                    Priority(rs.getLong("id"), rs.getString("title"), rs.getString("note"), rs.getInt("achieved"))
+                    Priority(rs.uuid("id"), rs.getString("title"), rs.getString("note"), rs.getInt("achieved"))
                 }.list()
         return Quarter(id, label, startDate, weekNo.toInt(), priorities)
     }
 
-    fun create(user: Long, input: QuarterInput): Long =
+    fun create(caller: Caller, input: QuarterInput, id: UUID? = null): UUID {
+        val id = id ?: caller.nextId()
         jdbc
-            .sql("INSERT INTO quarter (user_id, label, start_date) VALUES (:user, :label, :start) RETURNING id")
-            .param("user", user)
+            .sql("INSERT INTO quarter (id, user_id, label, start_date) VALUES (:id, :user, :label, :start)")
+            .param("id", id)
+            .param("user", caller.id)
             .param("label", label(input))
             .param("start", input.startDate.monday())
-            .query(Long::class.java)
-            .single()
+            .update()
+        return id
+    }
 
-    fun update(user: Long, id: Long, input: QuarterInput): Long {
+    fun update(user: Long, id: UUID, input: QuarterInput): UUID {
         val rows =
             jdbc
                 .sql("UPDATE quarter SET label = :label, start_date = :start WHERE user_id = :user AND id = :id")
@@ -80,7 +86,8 @@ class QuarterService(private val jdbc: JdbcClient) {
         return id
     }
 
-    fun addPriority(user: Long, quarterId: Long, title: String) {
+    fun addPriority(caller: Caller, quarterId: UUID, title: String, id: UUID? = null) {
+        val user = caller.id
         val text = requiredText(title, "Priority", 200)
         val count =
             jdbc
@@ -97,14 +104,15 @@ class QuarterService(private val jdbc: JdbcClient) {
                 .orNotFound("Quarter")
         ensure(count < MAX_PRIORITIES) { "3 priorities max. Remove one first." }
         jdbc
-            .sql("INSERT INTO priority (user_id, quarter_id, title) VALUES (:user, :quarter, :title)")
+            .sql("INSERT INTO priority (id, user_id, quarter_id, title) VALUES (:id, :user, :quarter, :title)")
+            .param("id", id ?: caller.nextId())
             .param("user", user)
             .param("quarter", quarterId)
             .param("title", text)
             .update()
     }
 
-    fun editPriority(user: Long, id: Long, input: PriorityInput) {
+    fun editPriority(user: Long, id: UUID, input: PriorityInput) {
         val title = requiredText(input.title, "Priority", 200)
         val note = optionalText(input.note, "Note", 2_000)
         val rows =
@@ -118,7 +126,7 @@ class QuarterService(private val jdbc: JdbcClient) {
         ensureChanged(rows, "Priority")
     }
 
-    fun deletePriority(user: Long, id: Long) {
+    fun deletePriority(user: Long, id: UUID) {
         val rows =
             jdbc
                 .sql("DELETE FROM priority WHERE user_id = :user AND id = :id")

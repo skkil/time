@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/sections")
@@ -25,12 +26,12 @@ class SectionController(private val sections: SectionService) {
     fun create(
         caller: Caller,
         @RequestBody input: SectionInput,
-    ): Section = sections.create(caller.id, input)
+    ): Section = sections.create(caller, input)
 
     @PutMapping("/{id}/name")
     fun rename(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: SectionName,
     ): Section =
         sections.rename(caller.id, id, body.name)
@@ -38,7 +39,7 @@ class SectionController(private val sections: SectionService) {
     @PutMapping("/{id}/collapsed")
     fun setCollapsed(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: SectionCollapsed,
     ): Section =
         sections.setCollapsed(caller.id, id, body.collapsed)
@@ -46,7 +47,7 @@ class SectionController(private val sections: SectionService) {
     @PutMapping("/{id}/position")
     fun reorder(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: SectionPlacement,
     ): Section =
         sections.reorder(caller.id, id, body.before)
@@ -55,6 +56,6 @@ class SectionController(private val sections: SectionService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ) = sections.delete(caller.id, id)
 }

@@ -1,3 +1,5 @@
 package com.skkil.time.features.data.domain
 
-enum class ColumnType { TEXT, BIGINT, INT, BOOL, DOUBLE, DATE }
+import java.util.UUID
+
+enum class ColumnType { TEXT, UUID, BIGINT, INT, BOOL, DOUBLE, DATE }

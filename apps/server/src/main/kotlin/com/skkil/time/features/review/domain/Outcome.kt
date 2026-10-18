@@ -1,11 +1,13 @@
 package com.skkil.time.features.review.domain
 
+import java.util.UUID
+
 data class Outcome(
-    val id: Long,
+    val id: UUID,
     val title: String,
     val status: OutcomeStatus,
-    val priorityId: Long?,
-    val carriedFrom: Long?,
+    val priorityId: UUID?,
+    val carriedFrom: UUID?,
     val timesCarried: Int,
     val tasksTotal: Int,
     val tasksDone: Int,

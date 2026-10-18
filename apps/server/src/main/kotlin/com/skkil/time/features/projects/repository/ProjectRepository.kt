@@ -3,15 +3,18 @@ package com.skkil.time.features.projects.repository
 import com.skkil.time.common.persistence.dateOrNull
 import com.skkil.time.common.persistence.intOrNull
 import com.skkil.time.common.persistence.longOrNull
+import com.skkil.time.common.persistence.uuid
+import com.skkil.time.common.persistence.uuidOrNull
 import com.skkil.time.features.projects.domain.Project
 import com.skkil.time.features.projects.domain.ProjectSettings
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Repository
+import java.util.UUID
 
 @Repository
 class ProjectRepository(private val jdbc: JdbcClient) {
-    fun find(user: Long, id: Long): Project? =
+    fun find(user: Long, id: UUID): Project? =
         jdbc
             .sql("$SELECT WHERE user_id = :user AND id = :id")
             .param("user", user)
@@ -27,7 +30,7 @@ class ProjectRepository(private val jdbc: JdbcClient) {
             .query(mapper)
             .list()
 
-    fun depth(id: Long): Int =
+    fun depth(id: UUID): Int =
         jdbc
             .sql(
                 """
@@ -43,7 +46,7 @@ class ProjectRepository(private val jdbc: JdbcClient) {
             .single()
 
     /** The project and everything under it, with each one's depth below [id] (the root is 1). */
-    fun subtree(user: Long, id: Long): List<Pair<Long, Int>> =
+    fun subtree(user: Long, id: UUID): List<Pair<UUID, Int>> =
         jdbc
             .sql(
                 """
@@ -56,31 +59,31 @@ class ProjectRepository(private val jdbc: JdbcClient) {
                 """,
             ).param("user", user)
             .param("id", id)
-            .query { rs, _ -> rs.getLong("id") to rs.getInt("depth") }
+            .query { rs, _ -> rs.uuid("id") to rs.getInt("depth") }
             .list()
 
-    fun insert(user: Long, parentId: Long?, name: String, color: String): Long =
+    fun insert(id: UUID, user: Long, parentId: UUID?, name: String, color: String) {
         jdbc
             .sql(
                 """
-                INSERT INTO project (user_id, parent_id, name, color, position, review_every_weeks)
-                VALUES (:user, :parent, :name, :color,
+                INSERT INTO project (id, user_id, parent_id, name, color, position, review_every_weeks)
+                VALUES (:id, :user, :parent, :name, :color,
                         (SELECT COALESCE(MAX(position), 0) + 1 FROM project WHERE user_id = :user), 1)
-                RETURNING id
                 """,
-            ).param("user", user)
+            ).param("id", id)
+            .param("user", user)
             .param("parent", parentId)
             .param("name", name)
             .param("color", color)
-            .query(Long::class.java)
-            .single()
+            .update()
+    }
 
-    fun update(user: Long, id: Long, parentId: Long?, name: String, color: String) {
+    fun update(user: Long, id: UUID, parentId: UUID?, name: String, color: String) {
         jdbc
             .sql(
                 """
                 UPDATE project SET parent_id = :parent, name = :name, color = :color,
-                  group_id = CASE WHEN CAST(:parent AS BIGINT) IS NULL THEN group_id END
+                  group_id = CASE WHEN CAST(:parent AS UUID) IS NULL THEN group_id END
                 WHERE user_id = :user AND id = :id
                 """,
             ).param("parent", parentId)
@@ -91,7 +94,7 @@ class ProjectRepository(private val jdbc: JdbcClient) {
             .update()
     }
 
-    fun setArchived(ids: List<Long>, archived: Boolean) {
+    fun setArchived(ids: List<UUID>, archived: Boolean) {
         jdbc
             .sql("UPDATE project SET archived = :archived WHERE id IN (:ids)")
             .param("archived", archived)
@@ -99,7 +102,7 @@ class ProjectRepository(private val jdbc: JdbcClient) {
             .update()
     }
 
-    fun setView(user: Long, id: Long, view: String): Int =
+    fun setView(user: Long, id: UUID, view: String): Int =
         jdbc
             .sql("UPDATE project SET view = :view WHERE user_id = :user AND id = :id")
             .param("view", view)
@@ -107,7 +110,7 @@ class ProjectRepository(private val jdbc: JdbcClient) {
             .param("id", id)
             .update()
 
-    fun updateSettings(user: Long, id: Long, settings: ProjectSettings, outcome: String, killCriteria: String) {
+    fun updateSettings(user: Long, id: UUID, settings: ProjectSettings, outcome: String, killCriteria: String) {
         jdbc
             .sql(
                 """
@@ -129,7 +132,7 @@ class ProjectRepository(private val jdbc: JdbcClient) {
             .update()
     }
 
-    fun markReviewed(user: Long, id: Long, at: Long): Int =
+    fun markReviewed(user: Long, id: UUID, at: Long): Int =
         jdbc
             .sql("UPDATE project SET last_reviewed_at = :at WHERE user_id = :user AND id = :id")
             .param("at", at)
@@ -137,7 +140,7 @@ class ProjectRepository(private val jdbc: JdbcClient) {
             .param("id", id)
             .update()
 
-    fun delete(user: Long, id: Long): Int =
+    fun delete(user: Long, id: UUID): Int =
         jdbc
             .sql("DELETE FROM project WHERE user_id = :user AND id = :id")
             .param("user", user)
@@ -154,14 +157,14 @@ class ProjectRepository(private val jdbc: JdbcClient) {
         val mapper =
             RowMapper { rs, _ ->
                 Project(
-                    id = rs.getLong("id"),
-                    parentId = rs.longOrNull("parent_id"),
+                    id = rs.uuid("id"),
+                    parentId = rs.uuidOrNull("parent_id"),
                     name = rs.getString("name"),
                     color = rs.getString("color"),
                     position = rs.getInt("position"),
                     archived = rs.getBoolean("archived"),
                     view = rs.getString("view"),
-                    groupId = rs.longOrNull("group_id"),
+                    groupId = rs.uuidOrNull("group_id"),
                     status = rs.getString("status"),
                     outcome = rs.getString("outcome"),
                     weeklyMinutes = rs.intOrNull("weekly_minutes"),

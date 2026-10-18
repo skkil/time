@@ -29,14 +29,14 @@ class ReviewTest : TaskApiTest() {
 
     private fun outcomes(date: LocalDate) = week(date)["outcomes"].values().toList()
 
-    private fun addOutcome(date: LocalDate, title: String, priorityId: Long? = null) =
+    private fun addOutcome(date: LocalDate, title: String, priorityId: UUID? = null) =
         post("/api/v1/weeks/$date/outcomes", OutcomeInput(title, priorityId))
 
-    private fun setStatus(id: Long, status: OutcomeStatus) =
+    private fun setStatus(id: UUID, status: OutcomeStatus) =
         put("/api/v1/outcomes/$id/status", OutcomeStatusInput(status))
 
     private fun quarter(label: String, start: String) =
-        postJson("/api/v1/quarters", QuarterInput(label, LocalDate.parse(start))).asLong()
+        postJson("/api/v1/quarters", QuarterInput(label, LocalDate.parse(start))).asUuid()
 
     private fun weekNo(date: String): Int? =
         read(get("/api/v1/quarter?date=$date")).takeUnless { it.isNull }?.get("weekNo")?.asInt()
@@ -83,13 +83,13 @@ class ReviewTest : TaskApiTest() {
 
         setStatus(outcome, OutcomeStatus.CARRIED)
         val next = outcomes(monday.plusDays(7))[0]
-        assertEquals(outcome, next.longOrNull("carriedFrom"))
-        assertEquals(next.id(), task(open).longOrNull("outcomeId"))
-        assertEquals(outcome, task(done).longOrNull("outcomeId"))
+        assertEquals(outcome, next.uuidOrNull("carriedFrom"))
+        assertEquals(next.id(), task(open).uuidOrNull("outcomeId"))
+        assertEquals(outcome, task(done).uuidOrNull("outcomeId"))
 
         setStatus(outcome, OutcomeStatus.ACHIEVED)
         assertTrue(outcomes(monday.plusDays(7)).isEmpty())
-        assertEquals(outcome, task(open).longOrNull("outcomeId"))
+        assertEquals(outcome, task(open).uuidOrNull("outcomeId"))
 
         setStatus(outcome, OutcomeStatus.CARRIED)
         val second = outcomes(monday.plusDays(7))[0].id()
@@ -137,7 +137,9 @@ class ReviewTest : TaskApiTest() {
 
         fun entry(from: Long, to: Long) =
             jdbc
-                .sql("INSERT INTO time_entry (user_id, started_at, ended_at) VALUES (:user, :from, :to)")
+                .sql(
+                    "INSERT INTO time_entry (id, user_id, started_at, ended_at) VALUES (gen_random_uuid(), :user, :from, :to)",
+                )
                 .param("user", user)
                 .param("from", from)
                 .param("to", to)
@@ -145,7 +147,9 @@ class ReviewTest : TaskApiTest() {
         entry(start - 1800, start + 1800)
         entry(start + 3600, start + 5400)
         jdbc
-            .sql("INSERT INTO time_block (user_id, task_id, start_at, end_at) VALUES (:user, :task, :from, :to)")
+            .sql(
+                "INSERT INTO time_block (id, user_id, task_id, start_at, end_at) VALUES (gen_random_uuid(), :user, :task, :from, :to)",
+            )
             .param("user", user)
             .param("task", task)
             .param("from", start + 7200)
@@ -202,7 +206,7 @@ class ReviewTest : TaskApiTest() {
         assertEquals("Beta first", priority["note"].asString())
         assertEquals(1, priority["achieved"].asInt())
 
-        assertEquals(id, putJson("/api/v1/quarters/$id", QuarterInput("Q4", LocalDate.parse("2026-10-01"))).asLong())
+        assertEquals(id, putJson("/api/v1/quarters/$id", QuarterInput("Q4", LocalDate.parse("2026-10-01"))).asUuid())
         assertEquals("2026-09-28", getJson("/api/v1/quarter?date=$monday")["startDate"].asString())
         delete("/api/v1/priorities/$ship").andExpect { status { isNoContent() } }
         assertTrue(outcomes(monday)[0]["priorityId"].isNull)

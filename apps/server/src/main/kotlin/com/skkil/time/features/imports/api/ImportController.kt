@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/import")
@@ -15,5 +16,5 @@ class ImportController(private val imports: ImportService) {
     fun importProjects(
         caller: Caller,
         @RequestBody projects: List<ImportProject>,
-    ): List<Long> = imports.import(caller, projects)
+    ): List<UUID> = imports.import(caller, projects)
 }

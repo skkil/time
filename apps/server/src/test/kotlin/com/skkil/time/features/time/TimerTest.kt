@@ -5,13 +5,14 @@ import com.skkil.time.features.time.domain.RunningTimer
 import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class TimerTest : TaskApiTest() {
     private fun now() = Instant.now().epochSecond
 
-    private fun details(description: String = "", taskId: Long? = null) = EntryDetails(description, null, taskId)
+    private fun details(description: String = "", taskId: UUID? = null) = EntryDetails(description, null, taskId)
 
     private fun start(details: EntryDetails) = postJson("/api/v1/timer", details)
 
@@ -40,7 +41,7 @@ class TimerTest : TaskApiTest() {
 
         start(details(taskId = other))
         complete(parent)
-        assertEquals(other, running()["taskId"].asLong())
+        assertEquals(other, running().uuid("taskId"))
 
         start(details(taskId = child))
         backdate("started_at", 600)
@@ -97,7 +98,7 @@ class TimerTest : TaskApiTest() {
 
         start(details("deep work"))
         val edited = putJson("/api/v1/timer", details("drafting", task))
-        assertEquals(project, edited["projectId"].asLong())
+        assertEquals(project, edited.uuid("projectId"))
         assertEquals(edited, running())
 
         val snapshot = mapper.treeToValue(edited, RunningTimer::class.java)

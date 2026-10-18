@@ -7,6 +7,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 /**
  * Snapshots of tasks with their sub-tasks, blocks, phase notes, dependencies and links from time entries and ritual
@@ -27,15 +28,15 @@ class UndoService(private val jdbc: JdbcClient, private val tasks: TaskRepositor
             .single()
     }
 
-    fun capture(caller: Caller, ids: List<Long>): Long {
+    fun capture(caller: Caller, ids: List<UUID>, id: UUID? = null): UUID {
         val subtree = ids.flatMap { listOf(it) + tasks.descendants(caller.id, it) }.joinToString(",")
-        val id =
-            jdbc
-                .sql(
-                    """
-                    WITH ids AS (SELECT unnest(string_to_array(:ids, ',')::BIGINT[]) AS id)
-                    INSERT INTO undo_snapshot (user_id, payload, created_at)
-                    SELECT :user, jsonb_build_object(
+        val id = id ?: caller.nextId()
+        jdbc
+            .sql(
+                """
+                    WITH ids AS (SELECT unnest(string_to_array(:ids, ',')::UUID[]) AS id)
+                    INSERT INTO undo_snapshot (id, user_id, payload, created_at)
+                    SELECT :id, :user, jsonb_build_object(
                       'tasks', COALESCE((SELECT jsonb_agg(to_jsonb(t)) FROM task t
                                           WHERE t.user_id = :user AND t.id IN (SELECT id FROM ids)), '[]'),
                       'blocks', COALESCE((SELECT jsonb_agg(to_jsonb(b)) FROM time_block b
@@ -54,18 +55,17 @@ class UndoService(private val jdbc: JdbcClient, private val tasks: TaskRepositor
                                          FROM ritual_run r
                                          WHERE r.user_id = :user AND r.task_id IN (SELECT id FROM ids)), '[]')
                     ), :now
-                    RETURNING id
                     """,
-                ).param("ids", subtree)
-                .param("user", caller.id)
-                .param("now", caller.now())
-                .query(Long::class.java)
-                .single()
+            ).param("id", id)
+            .param("ids", subtree)
+            .param("user", caller.id)
+            .param("now", caller.now())
+            .update()
         jdbc
             .sql(
                 """
                 DELETE FROM undo_snapshot WHERE user_id = :user AND id NOT IN (
-                  SELECT id FROM undo_snapshot WHERE user_id = :user ORDER BY id DESC LIMIT :kept)
+                  SELECT id FROM undo_snapshot WHERE user_id = :user ORDER BY created_at DESC, id DESC LIMIT :kept)
                 """,
             ).param("user", caller.id)
             .param("kept", KEPT_SNAPSHOTS)
@@ -73,7 +73,7 @@ class UndoService(private val jdbc: JdbcClient, private val tasks: TaskRepositor
         return id
     }
 
-    fun restore(user: Long, snapshot: Long) {
+    fun restore(user: Long, snapshot: UUID) {
         val payload =
             jdbc
                 .sql("DELETE FROM undo_snapshot WHERE user_id = :user AND id = :id RETURNING payload::TEXT")
@@ -95,7 +95,7 @@ class UndoService(private val jdbc: JdbcClient, private val tasks: TaskRepositor
             .sql(
                 """
                 SELECT EXISTS(
-                  SELECT 1 FROM jsonb_to_recordset(CAST(:payload AS JSONB) -> 'tasks') AS s(id BIGINT, created_at BIGINT)
+                  SELECT 1 FROM jsonb_to_recordset(CAST(:payload AS JSONB) -> 'tasks') AS s(id UUID, created_at BIGINT)
                   JOIN task t ON t.id = s.id
                   WHERE t.created_at <> s.created_at OR t.user_id <> :user)
                 """,
@@ -108,12 +108,12 @@ class UndoService(private val jdbc: JdbcClient, private val tasks: TaskRepositor
         val statements =
             listOf(
                 """
-                INSERT INTO task OVERRIDING SYSTEM VALUE
+                INSERT INTO task
                 SELECT * FROM jsonb_populate_recordset(NULL::task, CAST(:payload AS JSONB) -> 'tasks')
                 ON CONFLICT (id) DO UPDATE SET $taskAssignments
                 """,
                 """
-                INSERT INTO time_block OVERRIDING SYSTEM VALUE
+                INSERT INTO time_block
                 SELECT * FROM jsonb_populate_recordset(NULL::time_block, CAST(:payload AS JSONB) -> 'blocks')
                 ON CONFLICT DO NOTHING
                 """,
@@ -123,21 +123,22 @@ class UndoService(private val jdbc: JdbcClient, private val tasks: TaskRepositor
                 ON CONFLICT DO NOTHING
                 """,
                 """
-                INSERT INTO task_dependency (task_id, blocked_by_id)
-                SELECT d.task_id, d.blocked_by_id
-                FROM jsonb_to_recordset(CAST(:payload AS JSONB) -> 'dependencies') AS d(task_id BIGINT, blocked_by_id BIGINT)
+                INSERT INTO task_dependency (id, task_id, blocked_by_id)
+                SELECT d.id, d.task_id, d.blocked_by_id
+                FROM jsonb_to_recordset(CAST(:payload AS JSONB) -> 'dependencies')
+                  AS d(id UUID, task_id UUID, blocked_by_id UUID)
                 WHERE EXISTS (SELECT 1 FROM task WHERE id = d.task_id AND user_id = :user)
                   AND EXISTS (SELECT 1 FROM task WHERE id = d.blocked_by_id AND user_id = :user)
                 ON CONFLICT DO NOTHING
                 """,
                 """
                 UPDATE time_entry e SET task_id = l.task_id
-                FROM jsonb_to_recordset(CAST(:payload AS JSONB) -> 'entries') AS l(id BIGINT, task_id BIGINT)
+                FROM jsonb_to_recordset(CAST(:payload AS JSONB) -> 'entries') AS l(id UUID, task_id UUID)
                 WHERE e.id = l.id AND e.user_id = :user AND e.task_id IS NULL
                 """,
                 """
                 UPDATE ritual_run r SET task_id = l.task_id
-                FROM jsonb_to_recordset(CAST(:payload AS JSONB) -> 'runs') AS l(id BIGINT, task_id BIGINT)
+                FROM jsonb_to_recordset(CAST(:payload AS JSONB) -> 'runs') AS l(id UUID, task_id UUID)
                 WHERE r.id = l.id AND r.user_id = :user AND r.task_id IS NULL
                 """,
             )

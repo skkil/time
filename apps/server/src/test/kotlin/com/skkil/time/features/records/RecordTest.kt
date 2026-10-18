@@ -14,35 +14,33 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class RecordTest : TaskApiTest() {
-    private fun jobSearch(name: String): Long {
+    private fun jobSearch(name: String): UUID {
         val id = project(name)
         put("/api/v1/projects/$id/preset", PRESETS.first { it.key == "job_search" })
         return id
     }
 
-    private fun status(project: Long, name: String): Long =
+    private fun status(project: UUID, name: String): UUID =
         getJson("/api/v1/workflow")["statuses"]
             .values()
-            .first { it["projectId"].asLong() == project && it["name"].asString() == name }["id"]
-            .asLong()
+            .first { it.uuid("projectId") == project && it["name"].asString() == name }.id()
 
-    private fun application(project: Long, title: String): JsonNode {
+    private fun application(project: UUID, title: String): JsonNode {
         val recordType =
             getJson("/api/v1/workflow")["types"]
                 .values()
-                .first { it["projectId"].asLong() == project && it["kind"].asString() == "record" }["id"]
-                .asLong()
+                .first { it.uuid("projectId") == project && it["kind"].asString() == "record" }.id()
         val task = create(input(title, project)).id()
         return putJson("/api/v1/tasks/$task/type", TaskTypeId(recordType))
     }
 
-    private fun phaseTask(record: Long, phase: Long, title: String) =
+    private fun phaseTask(record: UUID, phase: UUID, title: String) =
         postJson("/api/v1/tasks/$record/phase-tasks", PhaseTaskInput(phase, title))
 
-    private fun setNotes(task: Long, status: Long, notes: String) =
+    private fun setNotes(task: UUID, status: UUID, notes: String) =
         put("/api/v1/tasks/$task/phases/$status/notes", PhaseNotes(notes))
 
-    private fun phases(task: Long) = getJson("/api/v1/tasks/$task/phases").values().toList()
+    private fun phases(task: UUID) = getJson("/api/v1/tasks/$task/phases").values().toList()
 
     @Test
     fun `records hold tasks and notes per phase`() {
@@ -53,10 +51,10 @@ class RecordTest : TaskApiTest() {
         assertEquals("record", acme["kind"].asString())
 
         val cover = phaseTask(acme.id(), applied, "Write cover letter")
-        assertEquals(acme.id(), cover.longOrNull("parentId"))
-        assertEquals(applied, cover.longOrNull("phaseId"))
+        assertEquals(acme.id(), cover.uuidOrNull("parentId"))
+        assertEquals(applied, cover.uuidOrNull("phaseId"))
         val prep = phaseTask(acme.id(), interviewing, "Practise system design")
-        assertNull(putJson("/api/v1/tasks/${prep.id()}/phase", TaskPhase(null)).longOrNull("phaseId"))
+        assertNull(putJson("/api/v1/tasks/${prep.id()}/phase", TaskPhase(null)).uuidOrNull("phaseId"))
 
         setNotes(acme.id(), interviewing, "Panel of three").andExpect { status { isNoContent() } }
         setNotes(acme.id(), applied, "Sent via referral")
@@ -80,8 +78,8 @@ class RecordTest : TaskApiTest() {
 
         move(acme, TaskPlacement(b, null, null, null))
         val offer = status(b, "Offer")
-        assertEquals(offer, task(task).longOrNull("phaseId"))
-        assertEquals(offer, phases(acme)[0]["statusId"].asLong())
+        assertEquals(offer, task(task).uuidOrNull("phaseId"))
+        assertEquals(offer, phases(acme)[0].uuid("statusId"))
     }
 
     @Test

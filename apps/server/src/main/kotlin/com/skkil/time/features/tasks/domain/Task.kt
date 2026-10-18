@@ -1,14 +1,15 @@
 package com.skkil.time.features.tasks.domain
 
 import java.time.LocalDate
+import java.util.UUID
 
 data class Task(
-    val id: Long,
+    val id: UUID,
     val title: String,
     val notes: String,
-    val projectId: Long?,
-    val sectionId: Long?,
-    val parentId: Long?,
+    val projectId: UUID?,
+    val sectionId: UUID?,
+    val parentId: UUID?,
     val priority: Int,
     val dueDate: LocalDate?,
     val dueTime: Int?,
@@ -19,20 +20,20 @@ data class Task(
     val completedAt: Long?,
     val createdAt: Long,
     val trackedSeconds: Long,
-    val outcomeId: Long?,
+    val outcomeId: UUID?,
     val rolloverCount: Int,
     val someday: Boolean,
     val nextStep: String,
     val mustOn: LocalDate?,
-    val typeId: Long?,
-    val statusId: Long?,
-    val milestoneId: Long?,
+    val typeId: UUID?,
+    val statusId: UUID?,
+    val milestoneId: UUID?,
     val location: String,
     val countsAsTime: Boolean,
     val statusChangedAt: Long?,
     val kind: String,
     val statusCategory: String?,
-    val blockedBy: List<Long>,
-    val waitingOn: List<Long>,
-    val phaseId: Long?,
+    val blockedBy: List<UUID>,
+    val waitingOn: List<UUID>,
+    val phaseId: UUID?,
 )

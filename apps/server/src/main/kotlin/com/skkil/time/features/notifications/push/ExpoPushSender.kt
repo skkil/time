@@ -56,14 +56,14 @@ class ExpoPushSender(mapper: JsonMapper, properties: AppProperties) : PushSender
             to = message.target.token,
             title = message.push.title,
             body = message.push.body,
-            data = mapOf("taskId" to message.push.taskId),
+            data = mapOf("taskId" to message.push.taskId.toString()),
         )
 
     data class ExpoMessage(
         val to: String,
         val title: String,
         val body: String,
-        val data: Map<String, Long>,
+        val data: Map<String, String>,
         val sound: String = "default",
         val channelId: String = REMINDER_CHANNEL,
         val priority: String = "high",

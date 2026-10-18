@@ -12,10 +12,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ProjectTest : ApiTest() {
-    private fun project(name: String, parentId: Long? = null) =
-        postJson("/api/v1/projects", ProjectInput(name, parentId, "blue"))["id"].asLong()
+    private fun project(name: String, parentId: UUID? = null) =
+        postJson("/api/v1/projects", ProjectInput(name, parentId, "blue")).id()
 
-    private fun settings(groupId: Long?, status: String = "active") =
+    private fun settings(groupId: UUID?, status: String = "active") =
         ProjectSettings(groupId, status, "", 360, null, "", 1, false)
 
     @Test
@@ -34,17 +34,17 @@ class ProjectTest : ApiTest() {
         val otherChild = project("Other child", other)
         expectProblem(put("/api/v1/projects/$a", ProjectInput("A", b, "blue")), 422, "invalid")
         expectProblem(put("/api/v1/projects/$a", ProjectInput("A", otherChild, "blue")), 422, "invalid")
-        assertEquals(other, putJson("/api/v1/projects/$a", ProjectInput("A", other, "blue"))["parentId"].asLong())
+        assertEquals(other, putJson("/api/v1/projects/$a", ProjectInput("A", other, "blue")).uuid("parentId"))
     }
 
     @Test
     fun `groups belong to top-level projects`() {
-        val acme = postJson("/api/v1/groups", GroupName("Acme"))["id"].asLong()
+        val acme = postJson("/api/v1/groups", GroupName("Acme")).id()
         val site = project("Website")
         val page = project("Landing page", site)
-        assertEquals(acme, putJson("/api/v1/projects/$site/settings", settings(acme))["groupId"].asLong())
+        assertEquals(acme, putJson("/api/v1/projects/$site/settings", settings(acme)).uuid("groupId"))
         expectProblem(put("/api/v1/projects/$page/settings", settings(acme)), 422, "invalid")
-        expectProblem(put("/api/v1/projects/$site/settings", settings(999_999)), 404, "notFound")
+        expectProblem(put("/api/v1/projects/$site/settings", settings(UUID.randomUUID())), 404, "notFound")
 
         val other = project("Other")
         assertTrue(putJson("/api/v1/projects/$site", ProjectInput("Website", other, "blue"))["groupId"].isNull)
@@ -59,7 +59,7 @@ class ProjectTest : ApiTest() {
         val a = project("A")
         val b = project("B", a)
         put("/api/v1/projects/$a/archived", Archived(true)).andExpect { status { isNoContent() } }
-        assertTrue(getJson("/api/v1/projects").first { it["id"].asLong() == b }["archived"].asBoolean())
+        assertTrue(getJson("/api/v1/projects").first { it.id() == b }["archived"].asBoolean())
         expectProblem(put("/api/v1/projects/$b/archived", Archived(false)), 422, "invalid")
         delete("/api/v1/projects/$a").andExpect { status { isNoContent() } }
         assertEquals(0, getJson("/api/v1/projects").size())

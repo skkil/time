@@ -1,3 +1,5 @@
 package com.skkil.time.features.projects.domain
 
-data class ProjectCanvas(val projectId: Long, val content: String, val updatedAt: Long?)
+import java.util.UUID
+
+data class ProjectCanvas(val projectId: UUID, val content: String, val updatedAt: Long?)

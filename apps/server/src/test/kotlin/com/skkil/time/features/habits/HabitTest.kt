@@ -25,30 +25,30 @@ class HabitTest : ApiTest() {
 
     private fun create(input: HabitInput): JsonNode = postJson("/api/v1/habits", input)
 
-    private fun habit(id: Long): JsonNode = getJson("/api/v1/habits").values().first { it["id"].asLong() == id }
+    private fun habit(id: UUID): JsonNode = getJson("/api/v1/habits").values().first { it.id() == id }
 
-    private fun statusOn(habit: Long, date: LocalDate): String =
+    private fun statusOn(habit: UUID, date: LocalDate): String =
         getJson("/api/v1/habits/days?from=$date&to=${date.plusDays(1)}")
             .values()
-            .first { it["habitId"].asLong() == habit }["status"]
+            .first { it.uuid("habitId") == habit }["status"]
             .asString()
 
-    private fun addValue(habit: Long, date: LocalDate, delta: Double) =
+    private fun addValue(habit: UUID, date: LocalDate, delta: Double) =
         post("/api/v1/habits/$habit/days/$date/value", HabitDelta(delta))
 
-    private fun setStatus(habit: Long, date: LocalDate, status: ManualStatus?) =
+    private fun setStatus(habit: UUID, date: LocalDate, status: ManualStatus?) =
         put("/api/v1/habits/$habit/days/$date/status", HabitStatus(status))
 
     private fun sync(): JsonNode = postJson("/api/v1/habits/sync")
 
-    private fun project(name: String) = postJson("/api/v1/projects", ProjectInput(name, null, "green"))["id"].asLong()
+    private fun project(name: String) = postJson("/api/v1/projects", ProjectInput(name, null, "green")).id()
 
-    private fun logEntry(project: Long, start: Long, minutes: Long) {
+    private fun logEntry(project: UUID, start: Long, minutes: Long) {
         jdbc
             .sql(
                 """
-                INSERT INTO time_entry (user_id, project_id, started_at, ended_at)
-                VALUES (:user, :project, :start, :end)
+                INSERT INTO time_entry (id, user_id, project_id, started_at, ended_at)
+                VALUES (gen_random_uuid(), :user, :project, :start, :end)
                 """,
             ).param("user", userId())
             .param("project", project)
@@ -58,8 +58,6 @@ class HabitTest : ApiTest() {
     }
 
     private fun startOf(date: LocalDate): Long = date.atStartOfDay(ZoneId.of(zone)).toEpochSecond()
-
-    private fun JsonNode.id(): Long = this["id"].asLong()
 
     @Test
     fun `build habits count toward a goal`() {
@@ -146,7 +144,7 @@ class HabitTest : ApiTest() {
         val quit =
             create(
                 input("Stay off YouTube", "quit")
-                    .copy(tracking = Tracking("website", listOf("https://www.YouTube.com/feed", " "), 5)),
+                    .copy(tracking = Tracking("website", listOf("https://www.YouTube.com/feed", " "), null)),
             )
         val tracking = quit["tracking"]
         assertEquals(listOf("youtube.com"), tracking["patterns"].values().map { it.asString() })
@@ -175,7 +173,10 @@ class HabitTest : ApiTest() {
         rejects(Tracking("app", emptyList(), null), "Add at least one app name.")
         rejects(Tracking("project", emptyList(), null), "Pick a project to track.")
         expectProblem(
-            post("/api/v1/habits", input("Tracked", "build").copy(tracking = Tracking("project", emptyList(), 0))),
+            post(
+                "/api/v1/habits",
+                input("Tracked", "build").copy(tracking = Tracking("project", emptyList(), UUID.randomUUID())),
+            ),
             404,
             "notFound",
         )
@@ -201,7 +202,7 @@ class HabitTest : ApiTest() {
         assertEquals("done", statusOn(habit.id(), yesterday))
         val day =
             getJson("/api/v1/habits/days?from=$yesterday&to=${today()}").values().first {
-                it["habitId"].asLong() ==
+                it.uuid("habitId") ==
                     habit.id()
             }
         assertEquals(105.0, day["value"].asDouble())

@@ -4,16 +4,19 @@ import com.skkil.time.common.error.orNotFound
 import com.skkil.time.common.persistence.dateOrNull
 import com.skkil.time.common.persistence.intOrNull
 import com.skkil.time.common.persistence.longOrNull
-import com.skkil.time.common.persistence.longs
+import com.skkil.time.common.persistence.uuid
+import com.skkil.time.common.persistence.uuidOrNull
+import com.skkil.time.common.persistence.uuids
 import com.skkil.time.features.tasks.domain.Container
 import com.skkil.time.features.tasks.domain.Task
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Repository
+import java.util.UUID
 
 @Repository
 class TaskRepository(private val jdbc: JdbcClient) {
-    fun get(user: Long, id: Long): Task =
+    fun get(user: Long, id: UUID): Task =
         jdbc
             .sql("$SELECT WHERE t.user_id = :user AND t.id = :id")
             .param("user", user)
@@ -40,7 +43,7 @@ class TaskRepository(private val jdbc: JdbcClient) {
             .list()
 
     /** Every task nested under [id], at any depth. */
-    fun descendants(user: Long, id: Long): List<Long> =
+    fun descendants(user: Long, id: UUID): List<UUID> =
         jdbc
             .sql(
                 """
@@ -53,10 +56,10 @@ class TaskRepository(private val jdbc: JdbcClient) {
                 """,
             ).param("user", user)
             .param("id", id)
-            .query { rs, _ -> rs.getLong("id") }
+            .query { rs, _ -> rs.uuid("id") }
             .list()
 
-    fun siblings(user: Long, container: Container, except: Long): List<Long> =
+    fun siblings(user: Long, container: Container, except: UUID): List<UUID> =
         jdbc
             .sql(
                 """
@@ -71,7 +74,7 @@ class TaskRepository(private val jdbc: JdbcClient) {
             .param("section", container.sectionId)
             .param("parent", container.parentId)
             .param("except", except)
-            .query { rs, _ -> rs.getLong("id") }
+            .query { rs, _ -> rs.uuid("id") }
             .list()
 
     private companion object {
@@ -95,12 +98,12 @@ class TaskRepository(private val jdbc: JdbcClient) {
         val mapper =
             RowMapper { rs, _ ->
                 Task(
-                    id = rs.getLong("id"),
+                    id = rs.uuid("id"),
                     title = rs.getString("title"),
                     notes = rs.getString("notes"),
-                    projectId = rs.longOrNull("project_id"),
-                    sectionId = rs.longOrNull("section_id"),
-                    parentId = rs.longOrNull("parent_id"),
+                    projectId = rs.uuidOrNull("project_id"),
+                    sectionId = rs.uuidOrNull("section_id"),
+                    parentId = rs.uuidOrNull("parent_id"),
                     priority = rs.getInt("priority"),
                     dueDate = rs.dateOrNull("due_date"),
                     dueTime = rs.intOrNull("due_time"),
@@ -111,22 +114,22 @@ class TaskRepository(private val jdbc: JdbcClient) {
                     completedAt = rs.longOrNull("completed_at"),
                     createdAt = rs.getLong("created_at"),
                     trackedSeconds = rs.getLong("tracked_seconds"),
-                    outcomeId = rs.longOrNull("outcome_id"),
+                    outcomeId = rs.uuidOrNull("outcome_id"),
                     rolloverCount = rs.getInt("rollover_count"),
                     someday = rs.getBoolean("someday"),
                     nextStep = rs.getString("next_step"),
                     mustOn = rs.dateOrNull("must_on"),
-                    typeId = rs.longOrNull("type_id"),
-                    statusId = rs.longOrNull("status_id"),
-                    milestoneId = rs.longOrNull("milestone_id"),
+                    typeId = rs.uuidOrNull("type_id"),
+                    statusId = rs.uuidOrNull("status_id"),
+                    milestoneId = rs.uuidOrNull("milestone_id"),
                     location = rs.getString("location"),
                     countsAsTime = rs.getBoolean("counts_as_time"),
                     statusChangedAt = rs.longOrNull("status_changed_at"),
                     kind = rs.getString("kind"),
                     statusCategory = rs.getString("status_category"),
-                    blockedBy = rs.longs("blocked_by"),
-                    waitingOn = rs.longs("waiting_on"),
-                    phaseId = rs.longOrNull("phase_id"),
+                    blockedBy = rs.uuids("blocked_by"),
+                    waitingOn = rs.uuids("waiting_on"),
+                    phaseId = rs.uuidOrNull("phase_id"),
                 )
             }
     }

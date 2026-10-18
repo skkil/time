@@ -1,10 +1,12 @@
 package com.skkil.time.features.time.domain
 
+import java.util.UUID
+
 data class TimeBlock(
-    val id: Long,
-    val taskId: Long,
+    val id: UUID,
+    val taskId: UUID,
     val title: String,
-    val projectId: Long?,
+    val projectId: UUID?,
     val priority: Int,
     val completed: Boolean,
     val startAt: Long,
