@@ -57,12 +57,17 @@ named after it. Under `src/main/kotlin/com/skkil/time/`:
 | `security/` | `SecurityConfig`, `CallerResolver`, `AccountService` (provisioning from `(issuer, subject)`), header constants |
 | `common/error/` | `DomainException`, `ErrorKind`, `ensure`/`orNotFound` helpers, `ProblemHandler` |
 | `common/web/` | `Caller`, `RateLimitFilter` |
+| `common/clock/` | `MutationClock` (system, fixed, or from a mutation's HLC) and `Hlc` |
+| `common/id/` | `IdGenerator` and `UuidV7Generator`, the default |
 | `common/persistence/` | `ResultSet` helpers |
 | `common/text/` | Text validation helpers |
 | `features/<domain>/api/` | `@RestController` classes and request bodies used only at the HTTP edge |
 | `features/<domain>/service/` | `@Service` classes: rules and transactions |
 | `features/<domain>/repository/` | `JdbcClient` queries, where they are kept apart from the service |
 | `features/<domain>/domain/` | Models, enums and pure rules shared by service and API |
+
+`features/mutations/` holds the write-command registry: `MutationDispatcher` (the interface store's Push
+handler will call), `MutationRegistry`, one `MutationSet` per feature in `service/`, and `DeviceOnlyCommands`.
 
 A feature only has the layers it needs. A few have their own: `changes/web/`
 (the write-tracking filter), `realtime/websocket/`, `notifications/push/` (the
@@ -72,3 +77,23 @@ Tests in `src/test/kotlin` sit in the same packages as what they test; most are
 HTTP-level and sit at the feature root. `support/` holds the test base classes.
 Flyway migrations are in `src/main/resources/db/migration`. Never edit a
 shipped one; add a new one.
+
+## Ids, clock and mutations
+
+Synced rows are keyed by `uuid` (migration `V8__uuid_ids.sql` turned every bigint id and foreign key into UUIDv7,
+ordered by the old id, and gave the composite-key tables an `id` too). `app_user.id` stays bigint; its
+`scope_id` is the store scope. Push devices keep bigint ids.
+
+- **Clock.** A write reads "now" only through `Caller.now()`/`today()` (or an injected `MutationClock` outside a
+  request). A test fails on any `Instant.now()`-style call in `src/main`.
+- **Ids.** New rows take `caller.nextId()`; the request's `IdGenerator` is the `UuidV7Generator` bean. Create
+  methods also take an explicit `id: UUID? = null`.
+- **Taken ids.** Inserting an id that already exists is a `conflict` ("That id is already taken."), whether the
+  row is in the same account or another. Store already applies each `(client, mutation)` once, so a clash means a
+  different write owns the id; refusing it never merges two creates or reveals another account's row.
+- **Mutations.** `MutationDispatcher.dispatch(caller, name, args, clock, idSource)` runs one contract write command
+  (`createTask`, `moveTask`, ...) in a transaction, with `args` keyed by the contract's parameter names. It sets the
+  caller's clock and id source for that operation only. `MutationCoverageTest` reads
+  `apps/shared/contract/src/bindings.ts` and fails when a write command is neither registered nor device-only, or
+  when a mutation's parameters drift from the contract. Upserts (day, week, habit log, settings, ...) draw an id each
+  time they run, even when the row already exists.
