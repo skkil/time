@@ -1,3 +1,5 @@
 package com.skkil.time.features.tasks.api
 
-data class TaskIds(val ids: List<Long>)
+import java.util.UUID
+
+data class TaskIds(val ids: List<UUID>)

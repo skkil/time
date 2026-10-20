@@ -191,8 +191,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -226,8 +226,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -246,8 +246,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -271,8 +271,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -306,8 +306,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -326,8 +326,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -363,8 +363,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -400,16 +400,16 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         }, {
           "name" : "statusId",
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -438,8 +438,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -475,8 +475,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -512,8 +512,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -549,8 +549,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -586,8 +586,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -623,8 +623,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -660,8 +660,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -771,8 +771,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -808,8 +808,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -845,8 +845,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -882,8 +882,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -910,8 +910,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -966,8 +966,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1003,8 +1003,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1023,8 +1023,8 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "type" : "integer",
-                  "format" : "int64"
+                  "type" : "string",
+                  "format" : "uuid"
                 }
               }
             }
@@ -1041,8 +1041,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1076,8 +1076,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -1096,8 +1096,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1133,8 +1133,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1170,8 +1170,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -1195,8 +1195,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1225,8 +1225,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1255,8 +1255,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -1280,8 +1280,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1317,8 +1317,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1347,8 +1347,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1375,8 +1375,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -1442,8 +1442,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1470,8 +1470,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -1490,8 +1490,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1520,8 +1520,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1548,8 +1548,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -1568,8 +1568,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1596,16 +1596,16 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         }, {
           "name" : "replacement",
           "in" : "query",
           "required" : false,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -1624,8 +1624,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1652,16 +1652,16 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         }, {
           "name" : "replacement",
           "in" : "query",
           "required" : false,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -1680,8 +1680,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1710,8 +1710,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1747,8 +1747,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         }, {
           "name" : "date",
@@ -1785,8 +1785,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1820,8 +1820,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -1900,8 +1900,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -1935,8 +1935,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -2016,8 +2016,8 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "type" : "integer",
-                  "format" : "int64"
+                  "type" : "string",
+                  "format" : "uuid"
                 }
               }
             }
@@ -2034,8 +2034,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -2247,8 +2247,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -2284,8 +2284,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -2321,8 +2321,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -2358,8 +2358,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -2575,8 +2575,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -2602,8 +2602,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -2629,8 +2629,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -2685,8 +2685,8 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "type" : "integer",
-                  "format" : "int64"
+                  "type" : "string",
+                  "format" : "uuid"
                 }
               }
             }
@@ -2703,8 +2703,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -2780,8 +2780,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -2800,8 +2800,8 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "type" : "integer",
-                  "format" : "int64"
+                  "type" : "string",
+                  "format" : "uuid"
                 }
               }
             }
@@ -2818,8 +2818,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -2845,8 +2845,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -2865,8 +2865,8 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "type" : "integer",
-                  "format" : "int64"
+                  "type" : "string",
+                  "format" : "uuid"
                 }
               }
             }
@@ -2883,8 +2883,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -2903,8 +2903,8 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "type" : "integer",
-                  "format" : "int64"
+                  "type" : "string",
+                  "format" : "uuid"
                 }
               }
             }
@@ -2921,8 +2921,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "requestBody" : {
@@ -2941,8 +2941,8 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "type" : "integer",
-                  "format" : "int64"
+                  "type" : "string",
+                  "format" : "uuid"
                 }
               }
             }
@@ -3050,8 +3050,8 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "type" : "integer",
-                    "format" : "int64"
+                    "type" : "string",
+                    "format" : "uuid"
                   }
                 }
               }
@@ -3116,8 +3116,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         }, {
           "name" : "date",
@@ -3154,8 +3154,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -3448,8 +3448,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -3478,8 +3478,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -3594,8 +3594,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -3878,16 +3878,16 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         }, {
           "name" : "blockedById",
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -3913,8 +3913,8 @@
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         } ],
         "responses" : {
@@ -4000,12 +4000,12 @@
             "type" : "string"
           },
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "taskId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "description", "projectId", "taskId" ]
@@ -4017,12 +4017,12 @@
             "type" : "string"
           },
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "taskId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "startedAt" : {
             "type" : "integer",
@@ -4046,12 +4046,12 @@
             "type" : "string"
           },
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "taskId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "startedAt" : {
             "type" : "integer",
@@ -4068,19 +4068,19 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "description" : {
             "type" : "string"
           },
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "taskId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "startedAt" : {
             "type" : "integer",
@@ -4103,16 +4103,16 @@
             "type" : "string"
           },
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "sectionId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "parentId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "priority" : {
             "type" : "integer",
@@ -4144,8 +4144,8 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "title" : {
             "type" : "string"
@@ -4154,16 +4154,16 @@
             "type" : "string"
           },
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "sectionId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "parentId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "priority" : {
             "type" : "integer",
@@ -4205,8 +4205,8 @@
             "format" : "int64"
           },
           "outcomeId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "rolloverCount" : {
             "type" : "integer",
@@ -4223,16 +4223,16 @@
             "format" : "date"
           },
           "typeId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "statusId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "milestoneId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "location" : {
             "type" : "string"
@@ -4253,20 +4253,20 @@
           "blockedBy" : {
             "type" : "array",
             "items" : {
-              "type" : "integer",
-              "format" : "int64"
+              "type" : "string",
+              "format" : "uuid"
             }
           },
           "waitingOn" : {
             "type" : "array",
             "items" : {
-              "type" : "integer",
-              "format" : "int64"
+              "type" : "string",
+              "format" : "uuid"
             }
           },
           "phaseId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "blockedBy", "completedAt", "countsAsTime", "createdAt", "deadline", "dueDate", "dueTime", "estimateMinutes", "id", "kind", "location", "milestoneId", "mustOn", "nextStep", "notes", "outcomeId", "parentId", "phaseId", "position", "priority", "projectId", "recurrence", "rolloverCount", "sectionId", "someday", "statusCategory", "statusChangedAt", "statusId", "title", "trackedSeconds", "typeId", "waitingOn" ]
@@ -4275,8 +4275,8 @@
         "type" : "object",
         "properties" : {
           "typeId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "typeId" ]
@@ -4285,8 +4285,8 @@
         "type" : "object",
         "properties" : {
           "statusId" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         },
         "required" : [ "statusId" ]
@@ -4304,8 +4304,8 @@
         "type" : "object",
         "properties" : {
           "phaseId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "phaseId" ]
@@ -4314,8 +4314,8 @@
         "type" : "object",
         "properties" : {
           "outcomeId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "outcomeId" ]
@@ -4343,8 +4343,8 @@
         "type" : "object",
         "properties" : {
           "milestoneId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "milestoneId" ]
@@ -4383,8 +4383,8 @@
         "type" : "object",
         "properties" : {
           "before" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "before" ]
@@ -4393,12 +4393,12 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "name" : {
             "type" : "string"
@@ -4525,8 +4525,8 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "kind" : {
             "type" : "string"
@@ -4536,8 +4536,8 @@
             "format" : "date"
           },
           "taskId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "startedAt" : {
             "type" : "integer",
@@ -4581,8 +4581,8 @@
             "type" : "string"
           },
           "parentId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "color" : {
             "type" : "string"
@@ -4594,12 +4594,12 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "parentId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "name" : {
             "type" : "string"
@@ -4618,8 +4618,8 @@
             "type" : "string"
           },
           "groupId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "status" : {
             "type" : "string"
@@ -4671,8 +4671,8 @@
         "type" : "object",
         "properties" : {
           "groupId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "status" : {
             "type" : "string"
@@ -4793,8 +4793,8 @@
         "type" : "object",
         "properties" : {
           "projectId" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "content" : {
             "type" : "string"
@@ -4843,8 +4843,8 @@
             "type" : "string"
           },
           "priorityId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "priorityId", "title" ]
@@ -4876,8 +4876,8 @@
         "type" : "object",
         "properties" : {
           "before" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "before" ]
@@ -4942,8 +4942,8 @@
             }
           },
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "patterns", "projectId", "source" ]
@@ -4952,8 +4952,8 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "name" : {
             "type" : "string"
@@ -5034,8 +5034,8 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "name" : {
             "type" : "string"
@@ -5074,19 +5074,19 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "taskId" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "title" : {
             "type" : "string"
           },
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "priority" : {
             "type" : "integer",
@@ -5112,8 +5112,8 @@
           "ids" : {
             "type" : "array",
             "items" : {
-              "type" : "integer",
-              "format" : "int64"
+              "type" : "string",
+              "format" : "uuid"
             }
           }
         },
@@ -5123,8 +5123,8 @@
         "type" : "object",
         "properties" : {
           "phaseId" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "title" : {
             "type" : "string"
@@ -5136,20 +5136,20 @@
         "type" : "object",
         "properties" : {
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "sectionId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "parentId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "before" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "before", "parentId", "projectId", "sectionId" ]
@@ -5158,8 +5158,8 @@
         "type" : "object",
         "properties" : {
           "blockedById" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           }
         },
         "required" : [ "blockedById" ]
@@ -5170,8 +5170,8 @@
           "ids" : {
             "type" : "array",
             "items" : {
-              "type" : "integer",
-              "format" : "int64"
+              "type" : "string",
+              "format" : "uuid"
             }
           },
           "someday" : {
@@ -5186,8 +5186,8 @@
           "ids" : {
             "type" : "array",
             "items" : {
-              "type" : "integer",
-              "format" : "int64"
+              "type" : "string",
+              "format" : "uuid"
             }
           },
           "dueDate" : {
@@ -5201,15 +5201,15 @@
         "type" : "object",
         "properties" : {
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "name" : {
             "type" : "string"
           },
           "before" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "before", "name", "projectId" ]
@@ -5218,8 +5218,8 @@
         "type" : "object",
         "properties" : {
           "taskId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
         "required" : [ "taskId" ]
@@ -5413,12 +5413,12 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "projectId" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "name" : {
             "type" : "string"
@@ -5437,12 +5437,12 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "projectId" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "name" : {
             "type" : "string"
@@ -5471,12 +5471,12 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "projectId" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "name" : {
             "type" : "string"
@@ -5496,12 +5496,12 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "projectId" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "name" : {
             "type" : "string"
@@ -5601,8 +5601,8 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "title" : {
             "type" : "string"
@@ -5612,12 +5612,12 @@
             "enum" : [ "open", "achieved", "carried", "dropped" ]
           },
           "priorityId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "carriedFrom" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "timesCarried" : {
             "type" : "integer",
@@ -5689,19 +5689,19 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "description" : {
             "type" : "string"
           },
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "taskId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "startedAt" : {
             "type" : "integer",
@@ -5724,8 +5724,8 @@
         "type" : "object",
         "properties" : {
           "statusId" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "notes" : {
             "type" : "string"
@@ -5737,8 +5737,8 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "title" : {
             "type" : "string"
@@ -5757,8 +5757,8 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "label" : {
             "type" : "string"
@@ -5839,8 +5839,8 @@
         "type" : "object",
         "properties" : {
           "habitId" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "date" : {
             "type" : "string",
@@ -5864,19 +5864,19 @@
         "type" : "object",
         "properties" : {
           "taskId" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "string",
+            "format" : "uuid"
           },
           "title" : {
             "type" : "string"
           },
           "projectId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "typeId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           },
           "startAt" : {
             "type" : "integer",

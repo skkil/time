@@ -35,10 +35,12 @@ class PreferenceService(private val jdbc: JdbcClient, private val mapper: JsonMa
         jdbc
             .sql(
                 """
-                INSERT INTO user_preference (user_id, "values", updated_at) VALUES (:user, CAST(:json AS JSONB), :now)
+                INSERT INTO user_preference (id, user_id, "values", updated_at)
+                VALUES (:id, :user, CAST(:json AS JSONB), :now)
                 ON CONFLICT (user_id) DO UPDATE SET "values" = excluded."values", updated_at = excluded.updated_at
                 """,
-            ).param("user", caller.id)
+            ).param("id", caller.nextId())
+            .param("user", caller.id)
             .param("json", json)
             .param("now", caller.now())
             .update()

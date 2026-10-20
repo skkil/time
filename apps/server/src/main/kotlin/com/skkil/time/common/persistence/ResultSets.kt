@@ -2,6 +2,7 @@ package com.skkil.time.common.persistence
 
 import java.sql.ResultSet
 import java.time.LocalDate
+import java.util.UUID
 
 fun ResultSet.longOrNull(column: String): Long? = getObject(column, java.lang.Long::class.java)?.toLong()
 
@@ -13,5 +14,9 @@ fun ResultSet.date(column: String): LocalDate = getObject(column, LocalDate::cla
 
 fun ResultSet.dateOrNull(column: String): LocalDate? = getObject(column, LocalDate::class.java)
 
-fun ResultSet.longs(column: String): List<Long> =
-    (getArray(column)?.array as? Array<*>)?.mapNotNull { (it as? Number)?.toLong() } ?: emptyList()
+fun ResultSet.uuid(column: String): UUID = getObject(column, UUID::class.java)
+
+fun ResultSet.uuidOrNull(column: String): UUID? = getObject(column, UUID::class.java)
+
+fun ResultSet.uuids(column: String): List<UUID> =
+    (getArray(column)?.array as? Array<*>)?.mapNotNull { it as? UUID } ?: emptyList()

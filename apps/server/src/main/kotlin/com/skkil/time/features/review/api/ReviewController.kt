@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1")
@@ -56,7 +57,7 @@ class ReviewController(private val review: ReviewService, private val quarters: 
     fun skipDay(
         caller: Caller,
         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate,
-    ) = review.skipDay(caller.id, date)
+    ) = review.skipDay(caller, date)
 
     @GetMapping("/weeks")
     fun weeks(
@@ -77,7 +78,7 @@ class ReviewController(private val review: ReviewService, private val quarters: 
         caller: Caller,
         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate,
         @RequestBody body: WeekNotes,
-    ) = review.saveNotes(caller.id, date, body)
+    ) = review.saveNotes(caller, date, body)
 
     @PutMapping("/weeks/{date}/felt")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -85,7 +86,7 @@ class ReviewController(private val review: ReviewService, private val quarters: 
         caller: Caller,
         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate,
         @RequestBody body: Felt,
-    ) = review.setWeekFelt(caller.id, date, body.felt)
+    ) = review.setWeekFelt(caller, date, body.felt)
 
     @PutMapping("/weeks/{date}/step")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -93,7 +94,7 @@ class ReviewController(private val review: ReviewService, private val quarters: 
         caller: Caller,
         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate,
         @RequestBody body: ReviewStep,
-    ) = review.setWeekStep(caller.id, date, body.step)
+    ) = review.setWeekStep(caller, date, body.step)
 
     @PostMapping("/weeks/{date}/finish")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -108,13 +109,13 @@ class ReviewController(private val review: ReviewService, private val quarters: 
         caller: Caller,
         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate,
         @RequestBody body: OutcomeInput,
-    ) = review.addOutcome(caller.id, date, body.title, body.priorityId)
+    ) = review.addOutcome(caller, date, body.title, body.priorityId)
 
     @PutMapping("/outcomes/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateOutcome(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: OutcomeInput,
     ) = review.renameOutcome(caller.id, id, body.title, body.priorityId)
 
@@ -122,15 +123,15 @@ class ReviewController(private val review: ReviewService, private val quarters: 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateOutcomeStatus(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: OutcomeStatusInput,
-    ) = review.setOutcomeStatus(caller.id, id, body.status)
+    ) = review.setOutcomeStatus(caller, id, body.status)
 
     @DeleteMapping("/outcomes/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun removeOutcome(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ) = review.deleteOutcome(caller.id, id)
 
     /** The quarter the week of [date] falls in, or 204 when there is none. */
@@ -145,28 +146,28 @@ class ReviewController(private val review: ReviewService, private val quarters: 
     fun createQuarter(
         caller: Caller,
         @RequestBody body: QuarterInput,
-    ): Long = quarters.create(caller.id, body)
+    ): UUID = quarters.create(caller, body)
 
     @PutMapping("/quarters/{id}")
     fun updateQuarter(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: QuarterInput,
-    ): Long = quarters.update(caller.id, id, body)
+    ): UUID = quarters.update(caller.id, id, body)
 
     @PostMapping("/quarters/{id}/priorities")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun createPriority(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: PriorityTitle,
-    ) = quarters.addPriority(caller.id, id, body.title)
+    ) = quarters.addPriority(caller, id, body.title)
 
     @PutMapping("/priorities/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updatePriority(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: PriorityInput,
     ) = quarters.editPriority(caller.id, id, body)
 
@@ -174,6 +175,6 @@ class ReviewController(private val review: ReviewService, private val quarters: 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun removePriority(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ) = quarters.deletePriority(caller.id, id)
 }

@@ -100,4 +100,17 @@ abstract class ApiTest {
     }
 
     fun userId(): Long = getJson("/api/v1/me")["id"].asLong()
+
+    fun JsonNode.id(): UUID = uuid("id")
+
+    fun JsonNode.uuid(field: String): UUID = UUID.fromString(this[field].asString())
+
+    fun JsonNode.uuidOrNull(field: String): UUID? =
+        this[field].takeUnless {
+            it.isNull
+        }?.let { UUID.fromString(it.asString()) }
+
+    fun JsonNode.uuids(field: String): List<UUID> = this[field].values().map { UUID.fromString(it.asString()) }
+
+    fun JsonNode.asUuid(): UUID = UUID.fromString(asString())
 }

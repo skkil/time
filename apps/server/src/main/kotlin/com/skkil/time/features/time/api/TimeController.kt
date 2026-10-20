@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1")
@@ -36,33 +37,33 @@ class TimeController(private val entries: EntryService, private val timer: Timer
     @GetMapping("/tasks/{id}/time-entries")
     fun listTaskEntries(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ): List<TrackedEntry> = entries.listForTask(caller.id, id)
 
     @GetMapping("/projects/{id}/time-entries")
     fun listProjectEntries(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ): List<TrackedEntry> = entries.listForProject(caller.id, id)
 
     @PostMapping("/time-entries")
     fun createTimeEntry(
         caller: Caller,
         @RequestBody input: EntryInput,
-    ): TimeEntry = entries.create(caller.id, caller.now(), input)
+    ): TimeEntry = entries.create(caller, input)
 
     @PutMapping("/time-entries/{id}")
     fun updateTimeEntry(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody input: EntryInput,
-    ): TimeEntry = entries.update(caller.id, caller.now(), id, input)
+    ): TimeEntry = entries.update(caller, id, input)
 
     @DeleteMapping("/time-entries/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteTimeEntry(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ) = entries.delete(caller.id, id)
 
     /** The running timer, or 204 when none is. */
@@ -73,23 +74,23 @@ class TimeController(private val entries: EntryService, private val timer: Timer
     fun startTimer(
         caller: Caller,
         @RequestBody details: EntryDetails,
-    ): RunningTimer = timer.start(caller.id, caller.now(), details)
+    ): RunningTimer = timer.start(caller, details)
 
     @PutMapping("/timer")
     fun editTimer(
         caller: Caller,
         @RequestBody details: EntryDetails,
-    ): RunningTimer = timer.edit(caller.id, details)
+    ): RunningTimer = timer.edit(caller, details)
 
     /** The entry the stretch so far became, or 204 when it logged nothing. */
     @PostMapping("/timer/stop")
-    fun stopTimer(caller: Caller): ResponseEntity<TimeEntry> = orNoContent(timer.stop(caller.id, caller.now()))
+    fun stopTimer(caller: Caller): ResponseEntity<TimeEntry> = orNoContent(timer.stop(caller))
 
     @PostMapping("/timer/pause")
-    fun pauseTimer(caller: Caller): RunningTimer = timer.pause(caller.id, caller.now())
+    fun pauseTimer(caller: Caller): RunningTimer = timer.pause(caller)
 
     @PostMapping("/timer/resume")
-    fun resumeTimer(caller: Caller): RunningTimer = timer.resume(caller.id, caller.now())
+    fun resumeTimer(caller: Caller): RunningTimer = timer.resume(caller)
 
     @DeleteMapping("/timer")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -99,7 +100,7 @@ class TimeController(private val entries: EntryService, private val timer: Timer
     fun restoreTimer(
         caller: Caller,
         @RequestBody running: RunningTimer,
-    ): RunningTimer = timer.restore(caller.id, running)
+    ): RunningTimer = timer.restore(caller, running)
 
     private fun <T : Any> orNoContent(body: T?): ResponseEntity<T> =
         body?.let { ResponseEntity.ok(it) } ?: ResponseEntity.noContent().build()

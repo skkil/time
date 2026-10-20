@@ -4,6 +4,8 @@ import com.skkil.time.common.error.ensure
 import com.skkil.time.common.error.ensureChanged
 import com.skkil.time.common.error.orNotFound
 import com.skkil.time.common.persistence.longOrNull
+import com.skkil.time.common.persistence.uuid
+import com.skkil.time.common.persistence.uuidOrNull
 import com.skkil.time.common.text.optionalText
 import com.skkil.time.common.web.Caller
 import com.skkil.time.features.recurrence.domain.Recurrence
@@ -17,6 +19,7 @@ import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.util.UUID
 
 /** A task's type, status, milestone and event details, and the events and time they add up to. */
 @Service
@@ -27,7 +30,7 @@ class TaskWorkflowService(
     private val workflow: WorkflowService,
     private val sync: WorkflowSync,
 ) {
-    fun setType(caller: Caller, id: Long, typeId: Long?): Task {
+    fun setType(caller: Caller, id: UUID, typeId: UUID?): Task {
         val user = caller.id
         val task = tasks.get(user, id)
         val type =
@@ -42,7 +45,7 @@ class TaskWorkflowService(
         jdbc
             .sql(
                 """
-                UPDATE task SET type_id = CAST(:type AS BIGINT),
+                UPDATE task SET type_id = CAST(:type AS UUID),
                   estimate_minutes = COALESCE(estimate_minutes, CAST(:minutes AS INTEGER)),
                   completed_at = CASE WHEN :event THEN NULL ELSE completed_at END
                 WHERE user_id = :user AND id = :id
@@ -68,10 +71,12 @@ class TaskWorkflowService(
                     jdbc
                         .sql(
                             """
-                            INSERT INTO task (user_id, title, project_id, section_id, parent_id, position, created_at)
-                            VALUES (:user, :title, :project, :section, :parent, :position, :now)
+                            INSERT INTO task (id, user_id, title, project_id, section_id, parent_id, position,
+                                              created_at)
+                            VALUES (:id, :user, :title, :project, :section, :parent, :position, :now)
                             """,
-                        ).param("user", user)
+                        ).param("id", caller.nextId())
+                        .param("user", user)
                         .param("title", line)
                         .param("project", task.projectId)
                         .param("section", task.sectionId)
@@ -85,7 +90,7 @@ class TaskWorkflowService(
         return tasks.get(user, id)
     }
 
-    fun setStatus(caller: Caller, id: Long, statusId: Long): Task {
+    fun setStatus(caller: Caller, id: UUID, statusId: UUID): Task {
         val user = caller.id
         val task = tasks.get(user, id)
         val status = workflow.getStatus(user, statusId)
@@ -108,13 +113,13 @@ class TaskWorkflowService(
                     UPDATE task SET completed_at = :now
                     WHERE completed_at IS NULL AND id IN (
                       WITH RECURSIVE down(id) AS (
-                        SELECT CAST(:id AS BIGINT) UNION ALL SELECT t.id FROM task t JOIN down ON t.parent_id = down.id)
+                        SELECT CAST(:id AS UUID) UNION ALL SELECT t.id FROM task t JOIN down ON t.parent_id = down.id)
                       SELECT id FROM down)
                     """,
                 ).param("now", now)
                 .param("id", id)
                 .update()
-            tasks.stopTimerWithin(user, now, id)
+            tasks.stopTimerWithin(caller, id)
         } else if (!closing) {
             jdbc
                 .sql("UPDATE task SET completed_at = NULL WHERE user_id = :user AND id = :id")
@@ -125,7 +130,7 @@ class TaskWorkflowService(
         return tasks.get(user, id)
     }
 
-    fun setMilestone(user: Long, id: Long, milestoneId: Long?): Task {
+    fun setMilestone(user: Long, id: UUID, milestoneId: UUID?): Task {
         val task = tasks.get(user, id)
         milestoneId?.let {
             val project =
@@ -133,14 +138,14 @@ class TaskWorkflowService(
                     .sql("SELECT project_id FROM milestone WHERE user_id = :user AND id = :id")
                     .param("user", user)
                     .param("id", it)
-                    .query { rs, _ -> rs.getLong("project_id") }
+                    .query { rs, _ -> rs.uuid("project_id") }
                     .optional()
                     .orElse(null)
                     .orNotFound("Milestone")
             ensure(project == task.projectId) { "That milestone belongs to another project." }
         }
         jdbc
-            .sql("UPDATE task SET milestone_id = CAST(:milestone AS BIGINT) WHERE user_id = :user AND id = :id")
+            .sql("UPDATE task SET milestone_id = CAST(:milestone AS UUID) WHERE user_id = :user AND id = :id")
             .param("milestone", milestoneId)
             .param("user", user)
             .param("id", id)
@@ -148,7 +153,7 @@ class TaskWorkflowService(
         return tasks.get(user, id)
     }
 
-    fun setEventDetails(user: Long, id: Long, location: String, countsAsTime: Boolean): Task {
+    fun setEventDetails(user: Long, id: UUID, location: String, countsAsTime: Boolean): Task {
         val text = optionalText(location, "Location", 300)
         val rows =
             jdbc
@@ -168,10 +173,10 @@ class TaskWorkflowService(
     @Transactional(readOnly = true)
     fun occurrences(caller: Caller, from: LocalDate, to: LocalDate): List<EventOccurrence> {
         data class Row(
-            val taskId: Long,
+            val taskId: UUID,
             val title: String,
-            val projectId: Long?,
-            val typeId: Long?,
+            val projectId: UUID?,
+            val typeId: UUID?,
             val due: LocalDate,
             val minute: Long,
             val length: Long,
@@ -197,10 +202,10 @@ class TaskWorkflowService(
                 .param("to", to)
                 .query { rs, _ ->
                     Row(
-                        rs.getLong("id"),
+                        rs.uuid("id"),
                         rs.getString("title"),
-                        rs.longOrNull("project_id"),
-                        rs.longOrNull("type_id"),
+                        rs.uuidOrNull("project_id"),
+                        rs.uuidOrNull("type_id"),
                         rs.getObject("due_date", LocalDate::class.java),
                         rs.getLong("due_time"),
                         rs.getLong("length"),

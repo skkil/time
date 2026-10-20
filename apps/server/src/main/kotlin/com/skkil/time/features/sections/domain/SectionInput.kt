@@ -1,3 +1,5 @@
 package com.skkil.time.features.sections.domain
 
-data class SectionInput(val projectId: Long?, val name: String, val before: Long?)
+import java.util.UUID
+
+data class SectionInput(val projectId: UUID?, val name: String, val before: UUID?)

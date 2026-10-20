@@ -1,9 +1,10 @@
 package com.skkil.time.features.projects.domain
 
 import java.time.LocalDate
+import java.util.UUID
 
 data class ProjectSettings(
-    val groupId: Long?,
+    val groupId: UUID?,
     val status: String,
     val outcome: String,
     val weeklyMinutes: Int?,

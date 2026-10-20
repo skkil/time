@@ -5,6 +5,7 @@ import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.UUID
 import kotlin.test.assertEquals
 
 class BlockTest : TaskApiTest() {
@@ -34,7 +35,7 @@ class BlockTest : TaskApiTest() {
         expectProblem(post("/api/v1/tasks/$task/blocks", BlockSpan(7200, 3600)), 422, "invalid")
         expectProblem(post("/api/v1/tasks/$task/blocks", BlockSpan(3601, 7200)), 422, "invalid")
         expectProblem(post("/api/v1/tasks/$task/blocks", BlockSpan(0, 86_460)), 422, "invalid")
-        expectProblem(post("/api/v1/tasks/999999/blocks", BlockSpan(0, 3600)), 404, "notFound")
+        expectProblem(post("/api/v1/tasks/${UUID.randomUUID()}/blocks", BlockSpan(0, 3600)), 404, "notFound")
     }
 
     @Test

@@ -1,14 +1,20 @@
 package com.skkil.time.security
 
+import com.skkil.time.common.clock.MutationClock
+import com.skkil.time.common.id.IdGenerator
 import com.skkil.time.features.rituals.service.RitualDefaults
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
 import java.time.ZoneId
 
 @Service
-class AccountService(private val jdbc: JdbcClient, private val rituals: RitualDefaults) {
+class AccountService(
+    private val jdbc: JdbcClient,
+    private val rituals: RitualDefaults,
+    private val clock: MutationClock,
+    private val ids: IdGenerator,
+) {
     fun find(identity: Identity): Account? =
         jdbc
             .sql(
@@ -24,7 +30,7 @@ class AccountService(private val jdbc: JdbcClient, private val rituals: RitualDe
 
     @Transactional
     fun provision(identity: Identity): Account {
-        val now = Instant.now().epochSecond
+        val now = clock.now().epochSecond
         val id =
             jdbc
                 .sql("INSERT INTO app_user (email, name, created_at) VALUES (:email, :name, :now) RETURNING id")
@@ -49,7 +55,7 @@ class AccountService(private val jdbc: JdbcClient, private val rituals: RitualDe
             jdbc.sql("DELETE FROM app_user WHERE id = :id").param("id", id).update()
             return find(identity) ?: error("Identity vanished during provisioning")
         }
-        rituals.seed(id)
+        rituals.seed(id, ids)
         return Account(id, ZoneId.of("UTC"))
     }
 

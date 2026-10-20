@@ -9,20 +9,21 @@ import tools.jackson.databind.JsonNode
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class TimeEntryTest : TaskApiTest() {
     private fun now() = Instant.now().epochSecond
 
-    private fun entry(taskId: Long?, startedAt: Long, projectId: Long? = null, description: String = "") =
+    private fun entry(taskId: UUID?, startedAt: Long, projectId: UUID? = null, description: String = "") =
         EntryInput(description, projectId, taskId, startedAt, startedAt + 600)
 
     private fun track(input: EntryInput) = postJson("/api/v1/time-entries", input).id()
 
     private fun entries(from: LocalDate, to: LocalDate) = getJson("/api/v1/time-entries?from=$from&to=$to")
 
-    private fun subProject(name: String, parentId: Long) =
+    private fun subProject(name: String, parentId: UUID) =
         postJson("/api/v1/projects", ProjectInput(name, parentId, "plum")).id()
 
     private fun JsonNode.ids() = values().map { it.id() }
@@ -34,11 +35,11 @@ class TimeEntryTest : TaskApiTest() {
         val other = project("Other")
         val now = now()
         val created = postJson("/api/v1/time-entries", EntryInput("writing", other, chapter, now - 1800, now))
-        assertEquals(project, created["projectId"].asLong())
+        assertEquals(project, created.uuid("projectId"))
         assertEquals(1800, task(chapter)["trackedSeconds"].asLong())
 
         val free = putJson("/api/v1/time-entries/${created.id()}", EntryInput(" reading ", other, null, now - 60, now))
-        assertEquals(other, free["projectId"].asLong())
+        assertEquals(other, free.uuid("projectId"))
         assertEquals("reading", free["description"].asString())
         delete("/api/v1/time-entries/${created.id()}").andExpect { status { isNoContent() } }
         expectProblem(delete("/api/v1/time-entries/${created.id()}"), 404, "notFound")
@@ -54,7 +55,11 @@ class TimeEntryTest : TaskApiTest() {
             422,
             "invalid",
         )
-        expectProblem(post("/api/v1/time-entries", EntryInput("", 999_999, null, now - 10, now)), 404, "notFound")
+        expectProblem(
+            post("/api/v1/time-entries", EntryInput("", UUID.randomUUID(), null, now - 10, now)),
+            404,
+            "notFound",
+        )
     }
 
     @Test

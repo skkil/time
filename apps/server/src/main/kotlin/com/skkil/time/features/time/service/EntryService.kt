@@ -4,6 +4,8 @@ import com.skkil.time.common.error.ensure
 import com.skkil.time.common.error.ensureChanged
 import com.skkil.time.common.error.orNotFound
 import com.skkil.time.common.persistence.longOrNull
+import com.skkil.time.common.persistence.uuid
+import com.skkil.time.common.persistence.uuidOrNull
 import com.skkil.time.common.text.optionalText
 import com.skkil.time.common.web.Caller
 import com.skkil.time.features.projects.service.ProjectService
@@ -18,6 +20,7 @@ import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.util.UUID
 
 /** Tracked time. A linked task decides the entry's project. */
 @Service
@@ -40,12 +43,12 @@ class EntryService(
 
     /** The whole history of a task and everything nested under it. */
     @Transactional(readOnly = true)
-    fun listForTask(user: Long, taskId: Long): List<TrackedEntry> =
+    fun listForTask(user: Long, taskId: UUID): List<TrackedEntry> =
         jdbc
             .sql(
                 """
                 WITH RECURSIVE down(id) AS (
-                  SELECT CAST(:task AS BIGINT)
+                  SELECT CAST(:task AS UUID)
                   UNION ALL
                   SELECT child.id FROM task child JOIN down ON child.parent_id = down.id
                 )
@@ -60,12 +63,12 @@ class EntryService(
 
     /** The whole history of a project and its sub-projects, following a linked task's current project. */
     @Transactional(readOnly = true)
-    fun listForProject(user: Long, projectId: Long): List<TrackedEntry> =
+    fun listForProject(user: Long, projectId: UUID): List<TrackedEntry> =
         jdbc
             .sql(
                 """
                 WITH RECURSIVE down(id) AS (
-                  SELECT CAST(:project AS BIGINT)
+                  SELECT CAST(:project AS UUID)
                   UNION ALL
                   SELECT child.id FROM project child JOIN down ON child.parent_id = down.id
                 )
@@ -79,28 +82,28 @@ class EntryService(
             .query(trackedMapper)
             .list()
 
-    fun create(user: Long, now: Long, input: EntryInput): TimeEntry {
-        validateSpan(now, input.startedAt, input.endedAt)
-        val details = resolve(user, input.details())
-        val id =
-            jdbc
-                .sql(
-                    """
-                    INSERT INTO time_entry (user_id, description, project_id, task_id, started_at, ended_at)
-                    VALUES (:user, :description, :project, :task, :startedAt, :endedAt)
-                    RETURNING id
-                    """,
-                ).param("user", user)
-                .details(details)
-                .param("startedAt", input.startedAt)
-                .param("endedAt", input.endedAt)
-                .query(Long::class.java)
-                .single()
-        return get(user, id)
+    fun create(caller: Caller, input: EntryInput, id: UUID? = null): TimeEntry {
+        validateSpan(caller.now(), input.startedAt, input.endedAt)
+        val details = resolve(caller.id, input.details())
+        val id = id ?: caller.nextId()
+        jdbc
+            .sql(
+                """
+                INSERT INTO time_entry (id, user_id, description, project_id, task_id, started_at, ended_at)
+                VALUES (:id, :user, :description, :project, :task, :startedAt, :endedAt)
+                """,
+            ).param("id", id)
+            .param("user", caller.id)
+            .details(details)
+            .param("startedAt", input.startedAt)
+            .param("endedAt", input.endedAt)
+            .update()
+        return get(caller.id, id)
     }
 
-    fun update(user: Long, now: Long, id: Long, input: EntryInput): TimeEntry {
-        validateSpan(now, input.startedAt, input.endedAt)
+    fun update(caller: Caller, id: UUID, input: EntryInput): TimeEntry {
+        val user = caller.id
+        validateSpan(caller.now(), input.startedAt, input.endedAt)
         val details = resolve(user, input.details())
         val rows =
             jdbc
@@ -121,7 +124,7 @@ class EntryService(
         return get(user, id)
     }
 
-    fun delete(user: Long, id: Long) {
+    fun delete(user: Long, id: UUID) {
         val rows =
             jdbc
                 .sql("DELETE FROM time_entry WHERE user_id = :user AND id = :id")
@@ -139,7 +142,7 @@ class EntryService(
         return EntryDetails(description, projectId, details.taskId)
     }
 
-    private fun get(user: Long, id: Long): TimeEntry =
+    private fun get(user: Long, id: UUID): TimeEntry =
         jdbc
             .sql("$SELECT WHERE user_id = :user AND id = :id")
             .param("user", user)
@@ -170,10 +173,10 @@ class EntryService(
         val mapper =
             RowMapper { rs, _ ->
                 TimeEntry(
-                    rs.getLong("id"),
+                    rs.uuid("id"),
                     rs.getString("description"),
-                    rs.longOrNull("project_id"),
-                    rs.longOrNull("task_id"),
+                    rs.uuidOrNull("project_id"),
+                    rs.uuidOrNull("task_id"),
                     rs.getLong("started_at"),
                     rs.getLong("ended_at"),
                 )
@@ -181,10 +184,10 @@ class EntryService(
         val trackedMapper =
             RowMapper { rs, _ ->
                 TrackedEntry(
-                    rs.getLong("id"),
+                    rs.uuid("id"),
                     rs.getString("description"),
-                    rs.longOrNull("project_id"),
-                    rs.longOrNull("task_id"),
+                    rs.uuidOrNull("project_id"),
+                    rs.uuidOrNull("task_id"),
                     rs.getLong("started_at"),
                     rs.getLong("ended_at"),
                     rs.getString("title"),

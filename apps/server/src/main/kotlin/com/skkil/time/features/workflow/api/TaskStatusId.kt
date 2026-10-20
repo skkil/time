@@ -1,3 +1,5 @@
 package com.skkil.time.features.workflow.api
 
-data class TaskStatusId(val statusId: Long)
+import java.util.UUID
+
+data class TaskStatusId(val statusId: UUID)

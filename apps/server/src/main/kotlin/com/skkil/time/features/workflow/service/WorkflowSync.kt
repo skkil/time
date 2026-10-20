@@ -1,8 +1,11 @@
 package com.skkil.time.features.workflow.service
 
 import com.skkil.time.common.persistence.longOrNull
+import com.skkil.time.common.persistence.uuid
+import com.skkil.time.common.persistence.uuidOrNull
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Component
+import java.util.UUID
 
 /** Keeps each task's type, status, phase and milestone pointing at its own project, and completion in step with status. */
 @Component
@@ -78,7 +81,7 @@ class WorkflowSync(private val jdbc: JdbcClient) {
     }
 
     /** Closes tasks whose status is done or dropped and reopens the rest, for the tasks [filter] picks. */
-    fun syncCompletion(user: Long, now: Long, filter: String, name: String, value: Long) {
+    fun syncCompletion(user: Long, now: Long, filter: String, name: String, value: UUID) {
         jdbc
             .sql(
                 """
@@ -95,7 +98,7 @@ class WorkflowSync(private val jdbc: JdbcClient) {
     }
 
     /** Moves a task checked off (or reopened) to its project's first done (or todo) status. */
-    fun statusForCompletion(user: Long, taskId: Long, completed: Boolean, now: Long) {
+    fun statusForCompletion(user: Long, taskId: UUID, completed: Boolean, now: Long) {
         val wanted = if (completed) listOf("done") else listOf("todo", "active", "backlog")
         jdbc
             .sql(
@@ -119,7 +122,7 @@ class WorkflowSync(private val jdbc: JdbcClient) {
             .update()
     }
 
-    private fun movedPhases(user: Long): List<Triple<Long, Long, Long>> =
+    private fun movedPhases(user: Long): List<Triple<UUID, UUID, UUID>> =
         jdbc
             .sql(
                 """
@@ -134,7 +137,7 @@ class WorkflowSync(private val jdbc: JdbcClient) {
                 """,
             ).param("user", user)
             .query { rs, _ ->
-                rs.longOrNull("target")?.let { Triple(rs.getLong("task_id"), rs.getLong("status_id"), it) }
+                rs.uuidOrNull("target")?.let { Triple(rs.uuid("task_id"), rs.uuid("status_id"), it) }
             }.list()
             .filterNotNull()
 

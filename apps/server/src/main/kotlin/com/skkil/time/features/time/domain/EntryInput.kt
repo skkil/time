@@ -1,9 +1,11 @@
 package com.skkil.time.features.time.domain
 
+import java.util.UUID
+
 data class EntryInput(
     val description: String,
-    val projectId: Long?,
-    val taskId: Long?,
+    val projectId: UUID?,
+    val taskId: UUID?,
     val startedAt: Long,
     val endedAt: Long,
 ) {

@@ -1,3 +1,5 @@
 package com.skkil.time.features.tasks.api
 
-data class TasksSomeday(val ids: List<Long>, val someday: Boolean)
+import java.util.UUID
+
+data class TasksSomeday(val ids: List<UUID>, val someday: Boolean)

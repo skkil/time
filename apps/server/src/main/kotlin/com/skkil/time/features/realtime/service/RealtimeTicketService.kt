@@ -1,11 +1,11 @@
 package com.skkil.time.features.realtime.service
 
+import com.skkil.time.common.clock.MutationClock
 import com.skkil.time.features.realtime.domain.Ticket
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.security.SecureRandom
-import java.time.Instant
 import java.util.Base64
 
 /**
@@ -13,7 +13,7 @@ import java.util.Base64
  * They live in Postgres because the handshake may reach a different instance than the one that issued the ticket.
  */
 @Service
-class RealtimeTicketService(private val jdbc: JdbcClient) {
+class RealtimeTicketService(private val jdbc: JdbcClient, private val clock: MutationClock) {
     private val random = SecureRandom()
 
     fun issue(user: Long): Ticket {
@@ -23,7 +23,7 @@ class RealtimeTicketService(private val jdbc: JdbcClient) {
             .sql("INSERT INTO realtime_ticket (ticket, user_id, expires_at) VALUES (:ticket, :user, :expires)")
             .param("ticket", ticket)
             .param("user", user)
-            .param("expires", Instant.now().epochSecond + TTL_SECONDS)
+            .param("expires", clock.now().epochSecond + TTL_SECONDS)
             .update()
         return Ticket(ticket, TTL_SECONDS)
     }
@@ -32,7 +32,7 @@ class RealtimeTicketService(private val jdbc: JdbcClient) {
         jdbc
             .sql("DELETE FROM realtime_ticket WHERE ticket = :ticket AND expires_at > :now RETURNING user_id")
             .param("ticket", ticket)
-            .param("now", Instant.now().epochSecond)
+            .param("now", clock.now().epochSecond)
             .query(Long::class.java)
             .optional()
             .orElse(null)
@@ -41,7 +41,7 @@ class RealtimeTicketService(private val jdbc: JdbcClient) {
     fun sweep() {
         jdbc
             .sql("DELETE FROM realtime_ticket WHERE expires_at <= :now")
-            .param("now", Instant.now().epochSecond)
+            .param("now", clock.now().epochSecond)
             .update()
     }
 

@@ -1,7 +1,9 @@
 package com.skkil.time.security
 
+import com.skkil.time.common.clock.MutationClock
 import com.skkil.time.common.error.DomainException
 import com.skkil.time.common.error.ErrorKind
+import com.skkil.time.common.id.IdGenerator
 import com.skkil.time.common.web.Caller
 import org.springframework.core.MethodParameter
 import org.springframework.security.core.context.SecurityContextHolder
@@ -16,7 +18,11 @@ import java.time.ZoneId
 
 /** Resolves a [Caller] controller parameter from the bearer token, creating the user on first sight. */
 @Component
-class CallerResolver(private val accounts: AccountService) : HandlerMethodArgumentResolver {
+class CallerResolver(
+    private val accounts: AccountService,
+    private val clock: MutationClock,
+    private val ids: IdGenerator,
+) : HandlerMethodArgumentResolver {
     override fun supportsParameter(parameter: MethodParameter) = parameter.parameterType == Caller::class.java
 
     override fun resolveArgument(
@@ -40,7 +46,7 @@ class CallerResolver(private val accounts: AccountService) : HandlerMethodArgume
         val requested =
             webRequest.getHeader(TIME_ZONE_HEADER)?.let { runCatching { ZoneId.of(it) }.getOrNull() }
         if (requested != null && requested != account.zone) accounts.saveZone(account.id, requested)
-        return Caller(account.id, requested ?: account.zone)
+        return Caller(account.id, requested ?: account.zone, clock, ids)
     }
 }
 

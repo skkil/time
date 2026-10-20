@@ -10,11 +10,11 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class UndoTest : TaskApiTest() {
-    private fun capture(vararg ids: Long) = postJson("/api/v1/undo-snapshots", TaskIds(ids.toList())).asLong()
+    private fun capture(vararg ids: UUID) = postJson("/api/v1/undo-snapshots", TaskIds(ids.toList())).asUuid()
 
-    private fun restore(snapshot: Long) = post("/api/v1/undo-snapshots/$snapshot/restore")
+    private fun restore(snapshot: UUID) = post("/api/v1/undo-snapshots/$snapshot/restore")
 
-    private fun count(sql: String, id: Long) = jdbc.sql(sql).param("id", id).query(Int::class.java).single()
+    private fun count(sql: String, id: UUID) = jdbc.sql(sql).param("id", id).query(Int::class.java).single()
 
     @Test
     fun `deleted tasks return with steps, blocks, links and history`() {
@@ -25,7 +25,9 @@ class UndoTest : TaskApiTest() {
         val user = userId()
         val start = 1_793_577_600L
         jdbc
-            .sql("INSERT INTO time_block (user_id, task_id, start_at, end_at) VALUES (:user, :task, :start, :end)")
+            .sql(
+                "INSERT INTO time_block (id, user_id, task_id, start_at, end_at) VALUES (gen_random_uuid(), :user, :task, :start, :end)",
+            )
             .param("user", user)
             .param("task", task)
             .param("start", start)
@@ -35,14 +37,14 @@ class UndoTest : TaskApiTest() {
             jdbc
                 .sql(
                     """
-                    INSERT INTO time_entry (user_id, task_id, started_at, ended_at)
-                    VALUES (:user, :task, :start, :end) RETURNING id
+                    INSERT INTO time_entry (id, user_id, task_id, started_at, ended_at)
+                    VALUES (gen_random_uuid(), :user, :task, :start, :end) RETURNING id
                     """,
                 ).param("user", user)
                 .param("task", task)
                 .param("start", start)
                 .param("end", start + 600)
-                .query(Long::class.java)
+                .query(UUID::class.java)
                 .single()
 
         val snapshot = capture(task)
@@ -52,14 +54,14 @@ class UndoTest : TaskApiTest() {
         restore(snapshot).andExpect { status { isNoContent() } }
 
         assertEquals("Write intro", task(task)["title"].asString())
-        assertEquals(task, task(step).longOrNull("parentId"))
-        assertEquals(listOf(task), task(held).longs("blockedBy"))
+        assertEquals(task, task(step).uuidOrNull("parentId"))
+        assertEquals(listOf(task), task(held).uuids("blockedBy"))
         assertEquals(1, count("SELECT COUNT(*) FROM time_block WHERE task_id = :id", task))
         assertEquals(
             task,
             jdbc.sql(
                 "SELECT task_id FROM time_entry WHERE id = :id",
-            ).param("id", entry).query(Long::class.java).single(),
+            ).param("id", entry).query(UUID::class.java).single(),
         )
         assertEquals(600, task(task)["trackedSeconds"].asLong())
     }
@@ -90,7 +92,7 @@ class UndoTest : TaskApiTest() {
         delete("/api/v1/tasks/$id")
         jdbc
             .sql(
-                "INSERT INTO task (id, user_id, title, created_at) OVERRIDING SYSTEM VALUE VALUES (:id, :user, 'New', 1)",
+                "INSERT INTO task (id, user_id, title, created_at) VALUES (:id, :user, 'New', 1)",
             )
             .param("id", id)
             .param("user", userId())

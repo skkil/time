@@ -1,3 +1,5 @@
 package com.skkil.time.features.workflow.api
 
-data class TaskMilestoneId(val milestoneId: Long?)
+import java.util.UUID
+
+data class TaskMilestoneId(val milestoneId: UUID?)

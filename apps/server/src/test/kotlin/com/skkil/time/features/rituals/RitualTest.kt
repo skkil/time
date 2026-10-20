@@ -75,7 +75,7 @@ class RitualTest : TaskApiTest() {
     @Test
     fun `morning runs once on first open`() {
         disable("weekly")
-        rituals.setPlanningTime(userId(), "morning")
+        rituals.setPlanningTime(caller(), "morning")
         val at = moment("2026-11-03", 8 * 60)
         assertEquals("morning", due(at, RitualEvent.Open))
         val started = rituals.start(caller(), "morning", at, null)
@@ -94,12 +94,14 @@ class RitualTest : TaskApiTest() {
     @Test
     fun `evening follows the clock or the last block`() {
         disable("weekly")
-        rituals.setPlanningTime(userId(), "evening")
+        rituals.setPlanningTime(caller(), "evening")
         val day = "2026-11-03"
         assertNull(due(moment(day, 16 * 60), RitualEvent.Tick))
         val task = create(input("Write")).id()
         jdbc
-            .sql("INSERT INTO time_block (user_id, task_id, start_at, end_at) VALUES (:user, :task, :from, :to)")
+            .sql(
+                "INSERT INTO time_block (id, user_id, task_id, start_at, end_at) VALUES (gen_random_uuid(), :user, :task, :from, :to)",
+            )
             .param("user", userId())
             .param("task", task)
             .param("from", moment(day, 14 * 60).stamp)
@@ -127,7 +129,9 @@ class RitualTest : TaskApiTest() {
         assertEquals("weekly", due(monday, RitualEvent.Open))
         assertNull(due(tuesday, RitualEvent.Open))
         jdbc
-            .sql("INSERT INTO week (user_id, start_date, reviewed_at) VALUES (:user, '2026-10-26', 1)")
+            .sql(
+                "INSERT INTO week (id, user_id, start_date, reviewed_at) VALUES (gen_random_uuid(), :user, '2026-10-26', 1)",
+            )
             .param("user", userId())
             .update()
         assertNull(due(monday, RitualEvent.Open))
@@ -165,15 +169,15 @@ class RitualTest : TaskApiTest() {
 
         val task = create(input("Write")).id()
         val run = postJson("/api/v1/rituals/session/runs", RitualTask(task))
-        assertEquals(task, run.longOrNull("taskId"))
+        assertEquals(task, run.uuidOrNull("taskId"))
         val id = run.id()
         assertEquals(2, putJson("/api/v1/ritual-runs/$id/step", RitualStep(2))["step"].asInt())
         assertEquals(2, putJson("/api/v1/ritual-runs/$id/step", RitualStep(1))["step"].asInt())
-        assertTrue(postJson("/api/v1/ritual-runs/$id/snooze").longOrNull("snoozedUntil") != null)
+        assertTrue(!postJson("/api/v1/ritual-runs/$id/snooze")["snoozedUntil"].isNull)
         expectProblem(post("/api/v1/ritual-runs/$id/snooze"), 422, "invalid")
         assertTrue(postJson("/api/v1/ritual-runs/$id/skip")["skipped"].asBoolean())
-        val finished = postJson("/api/v1/ritual-runs/$id/finish").longOrNull("finishedAt")
-        assertEquals(finished, postJson("/api/v1/ritual-runs/$id/finish").longOrNull("finishedAt"))
+        val finished = postJson("/api/v1/ritual-runs/$id/finish")["finishedAt"].asLong()
+        assertEquals(finished, postJson("/api/v1/ritual-runs/$id/finish")["finishedAt"].asLong())
         expectProblem(post("/api/v1/ritual-runs/$id/skip"), 404, "notFound")
 
         val today = run["date"].asString()

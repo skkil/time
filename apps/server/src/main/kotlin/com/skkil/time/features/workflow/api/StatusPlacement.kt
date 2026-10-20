@@ -1,3 +1,5 @@
 package com.skkil.time.features.workflow.api
 
-data class StatusPlacement(val before: Long?)
+import java.util.UUID
+
+data class StatusPlacement(val before: UUID?)

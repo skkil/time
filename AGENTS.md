@@ -275,9 +275,20 @@ cargo clippy --all-targets
 - Package by feature, layered inside: `features/<domain>/{api,service,
   repository,domain}` (only the layers a feature needs), one top-level class
   per file named after it. Shared code lives in `config/`, `security/` and
-  `common/{error,web,persistence,text}`; see the server README's "Code layout".
-- Controllers take a `Caller` (user id + time zone from `X-Time-Zone`); use
-  `caller.now()`/`caller.today()` wherever desktop uses local time.
+  `common/{error,web,persistence,text,clock,id}`; see the server README's
+  "Code layout".
+- Synced ids are UUIDs (UUIDv7 from `IdGenerator`; `app_user.id` stays bigint
+  and `app_user.scope_id` is the store scope). New rows take
+  `caller.nextId()`, and create methods accept an explicit `id`; an id that
+  already exists anywhere is a `conflict`.
+- Controllers take a `Caller` (user id + time zone from `X-Time-Zone`, plus the
+  `MutationClock` and `IdGenerator` of the operation); use
+  `caller.now()`/`caller.today()` wherever desktop uses local time, never
+  `Instant.now()` (a test enforces it).
+- Every contract write command is registered in `features/mutations`
+  (`MutationDispatcher.dispatch(caller, name, args, clock, idSource)`), for
+  store's Push handler; a new write command needs a line in its feature's
+  `MutationSet` or `DeviceOnlyCommands`, or `MutationCoverageTest` fails.
 - Auth is an OAuth2 resource server only (`AUTH_ISSUER_URI`, `AUTH_AUDIENCE`);
   users are `user_identity (issuer, subject)` → `app_user`. Errors are RFC 9457
   problem details with a `kind` matching the desktop `Error`.

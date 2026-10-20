@@ -6,6 +6,8 @@ import com.skkil.time.common.error.invalid
 import com.skkil.time.common.error.orNotFound
 import com.skkil.time.common.persistence.intOrNull
 import com.skkil.time.common.persistence.longOrNull
+import com.skkil.time.common.persistence.uuid
+import com.skkil.time.common.persistence.uuidOrNull
 import com.skkil.time.common.text.optionalText
 import com.skkil.time.common.text.requiredText
 import com.skkil.time.common.web.Caller
@@ -22,6 +24,7 @@ import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.util.UUID
 
 /** Day check-ins, weeks with their guided review, and weekly outcomes. */
 @Service
@@ -53,10 +56,11 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
         jdbc
             .sql(
                 """
-                INSERT INTO day (user_id, date, felt) VALUES (:user, :date, :felt)
+                INSERT INTO day (id, user_id, date, felt) VALUES (:id, :user, :date, :felt)
                 ON CONFLICT (user_id, date) DO UPDATE SET felt = excluded.felt, skipped = FALSE
                 """,
-            ).param("user", caller.id)
+            ).param("id", caller.nextId())
+            .param("user", caller.id)
             .param("date", date)
             .param("felt", felt)
             .update()
@@ -68,23 +72,25 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
         jdbc
             .sql(
                 """
-                INSERT INTO day (user_id, date, reflection) VALUES (:user, :date, :note)
+                INSERT INTO day (id, user_id, date, reflection) VALUES (:id, :user, :date, :note)
                 ON CONFLICT (user_id, date) DO UPDATE SET reflection = excluded.reflection
                 """,
-            ).param("user", caller.id)
+            ).param("id", caller.nextId())
+            .param("user", caller.id)
             .param("date", date)
             .param("note", text)
             .update()
     }
 
-    fun skipDay(user: Long, date: LocalDate) {
+    fun skipDay(caller: Caller, date: LocalDate) {
         jdbc
             .sql(
                 """
-                INSERT INTO day (user_id, date, skipped) VALUES (:user, :date, TRUE)
+                INSERT INTO day (id, user_id, date, skipped) VALUES (:id, :user, :date, TRUE)
                 ON CONFLICT (user_id, date) DO UPDATE SET skipped = TRUE
                 """,
-            ).param("user", user)
+            ).param("id", caller.nextId())
+            .param("user", caller.id)
             .param("date", date)
             .update()
     }
@@ -122,17 +128,18 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
             .map { summary(caller, it) }
             .toList()
 
-    fun saveNotes(user: Long, date: LocalDate, notes: WeekNotes) {
+    fun saveNotes(caller: Caller, date: LocalDate, notes: WeekNotes) {
         fun text(value: String) = optionalText(value, "Reflection", 2_000)
         jdbc
             .sql(
                 """
-                INSERT INTO week (user_id, start_date, worked, fell_short, change)
-                VALUES (:user, :start, :worked, :fellShort, :change)
+                INSERT INTO week (id, user_id, start_date, worked, fell_short, change)
+                VALUES (:id, :user, :start, :worked, :fellShort, :change)
                 ON CONFLICT (user_id, start_date) DO UPDATE SET
                   worked = excluded.worked, fell_short = excluded.fell_short, change = excluded.change
                 """,
-            ).param("user", user)
+            ).param("id", caller.nextId())
+            .param("user", caller.id)
             .param("start", date.monday())
             .param("worked", text(notes.worked))
             .param("fellShort", text(notes.fellShort))
@@ -140,19 +147,19 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
             .update()
     }
 
-    fun setWeekFelt(user: Long, date: LocalDate, felt: Int) {
+    fun setWeekFelt(caller: Caller, date: LocalDate, felt: Int) {
         checkFelt(felt)
-        updateWeek(user, date, "felt = :value", felt)
+        updateWeek(caller, date, "felt = :value", felt)
     }
 
-    fun setWeekStep(user: Long, date: LocalDate, step: Int) {
+    fun setWeekStep(caller: Caller, date: LocalDate, step: Int) {
         ensure(step in 0..LAST_STEP) { "That review step doesn't exist." }
-        updateWeek(user, date, "step = GREATEST(step, :value)", step)
+        updateWeek(caller, date, "step = GREATEST(step, :value)", step)
     }
 
     fun finishWeek(caller: Caller, date: LocalDate) {
         val start = date.monday()
-        ensureWeek(caller.id, start)
+        ensureWeek(caller, start)
         jdbc
             .sql(
                 """
@@ -166,20 +173,20 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
             .update()
     }
 
-    fun addOutcome(user: Long, date: LocalDate, title: String, priorityId: Long?) {
+    fun addOutcome(caller: Caller, date: LocalDate, title: String, priorityId: UUID?, id: UUID? = null) {
         val text = requiredText(title, "Outcome", 200)
-        priorityId?.let { ensurePriority(user, it) }
-        insertOutcome(user, date.monday(), text, priorityId, null)
+        priorityId?.let { ensurePriority(caller.id, it) }
+        insertOutcome(caller, date.monday(), text, priorityId, null, id)
     }
 
-    fun renameOutcome(user: Long, id: Long, title: String, priorityId: Long?) {
+    fun renameOutcome(user: Long, id: UUID, title: String, priorityId: UUID?) {
         val text = requiredText(title, "Outcome", 200)
         priorityId?.let { ensurePriority(user, it) }
         val rows =
             jdbc
                 .sql(
                     """
-                    UPDATE outcome SET title = :title, priority_id = CAST(:priority AS BIGINT)
+                    UPDATE outcome SET title = :title, priority_id = CAST(:priority AS UUID)
                     WHERE user_id = :user AND id = :id
                     """,
                 ).param("title", text)
@@ -190,7 +197,8 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
         ensureChanged(rows, "Outcome")
     }
 
-    fun setOutcomeStatus(user: Long, id: Long, status: OutcomeStatus) {
+    fun setOutcomeStatus(caller: Caller, id: UUID, status: OutcomeStatus) {
+        val user = caller.id
         val (start, current) =
             jdbc
                 .sql("SELECT week_start, status FROM outcome WHERE user_id = :user AND id = :id")
@@ -210,7 +218,7 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
             ensure(timesCarried(user, id) < MAX_CARRIES) {
                 "Carried twice already. Shrink it, give it a new date, or drop it."
             }
-            carry(user, id, start)
+            carry(caller, id, start)
         }
         jdbc
             .sql("UPDATE outcome SET status = :status WHERE user_id = :user AND id = :id")
@@ -220,7 +228,7 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
             .update()
     }
 
-    fun deleteOutcome(user: Long, id: Long) {
+    fun deleteOutcome(user: Long, id: UUID) {
         val rows =
             jdbc
                 .sql("DELETE FROM outcome WHERE user_id = :user AND id = :id")
@@ -250,11 +258,11 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
             .param("start", start)
             .query { rs, _ ->
                 Outcome(
-                    rs.getLong("id"),
+                    rs.uuid("id"),
                     rs.getString("title"),
                     OutcomeStatus.parse(rs.getString("status")),
-                    rs.longOrNull("priority_id"),
-                    rs.longOrNull("carried_from"),
+                    rs.uuidOrNull("priority_id"),
+                    rs.uuidOrNull("carried_from"),
                     0,
                     rs.getInt("total"),
                     rs.getInt("done"),
@@ -263,7 +271,7 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
             }.list()
             .map { it.copy(timesCarried = timesCarried(caller.id, it.id)) }
 
-    private fun timesCarried(user: Long, id: Long): Int =
+    private fun timesCarried(user: Long, id: UUID): Int =
         jdbc
             .sql(
                 """
@@ -331,32 +339,35 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
             }.single()
     }
 
-    private fun updateWeek(user: Long, date: LocalDate, assignment: String, value: Int) {
+    private fun updateWeek(caller: Caller, date: LocalDate, assignment: String, value: Int) {
         val start = date.monday()
-        ensureWeek(user, start)
+        ensureWeek(caller, start)
         jdbc
             .sql("UPDATE week SET $assignment WHERE user_id = :user AND start_date = :start")
             .param("value", value)
-            .param("user", user)
+            .param("user", caller.id)
             .param("start", start)
             .update()
     }
 
-    private fun ensureWeek(user: Long, start: LocalDate) {
+    private fun ensureWeek(caller: Caller, start: LocalDate) {
         jdbc
-            .sql("INSERT INTO week (user_id, start_date) VALUES (:user, :start) ON CONFLICT DO NOTHING")
-            .param("user", user)
+            .sql(
+                "INSERT INTO week (id, user_id, start_date) VALUES (:id, :user, :start) " +
+                    "ON CONFLICT (user_id, start_date) DO NOTHING",
+            ).param("id", caller.nextId())
+            .param("user", caller.id)
             .param("start", start)
             .update()
     }
 
-    private fun openOutcomes(user: Long, start: LocalDate, except: Long?): Int =
+    private fun openOutcomes(user: Long, start: LocalDate, except: UUID?): Int =
         jdbc
             .sql(
                 """
                 SELECT COUNT(*) FROM outcome
                 WHERE user_id = :user AND week_start = :start AND status = 'open'
-                  AND id IS DISTINCT FROM CAST(:except AS BIGINT)
+                  AND id IS DISTINCT FROM CAST(:except AS UUID)
                 """,
             ).param("user", user)
             .param("start", start)
@@ -365,39 +376,42 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
             .single()
 
     private fun insertOutcome(
-        user: Long,
+        caller: Caller,
         start: LocalDate,
         title: String,
-        priorityId: Long?,
-        carriedFrom: Long?,
-    ): Long {
-        if (openOutcomes(user, start, null) >= MAX_OPEN_OUTCOMES) invalid(TOO_MANY_OUTCOMES)
-        ensureWeek(user, start)
-        return jdbc
+        priorityId: UUID?,
+        carriedFrom: UUID?,
+        id: UUID? = null,
+    ): UUID {
+        if (openOutcomes(caller.id, start, null) >= MAX_OPEN_OUTCOMES) invalid(TOO_MANY_OUTCOMES)
+        ensureWeek(caller, start)
+        val id = id ?: caller.nextId()
+        jdbc
             .sql(
                 """
-                INSERT INTO outcome (user_id, week_start, title, priority_id, carried_from)
-                VALUES (:user, :start, :title, CAST(:priority AS BIGINT), CAST(:carriedFrom AS BIGINT))
-                RETURNING id
+                INSERT INTO outcome (id, user_id, week_start, title, priority_id, carried_from)
+                VALUES (:id, :user, :start, :title, CAST(:priority AS UUID), CAST(:carriedFrom AS UUID))
                 """,
-            ).param("user", user)
+            ).param("id", id)
+            .param("user", caller.id)
             .param("start", start)
             .param("title", title)
             .param("priority", priorityId)
             .param("carriedFrom", carriedFrom)
-            .query(Long::class.java)
-            .single()
+            .update()
+        return id
     }
 
-    private fun carry(user: Long, id: Long, start: LocalDate) {
+    private fun carry(caller: Caller, id: UUID, start: LocalDate) {
+        val user = caller.id
         val (title, priorityId) =
             jdbc
                 .sql("SELECT title, priority_id FROM outcome WHERE user_id = :user AND id = :id")
                 .param("user", user)
                 .param("id", id)
-                .query { rs, _ -> rs.getString("title") to rs.longOrNull("priority_id") }
+                .query { rs, _ -> rs.getString("title") to rs.uuidOrNull("priority_id") }
                 .single()
-        val next = insertOutcome(user, start.plusDays(7), title, priorityId, id)
+        val next = insertOutcome(caller, start.plusDays(7), title, priorityId, id)
         jdbc
             .sql(
                 """
@@ -410,13 +424,13 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
             .update()
     }
 
-    private fun uncarry(user: Long, id: Long) {
+    private fun uncarry(user: Long, id: UUID) {
         val next =
             jdbc
                 .sql("SELECT id FROM outcome WHERE user_id = :user AND carried_from = :id")
                 .param("user", user)
                 .param("id", id)
-                .query(Long::class.java)
+                .query(UUID::class.java)
                 .optional()
                 .orElse(null) ?: return
         jdbc
@@ -432,12 +446,12 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
             .update()
     }
 
-    private fun ensurePriority(user: Long, id: Long) {
+    private fun ensurePriority(user: Long, id: UUID) {
         jdbc
             .sql("SELECT id FROM priority WHERE user_id = :user AND id = :id")
             .param("user", user)
             .param("id", id)
-            .query(Long::class.java)
+            .query(UUID::class.java)
             .optional()
             .orElse(null)
             .orNotFound("Priority")

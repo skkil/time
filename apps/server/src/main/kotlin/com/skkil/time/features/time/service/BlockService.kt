@@ -4,6 +4,8 @@ import com.skkil.time.common.error.ensure
 import com.skkil.time.common.error.ensureChanged
 import com.skkil.time.common.error.orNotFound
 import com.skkil.time.common.persistence.longOrNull
+import com.skkil.time.common.persistence.uuid
+import com.skkil.time.common.persistence.uuidOrNull
 import com.skkil.time.common.web.Caller
 import com.skkil.time.features.tasks.service.TaskService
 import com.skkil.time.features.time.domain.BlockSpan
@@ -14,6 +16,7 @@ import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.util.UUID
 
 /** Planned spans for a task on the schedule grid. */
 @Service
@@ -29,26 +32,26 @@ class BlockService(private val jdbc: JdbcClient, private val tasks: TaskService)
             .query(mapper)
             .list()
 
-    fun create(user: Long, taskId: Long, span: BlockSpan): TimeBlock {
+    fun create(caller: Caller, taskId: UUID, span: BlockSpan, id: UUID? = null): TimeBlock {
         validate(span)
-        tasks.get(user, taskId)
-        val id =
-            jdbc
-                .sql(
-                    """
-                    INSERT INTO time_block (user_id, task_id, start_at, end_at) VALUES (:user, :task, :start, :end)
-                    RETURNING id
-                    """,
-                ).param("user", user)
-                .param("task", taskId)
-                .param("start", span.startAt)
-                .param("end", span.endAt)
-                .query(Long::class.java)
-                .single()
-        return get(user, id)
+        tasks.get(caller.id, taskId)
+        val id = id ?: caller.nextId()
+        jdbc
+            .sql(
+                """
+                INSERT INTO time_block (id, user_id, task_id, start_at, end_at)
+                VALUES (:id, :user, :task, :start, :end)
+                """,
+            ).param("id", id)
+            .param("user", caller.id)
+            .param("task", taskId)
+            .param("start", span.startAt)
+            .param("end", span.endAt)
+            .update()
+        return get(caller.id, id)
     }
 
-    fun reschedule(user: Long, id: Long, span: BlockSpan): TimeBlock {
+    fun reschedule(user: Long, id: UUID, span: BlockSpan): TimeBlock {
         validate(span)
         val rows =
             jdbc
@@ -62,7 +65,7 @@ class BlockService(private val jdbc: JdbcClient, private val tasks: TaskService)
         return get(user, id)
     }
 
-    fun delete(user: Long, id: Long) {
+    fun delete(user: Long, id: UUID) {
         val rows =
             jdbc
                 .sql("DELETE FROM time_block WHERE user_id = :user AND id = :id")
@@ -72,7 +75,7 @@ class BlockService(private val jdbc: JdbcClient, private val tasks: TaskService)
         ensureChanged(rows, "Time block")
     }
 
-    private fun get(user: Long, id: Long): TimeBlock =
+    private fun get(user: Long, id: UUID): TimeBlock =
         jdbc
             .sql("$SELECT WHERE b.user_id = :user AND b.id = :id")
             .param("user", user)
@@ -100,10 +103,10 @@ class BlockService(private val jdbc: JdbcClient, private val tasks: TaskService)
         val mapper =
             RowMapper { rs, _ ->
                 TimeBlock(
-                    rs.getLong("id"),
-                    rs.getLong("task_id"),
+                    rs.uuid("id"),
+                    rs.uuid("task_id"),
                     rs.getString("title"),
-                    rs.longOrNull("project_id"),
+                    rs.uuidOrNull("project_id"),
                     rs.getInt("priority"),
                     rs.getBoolean("completed"),
                     rs.getLong("start_at"),

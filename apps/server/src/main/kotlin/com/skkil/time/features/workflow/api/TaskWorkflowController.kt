@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1")
@@ -21,28 +22,28 @@ class TaskWorkflowController(private val items: TaskWorkflowService) {
     @PutMapping("/tasks/{id}/type")
     fun setType(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: TaskTypeId,
     ): Task = items.setType(caller, id, body.typeId)
 
     @PutMapping("/tasks/{id}/status")
     fun setStatus(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: TaskStatusId,
     ): Task = items.setStatus(caller, id, body.statusId)
 
     @PutMapping("/tasks/{id}/milestone")
     fun setMilestone(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: TaskMilestoneId,
     ): Task = items.setMilestone(caller.id, id, body.milestoneId)
 
     @PutMapping("/tasks/{id}/event-details")
     fun setEventDetails(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: TaskEventDetails,
     ): Task = items.setEventDetails(caller.id, id, body.location, body.countsAsTime)
 
