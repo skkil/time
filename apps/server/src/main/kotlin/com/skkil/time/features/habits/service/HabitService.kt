@@ -6,6 +6,8 @@ import com.skkil.time.common.error.invalid
 import com.skkil.time.common.error.orNotFound
 import com.skkil.time.common.persistence.date
 import com.skkil.time.common.persistence.longOrNull
+import com.skkil.time.common.persistence.uuid
+import com.skkil.time.common.persistence.uuidOrNull
 import com.skkil.time.common.text.optionalText
 import com.skkil.time.common.text.requiredText
 import com.skkil.time.common.web.Caller
@@ -25,6 +27,7 @@ import java.sql.ResultSet
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
+import java.util.UUID
 
 private val KINDS = setOf("build", "quit", "limit")
 private val UNITS = setOf("times", "minutes")
@@ -59,16 +62,17 @@ private data class Valid(
 @Transactional
 class HabitService(private val jdbc: JdbcClient, private val projects: ProjectService) {
     @Transactional(readOnly = true)
-    fun get(caller: Caller, id: Long): Habit = withStats(caller, find(caller.id, id).orNotFound("Habit"))
+    fun get(caller: Caller, id: UUID): Habit = withStats(caller, find(caller.id, id).orNotFound("Habit"))
 
     @Transactional(readOnly = true)
     fun list(caller: Caller): List<Habit> = active(caller.id).map { withStats(caller, it) }
 
-    fun create(caller: Caller, input: HabitInput): Habit = get(caller, write(caller.id, null, input))
+    fun create(caller: Caller, input: HabitInput, id: UUID? = null): Habit =
+        get(caller, write(caller.id, id ?: caller.nextId(), input, creating = true))
 
-    fun update(caller: Caller, id: Long, input: HabitInput): Habit {
+    fun update(caller: Caller, id: UUID, input: HabitInput): Habit {
         val before = get(caller, id)
-        write(caller.id, id, input)
+        write(caller.id, id, input, creating = false)
         if (before.tracking != get(caller, id).tracking) {
             jdbc
                 .sql("DELETE FROM habit_log WHERE habit_id = :id AND source = 'auto' AND status IS NULL")
@@ -78,7 +82,7 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
         return get(caller, id)
     }
 
-    fun archive(user: Long, id: Long) {
+    fun archive(user: Long, id: UUID) {
         val rows =
             jdbc
                 .sql("UPDATE habit SET archived = TRUE WHERE user_id = :user AND id = :id")
@@ -103,7 +107,7 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
                 .param("from", from)
                 .param("to", to)
                 .query { rs, _ ->
-                    (rs.getLong("habit_id") to rs.date("date")) to (log(rs) to (rs.getString("source") == "manual"))
+                    (rs.uuid("habit_id") to rs.date("date")) to (log(rs) to (rs.getString("source") == "manual"))
                 }.list()
                 .toMap()
         return active(caller.id).flatMap { habit ->
@@ -121,22 +125,23 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
         }
     }
 
-    fun setStatus(caller: Caller, habitId: Long, date: LocalDate, status: ManualStatus?) {
+    fun setStatus(caller: Caller, habitId: UUID, date: LocalDate, status: ManualStatus?) {
         ensureLoggable(caller, date)
         get(caller, habitId)
         jdbc
             .sql(
                 """
-                INSERT INTO habit_log (habit_id, date, status) VALUES (:habit, :date, CAST(:status AS TEXT))
+                INSERT INTO habit_log (id, habit_id, date, status) VALUES (:id, :habit, :date, CAST(:status AS TEXT))
                 ON CONFLICT (habit_id, date) DO UPDATE SET status = excluded.status
                 """,
-            ).param("habit", habitId)
+            ).param("id", caller.nextId())
+            .param("habit", habitId)
             .param("date", date)
             .param("status", status?.value)
             .update()
     }
 
-    fun addValue(caller: Caller, habitId: Long, date: LocalDate, delta: Double?) {
+    fun addValue(caller: Caller, habitId: UUID, date: LocalDate, delta: Double?) {
         ensureLoggable(caller, date)
         val habit = get(caller, habitId)
         ensure(habit.tracking == null) { "This habit is tracked automatically." }
@@ -144,10 +149,11 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
         jdbc
             .sql(
                 """
-                INSERT INTO habit_log (habit_id, date, value) VALUES (:habit, :date, GREATEST(0, :delta))
+                INSERT INTO habit_log (id, habit_id, date, value) VALUES (:id, :habit, :date, GREATEST(0, :delta))
                 ON CONFLICT (habit_id, date) DO UPDATE SET value = GREATEST(0, habit_log.value + :delta)
                 """,
-            ).param("habit", habitId)
+            ).param("id", caller.nextId())
+            .param("habit", habitId)
             .param("date", date)
             .param("delta", delta)
             .update()
@@ -163,14 +169,14 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
         tracked.forEach { habit ->
             val projectId = habit.tracking?.projectId ?: return@forEach
             syncWindow(habit, today).forEach { day ->
-                recordAuto(habit.id, day, projectMinutes(caller, projectId, day))
+                recordAuto(caller, habit.id, day, projectMinutes(caller, projectId, day))
             }
         }
         val watched = tracked.any { it.tracking?.source != "project" }
         return SyncReport(if (watched) TrackerState.UNREACHABLE else TrackerState.NOT_NEEDED, false, false, null)
     }
 
-    private fun find(user: Long, id: Long): Habit? =
+    private fun find(user: Long, id: UUID): Habit? =
         jdbc
             .sql("$SELECT WHERE user_id = :user AND id = :id")
             .param("user", user)
@@ -189,7 +195,7 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
     private fun habit(rs: ResultSet): Habit {
         val source = rs.getString("track_source")
         return Habit(
-            id = rs.getLong("id"),
+            id = rs.uuid("id"),
             name = rs.getString("name"),
             kind = rs.getString("kind"),
             goal = rs.getDouble("goal"),
@@ -203,7 +209,7 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
                     Tracking(
                         it,
                         rs.getString("track_patterns").split('\n').filter(String::isNotEmpty),
-                        rs.longOrNull("track_project_id"),
+                        rs.uuidOrNull("track_project_id"),
                     )
                 },
             skipDays = rs.getInt("skip_days"),
@@ -216,7 +222,7 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
 
     private fun log(rs: ResultSet) = Log(rs.getString("status"), rs.getDouble("value"))
 
-    private fun logsFor(habitId: Long): Map<LocalDate, Log> =
+    private fun logsFor(habitId: UUID): Map<LocalDate, Log> =
         jdbc
             .sql("SELECT date, status, value FROM habit_log WHERE habit_id = :habit")
             .param("habit", habitId)
@@ -314,7 +320,7 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
         return Valid(name, goal, unit, area, anchor, tracking)
     }
 
-    private fun write(user: Long, id: Long?, input: HabitInput): Long {
+    private fun write(user: Long, id: UUID, input: HabitInput, creating: Boolean): UUID {
         val valid = validate(user, input)
         val params =
             mapOf(
@@ -334,20 +340,19 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
                 "skipDays" to input.skipDays,
                 "anchor" to valid.anchor,
             )
-        if (id == null) {
-            return jdbc
+        if (creating) {
+            jdbc
                 .sql(
                     """
-                    INSERT INTO habit (user_id, name, kind, goal, unit, days, time_of_day, area, start_date,
+                    INSERT INTO habit (id, user_id, name, kind, goal, unit, days, time_of_day, area, start_date,
                                        track_source, track_patterns, track_project_id, skip_days, anchor, position)
-                    VALUES (:user, :name, :kind, :goal, :unit, :days, :timeOfDay, :area, :startDate,
-                            CAST(:source AS TEXT), :patterns, CAST(:projectId AS BIGINT), :skipDays, :anchor,
+                    VALUES (:id, :user, :name, :kind, :goal, :unit, :days, :timeOfDay, :area, :startDate,
+                            CAST(:source AS TEXT), :patterns, CAST(:projectId AS UUID), :skipDays, :anchor,
                             (SELECT COALESCE(MAX(position), 0) + 1 FROM habit WHERE user_id = :user))
-                    RETURNING id
                     """,
                 ).params(params)
-                .query(Long::class.java)
-                .single()
+                .update()
+            return id
         }
         val rows =
             jdbc
@@ -356,7 +361,7 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
                     UPDATE habit SET name = :name, kind = :kind, goal = :goal, unit = :unit, days = :days,
                                      time_of_day = :timeOfDay, area = :area, start_date = :startDate,
                                      track_source = CAST(:source AS TEXT), track_patterns = :patterns,
-                                     track_project_id = CAST(:projectId AS BIGINT), skip_days = :skipDays,
+                                     track_project_id = CAST(:projectId AS UUID), skip_days = :skipDays,
                                      anchor = :anchor
                     WHERE user_id = :user AND id = :id
                     """,
@@ -370,21 +375,22 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
         ensure(date <= caller.today()) { "Habits can't be logged ahead of time." }
     }
 
-    private fun recordAuto(habitId: Long, date: LocalDate, value: Double) {
+    private fun recordAuto(caller: Caller, habitId: UUID, date: LocalDate, value: Double) {
         jdbc
             .sql(
                 """
-                INSERT INTO habit_log (habit_id, date, value, source) VALUES (:habit, :date, :value, 'auto')
+                INSERT INTO habit_log (id, habit_id, date, value, source) VALUES (:id, :habit, :date, :value, 'auto')
                 ON CONFLICT (habit_id, date) DO UPDATE SET value = excluded.value,
                   source = CASE WHEN habit_log.status IS NULL THEN 'auto' ELSE habit_log.source END
                 """,
-            ).param("habit", habitId)
+            ).param("id", caller.nextId())
+            .param("habit", habitId)
             .param("date", date)
             .param("value", value)
             .update()
     }
 
-    private fun projectMinutes(caller: Caller, projectId: Long, day: LocalDate): Double {
+    private fun projectMinutes(caller: Caller, projectId: UUID, day: LocalDate): Double {
         val seconds =
             jdbc
                 .sql(

@@ -1,3 +1,5 @@
 package com.skkil.time.features.records.domain
 
-data class RecordPhase(val statusId: Long, val notes: String)
+import java.util.UUID
+
+data class RecordPhase(val statusId: UUID, val notes: String)

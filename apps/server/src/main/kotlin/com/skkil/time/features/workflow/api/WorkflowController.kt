@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1")
@@ -38,29 +39,29 @@ class WorkflowController(private val workflow: WorkflowService) {
     @GetMapping("/projects/{id}/preset")
     fun exportPreset(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ): Preset = workflow.exportPreset(caller.id, id)
 
     @PutMapping("/projects/{id}/preset")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun applyPreset(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody preset: Preset,
-    ) = workflow.applyPreset(caller.id, id, preset)
+    ) = workflow.applyPreset(caller, id, preset)
 
     @PostMapping("/projects/{id}/item-types")
     fun createType(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody input: ItemTypeInput,
-    ): Long = workflow.createType(caller.id, id, input)
+    ): UUID = workflow.createType(caller, id, input)
 
     @PutMapping("/item-types/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateType(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody input: ItemTypeInput,
     ) = workflow.updateType(caller.id, id, input)
 
@@ -68,22 +69,22 @@ class WorkflowController(private val workflow: WorkflowService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteType(
         caller: Caller,
-        @PathVariable id: Long,
-        @RequestParam(required = false) replacement: Long?,
+        @PathVariable id: UUID,
+        @RequestParam(required = false) replacement: UUID?,
     ) = workflow.deleteType(caller.id, id, replacement)
 
     @PostMapping("/projects/{id}/item-statuses")
     fun createStatus(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody input: StatusInput,
-    ): Long = workflow.createStatus(caller.id, id, input)
+    ): UUID = workflow.createStatus(caller, id, input)
 
     @PutMapping("/item-statuses/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateStatus(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody input: StatusInput,
     ) = workflow.updateStatus(caller, id, input)
 
@@ -91,7 +92,7 @@ class WorkflowController(private val workflow: WorkflowService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun reorderStatus(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: StatusPlacement,
     ) = workflow.reorderStatus(caller.id, id, body.before)
 
@@ -99,22 +100,22 @@ class WorkflowController(private val workflow: WorkflowService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteStatus(
         caller: Caller,
-        @PathVariable id: Long,
-        @RequestParam(required = false) replacement: Long?,
+        @PathVariable id: UUID,
+        @RequestParam(required = false) replacement: UUID?,
     ) = workflow.deleteStatus(caller, id, replacement)
 
     @PostMapping("/projects/{id}/milestones")
     fun createMilestone(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody input: MilestoneInput,
-    ): Long = workflow.createMilestone(caller.id, id, input)
+    ): UUID = workflow.createMilestone(caller, id, input)
 
     @PutMapping("/milestones/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateMilestone(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody input: MilestoneInput,
     ) = workflow.updateMilestone(caller.id, id, input)
 
@@ -122,29 +123,29 @@ class WorkflowController(private val workflow: WorkflowService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteMilestone(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ) = workflow.deleteMilestone(caller.id, id)
 
     @PutMapping("/projects/{id}/milestone-label")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun setMilestoneLabel(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: MilestoneLabel,
     ) = workflow.setMilestoneLabel(caller.id, id, body.label)
 
     @PostMapping("/projects/{id}/saved-views")
     fun createView(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody input: ViewInput,
-    ): Long = workflow.createView(caller.id, id, input)
+    ): UUID = workflow.createView(caller, id, input)
 
     @PutMapping("/saved-views/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateView(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody input: ViewInput,
     ) = workflow.updateView(caller.id, id, input)
 
@@ -152,6 +153,6 @@ class WorkflowController(private val workflow: WorkflowService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteView(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ) = workflow.deleteView(caller.id, id)
 }

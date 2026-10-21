@@ -22,6 +22,7 @@ import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.util.UUID
 
 /**
  * Todoist-shaped tasks. Sub-tasks nest to any depth and follow their parent's project and section; completing,
@@ -40,37 +41,36 @@ class TaskService(
     private data class Valid(val title: String, val notes: String, val container: Container, val recurrence: String?)
 
     @Transactional(readOnly = true)
-    fun get(user: Long, id: Long): Task = tasks.get(user, id)
+    fun get(user: Long, id: UUID): Task = tasks.get(user, id)
 
     @Transactional(readOnly = true)
     fun list(caller: Caller): List<Task> =
         tasks.list(caller.id, caller.now() - TaskRules.COMPLETED_HISTORY_DAYS * TaskRules.DAY_SECONDS)
 
-    fun create(caller: Caller, input: TaskInput): Task {
+    fun create(caller: Caller, input: TaskInput, id: UUID? = null): Task {
         val first = onFirstOccurrence(input, caller.today())
         val valid = validate(caller.id, null, first)
-        val id =
-            jdbc
-                .sql(
-                    """
-                    INSERT INTO task (user_id, title, notes, priority, due_date, due_time, deadline, recurrence,
-                                      estimate_minutes, created_at)
-                    VALUES (:user, :title, :notes, :priority, :dueDate, :dueTime, :deadline, :recurrence,
-                            :estimate, :now)
-                    RETURNING id
-                    """,
-                ).param("user", caller.id)
-                .param("title", valid.title)
-                .param("notes", valid.notes)
-                .param("priority", first.priority)
-                .param("dueDate", first.dueDate)
-                .param("dueTime", first.dueTime)
-                .param("deadline", first.deadline)
-                .param("recurrence", valid.recurrence)
-                .param("estimate", first.estimateMinutes)
-                .param("now", caller.now())
-                .query(Long::class.java)
-                .single()
+        val id = id ?: caller.nextId()
+        jdbc
+            .sql(
+                """
+                INSERT INTO task (id, user_id, title, notes, priority, due_date, due_time, deadline, recurrence,
+                                  estimate_minutes, created_at)
+                VALUES (:id, :user, :title, :notes, :priority, :dueDate, :dueTime, :deadline, :recurrence,
+                        :estimate, :now)
+                """,
+            ).param("id", id)
+            .param("user", caller.id)
+            .param("title", valid.title)
+            .param("notes", valid.notes)
+            .param("priority", first.priority)
+            .param("dueDate", first.dueDate)
+            .param("dueTime", first.dueTime)
+            .param("deadline", first.deadline)
+            .param("recurrence", valid.recurrence)
+            .param("estimate", first.estimateMinutes)
+            .param("now", caller.now())
+            .update()
         place(caller.id, id, valid.container, null)
         workflow.reconcile(caller.id)
         jdbc
@@ -85,7 +85,7 @@ class TaskService(
         return get(caller.id, id)
     }
 
-    fun update(user: Long, id: Long, input: TaskInput): Task {
+    fun update(user: Long, id: UUID, input: TaskInput): Task {
         val current = get(user, id)
         val valid = validate(user, id, input)
         ensure(current.kind != "event" || (input.dueDate != null && input.dueTime != null)) {
@@ -116,7 +116,7 @@ class TaskService(
         return get(user, id)
     }
 
-    fun move(user: Long, id: Long, placement: TaskPlacement): Task {
+    fun move(user: Long, id: UUID, placement: TaskPlacement): Task {
         get(user, id)
         val container = resolveContainer(user, id, placement.projectId, placement.sectionId, placement.parentId)
         place(user, id, container, placement.before)
@@ -124,7 +124,7 @@ class TaskService(
         return get(user, id)
     }
 
-    fun reschedule(caller: Caller, ids: List<Long>, dueDate: LocalDate?) {
+    fun reschedule(caller: Caller, ids: List<UUID>, dueDate: LocalDate?) {
         for (id in ids) {
             val rows =
                 jdbc
@@ -150,7 +150,7 @@ class TaskService(
         }
     }
 
-    fun setCompleted(caller: Caller, id: Long, completed: Boolean): Task {
+    fun setCompleted(caller: Caller, id: UUID, completed: Boolean): Task {
         val user = caller.id
         val now = caller.now()
         val task = get(user, id)
@@ -164,7 +164,7 @@ class TaskService(
                 .param("user", user)
                 .param("id", id)
                 .update()
-            stopTimerWithin(user, now, id)
+            stopTimerWithin(caller, id)
             return get(user, id)
         }
         val completedAt = now.takeIf { completed }
@@ -184,18 +184,18 @@ class TaskService(
                     .update()
                 workflow.statusForCompletion(user, child, true, now)
             }
-            stopTimerWithin(user, now, id)
+            stopTimerWithin(caller, id)
         }
         return get(user, id)
     }
 
-    fun stopTimerWithin(user: Long, now: Long, id: Long) = timer.stopFor(user, now, tasks.descendants(user, id) + id)
+    fun stopTimerWithin(caller: Caller, id: UUID) = timer.stopFor(caller, tasks.descendants(caller.id, id) + id)
 
-    fun setOutcome(user: Long, id: Long, outcomeId: Long?): Task {
+    fun setOutcome(user: Long, id: UUID, outcomeId: UUID?): Task {
         get(user, id)
         outcomeId?.let { ensureOutcome(user, it) }
         jdbc
-            .sql("UPDATE task SET outcome_id = CAST(:outcome AS BIGINT) WHERE user_id = :user AND id IN (:ids)")
+            .sql("UPDATE task SET outcome_id = CAST(:outcome AS UUID) WHERE user_id = :user AND id IN (:ids)")
             .param("outcome", outcomeId)
             .param("user", user)
             .param("ids", listOf(id) + tasks.descendants(user, id))
@@ -203,7 +203,7 @@ class TaskService(
         return get(user, id)
     }
 
-    fun setSomeday(user: Long, ids: List<Long>, someday: Boolean) {
+    fun setSomeday(user: Long, ids: List<UUID>, someday: Boolean) {
         for (id in ids) {
             val rows =
                 jdbc
@@ -224,7 +224,7 @@ class TaskService(
         }
     }
 
-    fun setMust(user: Long, id: Long, mustOn: LocalDate?): Task {
+    fun setMust(user: Long, id: UUID, mustOn: LocalDate?): Task {
         val rows =
             jdbc
                 .sql(
@@ -243,7 +243,7 @@ class TaskService(
         return get(user, id)
     }
 
-    fun setNextStep(user: Long, id: Long, nextStep: String): Task {
+    fun setNextStep(user: Long, id: UUID, nextStep: String): Task {
         val text = optionalText(nextStep, "Next step", 500)
         val rows =
             jdbc
@@ -256,7 +256,7 @@ class TaskService(
         return get(user, id)
     }
 
-    fun deleteMany(user: Long, ids: List<Long>) {
+    fun deleteMany(user: Long, ids: List<UUID>) {
         if (ids.isEmpty()) return
         jdbc
             .sql("DELETE FROM task WHERE user_id = :user AND id IN (:ids)")
@@ -265,7 +265,7 @@ class TaskService(
             .update()
     }
 
-    fun delete(user: Long, id: Long) {
+    fun delete(user: Long, id: UUID) {
         val rows =
             jdbc
                 .sql("DELETE FROM task WHERE user_id = :user AND id = :id")
@@ -275,7 +275,7 @@ class TaskService(
         ensureChanged(rows, "Task")
     }
 
-    private fun ensureOutcome(user: Long, id: Long) {
+    private fun ensureOutcome(user: Long, id: UUID) {
         val exists =
             jdbc
                 .sql("SELECT EXISTS(SELECT 1 FROM outcome WHERE user_id = :user AND id = :id)")
@@ -291,7 +291,7 @@ class TaskService(
         return input.copy(dueDate = repeat.firstDate(input.dueDate, today))
     }
 
-    private fun validate(user: Long, moving: Long?, input: TaskInput): Valid {
+    private fun validate(user: Long, moving: UUID?, input: TaskInput): Valid {
         val title = requiredText(input.title, "Task title", 500)
         val notes = optionalText(input.notes, "Description", 10_000)
         ensure(input.priority in 1..4) { "Priority must be between 1 and 4." }
@@ -314,10 +314,10 @@ class TaskService(
 
     private fun resolveContainer(
         user: Long,
-        moving: Long?,
-        projectId: Long?,
-        sectionId: Long?,
-        parentId: Long?,
+        moving: UUID?,
+        projectId: UUID?,
+        sectionId: UUID?,
+        parentId: UUID?,
     ): Container {
         if (parentId != null) {
             val parent = get(user, parentId)
@@ -333,7 +333,7 @@ class TaskService(
         return Container(projectId, sectionId, null)
     }
 
-    private fun place(user: Long, id: Long, container: Container, before: Long?) {
+    private fun place(user: Long, id: UUID, container: Container, before: UUID?) {
         val ids = tasks.siblings(user, container, id).toMutableList()
         ids.add(ids.indexOf(before).takeIf { it >= 0 } ?: ids.size, id)
         ids.forEachIndexed { position, sibling ->

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/habits")
@@ -34,7 +35,7 @@ class HabitController(private val habits: HabitService) {
     @PutMapping("/{id}")
     fun update(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody input: HabitInput,
     ): Habit = habits.update(caller, id, input)
 
@@ -42,7 +43,7 @@ class HabitController(private val habits: HabitService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun archive(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ) = habits.archive(caller.id, id)
 
     @GetMapping("/days")
@@ -56,7 +57,7 @@ class HabitController(private val habits: HabitService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun setStatus(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate,
         @RequestBody body: HabitStatus,
     ) = habits.setStatus(caller, id, date, body.status)
@@ -65,7 +66,7 @@ class HabitController(private val habits: HabitService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun addValue(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate,
         @RequestBody body: HabitDelta,
     ) = habits.addValue(caller, id, date, body.delta)

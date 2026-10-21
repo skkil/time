@@ -1,13 +1,14 @@
 package com.skkil.time.features.tasks.domain
 
 import java.time.LocalDate
+import java.util.UUID
 
 data class TaskInput(
     val title: String,
     val notes: String,
-    val projectId: Long?,
-    val sectionId: Long?,
-    val parentId: Long?,
+    val projectId: UUID?,
+    val sectionId: UUID?,
+    val parentId: UUID?,
     val priority: Int,
     val dueDate: LocalDate?,
     val dueTime: Int?,

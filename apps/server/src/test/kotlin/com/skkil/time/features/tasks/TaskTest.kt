@@ -24,7 +24,7 @@ import kotlin.test.assertTrue
 class TaskTest : TaskApiTest() {
     private fun titles() = getJson("/api/v1/tasks").values().map { it["title"].asString() }
 
-    private fun inbox(before: Long? = null) = TaskPlacement(null, null, null, before)
+    private fun inbox(before: UUID? = null) = TaskPlacement(null, null, null, before)
 
     @Test
     fun `hides tasks of archived projects`() {
@@ -87,12 +87,12 @@ class TaskTest : TaskApiTest() {
         val chain = mutableListOf(root)
         for (depth in 1..8) chain += create(input("Level $depth").copy(parentId = chain.last())).id()
         val deepest = chain.last()
-        assertEquals(school, task(deepest).longOrNull("projectId"))
+        assertEquals(school, task(deepest).uuidOrNull("projectId"))
 
         expectProblem(put("/api/v1/tasks/$root", input("Root", school).copy(parentId = deepest)), 422, "invalid")
 
         move(root, TaskPlacement(work, null, null, null))
-        assertEquals(work, task(deepest).longOrNull("projectId"))
+        assertEquals(work, task(deepest).uuidOrNull("projectId"))
 
         complete(root)
         assertFalse(task(deepest)["completedAt"].isNull)
@@ -107,8 +107,8 @@ class TaskTest : TaskApiTest() {
         val week = section(school, "Week 9")
         val parent = create(input("Homework 3", school).copy(sectionId = week)).id()
         val child = create(input("Problem 1").copy(parentId = parent))
-        assertEquals(school, child.longOrNull("projectId"))
-        assertEquals(week, child.longOrNull("sectionId"))
+        assertEquals(school, child.uuidOrNull("projectId"))
+        assertEquals(week, child.uuidOrNull("sectionId"))
 
         expectProblem(
             put("/api/v1/tasks/$parent", input("Homework 3", school).copy(parentId = child.id())),
@@ -117,7 +117,7 @@ class TaskTest : TaskApiTest() {
         )
 
         move(parent, inbox())
-        assertNull(task(child.id()).longOrNull("projectId"))
+        assertNull(task(child.id()).uuidOrNull("projectId"))
 
         complete(parent)
         assertFalse(task(child.id())["completedAt"].isNull)
@@ -164,7 +164,11 @@ class TaskTest : TaskApiTest() {
         post("/api/v1/tasks/reschedule", TaskReschedule(listOf(id), null))
         val cleared = task(id)
         assertTrue(cleared["dueDate"].isNull && cleared["mustOn"].isNull)
-        expectProblem(post("/api/v1/tasks/reschedule", TaskReschedule(listOf(999_999), today)), 404, "notFound")
+        expectProblem(
+            post("/api/v1/tasks/reschedule", TaskReschedule(listOf(UUID.randomUUID()), today)),
+            404,
+            "notFound",
+        )
     }
 
     @Test
@@ -180,7 +184,9 @@ class TaskTest : TaskApiTest() {
         val parent = create(input("Pack")).id()
         val step = create(input("Socks").copy(parentId = parent)).id()
         jdbc
-            .sql("INSERT INTO running_timer (user_id, task_id, started_at) VALUES (:user, :task, :at)")
+            .sql(
+                "INSERT INTO running_timer (id, user_id, task_id, started_at) VALUES (gen_random_uuid(), :user, :task, :at)",
+            )
             .param("user", userId())
             .param("task", step)
             .param("at", Instant.now().epochSecond - 600)
@@ -198,7 +204,7 @@ class TaskTest : TaskApiTest() {
     fun `sets the outcome, next step and inherits the parent's outcome`() {
         val parent = create(input("Ship")).id()
         val step = create(input("Write").copy(parentId = parent)).id()
-        expectProblem(put("/api/v1/tasks/$parent/outcome", TaskOutcome(999_999)), 404, "notFound")
+        expectProblem(put("/api/v1/tasks/$parent/outcome", TaskOutcome(UUID.randomUUID())), 404, "notFound")
         assertTrue(putJson("/api/v1/tasks/$parent/outcome", TaskOutcome(null))["outcomeId"].isNull)
         assertTrue(task(step)["outcomeId"].isNull)
         assertEquals(

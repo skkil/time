@@ -1,5 +1,7 @@
 package com.skkil.time.features.notifications.job
 
+import com.skkil.time.common.clock.MutationClock
+import com.skkil.time.common.persistence.uuid
 import com.skkil.time.features.notifications.domain.Push
 import com.skkil.time.features.notifications.domain.PushMessage
 import com.skkil.time.features.notifications.push.PushSender
@@ -15,6 +17,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 /** Advisory lock that lets one server instance send reminders at a time. */
@@ -29,13 +32,14 @@ class ReminderJob(
     private val jdbc: JdbcClient,
     private val devices: DeviceService,
     private val senders: List<PushSender>,
+    private val clock: MutationClock,
     transactions: PlatformTransactionManager,
 ) {
     private val transaction = TransactionTemplate(transactions)
 
     @Scheduled(fixedDelay = 20, timeUnit = TimeUnit.SECONDS)
     fun tick() {
-        runCatching { run(Instant.now()) }.onFailure { log.error("Reminder run failed", it) }
+        runCatching { run(clock.now()) }.onFailure { log.error("Reminder run failed", it) }
     }
 
     /** Sends what is due at [now]; returns how many tasks fired, or null when another instance is sending. */
@@ -116,7 +120,7 @@ class ReminderJob(
             .param("limit", MAX_PER_RUN)
             .query { rs, _ ->
                 DueTask(
-                    rs.getLong("id"),
+                    rs.uuid("id"),
                     rs.getLong("user_id"),
                     rs.getString("title"),
                     rs.getObject("due_date", LocalDate::class.java),
@@ -125,7 +129,7 @@ class ReminderJob(
             }.list()
     }
 
-    private data class DueTask(val id: Long, val user: Long, val title: String, val date: LocalDate, val minute: Int) {
+    private data class DueTask(val id: UUID, val user: Long, val title: String, val date: LocalDate, val minute: Int) {
         val remindedFor = "$date $minute"
         val push = Push(title, "%02d:%02d".format(minute / 60, minute % 60), id)
     }

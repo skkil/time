@@ -6,6 +6,7 @@ import com.skkil.time.common.error.invalid
 import com.skkil.time.common.error.orNotFound
 import com.skkil.time.common.persistence.dateOrNull
 import com.skkil.time.common.persistence.intOrNull
+import com.skkil.time.common.persistence.uuid
 import com.skkil.time.common.text.optionalText
 import com.skkil.time.common.text.requiredText
 import com.skkil.time.common.web.Caller
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional
 import tools.jackson.core.JacksonException
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.json.JsonMapper
+import java.util.UUID
 
 /** Per-project item types, statuses, milestones and saved views, and the presets that set all four at once. */
 @Service
@@ -67,20 +69,20 @@ class WorkflowService(
     @Transactional(readOnly = true)
     fun getType(
         user: Long,
-        id: Long,
+        id: UUID,
     ): ItemType = find(user, "$SELECT_TYPE WHERE user_id = :user AND id = :id", id, typeMapper).orNotFound("Type")
 
     @Transactional(readOnly = true)
-    fun getStatus(user: Long, id: Long): ItemStatus =
+    fun getStatus(user: Long, id: UUID): ItemStatus =
         find(user, "$SELECT_STATUS WHERE user_id = :user AND id = :id", id, statusMapper).orNotFound("Status")
 
-    fun createType(user: Long, projectId: Long, input: ItemTypeInput): Long {
-        projects.get(user, projectId)
+    fun createType(caller: Caller, projectId: UUID, input: ItemTypeInput, id: UUID? = null): UUID {
+        projects.get(caller.id, projectId)
         val valid = checkType(input)
-        return insertType(user, projectId, valid, nextPosition("item_type", projectId))
+        return insertType(caller, id, projectId, valid, nextPosition("item_type", projectId))
     }
 
-    fun updateType(user: Long, id: Long, input: ItemTypeInput) {
+    fun updateType(user: Long, id: UUID, input: ItemTypeInput) {
         val current = getType(user, id)
         val valid = checkType(input)
         if (current.kind != "event" && valid.kind == "event") {
@@ -110,7 +112,7 @@ class WorkflowService(
             .update()
     }
 
-    fun deleteType(user: Long, id: Long, replacement: Long?) {
+    fun deleteType(user: Long, id: UUID, replacement: UUID?) {
         val current = getType(user, id)
         replacement?.let {
             ensure(getType(user, it).projectId == current.projectId && it != id) {
@@ -118,7 +120,7 @@ class WorkflowService(
             }
         }
         jdbc
-            .sql("UPDATE task SET type_id = CAST(:replacement AS BIGINT) WHERE user_id = :user AND type_id = :id")
+            .sql("UPDATE task SET type_id = CAST(:replacement AS UUID) WHERE user_id = :user AND type_id = :id")
             .param("replacement", replacement)
             .param("user", user)
             .param("id", id)
@@ -126,15 +128,15 @@ class WorkflowService(
         delete(user, "item_type", id)
     }
 
-    fun createStatus(user: Long, projectId: Long, input: StatusInput): Long {
-        projects.get(user, projectId)
+    fun createStatus(caller: Caller, projectId: UUID, input: StatusInput, id: UUID? = null): UUID {
+        projects.get(caller.id, projectId)
         val valid = checkStatus(input)
-        val id = insertStatus(user, projectId, valid, nextPosition("item_status", projectId))
-        sync.reconcile(user)
-        return id
+        val created = insertStatus(caller, id, projectId, valid, nextPosition("item_status", projectId))
+        sync.reconcile(caller.id)
+        return created
     }
 
-    fun updateStatus(caller: Caller, id: Long, input: StatusInput) {
+    fun updateStatus(caller: Caller, id: UUID, input: StatusInput) {
         getStatus(caller.id, id)
         val valid = checkStatus(input)
         jdbc
@@ -147,14 +149,14 @@ class WorkflowService(
         sync.syncCompletion(caller.id, caller.now(), "status_id = :id", "id", id)
     }
 
-    fun reorderStatus(user: Long, id: Long, before: Long?) {
+    fun reorderStatus(user: Long, id: UUID, before: UUID?) {
         val current = getStatus(user, id)
         val ids =
             jdbc
                 .sql("SELECT id FROM item_status WHERE project_id = :project AND id <> :id ORDER BY position, id")
                 .param("project", current.projectId)
                 .param("id", id)
-                .query { rs, _ -> rs.getLong("id") }
+                .query { rs, _ -> rs.uuid("id") }
                 .list()
                 .toMutableList()
         ids.add(ids.indexOf(before).takeIf { it >= 0 } ?: ids.size, id)
@@ -167,7 +169,7 @@ class WorkflowService(
         }
     }
 
-    fun deleteStatus(caller: Caller, id: Long, replacement: Long?) {
+    fun deleteStatus(caller: Caller, id: UUID, replacement: UUID?) {
         val user = caller.id
         val current = getStatus(user, id)
         if (replacement != null) {
@@ -187,7 +189,7 @@ class WorkflowService(
         jdbc
             .sql(
                 """
-                UPDATE task SET status_id = CAST(:replacement AS BIGINT), status_changed_at = :now
+                UPDATE task SET status_id = CAST(:replacement AS UUID), status_changed_at = :now
                 WHERE user_id = :user AND status_id = :id
                 """,
             ).param("replacement", replacement)
@@ -199,24 +201,26 @@ class WorkflowService(
         sync.syncCompletion(user, caller.now(), "project_id = :project", "project", current.projectId)
     }
 
-    fun createMilestone(user: Long, projectId: Long, input: MilestoneInput): Long {
-        projects.get(user, projectId)
-        return jdbc
+    fun createMilestone(caller: Caller, projectId: UUID, input: MilestoneInput, id: UUID? = null): UUID {
+        projects.get(caller.id, projectId)
+        val id = id ?: caller.nextId()
+        jdbc
             .sql(
                 """
-                INSERT INTO milestone (user_id, project_id, name, date, position)
-                VALUES (:user, :project, :name, :date, :position) RETURNING id
+                INSERT INTO milestone (id, user_id, project_id, name, date, position)
+                VALUES (:id, :user, :project, :name, :date, :position)
                 """,
-            ).param("user", user)
+            ).param("id", id)
+            .param("user", caller.id)
             .param("project", projectId)
             .param("name", checkMilestone(input))
             .param("date", input.date)
             .param("position", nextPosition("milestone", projectId))
-            .query(Long::class.java)
-            .single()
+            .update()
+        return id
     }
 
-    fun updateMilestone(user: Long, id: Long, input: MilestoneInput) {
+    fun updateMilestone(user: Long, id: UUID, input: MilestoneInput) {
         val name = checkMilestone(input)
         val rows =
             jdbc
@@ -229,9 +233,9 @@ class WorkflowService(
         ensureChanged(rows, "Milestone")
     }
 
-    fun deleteMilestone(user: Long, id: Long) = ensureChanged(delete(user, "milestone", id), "Milestone")
+    fun deleteMilestone(user: Long, id: UUID) = ensureChanged(delete(user, "milestone", id), "Milestone")
 
-    fun setMilestoneLabel(user: Long, projectId: Long, label: String) {
+    fun setMilestoneLabel(user: Long, projectId: UUID, label: String) {
         val text = optionalText(label, "Milestone name", 40)
         val rows =
             jdbc
@@ -243,12 +247,12 @@ class WorkflowService(
         ensureChanged(rows, "Project")
     }
 
-    fun createView(user: Long, projectId: Long, input: ViewInput): Long {
-        projects.get(user, projectId)
-        return insertView(user, projectId, checkView(input), nextPosition("saved_view", projectId))
+    fun createView(caller: Caller, projectId: UUID, input: ViewInput, id: UUID? = null): UUID {
+        projects.get(caller.id, projectId)
+        return insertView(caller, id, projectId, checkView(input), nextPosition("saved_view", projectId))
     }
 
-    fun updateView(user: Long, id: Long, input: ViewInput) {
+    fun updateView(user: Long, id: UUID, input: ViewInput) {
         val valid = checkView(input)
         val rows =
             jdbc
@@ -269,18 +273,19 @@ class WorkflowService(
         ensureChanged(rows, "View")
     }
 
-    fun deleteView(user: Long, id: Long) = ensureChanged(delete(user, "saved_view", id), "View")
+    fun deleteView(user: Long, id: UUID) = ensureChanged(delete(user, "saved_view", id), "View")
 
-    fun applyPreset(user: Long, projectId: Long, preset: Preset) {
+    fun applyPreset(caller: Caller, projectId: UUID, preset: Preset) {
+        val user = caller.id
         projects.get(user, projectId)
         val types = preset.types.map(::checkType)
         val statuses = preset.statuses.map(::checkStatus)
         val views = preset.views.map(::checkView)
         val label = optionalText(preset.milestoneLabel, "Milestone name", 40)
         val key = optionalText(preset.key, "Preset", 40)
-        types.forEachIndexed { position, input -> insertType(user, projectId, input, position) }
-        statuses.forEachIndexed { position, input -> insertStatus(user, projectId, input, position) }
-        views.forEachIndexed { position, input -> insertView(user, projectId, input, position) }
+        types.forEachIndexed { position, input -> insertType(caller, null, projectId, input, position) }
+        statuses.forEachIndexed { position, input -> insertStatus(caller, null, projectId, input, position) }
+        views.forEachIndexed { position, input -> insertView(caller, null, projectId, input, position) }
         jdbc
             .sql("UPDATE project SET preset = :key, milestone_label = :label WHERE user_id = :user AND id = :id")
             .param("key", key)
@@ -292,7 +297,7 @@ class WorkflowService(
     }
 
     @Transactional(readOnly = true)
-    fun exportPreset(user: Long, projectId: Long): Preset {
+    fun exportPreset(user: Long, projectId: UUID): Preset {
         val project = projects.get(user, projectId)
         val workflow = list(user)
         return Preset(
@@ -366,14 +371,16 @@ class WorkflowService(
     private fun oneOf(value: String, allowed: List<String>, what: String) =
         ensure(value in allowed) { "Unknown $what: $value." }
 
-    private fun insertType(user: Long, projectId: Long, input: ItemTypeInput, position: Int): Long =
+    private fun insertType(caller: Caller, id: UUID?, projectId: UUID, input: ItemTypeInput, position: Int): UUID {
+        val id = id ?: caller.nextId()
         jdbc
             .sql(
                 """
-                INSERT INTO item_type (user_id, project_id, name, icon, kind, default_minutes, checklist, position)
-                VALUES (:user, :project, :name, :icon, :kind, :minutes, :checklist, :position) RETURNING id
+                INSERT INTO item_type (id, user_id, project_id, name, icon, kind, default_minutes, checklist, position)
+                VALUES (:id, :user, :project, :name, :icon, :kind, :minutes, :checklist, :position)
                 """,
-            ).param("user", user)
+            ).param("id", id)
+            .param("user", caller.id)
             .param("project", projectId)
             .param("name", input.name)
             .param("icon", input.icon)
@@ -381,32 +388,38 @@ class WorkflowService(
             .param("minutes", input.defaultMinutes)
             .param("checklist", input.checklist)
             .param("position", position)
-            .query(Long::class.java)
-            .single()
+            .update()
+        return id
+    }
 
-    private fun insertStatus(user: Long, projectId: Long, input: StatusInput, position: Int): Long =
+    private fun insertStatus(caller: Caller, id: UUID?, projectId: UUID, input: StatusInput, position: Int): UUID {
+        val id = id ?: caller.nextId()
         jdbc
             .sql(
                 """
-                INSERT INTO item_status (user_id, project_id, name, category, position)
-                VALUES (:user, :project, :name, :category, :position) RETURNING id
+                INSERT INTO item_status (id, user_id, project_id, name, category, position)
+                VALUES (:id, :user, :project, :name, :category, :position)
                 """,
-            ).param("user", user)
+            ).param("id", id)
+            .param("user", caller.id)
             .param("project", projectId)
             .param("name", input.name)
             .param("category", input.category)
             .param("position", position)
-            .query(Long::class.java)
-            .single()
+            .update()
+        return id
+    }
 
-    private fun insertView(user: Long, projectId: Long, input: ViewInput, position: Int): Long =
+    private fun insertView(caller: Caller, id: UUID?, projectId: UUID, input: ViewInput, position: Int): UUID {
+        val id = id ?: caller.nextId()
         jdbc
             .sql(
                 """
-                INSERT INTO saved_view (user_id, project_id, name, layout, group_by, filter, sort, position)
-                VALUES (:user, :project, :name, :layout, :groupBy, :filter, :sort, :position) RETURNING id
+                INSERT INTO saved_view (id, user_id, project_id, name, layout, group_by, filter, sort, position)
+                VALUES (:id, :user, :project, :name, :layout, :groupBy, :filter, :sort, :position)
                 """,
-            ).param("user", user)
+            ).param("id", id)
+            .param("user", caller.id)
             .param("project", projectId)
             .param("name", input.name)
             .param("layout", input.layout)
@@ -414,19 +427,20 @@ class WorkflowService(
             .param("filter", input.filter)
             .param("sort", input.sort)
             .param("position", position)
-            .query(Long::class.java)
-            .single()
+            .update()
+        return id
+    }
 
-    private fun nextPosition(table: String, projectId: Long): Int =
+    private fun nextPosition(table: String, projectId: UUID): Int =
         jdbc
             .sql("SELECT COALESCE(MAX(position), 0) + 1 FROM $table WHERE project_id = :project")
             .param("project", projectId)
             .query(Int::class.java)
             .single()
 
-    private fun count(sql: String, id: Long): Long = jdbc.sql(sql).param("id", id).query(Long::class.java).single()
+    private fun count(sql: String, id: UUID): Long = jdbc.sql(sql).param("id", id).query(Long::class.java).single()
 
-    private fun delete(user: Long, table: String, id: Long): Int =
+    private fun delete(user: Long, table: String, id: UUID): Int =
         jdbc
             .sql("DELETE FROM $table WHERE user_id = :user AND id = :id")
             .param("user", user)
@@ -436,7 +450,7 @@ class WorkflowService(
     private fun <T : Any> query(user: Long, sql: String, mapper: RowMapper<T>): List<T> =
         jdbc.sql(sql).param("user", user).query(mapper).list()
 
-    private fun <T : Any> find(user: Long, sql: String, id: Long, mapper: RowMapper<T>): T? =
+    private fun <T : Any> find(user: Long, sql: String, id: UUID, mapper: RowMapper<T>): T? =
         jdbc
             .sql(sql)
             .param("user", user)
@@ -453,8 +467,8 @@ class WorkflowService(
         val typeMapper =
             RowMapper { rs, _ ->
                 ItemType(
-                    id = rs.getLong("id"),
-                    projectId = rs.getLong("project_id"),
+                    id = rs.uuid("id"),
+                    projectId = rs.uuid("project_id"),
                     name = rs.getString("name"),
                     icon = rs.getString("icon"),
                     kind = rs.getString("kind"),
@@ -467,8 +481,8 @@ class WorkflowService(
         val statusMapper =
             RowMapper { rs, _ ->
                 ItemStatus(
-                    rs.getLong("id"),
-                    rs.getLong("project_id"),
+                    rs.uuid("id"),
+                    rs.uuid("project_id"),
                     rs.getString("name"),
                     rs.getString("category"),
                     rs.getInt("position"),
@@ -478,8 +492,8 @@ class WorkflowService(
         val milestoneMapper =
             RowMapper { rs, _ ->
                 Milestone(
-                    rs.getLong("id"),
-                    rs.getLong("project_id"),
+                    rs.uuid("id"),
+                    rs.uuid("project_id"),
                     rs.getString("name"),
                     rs.dateOrNull("date"),
                     rs.getInt("position"),
@@ -489,8 +503,8 @@ class WorkflowService(
         val viewMapper =
             RowMapper { rs, _ ->
                 SavedView(
-                    id = rs.getLong("id"),
-                    projectId = rs.getLong("project_id"),
+                    id = rs.uuid("id"),
+                    projectId = rs.uuid("project_id"),
                     name = rs.getString("name"),
                     layout = rs.getString("layout"),
                     groupBy = rs.getString("group_by"),

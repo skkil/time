@@ -30,15 +30,15 @@ class ImportTest : TaskApiTest() {
                         listOf(ImportSection("Garden", listOf(item("Mow")))),
                     ),
                 ),
-            ).values().map { it.asLong() }
+            ).values().map { it.asUuid() }
         assertEquals(1, ids.size)
         val all = tasks()
         val sink = all.first { it["title"].asString() == "Fix sink" }
         val washer = all.first { it["title"].asString() == "Buy washer" }
-        assertEquals(sink.id(), washer.longOrNull("parentId"))
+        assertEquals(sink.id(), washer.uuidOrNull("parentId"))
         val mow = all.first { it["title"].asString() == "Mow" }
-        assertNotNull(mow.longOrNull("sectionId"))
-        assertEquals(ids[0], mow.longOrNull("projectId"))
+        assertNotNull(mow.uuidOrNull("sectionId"))
+        assertEquals(ids[0], mow.uuidOrNull("projectId"))
     }
 
     @Test

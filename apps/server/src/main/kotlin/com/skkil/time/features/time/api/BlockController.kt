@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1")
@@ -31,14 +32,14 @@ class BlockController(private val blocks: BlockService) {
     @PostMapping("/tasks/{id}/blocks")
     fun createBlock(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody span: BlockSpan,
-    ): TimeBlock = blocks.create(caller.id, id, span)
+    ): TimeBlock = blocks.create(caller, id, span)
 
     @PutMapping("/blocks/{id}")
     fun rescheduleBlock(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody span: BlockSpan,
     ): TimeBlock = blocks.reschedule(caller.id, id, span)
 
@@ -46,6 +47,6 @@ class BlockController(private val blocks: BlockService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteBlock(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ) = blocks.delete(caller.id, id)
 }

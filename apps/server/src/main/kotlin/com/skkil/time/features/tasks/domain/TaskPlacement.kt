@@ -1,3 +1,5 @@
 package com.skkil.time.features.tasks.domain
 
-data class TaskPlacement(val projectId: Long?, val sectionId: Long?, val parentId: Long?, val before: Long?)
+import java.util.UUID
+
+data class TaskPlacement(val projectId: UUID?, val sectionId: UUID?, val parentId: UUID?, val before: UUID?)

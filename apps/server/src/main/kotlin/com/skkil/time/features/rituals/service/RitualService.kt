@@ -4,6 +4,8 @@ import com.skkil.time.common.error.ensure
 import com.skkil.time.common.error.ensureChanged
 import com.skkil.time.common.error.orNotFound
 import com.skkil.time.common.persistence.longOrNull
+import com.skkil.time.common.persistence.uuid
+import com.skkil.time.common.persistence.uuidOrNull
 import com.skkil.time.common.web.Caller
 import com.skkil.time.features.review.domain.monday
 import com.skkil.time.features.rituals.domain.Moment
@@ -18,6 +20,7 @@ import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.util.UUID
 
 /** Configurable routines and their runs; [due] decides which one opens for an app event. */
 @Service
@@ -79,9 +82,10 @@ class RitualService(
     @Transactional(readOnly = true)
     fun planningTime(user: Long): String? = settings.read(user, PLANNING_SETTING)
 
-    fun setPlanningTime(user: Long, time: String): List<Ritual> {
+    fun setPlanningTime(caller: Caller, time: String): List<Ritual> {
+        val user = caller.id
         ensure(time == "morning" || time == "evening") { "Plan in the morning or the evening." }
-        settings.write(user, PLANNING_SETTING, time)
+        settings.write(caller, PLANNING_SETTING, time)
         jdbc
             .sql("UPDATE ritual SET enabled = (kind = :time) WHERE user_id = :user AND kind IN ('morning', 'evening')")
             .param("time", time)
@@ -93,7 +97,7 @@ class RitualService(
     @Transactional(readOnly = true)
     fun runs(user: Long, from: LocalDate, to: LocalDate): List<RitualRun> =
         jdbc
-            .sql("$SELECT_RUN WHERE user_id = :user AND date >= :from AND date < :to ORDER BY id")
+            .sql("$SELECT_RUN WHERE user_id = :user AND date >= :from AND date < :to ORDER BY started_at, id")
             .param("user", user)
             .param("from", from)
             .param("to", to)
@@ -104,7 +108,7 @@ class RitualService(
     fun due(caller: Caller, at: Moment, event: RitualEvent): Ritual? =
         list(caller.id).firstOrNull { isDue(caller, it, at, event) }
 
-    fun start(caller: Caller, kind: String, at: Moment, taskId: Long?): RitualRun {
+    fun start(caller: Caller, kind: String, at: Moment, taskId: UUID?, id: UUID? = null): RitualRun {
         get(caller.id, kind)
         taskId?.let { tasks.get(caller.id, it) }
         val previous = if (kind == "session") null else latestRun(caller.id, kind, at.date)
@@ -116,30 +120,30 @@ class RitualService(
                 .update()
             return run(caller.id, previous.id)
         }
-        val id =
-            jdbc
-                .sql(
-                    """
-                    INSERT INTO ritual_run (user_id, kind, date, task_id, started_at)
-                    VALUES (:user, :kind, :date, CAST(:task AS BIGINT), :startedAt) RETURNING id
-                    """,
-                ).param("user", caller.id)
-                .param("kind", kind)
-                .param("date", at.date)
-                .param("task", taskId)
-                .param("startedAt", at.stamp)
-                .query(Long::class.java)
-                .single()
+        val id = id ?: caller.nextId()
+        jdbc
+            .sql(
+                """
+                INSERT INTO ritual_run (id, user_id, kind, date, task_id, started_at)
+                VALUES (:id, :user, :kind, :date, CAST(:task AS UUID), :startedAt)
+                """,
+            ).param("id", id)
+            .param("user", caller.id)
+            .param("kind", kind)
+            .param("date", at.date)
+            .param("task", taskId)
+            .param("startedAt", at.stamp)
+            .update()
         return run(caller.id, id)
     }
 
-    fun reachStep(user: Long, id: Long, step: Int): RitualRun =
+    fun reachStep(user: Long, id: UUID, step: Int): RitualRun =
         updateRun(user, id, "step = GREATEST(step, :value)", step.coerceAtLeast(0))
 
-    fun finish(user: Long, id: Long, at: Long): RitualRun =
+    fun finish(user: Long, id: UUID, at: Long): RitualRun =
         updateRun(user, id, "finished_at = COALESCE(finished_at, :value)", at)
 
-    fun skip(user: Long, id: Long): RitualRun {
+    fun skip(user: Long, id: UUID): RitualRun {
         val rows =
             jdbc
                 .sql("UPDATE ritual_run SET skipped = TRUE WHERE user_id = :user AND id = :id AND finished_at IS NULL")
@@ -150,7 +154,7 @@ class RitualService(
         return run(user, id)
     }
 
-    fun snooze(user: Long, id: Long, at: Long): RitualRun {
+    fun snooze(user: Long, id: UUID, at: Long): RitualRun {
         ensure(run(user, id).snoozedUntil == null) { "This ritual was already snoozed once." }
         return updateRun(user, id, "snoozed_until = :value", at + SNOOZE_SECONDS)
     }
@@ -211,7 +215,7 @@ class RitualService(
             .optional()
             .orElse(false)
 
-    private fun run(user: Long, id: Long): RitualRun =
+    private fun run(user: Long, id: UUID): RitualRun =
         jdbc
             .sql("$SELECT_RUN WHERE user_id = :user AND id = :id")
             .param("user", user)
@@ -223,7 +227,10 @@ class RitualService(
 
     private fun latestRun(user: Long, kind: String, date: LocalDate): RitualRun? =
         jdbc
-            .sql("$SELECT_RUN WHERE user_id = :user AND kind = :kind AND date = :date ORDER BY id DESC LIMIT 1")
+            .sql(
+                "$SELECT_RUN WHERE user_id = :user AND kind = :kind AND date = :date " +
+                    "ORDER BY started_at DESC, id DESC LIMIT 1",
+            )
             .param("user", user)
             .param("kind", kind)
             .param("date", date)
@@ -231,7 +238,7 @@ class RitualService(
             .optional()
             .orElse(null)
 
-    private fun updateRun(user: Long, id: Long, assignment: String, value: Any): RitualRun {
+    private fun updateRun(user: Long, id: UUID, assignment: String, value: Any): RitualRun {
         val rows =
             jdbc
                 .sql("UPDATE ritual_run SET $assignment WHERE user_id = :user AND id = :id")
@@ -282,10 +289,10 @@ class RitualService(
         val runMapper =
             RowMapper { rs, _ ->
                 RitualRun(
-                    rs.getLong("id"),
+                    rs.uuid("id"),
                     rs.getString("kind"),
                     rs.getObject("date", LocalDate::class.java),
-                    rs.longOrNull("task_id"),
+                    rs.uuidOrNull("task_id"),
                     rs.getLong("started_at"),
                     rs.longOrNull("finished_at"),
                     rs.getBoolean("skipped"),

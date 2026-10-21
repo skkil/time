@@ -20,6 +20,7 @@ class ProblemHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(DataIntegrityViolationException::class)
     fun integrity(error: DataIntegrityViolationException): ProblemDetail {
+        error.asIdConflict()?.let { return domain(it) }
         log.warn("Integrity violation", error)
         return problem(ErrorKind.CONFLICT, "The change conflicts with existing data")
     }

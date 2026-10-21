@@ -37,7 +37,7 @@ class SettingsController(private val settings: SettingsRepository) {
     private fun isOn(caller: Caller, key: String) = settings.read(caller.id, key) != "off"
 
     private fun turn(caller: Caller, key: String, enabled: Boolean) =
-        settings.write(caller.id, key, if (enabled) "on" else "off")
+        settings.write(caller, key, if (enabled) "on" else "off")
 
     private companion object {
         const val CAPTURE_HOTKEY = "capture_hotkey"

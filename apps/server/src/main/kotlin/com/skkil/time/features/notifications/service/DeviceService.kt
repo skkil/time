@@ -1,5 +1,6 @@
 package com.skkil.time.features.notifications.service
 
+import com.skkil.time.common.clock.MutationClock
 import com.skkil.time.common.error.ensure
 import com.skkil.time.common.error.ensureChanged
 import com.skkil.time.common.text.optionalText
@@ -12,10 +13,9 @@ import com.skkil.time.features.notifications.domain.PushTarget
 import com.skkil.time.features.notifications.domain.WEB
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
-import java.time.Instant
 
 @Service
-class DeviceService(private val jdbc: JdbcClient) {
+class DeviceService(private val jdbc: JdbcClient, private val clock: MutationClock) {
     fun list(user: Long): List<Device> =
         jdbc
             .sql(
@@ -45,7 +45,7 @@ class DeviceService(private val jdbc: JdbcClient) {
             } else {
                 null to null
             }
-        val now = Instant.now().epochSecond
+        val now = clock.now().epochSecond
         val id =
             jdbc
                 .sql(

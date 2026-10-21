@@ -12,6 +12,7 @@ import com.skkil.time.features.sections.service.SectionService
 import com.skkil.time.features.tasks.service.TaskService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 /** Turns converted CSV files into new projects in one transaction, so a bad row leaves nothing behind. */
 @Service
@@ -21,19 +22,19 @@ class ImportService(
     private val sections: SectionService,
     private val tasks: TaskService,
 ) {
-    fun import(caller: Caller, items: List<ImportProject>): List<Long> = items.map { add(caller, it) }
+    fun import(caller: Caller, items: List<ImportProject>): List<UUID> = items.map { add(caller, it) }
 
-    private fun add(caller: Caller, project: ImportProject): Long {
-        val id = projects.create(caller.id, ProjectInput(project.name, null, project.color)).id
+    private fun add(caller: Caller, project: ImportProject): UUID {
+        val id = projects.create(caller, ProjectInput(project.name, null, project.color)).id
         addTasks(caller, project.tasks, id, null, null)
         for (section in project.sections) {
-            val sectionId = sections.create(caller.id, SectionInput(id, section.name, null)).id
+            val sectionId = sections.create(caller, SectionInput(id, section.name, null)).id
             addTasks(caller, section.tasks, id, sectionId, null)
         }
         return id
     }
 
-    private fun addTasks(caller: Caller, items: List<ImportTask>, projectId: Long, sectionId: Long?, parentId: Long?) {
+    private fun addTasks(caller: Caller, items: List<ImportTask>, projectId: UUID, sectionId: UUID?, parentId: UUID?) {
         for (item in items) {
             val input = item.task.copy(projectId = projectId, sectionId = sectionId, parentId = parentId)
             val task =

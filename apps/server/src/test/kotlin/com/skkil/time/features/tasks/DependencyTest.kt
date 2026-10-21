@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class DependencyTest : TaskApiTest() {
-    private fun add(task: Long, blocker: Long) = post("/api/v1/tasks/$task/dependencies", TaskDependency(blocker))
+    private fun add(task: UUID, blocker: UUID) = post("/api/v1/tasks/$task/dependencies", TaskDependency(blocker))
 
     @Test
     fun `waits until every blocker is done`() {
@@ -18,15 +18,15 @@ class DependencyTest : TaskApiTest() {
         val site = create(input("Build site")).id()
         read(add(launch, copy))
         val waiting = read(add(launch, site))
-        assertEquals(2, waiting.longs("blockedBy").size)
-        assertEquals(2, waiting.longs("waitingOn").size)
+        assertEquals(2, waiting.uuids("blockedBy").size)
+        assertEquals(2, waiting.uuids("waitingOn").size)
 
         complete(copy)
         val after = task(launch)
-        assertEquals(listOf(site), after.longs("waitingOn"))
-        assertEquals(2, after.longs("blockedBy").size)
+        assertEquals(listOf(site), after.uuids("waitingOn"))
+        assertEquals(2, after.uuids("blockedBy").size)
 
-        assertTrue(deleteJson("/api/v1/tasks/$launch/dependencies/$site").longs("waitingOn").isEmpty())
+        assertTrue(deleteJson("/api/v1/tasks/$launch/dependencies/$site").uuids("waitingOn").isEmpty())
     }
 
     @Test
@@ -43,7 +43,7 @@ class DependencyTest : TaskApiTest() {
         expectProblem(add(a, daily.id()), 422, "invalid")
 
         delete("/api/v1/tasks/$b")
-        assertTrue(task(a).longs("blockedBy").isEmpty())
+        assertTrue(task(a).uuids("blockedBy").isEmpty())
     }
 
     @Test

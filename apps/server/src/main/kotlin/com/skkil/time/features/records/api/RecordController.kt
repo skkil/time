@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/tasks")
@@ -20,29 +21,29 @@ class RecordController(private val records: RecordService) {
     @GetMapping("/{id}/phases")
     fun phases(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ): List<RecordPhase> = records.phases(caller.id, id)
 
     @PutMapping("/{id}/phases/{statusId}/notes")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun setNotes(
         caller: Caller,
-        @PathVariable id: Long,
-        @PathVariable statusId: Long,
+        @PathVariable id: UUID,
+        @PathVariable statusId: UUID,
         @RequestBody body: PhaseNotes,
-    ) = records.setNotes(caller.id, id, statusId, body.notes)
+    ) = records.setNotes(caller, id, statusId, body.notes)
 
     @PutMapping("/{id}/phase")
     fun setPhase(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: TaskPhase,
     ): Task = records.setPhase(caller.id, id, body.phaseId)
 
     @PostMapping("/{id}/phase-tasks")
     fun createTask(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: PhaseTaskInput,
     ): Task = records.createTask(caller, id, body.phaseId, body.title)
 }

@@ -1,3 +1,5 @@
 package com.skkil.time.features.workflow.domain
 
-data class ItemStatus(val id: Long, val projectId: Long, val name: String, val category: String, val position: Int)
+import java.util.UUID
+
+data class ItemStatus(val id: UUID, val projectId: UUID, val name: String, val category: String, val position: Int)

@@ -1,9 +1,10 @@
 package com.skkil.time.features.habits.domain
 
 import java.time.LocalDate
+import java.util.UUID
 
 data class Habit(
-    val id: Long,
+    val id: UUID,
     val name: String,
     val kind: String,
     val goal: Double,

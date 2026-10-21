@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/tasks")
@@ -26,7 +27,7 @@ class TaskController(private val tasks: TaskService, private val dependencies: D
     @GetMapping("/{id}")
     fun get(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ): Task = tasks.get(caller.id, id)
 
     @PostMapping
@@ -38,14 +39,14 @@ class TaskController(private val tasks: TaskService, private val dependencies: D
     @PutMapping("/{id}")
     fun update(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody input: TaskInput,
     ): Task = tasks.update(caller.id, id, input)
 
     @PostMapping("/{id}/move")
     fun move(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody placement: TaskPlacement,
     ): Task = tasks.move(caller.id, id, placement)
 
@@ -59,14 +60,14 @@ class TaskController(private val tasks: TaskService, private val dependencies: D
     @PutMapping("/{id}/completed")
     fun setCompleted(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: TaskCompleted,
     ): Task = tasks.setCompleted(caller, id, body.completed)
 
     @PutMapping("/{id}/outcome")
     fun setOutcome(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: TaskOutcome,
     ): Task = tasks.setOutcome(caller.id, id, body.outcomeId)
 
@@ -80,14 +81,14 @@ class TaskController(private val tasks: TaskService, private val dependencies: D
     @PutMapping("/{id}/must")
     fun setMust(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: TaskMust,
     ): Task = tasks.setMust(caller.id, id, body.mustOn)
 
     @PutMapping("/{id}/next-step")
     fun setNextStep(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: TaskNextStep,
     ): Task = tasks.setNextStep(caller.id, id, body.nextStep)
 
@@ -102,20 +103,20 @@ class TaskController(private val tasks: TaskService, private val dependencies: D
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
     ) = tasks.delete(caller.id, id)
 
     @PostMapping("/{id}/dependencies")
     fun addDependency(
         caller: Caller,
-        @PathVariable id: Long,
+        @PathVariable id: UUID,
         @RequestBody body: TaskDependency,
-    ): Task = dependencies.add(caller.id, id, body.blockedById)
+    ): Task = dependencies.add(caller, id, body.blockedById)
 
     @DeleteMapping("/{id}/dependencies/{blockedById}")
     fun removeDependency(
         caller: Caller,
-        @PathVariable id: Long,
-        @PathVariable blockedById: Long,
+        @PathVariable id: UUID,
+        @PathVariable blockedById: UUID,
     ): Task = dependencies.remove(caller.id, id, blockedById)
 }

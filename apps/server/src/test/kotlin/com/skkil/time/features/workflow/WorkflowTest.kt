@@ -30,19 +30,19 @@ import kotlin.test.assertTrue
 class WorkflowTest : TaskApiTest() {
     private fun preset(key: String) = PRESETS.first { it.key == key }
 
-    private fun apply(project: Long, preset: Preset) =
+    private fun apply(project: UUID, preset: Preset) =
         put("/api/v1/projects/$project/preset", preset).andExpect { status { isNoContent() } }
 
     private fun workflow(): JsonNode = getJson("/api/v1/workflow")
 
-    private fun idOf(list: String, project: Long, name: String): Long =
+    private fun idOf(list: String, project: UUID, name: String): UUID =
         workflow()[list].values().first {
-            it["projectId"].asLong() == project && it["name"].asString() == name
-        }["id"].asLong()
+            it.uuid("projectId") == project && it["name"].asString() == name
+        }.id()
 
-    private fun setStatus(task: Long, status: Long) = putJson("/api/v1/tasks/$task/status", TaskStatusId(status))
+    private fun setStatus(task: UUID, status: UUID) = putJson("/api/v1/tasks/$task/status", TaskStatusId(status))
 
-    private fun setType(task: Long, type: Long?) = put("/api/v1/tasks/$task/type", TaskTypeId(type))
+    private fun setType(task: UUID, type: UUID?) = put("/api/v1/tasks/$task/type", TaskTypeId(type))
 
     private fun d(value: String) = LocalDate.parse(value)
 
@@ -87,13 +87,13 @@ class WorkflowTest : TaskApiTest() {
         assertFalse(setStatus(task, by("Canceled"))["completedAt"].isNull)
 
         assertEquals("todo", complete(task, false).textOrNull("statusCategory"))
-        assertEquals(by("Done"), complete(task).longOrNull("statusId"))
+        assertEquals(by("Done"), complete(task).uuidOrNull("statusId"))
 
         expectProblem(delete("/api/v1/item-statuses/${by("Done")}"), 422, "invalid")
         delete("/api/v1/item-statuses/${by("Done")}?replacement=${by("Canceled")}").andExpect {
             status { isNoContent() }
         }
-        assertEquals(by("Canceled"), task(task).longOrNull("statusId"))
+        assertEquals(by("Canceled"), task(task).uuidOrNull("statusId"))
 
         put("/api/v1/item-statuses/${by("Canceled")}", StatusInput("Canceled", "todo"))
         assertTrue(task(task)["completedAt"].isNull)
@@ -108,12 +108,12 @@ class WorkflowTest : TaskApiTest() {
         val task = create(input("Crash", a)).id()
         read(setType(task, idOf("types", a, "Bug")))
         val moved = move(task, TaskPlacement(b, null, null, null))
-        assertEquals(idOf("types", b, "Bug"), moved.longOrNull("typeId"))
+        assertEquals(idOf("types", b, "Bug"), moved.uuidOrNull("typeId"))
         assertEquals("todo", moved.textOrNull("statusCategory"))
 
         val inbox = move(task, TaskPlacement(null, null, null, null))
-        assertNull(inbox.longOrNull("typeId"))
-        assertNull(inbox.longOrNull("statusId"))
+        assertNull(inbox.uuidOrNull("typeId"))
+        assertNull(inbox.uuidOrNull("statusId"))
     }
 
     @Test
@@ -140,7 +140,7 @@ class WorkflowTest : TaskApiTest() {
 
         val chapter = create(input("Chapter 3", id)).id()
         read(setType(chapter, reading))
-        assertEquals(2, getJson("/api/v1/tasks").values().count { it.longOrNull("parentId") == chapter })
+        assertEquals(2, getJson("/api/v1/tasks").values().count { it.uuidOrNull("parentId") == chapter })
 
         val talk = create(input("Lecture 1", id)).id()
         expectProblem(setType(talk, lecture), 422, "invalid")
@@ -168,7 +168,9 @@ class WorkflowTest : TaskApiTest() {
         val reading = create(input("Chapter", id)).id()
         read(setType(reading, idOf("types", id, "Reading")))
         jdbc
-            .sql("INSERT INTO time_entry (user_id, task_id, started_at, ended_at) VALUES (:user, :task, :start, :end)")
+            .sql(
+                "INSERT INTO time_entry (id, user_id, task_id, started_at, ended_at) VALUES (gen_random_uuid(), :user, :task, :start, :end)",
+            )
             .param("user", userId())
             .param("task", reading)
             .param("start", start("2026-11-03"))
@@ -204,7 +206,7 @@ class WorkflowTest : TaskApiTest() {
             postJson(
                 "/api/v1/projects/$id/item-types",
                 ItemTypeInput(" Spike ", "nope", "task", null, ""),
-            ).asLong()
+            ).asUuid()
         expectProblem(
             post("/api/v1/projects/$id/item-types", ItemTypeInput("Odd", "circle", "thing", null, "")),
             422,
@@ -213,17 +215,17 @@ class WorkflowTest : TaskApiTest() {
         put("/api/v1/item-types/$type", ItemTypeInput("Spike", "flag", "task", 45, "")).andExpect {
             status { isNoContent() }
         }
-        val first = postJson("/api/v1/projects/$id/item-statuses", StatusInput("Todo", "todo")).asLong()
-        val second = postJson("/api/v1/projects/$id/item-statuses", StatusInput("Done", "done")).asLong()
+        val first = postJson("/api/v1/projects/$id/item-statuses", StatusInput("Todo", "todo")).asUuid()
+        val second = postJson("/api/v1/projects/$id/item-statuses", StatusInput("Done", "done")).asUuid()
         put("/api/v1/item-statuses/$second/position", StatusPlacement(first))
-        val milestone = postJson("/api/v1/projects/$id/milestones", MilestoneInput("v1", d("2026-12-01"))).asLong()
+        val milestone = postJson("/api/v1/projects/$id/milestones", MilestoneInput("v1", d("2026-12-01"))).asUuid()
         put("/api/v1/milestones/$milestone", MilestoneInput("v1.0", null))
         put("/api/v1/projects/$id/milestone-label", MilestoneLabel("Releases"))
         val view =
             postJson(
                 "/api/v1/projects/$id/saved-views",
                 ViewInput("Board", "board", "status", "{}", "manual"),
-            ).asLong()
+            ).asUuid()
         expectProblem(
             put("/api/v1/saved-views/$view", ViewInput("Board", "board", "status", "{", "manual")),
             422,
@@ -240,10 +242,10 @@ class WorkflowTest : TaskApiTest() {
         val task = create(input("Plan", id)).id()
         assertEquals(
             milestone,
-            putJson("/api/v1/tasks/$task/milestone", TaskMilestoneId(milestone)).longOrNull("milestoneId"),
+            putJson("/api/v1/tasks/$task/milestone", TaskMilestoneId(milestone)).uuidOrNull("milestoneId"),
         )
         delete("/api/v1/milestones/$milestone").andExpect { status { isNoContent() } }
-        assertNull(task(task).longOrNull("milestoneId"))
+        assertNull(task(task).uuidOrNull("milestoneId"))
         delete("/api/v1/saved-views/$view").andExpect { status { isNoContent() } }
         delete("/api/v1/item-types/$type").andExpect { status { isNoContent() } }
         expectProblem(delete("/api/v1/saved-views/$view"), 404, "notFound")
