@@ -25,7 +25,7 @@ function EntrySubject({
     <span className="flex min-w-0 flex-1 items-center gap-2">
       {showTask && (
         <TaskLink
-          taskId={entry.taskId ?? 0}
+          taskId={entry.taskId ?? ''}
           className={cn(
             'truncate',
             entry.taskCompleted && 'text-foreground/75 line-through',

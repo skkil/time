@@ -1,7 +1,7 @@
 import { CheckIcon, StarIcon } from 'lucide-react';
 import { type ReactNode, useMemo, useState } from 'react';
 
-import type { Task } from '@/backend';
+import type { Id, Task } from '@/backend';
 import { FeltScale } from '@/components/FeltScale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -139,7 +139,7 @@ function WhatMovedStep({ ctx }: { ctx: RitualContext }) {
       task.completedAt >= start &&
       task.completedAt < end,
   );
-  const byProject = new Map<number | null, number>();
+  const byProject = new Map<Id | null, number>();
   for (const entry of entries ?? [])
     byProject.set(
       entry.projectId,
@@ -244,7 +244,7 @@ function PickMustsStep({ ctx }: { ctx: RitualContext }) {
   const musts = all.filter((task) => open(task) && task.mustOn === ctx.target);
   const candidates = useMemo(() => {
     const all = tasks ?? [];
-    const seen = new Set<number>();
+    const seen = new Set<Id>();
     const list: Task[] = [];
     const add = (task: Task) => {
       if (seen.has(task.id) || !open(task)) return;

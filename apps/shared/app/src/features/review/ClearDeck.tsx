@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import type { Project, ProjectSettings } from '@/backend';
+import type { Id, Project, ProjectSettings } from '@/backend';
 import { SectionTitle } from '@/components/page';
 import { Button } from '@/components/ui/button';
 import { Leftovers } from '@/features/day/Leftovers';
@@ -30,7 +30,7 @@ export function ClearDeck({ nextMonday }: { nextMonday: DateKey }) {
       (task) =>
         task.completedAt === null && !task.someday && task.kind === 'task',
     );
-    const counts = new Map<number, number>();
+    const counts = new Map<Id, number>();
     for (const task of open)
       if (task.projectId !== null)
         counts.set(task.projectId, (counts.get(task.projectId) ?? 0) + 1);

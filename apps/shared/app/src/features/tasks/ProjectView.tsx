@@ -16,7 +16,10 @@ import { nextUp } from '@/features/projects/context';
 import { GraphView } from '@/features/workflow/GraphView';
 import { ViewEditor } from '@/features/workflow/ViewEditor';
 import { Workspace } from '@/features/workflow/Workspace';
-import { useWorkspaceView } from '@/features/workflow/use-workspace';
+import {
+  DEFAULT_VIEW_ID,
+  useWorkspaceView,
+} from '@/features/workflow/use-workspace';
 import {
   type ProjectTab,
   setPreference,
@@ -230,7 +233,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
     if (PROJECT_TABS.includes(id as ProjectTab))
       return setTab(id as ProjectTab);
     setTab(undefined);
-    if (structured) choose(Number(id));
+    if (structured) choose(id);
     else if (project)
       setView.mutate({ id: project.id, view: id as 'list' | 'board' });
   };
@@ -275,7 +278,7 @@ export function ProjectView({ projectId }: { projectId: Id | null }) {
               )}
               {tab ? null : structured ? (
                 <>
-                  {view.id > 0 && (
+                  {view.id !== DEFAULT_VIEW_ID && (
                     <Button
                       variant="ghost"
                       size="sm"

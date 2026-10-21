@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import type { TrackedEntry } from '@/backend';
+import type { Id, TrackedEntry } from '@/backend';
 import { atMinutes } from '@/lib/time';
 
 import { entriesByDay, sessionCount, totalSeconds } from './entries';
 
-const entry = (id: number, startedAt: number, minutes: number) =>
+const entry = (id: Id, startedAt: number, minutes: number) =>
   ({
     id,
     startedAt,
@@ -13,9 +13,9 @@ const entry = (id: number, startedAt: number, minutes: number) =>
   }) as TrackedEntry;
 
 describe('entries', () => {
-  const late = entry(1, atMinutes('2026-11-05', 600), 30);
-  const early = entry(2, atMinutes('2026-11-05', 540), 15);
-  const before = entry(3, atMinutes('2026-11-04', 23 * 60 + 30), 60);
+  const late = entry('1', atMinutes('2026-11-05', 600), 30);
+  const early = entry('2', atMinutes('2026-11-05', 540), 15);
+  const before = entry('3', atMinutes('2026-11-04', 23 * 60 + 30), 60);
 
   it('groups by the day an entry started, keeping order', () => {
     expect(entriesByDay([late, early, before])).toEqual([

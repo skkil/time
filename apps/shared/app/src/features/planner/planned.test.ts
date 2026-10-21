@@ -6,7 +6,7 @@ import { plannedSeconds } from './planned';
 
 const task = (patch: Partial<Task>) =>
   ({
-    id: 1,
+    id: '1',
     kind: 'task',
     dueDate: '2026-11-10',
     dueTime: 600,
@@ -14,7 +14,7 @@ const task = (patch: Partial<Task>) =>
     ...patch,
   }) as Task;
 
-const block = { taskId: 9, startAt: 0, endAt: 3600 } as TimeBlock;
+const block = { taskId: '9', startAt: 0, endAt: 3600 } as TimeBlock;
 
 describe('plannedSeconds', () => {
   it('counts blocks and tasks given a time', () => {
@@ -25,7 +25,7 @@ describe('plannedSeconds', () => {
 
   it('does not count a timed task twice when it also has a block', () => {
     expect(
-      plannedSeconds([block], [task({ id: 9 })], '2026-11-09', '2026-11-16'),
+      plannedSeconds([block], [task({ id: '9' })], '2026-11-09', '2026-11-16'),
     ).toBe(3600);
   });
 

@@ -30,7 +30,7 @@ export type Preferences = {
   dayAnyTimeOpen: boolean;
   weekProjectsOpen: boolean;
   projectsSidebarOpen: boolean;
-  lastViews: Record<string, number>;
+  lastViews: Record<string, string>;
   projectTabs: Partial<Record<string, ProjectTab>>;
   weekStartsOn: WeekStart;
   sleep: SleepWindow | null;

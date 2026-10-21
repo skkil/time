@@ -8,7 +8,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { liveEntry } from '@skkil-time/domain/timer';
+import { LIVE_ENTRY_ID, liveEntry } from '@skkil-time/domain/timer';
 import {
   type ReactNode,
   type PointerEvent as ReactPointerEvent,
@@ -614,7 +614,7 @@ function DayColumn({
         const start = minutesIntoDay(event.startAt);
         return {
           event,
-          id: -(i + 1),
+          id: `event-${i}`,
           start,
           end: Math.min(
             start + (event.endAt - event.startAt) / 60,
@@ -626,7 +626,7 @@ function DayColumn({
       const start = task.dueTime ?? 0;
       return {
         task,
-        id: -(anchors.length + i + 1),
+        id: `due-${i}`,
         start,
         end: Math.min(
           start + (task.estimateMinutes ?? DEFAULT_BLOCK_MINUTES),
@@ -639,7 +639,7 @@ function DayColumn({
       ...anchors.map(({ id, start, end }) => ({ id, start, end })),
       ...due.map(({ id, start, end }) => ({ id, start, end })),
     ]);
-    const lane = (id: number) => lanes.get(id) ?? { lane: 0, lanes: 1 };
+    const lane = (id: string) => lanes.get(id) ?? { lane: 0, lanes: 1 };
     return {
       blocks: own.map((item) => ({ ...item, ...lane(item.block.id) })),
       events: anchors.map((item) => ({ ...item, ...lane(item.id) })),
@@ -759,7 +759,7 @@ function DayColumn({
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  disabled={entry.id === -1}
+                  disabled={entry.id === LIVE_ENTRY_ID}
                   onPointerDown={(event) => event.stopPropagation()}
                   onClick={() => onOpenEntry(entry)}
                   className={cn(
@@ -785,7 +785,7 @@ function DayColumn({
                 <p>Focus: {label}</p>
                 <p className="text-xs opacity-80">
                   {formatClockTime(entry.startedAt)}–
-                  {entry.id === -1 ? 'now' : formatClockTime(entry.endedAt)} ·{' '}
+                  {entry.id === LIVE_ENTRY_ID ? 'now' : formatClockTime(entry.endedAt)} ·{' '}
                   {formatDuration(entry.endedAt - entry.startedAt)}
                 </p>
               </TooltipContent>
