@@ -785,8 +785,10 @@ function DayColumn({
                 <p>Focus: {label}</p>
                 <p className="text-xs opacity-80">
                   {formatClockTime(entry.startedAt)}–
-                  {entry.id === LIVE_ENTRY_ID ? 'now' : formatClockTime(entry.endedAt)} ·{' '}
-                  {formatDuration(entry.endedAt - entry.startedAt)}
+                  {entry.id === LIVE_ENTRY_ID
+                    ? 'now'
+                    : formatClockTime(entry.endedAt)}{' '}
+                  · {formatDuration(entry.endedAt - entry.startedAt)}
                 </p>
               </TooltipContent>
             </Tooltip>

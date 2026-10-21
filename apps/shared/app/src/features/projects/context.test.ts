@@ -64,7 +64,9 @@ describe('nextUp', () => {
   });
 
   it('prefers higher priority among undated tasks', () => {
-    expect(nextUp([task('1'), task('2', { priority: 1 })], TODAY)?.id).toBe('2');
+    expect(nextUp([task('1'), task('2', { priority: 1 })], TODAY)?.id).toBe(
+      '2',
+    );
   });
 });
 

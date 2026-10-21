@@ -1,9 +1,10 @@
 import type { Commands } from '#backend';
 import { unwrap } from '@skkil-time/api';
+import type { Id } from '@skkil-time/contract';
 
-const byId = (id: number) => ({ params: { path: { id } } });
+const byId = (id: Id) => ({ params: { path: { id } } });
 
-const replacing = (id: number, replacement: number | null) => ({
+const replacing = (id: Id, replacement: Id | null) => ({
   params: { path: { id }, query: { replacement: replacement ?? undefined } },
 });
 

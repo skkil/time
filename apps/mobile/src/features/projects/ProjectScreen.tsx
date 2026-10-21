@@ -10,7 +10,7 @@ import { Screen } from '@/ui/Screen';
 import { Empty, Failed, Loading } from '@/ui/States';
 
 export function ProjectScreen() {
-  const id = Number(useLocalSearchParams<{ id: string }>().id);
+  const { id } = useLocalSearchParams<{ id: string }>();
   const projects = useProjects();
   const sections = useSections();
   const tasks = useTasks();
