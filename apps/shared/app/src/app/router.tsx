@@ -119,10 +119,6 @@ const projectsSomedayRoute = createRoute({
 export const projectRoute = createRoute({
   getParentRoute: () => projectsRoute,
   path: '/$projectId',
-  params: {
-    parse: (params) => ({ projectId: Number(params.projectId) }),
-    stringify: (params) => ({ projectId: String(params.projectId) }),
-  },
   component: function ProjectRoute() {
     const { projectId } = projectRoute.useParams();
     return <ProjectView key={projectId} projectId={projectId} />;
@@ -132,10 +128,6 @@ export const projectRoute = createRoute({
 export const groupRoute = createRoute({
   getParentRoute: () => projectsRoute,
   path: '/groups/$groupId',
-  params: {
-    parse: (params) => ({ groupId: Number(params.groupId) }),
-    stringify: (params) => ({ groupId: String(params.groupId) }),
-  },
   component: function GroupRoute() {
     const { groupId } = groupRoute.useParams();
     return <GroupView key={groupId} groupId={groupId} />;

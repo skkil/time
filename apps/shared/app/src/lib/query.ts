@@ -1,7 +1,7 @@
 import { MutationCache, QueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import type { Error as CommandError } from '@/backend';
+import type { Error as CommandError, Id } from '@/backend';
 
 function isCommandError(error: unknown): error is CommandError {
   return (
@@ -42,14 +42,14 @@ export const keys = {
   projects: ['projects'] as const,
   groups: ['groups'] as const,
   tasks: ['tasks'] as const,
-  task: (id: number) => ['tasks', id] as const,
+  task: (id: Id) => ['tasks', id] as const,
   sections: ['sections'] as const,
   blocks: (monday: string) => ['blocks', monday] as const,
   allBlocks: ['blocks'] as const,
   entries: (from: string, to: string) => ['entries', from, to] as const,
   allEntries: ['entries'] as const,
-  taskEntries: (id: number) => ['entries', 'task', id] as const,
-  projectEntries: (id: number) => ['entries', 'project', id] as const,
+  taskEntries: (id: Id) => ['entries', 'task', id] as const,
+  projectEntries: (id: Id) => ['entries', 'project', id] as const,
   timer: ['timer'] as const,
   habits: ['habits'] as const,
   habitDays: (from: string, to: string) => ['habitDays', from, to] as const,
@@ -62,8 +62,8 @@ export const keys = {
   quarter: (monday: string) => ['review', 'quarter', monday] as const,
   rituals: ['rituals'] as const,
   workflow: ['workflow'] as const,
-  canvas: (projectId: number) => ['canvas', projectId] as const,
-  recordPhases: (taskId: number) => ['recordPhases', taskId] as const,
+  canvas: (projectId: Id) => ['canvas', projectId] as const,
+  recordPhases: (taskId: Id) => ['recordPhases', taskId] as const,
   presets: ['presets'] as const,
   events: (from: string, to: string) => ['events', from, to] as const,
   allEvents: ['events'] as const,

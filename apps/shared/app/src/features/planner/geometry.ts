@@ -25,15 +25,15 @@ export function placeSpan(startMinutes: number, length: number) {
   return { start, end: start + duration };
 }
 
-export type Interval = { id: number; start: number; end: number };
+export type Interval = { id: string; start: number; end: number };
 export type Lane = { lane: number; lanes: number };
 
-export function layoutLanes(intervals: Interval[]): Map<number, Lane> {
+export function layoutLanes(intervals: Interval[]): Map<string, Lane> {
   const sorted = [...intervals].sort(
     (a, b) => a.start - b.start || b.end - a.end,
   );
-  const result = new Map<number, Lane>();
-  let cluster: { id: number; lane: number }[] = [];
+  const result = new Map<string, Lane>();
+  let cluster: { id: string; lane: number }[] = [];
   let laneEnds: number[] = [];
   let clusterEnd = -Infinity;
 

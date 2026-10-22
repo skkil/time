@@ -6,9 +6,12 @@ import { mondayOf, shiftKey, todayKey } from '@/lib/time';
 
 import { useProjectWorkflow, useWorkflowIndex } from './api';
 
+/** The id of the plain list every project shows before it has saved views. */
+export const DEFAULT_VIEW_ID = 'default';
+
 const DEFAULT_VIEW: SavedView = {
-  id: -1,
-  projectId: -1,
+  id: DEFAULT_VIEW_ID,
+  projectId: '',
   name: 'List',
   layout: 'list',
   groupBy: 'section',

@@ -15,7 +15,7 @@ export type ViewFilter = {
   hideBacklog?: boolean;
   hideWaiting?: boolean;
   categories?: string[];
-  typeIds?: number[];
+  typeIds?: Id[];
 };
 
 export type ViewSpec = Pick<SavedView, 'layout' | 'groupBy' | 'sort'> & {
@@ -29,10 +29,10 @@ export type Group = {
   category?: string;
   tasks: Task[];
   value:
-    | { by: 'status'; id: number }
-    | { by: 'type'; id: number | null }
-    | { by: 'milestone'; id: number | null }
-    | { by: 'section'; id: number | null }
+    | { by: 'status'; id: Id }
+    | { by: 'type'; id: Id | null }
+    | { by: 'milestone'; id: Id | null }
+    | { by: 'section'; id: Id | null }
     | { by: 'none' }
     | { by: 'date'; date: DateKey | null };
 };
@@ -80,7 +80,10 @@ export function filterTasks(tasks: Task[], spec: ViewSpec): Task[] {
       !filter.categories.includes(task.statusCategory ?? '')
     )
       return false;
-    if (filter.typeIds?.length && !filter.typeIds.includes(task.typeId ?? -1))
+    if (
+      filter.typeIds?.length &&
+      (task.typeId === null || !filter.typeIds.includes(task.typeId))
+    )
       return false;
     return true;
   });

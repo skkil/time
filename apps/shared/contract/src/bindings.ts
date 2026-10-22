@@ -66,6 +66,12 @@ export const commands = {
 	listHabitDays: (from: Date, to: Date) => __TAURI_INVOKE<HabitDay[]>("list_habit_days", { from, to }),
 	setHabitStatus: (habitId: Id, date: Date, status: ManualStatus | null) => __TAURI_INVOKE<null>("set_habit_status", { habitId, date, status }),
 	addHabitValue: (habitId: Id, date: Date, delta: number | null) => __TAURI_INVOKE<null>("add_habit_value", { habitId, date, delta }),
+	recordHabitMeasurements: (measurements: HabitMeasurement[]) => __TAURI_INVOKE<null>("record_habit_measurements", { measurements }),
+	/**
+	 *  Refreshes measured habit values: project habits from tracked time, and
+	 *  website and app habits from ActivityWatch through
+	 *  `recordHabitMeasurements`.
+	 */
 	syncHabits: () => __TAURI_INVOKE<SyncReport>("sync_habits"),
 	listDays: (from: Date, to: Date) => __TAURI_INVOKE<Day[]>("list_days", { from, to }),
 	rateDay: (date: Date, felt: number) => __TAURI_INVOKE<null>("rate_day", { date, felt }),
@@ -114,6 +120,10 @@ export const commands = {
 	updateSavedView: (id: Id, input: ViewInput) => __TAURI_INVOKE<null>("update_saved_view", { id, input }),
 	deleteSavedView: (id: Id) => __TAURI_INVOKE<null>("delete_saved_view", { id }),
 	applyProjectPreset: (id: Id, preset: Preset) => __TAURI_INVOKE<null>("apply_project_preset", { id, preset }),
+	/**
+	 *  Writes the project's workflow as a preset file in Downloads and
+	 *  returns its path.
+	 */
 	saveProjectPreset: (id: Id) => __TAURI_INVOKE<string>("save_project_preset", { id }),
 	readPreset: (text: string) => __TAURI_INVOKE<Preset>("read_preset", { text }),
 	setTaskTypeId: (id: Id, typeId: Id | null) => __TAURI_INVOKE<Task>("set_task_type_id", { id, typeId }),
@@ -144,6 +154,7 @@ export type BlockSpan = {
 	endAt: Timestamp,
 };
 
+/**  A calendar day, serialised as `YYYY-MM-DD`. */
 export type Date = string;
 
 export type Day = {
@@ -225,7 +236,18 @@ export type HabitInput = {
 	anchor: string,
 };
 
-export type Id = number;
+/**  A value a device measured for a tracked habit on one day. */
+export type HabitMeasurement = {
+	habitId: Id,
+	date: Date,
+	value: number | null,
+};
+
+/**
+ *  A synced entity id: a UUID kept in its lowercase hyphenated form, so ids
+ *  made by UUIDv7 sort by creation time as plain text.
+ */
+export type Id = string;
 
 export type ImportFile = {
 	name: string,
@@ -411,6 +433,10 @@ export type RitualRun = {
 	snoozedUntil: Timestamp | null,
 };
 
+/**
+ *  The one running (or paused) focus session. `banked_seconds` is what
+ *  earlier stretches of the session already logged.
+ */
 export type RunningTimer = {
 	description: string,
 	projectId: Id | null,
@@ -529,6 +555,7 @@ export type TimeEntry = {
 	endedAt: Timestamp,
 };
 
+/**  Seconds since the Unix epoch. */
 export type Timestamp = number;
 
 export type TrackedEntry = {

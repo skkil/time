@@ -4,7 +4,7 @@ import { Pressable, StyleSheet } from 'react-native';
 
 import { useTheme } from '@/ui/theme';
 
-export function AddButton({ projectId }: { projectId?: number | null }) {
+export function AddButton({ projectId }: { projectId?: string | null }) {
   const theme = useTheme();
   return (
     <Link

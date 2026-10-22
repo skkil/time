@@ -1,3 +1,4 @@
+import { isId } from '@skkil-time/domain/ids';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import {
   KeyboardIcon,
@@ -81,17 +82,16 @@ function Canvas() {
     if (next === 'projects') {
       const last = getPreference('lastProject');
       if (last === 'someday') return navigate({ to: '/projects/someday' });
-      const groupId = Number(last.replace(/^groups\//, ''));
-      if (last.startsWith('groups/') && Number.isInteger(groupId))
+      const groupId = last.replace(/^groups\//, '');
+      if (last.startsWith('groups/') && isId(groupId))
         return navigate({
           to: '/projects/groups/$groupId',
           params: { groupId },
         });
-      const id = Number(last);
-      if (Number.isInteger(id) && id > 0)
+      if (isId(last))
         return navigate({
           to: '/projects/$projectId',
-          params: { projectId: id },
+          params: { projectId: last },
         });
       setPreference('projectsSidebarOpen', true);
       return navigate({ to: '/projects' });

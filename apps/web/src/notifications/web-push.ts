@@ -13,7 +13,7 @@ const isOpenTask = (data: unknown): data is OpenTaskMessage =>
   'type' in data &&
   data.type === 'open-task' &&
   'taskId' in data &&
-  typeof data.taskId === 'number';
+  typeof data.taskId === 'string';
 
 const listeners = new Set<(id: Id) => void>();
 const pending: Id[] = [];
@@ -32,11 +32,11 @@ export function onOpenTask(listener: (id: Id) => void) {
 
 function takeOpenTaskParam() {
   const url = new URL(window.location.href);
-  const id = Number(url.searchParams.get(OPEN_TASK_PARAM));
-  if (!url.searchParams.has(OPEN_TASK_PARAM)) return;
+  const id = url.searchParams.get(OPEN_TASK_PARAM);
+  if (id === null) return;
   url.searchParams.delete(OPEN_TASK_PARAM);
   window.history.replaceState(window.history.state, '', url);
-  if (Number.isInteger(id) && id > 0) openTask(id);
+  if (id) openTask(id);
 }
 
 function urlBase64ToBytes(value: string) {
