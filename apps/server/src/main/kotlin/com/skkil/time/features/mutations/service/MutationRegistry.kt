@@ -1,6 +1,8 @@
 package com.skkil.time.features.mutations.service
 
 import com.skkil.time.common.clock.MutationClock
+import com.skkil.time.common.error.DomainException
+import com.skkil.time.common.error.ErrorKind
 import com.skkil.time.common.error.asIdConflict
 import com.skkil.time.common.error.invalid
 import com.skkil.time.common.id.IdGenerator
@@ -16,7 +18,11 @@ import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
-/** Every write command by contract name, each run in one transaction as the caller acting at the mutation's clock. */
+/**
+ * Every write command by contract name, each run in one transaction (or the one already open) as the caller acting at
+ * the mutation's clock. A constraint the rules did not catch is a `conflict`, so a replayed mutation is rejected rather
+ * than retried forever.
+ */
 @Service
 class MutationRegistry(
     sets: List<MutationSet>,
@@ -46,7 +52,7 @@ class MutationRegistry(
         return try {
             transaction.execute { mutation.apply(acting, MutationArgs(args, mapper)) }
         } catch (error: DataIntegrityViolationException) {
-            throw error.asIdConflict() ?: error
+            throw error.asIdConflict() ?: DomainException(ErrorKind.CONFLICT, "The change conflicts with existing data")
         }
     }
 }

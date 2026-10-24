@@ -155,7 +155,8 @@ class UuidMigrationTest {
         assertEquals(synced, uuidKeys)
         assertEquals(2, text("SELECT DISTINCT scope_id::TEXT FROM app_user").size)
         jdbc.sql(
-            "INSERT INTO week (id, user_id, start_date) VALUES (gen_random_uuid(), 1, '2026-11-02') ON CONFLICT DO NOTHING",
+            "SET store.bypass = on; " +
+                "INSERT INTO week (id, user_id, start_date) VALUES (gen_random_uuid(), 1, '2026-11-02') ON CONFLICT DO NOTHING",
         ).update()
         assertEquals(listOf("1"), text("SELECT COUNT(*)::TEXT FROM week"))
     }

@@ -46,7 +46,7 @@ class CallerResolver(
         val requested =
             webRequest.getHeader(TIME_ZONE_HEADER)?.let { runCatching { ZoneId.of(it) }.getOrNull() }
         if (requested != null && requested != account.zone) accounts.saveZone(account.id, requested)
-        return Caller(account.id, requested ?: account.zone, clock, ids)
+        return Caller(account.id, account.scopeId, requested ?: account.zone, clock, ids)
     }
 }
 

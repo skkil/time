@@ -61,6 +61,10 @@ time:
     web-push-public-key: ${WEB_PUSH_PUBLIC_KEY:}
     web-push-private-key: ${WEB_PUSH_PRIVATE_KEY:}
     web-push-subject: ${WEB_PUSH_SUBJECT:}
+  sync:
+    store-url: ${STORE_URL:http://localhost:8091}
+    token-private-key-pem: ${STORE_TOKEN_PRIVATE_KEY_PEM:}
+    token-public-key-pem: ${STORE_TOKEN_PUBLIC_KEY_PEM:}
 
 
 ---

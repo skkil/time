@@ -6,6 +6,7 @@ import java.io.File
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.UUID
 import kotlin.test.assertEquals
 
 class MutationClockTest {
@@ -22,7 +23,10 @@ class MutationClockTest {
     @Test
     fun `a caller's now and today follow its clock in its own zone`() {
         val acted = Instant.parse("2026-11-08T23:30:00Z")
-        val caller = Caller(1, ZoneId.of("Asia/Seoul")).acting(MutationClock.fixed(acted), { error("unused") })
+        val caller =
+            Caller(1, UUID.randomUUID(), ZoneId.of("Asia/Seoul")).acting(MutationClock.fixed(acted), {
+                error("unused")
+            })
         assertEquals(acted.epochSecond, caller.now())
         assertEquals(LocalDate.parse("2026-11-09"), caller.today())
         assertEquals(LocalDate.parse("2026-11-08"), caller.copy(zone = ZoneId.of("UTC")).today())

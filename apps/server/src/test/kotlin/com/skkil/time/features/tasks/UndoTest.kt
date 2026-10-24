@@ -24,28 +24,32 @@ class UndoTest : TaskApiTest() {
         read(post("/api/v1/tasks/$held/dependencies", TaskDependency(task)))
         val user = userId()
         val start = 1_793_577_600L
-        jdbc
-            .sql(
-                "INSERT INTO time_block (id, user_id, task_id, start_at, end_at) VALUES (gen_random_uuid(), :user, :task, :start, :end)",
-            )
-            .param("user", user)
-            .param("task", task)
-            .param("start", start)
-            .param("end", start + 3600)
-            .update()
-        val entry =
+        asServer {
             jdbc
                 .sql(
-                    """
+                    "INSERT INTO time_block (id, user_id, task_id, start_at, end_at) VALUES (gen_random_uuid(), :user, :task, :start, :end)",
+                )
+                .param("user", user)
+                .param("task", task)
+                .param("start", start)
+                .param("end", start + 3600)
+                .update()
+        }
+        val entry =
+            asServer {
+                jdbc
+                    .sql(
+                        """
                     INSERT INTO time_entry (id, user_id, task_id, started_at, ended_at)
                     VALUES (gen_random_uuid(), :user, :task, :start, :end) RETURNING id
                     """,
-                ).param("user", user)
-                .param("task", task)
-                .param("start", start)
-                .param("end", start + 600)
-                .query(UUID::class.java)
-                .single()
+                    ).param("user", user)
+                    .param("task", task)
+                    .param("start", start)
+                    .param("end", start + 600)
+                    .query(UUID::class.java)
+                    .single()
+            }
 
         val snapshot = capture(task)
         delete("/api/v1/tasks/$task").andExpect { status { isNoContent() } }
@@ -90,13 +94,15 @@ class UndoTest : TaskApiTest() {
         val id = create(input("Old")).id()
         val snapshot = capture(id)
         delete("/api/v1/tasks/$id")
-        jdbc
-            .sql(
-                "INSERT INTO task (id, user_id, title, created_at) VALUES (:id, :user, 'New', 1)",
-            )
-            .param("id", id)
-            .param("user", userId())
-            .update()
+        asServer {
+            jdbc
+                .sql(
+                    "INSERT INTO task (id, user_id, title, created_at) VALUES (:id, :user, 'New', 1)",
+                )
+                .param("id", id)
+                .param("user", userId())
+                .update()
+        }
         expectProblem(restore(snapshot), 422, "invalid")
         assertEquals("New", task(id)["title"].asString())
     }
