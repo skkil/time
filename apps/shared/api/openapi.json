@@ -5158,85 +5158,6 @@
         },
         "required" : [ "completed", "endAt", "id", "priority", "projectId", "startAt", "taskId", "title" ]
       },
-      "JsonNode" : {
-        "type" : "object",
-        "properties" : {
-          "empty" : {
-            "type" : "boolean"
-          },
-          "array" : {
-            "type" : "boolean"
-          },
-          "null" : {
-            "type" : "boolean"
-          },
-          "object" : {
-            "type" : "boolean"
-          },
-          "float" : {
-            "type" : "boolean"
-          },
-          "container" : {
-            "type" : "boolean"
-          },
-          "integralNumber" : {
-            "type" : "boolean"
-          },
-          "valueNode" : {
-            "type" : "boolean"
-          },
-          "pojo" : {
-            "type" : "boolean"
-          },
-          "number" : {
-            "type" : "boolean"
-          },
-          "floatingPointNumber" : {
-            "type" : "boolean"
-          },
-          "short" : {
-            "type" : "boolean"
-          },
-          "int" : {
-            "type" : "boolean"
-          },
-          "long" : {
-            "type" : "boolean"
-          },
-          "double" : {
-            "type" : "boolean"
-          },
-          "bigDecimal" : {
-            "type" : "boolean"
-          },
-          "bigInteger" : {
-            "type" : "boolean"
-          },
-          "textual" : {
-            "type" : "boolean",
-            "deprecated" : true
-          },
-          "boolean" : {
-            "type" : "boolean"
-          },
-          "binary" : {
-            "type" : "boolean"
-          },
-          "nodeType" : {
-            "type" : "string",
-            "enum" : [ "ARRAY", "BINARY", "BOOLEAN", "MISSING", "NULL", "NUMBER", "OBJECT", "POJO", "STRING" ]
-          },
-          "string" : {
-            "type" : "boolean"
-          },
-          "missingNode" : {
-            "type" : "boolean"
-          },
-          "embeddedValue" : {
-            "type" : "boolean"
-          }
-        }
-      },
       "SnapshotCreated" : {
         "type" : "object",
         "description" : "[id, createdAt]",
@@ -5300,7 +5221,8 @@
           "values" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/JsonNode"
+              "type" : "array",
+              "description" : "A snapshot row: its values in column order"
             }
           }
         },

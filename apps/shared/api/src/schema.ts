@@ -2280,43 +2280,6 @@ export interface components {
       /** Format: int64 */
       endAt: number;
     };
-    JsonNode: {
-      empty?: boolean;
-      array?: boolean;
-      null?: boolean;
-      object?: boolean;
-      float?: boolean;
-      container?: boolean;
-      integralNumber?: boolean;
-      valueNode?: boolean;
-      pojo?: boolean;
-      number?: boolean;
-      floatingPointNumber?: boolean;
-      short?: boolean;
-      int?: boolean;
-      long?: boolean;
-      double?: boolean;
-      bigDecimal?: boolean;
-      bigInteger?: boolean;
-      /** @deprecated */
-      textual?: boolean;
-      boolean?: boolean;
-      binary?: boolean;
-      /** @enum {string} */
-      nodeType?:
-        | 'ARRAY'
-        | 'BINARY'
-        | 'BOOLEAN'
-        | 'MISSING'
-        | 'NULL'
-        | 'NUMBER'
-        | 'OBJECT'
-        | 'POJO'
-        | 'STRING';
-      string?: boolean;
-      missingNode?: boolean;
-      embeddedValue?: boolean;
-    };
     /** @description [id, createdAt] */
     SnapshotCreated: {
       /** Format: uuid */
@@ -2342,7 +2305,7 @@ export interface components {
     SnapshotRows: {
       table: string;
       columns: string[];
-      values: components['schemas']['JsonNode'][];
+      values: unknown[][];
     };
     TaskSnapshot: {
       tasks: components['schemas']['SnapshotRows'];
@@ -2770,7 +2733,6 @@ export type Group = components['schemas']['Group'];
 export type DayNote = components['schemas']['DayNote'];
 export type BlockSpan = components['schemas']['BlockSpan'];
 export type TimeBlock = components['schemas']['TimeBlock'];
-export type JsonNode = components['schemas']['JsonNode'];
 export type SnapshotCreated = components['schemas']['SnapshotCreated'];
 export type SnapshotDependency = components['schemas']['SnapshotDependency'];
 export type SnapshotLink = components['schemas']['SnapshotLink'];
