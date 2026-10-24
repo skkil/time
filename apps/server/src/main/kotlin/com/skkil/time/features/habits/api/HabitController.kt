@@ -4,6 +4,7 @@ import com.skkil.time.common.web.Caller
 import com.skkil.time.features.habits.domain.Habit
 import com.skkil.time.features.habits.domain.HabitDay
 import com.skkil.time.features.habits.domain.HabitInput
+import com.skkil.time.features.habits.domain.HabitMeasurement
 import com.skkil.time.features.habits.domain.SyncReport
 import com.skkil.time.features.habits.service.HabitService
 import org.springframework.format.annotation.DateTimeFormat
@@ -73,4 +74,11 @@ class HabitController(private val habits: HabitService) {
 
     @PostMapping("/sync")
     fun sync(caller: Caller): SyncReport = habits.sync(caller)
+
+    @PostMapping("/measurements")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun recordMeasurements(
+        caller: Caller,
+        @RequestBody measurements: List<HabitMeasurement>,
+    ) = habits.recordMeasurements(caller, measurements)
 }

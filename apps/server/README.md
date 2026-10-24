@@ -3,12 +3,32 @@
 The skkil time API: Kotlin, Spring Boot 4.1, Java 25, Postgres. It is an OAuth2
 resource server only. Any OpenID Connect provider issues the tokens.
 
+## Store checkout
+
+The server depends on [store](../../../store) at the tag in the root
+`STORE_VERSION`. Gradle includes `modules/adapter-jvm` of that checkout as a
+composite build, Compose builds its store service, and a test compares the
+copied SQL with it. The checkout is found at `STORE_DIR` (Gradle property
+`storeDir`), default `../store` next to the time repo:
+
+```bash
+git clone --branch "$(cat STORE_VERSION)" <store repo URL> ../store   # from the time repo root
+STORE_DIR=/path/to/store ./gradlew test                                # or point at another checkout
+```
+
+CI does the same clone before `skkil ci`; `skkil doctor` checks the checkout
+is at the pinned tag.
+
 ## Run locally
 
 ```bash
-docker compose up -d     # Postgres on 5433, mock OIDC issuer on 8090
-./gradlew bootRun        # API on 8080, health and metrics on 8081
+docker compose up -d --build   # Postgres on 5433, mock OIDC issuer on 8090, store service on 8091
+./gradlew bootRun              # API on 8080, health and metrics on 8081 (dev profile)
 ```
+
+`bootRun` uses the `dev` profile, which signs sync tokens with a key made at
+startup; the store service reads it from `/api/v1/sync/jwks.json` (restart the
+store container after restarting the server if pulls answer `unauthenticated`).
 
 Sign in from the web app with any username. The mock issuer accepts it and
 stamps the `time-api` audience.
@@ -24,6 +44,11 @@ stamps the `time-api` audience.
 `./gradlew openApi`, run `pnpm generate` in `apps/shared/api` and
 `pnpm exec tsc -b` in `apps/shared/remote`. That type check proves the Kotlin
 types still match the Rust contract the UI is built on.
+
+`./conformance/run.sh` builds store's conformance suite from the checkout and
+runs it with `conformance/profile.json` (time's mutations) against a fresh
+stack, or against a running one with `REUSE_STACK=1`. It needs Go and the
+ports above free.
 
 ## Configuration
 
@@ -41,7 +66,10 @@ types still match the Rust contract the UI is built on.
 | `EXPO_ACCESS_TOKEN` | unset | Bearer token for Expo push, when the Expo project requires one |
 | `WEB_PUSH_PUBLIC_KEY` / `WEB_PUSH_PRIVATE_KEY` | unset | VAPID keys, base64url (`npx web-push generate-vapid-keys`); web push is off without them |
 | `WEB_PUSH_SUBJECT` | unset | VAPID contact, `mailto:` or `https:` URL; required for web push |
-| `SPRING_PROFILES_ACTIVE` | `prod` in the image | `prod` logs JSON (ECS) |
+| `STORE_URL` | `http://localhost:8091` | Store service base URL handed to devices with a sync token |
+| `STORE_TOKEN_PRIVATE_KEY_PEM` / `STORE_TOKEN_PUBLIC_KEY_PEM` | unset | ES256 key pair (PKCS#8 / SPKI PEM) for sync tokens; required outside the `dev` profile |
+| `STORE_DIR` | `../store` (repo root) | Store checkout for the build, Compose and conformance |
+| `SPRING_PROFILES_ACTIVE` | `prod` in the image | `prod` logs JSON (ECS); `dev` (bootRun, tests) makes its own token key |
 
 Probes: `GET /livez` and `GET /readyz` on the API port. Prometheus metrics are at
 `/actuator/prometheus` on the management port, which must stay private.
@@ -58,7 +86,7 @@ named after it. Under `src/main/kotlin/com/skkil/time/`:
 | `common/error/` | `DomainException`, `ErrorKind`, `ensure`/`orNotFound` helpers, `ProblemHandler` |
 | `common/web/` | `Caller`, `RateLimitFilter` |
 | `common/clock/` | `MutationClock` (system, fixed, or from a mutation's HLC) and `Hlc` |
-| `common/id/` | `IdGenerator` and `UuidV7Generator`, the default |
+| `common/id/` | `IdGenerator`, `UuidV7Generator` (the default) and `UuidV5` for seeded rows |
 | `common/persistence/` | `ResultSet` helpers |
 | `common/text/` | Text validation helpers |
 | `features/<domain>/api/` | `@RestController` classes and request bodies used only at the HTTP edge |
@@ -66,8 +94,13 @@ named after it. Under `src/main/kotlin/com/skkil/time/`:
 | `features/<domain>/repository/` | `JdbcClient` queries, where they are kept apart from the service |
 | `features/<domain>/domain/` | Models, enums and pure rules shared by service and API |
 
-`features/mutations/` holds the write-command registry: `MutationDispatcher` (the interface store's Push
-handler will call), `MutationRegistry`, one `MutationSet` per feature in `service/`, and `DeviceOnlyCommands`.
+`features/mutations/` holds the write-command registry: `MutationDispatcher` (what store's Push handler calls),
+`MutationRegistry` and one `MutationSet` per feature in `service/`. `MutationCoverageTest` keeps it equal to the
+`mutations` of `apps/shared/contract/src/commands.json`.
+
+`features/sync/` makes the server a store product: `api/` (Push and sync tokens), `service/` (`ServerWrites`,
+`PushService`, `DispatchedMutation`, `SyncTokenService`), `repository/` (store's open-mutation settings and
+`store_client`) and `web/` (`ServerWriteAspect`, `@OwnWritePath`). `config/StoreConfig` wires adapter-jvm.
 
 A feature only has the layers it needs. A few have their own: `changes/web/`
 (the write-tracking filter), `realtime/websocket/`, `notifications/push/` (the
@@ -92,8 +125,44 @@ ordered by the old id, and gave the composite-key tables an `id` too). `app_user
   row is in the same account or another. Store already applies each `(client, mutation)` once, so a clash means a
   different write owns the id; refusing it never merges two creates or reveals another account's row.
 - **Mutations.** `MutationDispatcher.dispatch(caller, name, args, clock, idSource)` runs one contract write command
-  (`createTask`, `moveTask`, ...) in a transaction, with `args` keyed by the contract's parameter names. It sets the
-  caller's clock and id source for that operation only. `MutationCoverageTest` reads
-  `apps/shared/contract/src/bindings.ts` and fails when a write command is neither registered nor device-only, or
-  when a mutation's parameters drift from the contract. Upserts (day, week, habit log, settings, ...) draw an id each
-  time they run, even when the row already exists.
+  (`createTask`, `moveTask`, ...) in a transaction (or the one already open), with `args` keyed by the contract's
+  parameter names. It sets the caller's clock and id source for that operation only. A constraint the rules missed
+  becomes a `conflict`. Upserts (day, week, habit log, settings, ...) draw an id each time they run, even when the row
+  already exists.
+- **Seeded rows.** Rows the app creates on its own take `UuidV5(scopeId, "<table>/<key>")`: the default rituals are
+  `ritual/<kind>` (`morning`, `evening`, `wind_down`, `session`, `weekly`). The server seeds them once, as a server
+  write, when the account is created (and again after Delete all data or a restore); a device seeding before its
+  first sync must use the same namespace and names, so both produce the same ids. Migration `V11` re-keyed existing
+  rituals the same way.
+- **Order.** Priorities and outcomes sort by `position` (one more than the last in their quarter or week), not by id.
+
+## Sync through store
+
+Contract: store's `docs/protocol.md`; mapping: `docs/decisions/0001-sync-with-store.md`.
+
+- **SQL.** `V9__store_v1.sql` and `V10__store_v2.sql` are store's migrations byte for byte under a header naming the
+  tag (`StoreMigrationsTest` compares them with the checkout). `V13` registers every user table keyed by a uuid; row
+  images leave out `user_id`, and `task.reminded_for` (the reminder job's bookkeeping; devices keep their own).
+  Not synced: `app_user`, `user_identity`, `push_device`, `realtime_ticket`. A write to a registered table outside
+  the write path fails with SQLSTATE `55000`; a migration that rewrites synced rows must `SET LOCAL store.bypass = on`.
+- **REST writes.** `ServerWriteAspect` wraps every `@PostMapping`/`@PutMapping`/`@PatchMapping`/`@DeleteMapping`
+  of a `@RestController` that takes a `Caller` in `ServerWrites.run(caller.scopeId)`: one transaction with
+  `store_begin_server(scope)` before the endpoint and `store_end()` after, so services join it and a failure rolls
+  back rows and log together. A write that changed no synced row closes without a version. Endpoints that open the
+  write path themselves (Push, account deletion) or write nothing synced (sync tokens, Undo capture) carry
+  `@OwnWritePath`.
+- **Background writers.** `ReminderJob` marks tasks reminded in one server write per owner. Provisioning seeds the
+  rituals as a server write. Deleting the account logs every delete, then drops the scope with its log.
+- **Push.** `POST /skkil.store.v1.PushService/Push` (Connect, binary or JSON, the API's bearer token) runs adapter-jvm's
+  `PushHandler` for the caller's scope; each mutation goes to `MutationDispatcher` as the scope's owner, at
+  `MutationClock.fromHlc(hlc)` (server time when `hlc` is 0), naming rows with `MutationContext.nextId()`. A
+  `DomainException` is `REJECTED` with its message; anything else aborts the batch. When any mutation applied, the
+  account's `data_version` moves and the realtime bus publishes topic `sync`, so REST clients refetch.
+- **Sync tokens.** `POST /api/v1/sync/token` `{clientId}` answers `{token, expiresAt, storeUrl, pushUrl}` (ES256,
+  `iss` `time`, 15 minutes). The client id is claimed in `store_client` for the caller's scope; one already bound to
+  another account is a `conflict`. `GET /api/v1/sync/jwks.json` (public) serves the key for `STORE_TOKEN_JWKS_URL`.
+- **Undo.** `captureTasks` is a read returning the snapshot, the serde JSON of `time_core::undo::TaskSnapshot`:
+  `{tasks: {table, columns, values: [[...]]}, created: [[id, createdAt]], copies: [rows of time_block, record_phase],
+  dependencies: [[taskId, blockedById]], links: [[table, id, taskId]]}`. `restoreTasks(snapshot)` is a mutation that
+  restores only columns this server has, as the caller, after checking every reference is the caller's; it draws one
+  id per dependency (and per copied row without an `id`). Nothing is stored on the server.

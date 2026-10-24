@@ -250,7 +250,7 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
                      FROM time_entry e JOIN task t ON t.id = e.task_id
                     WHERE e.user_id = o.user_id AND t.outcome_id = o.id
                       AND e.started_at >= :from AND e.started_at < :to) AS tracked
-                FROM outcome o WHERE o.user_id = :user AND o.week_start = :start ORDER BY o.id
+                FROM outcome o WHERE o.user_id = :user AND o.week_start = :start ORDER BY o.position, o.id
                 """,
             ).param("from", caller.startOf(start))
             .param("to", caller.startOf(start.plusDays(7)))
@@ -389,8 +389,10 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
         jdbc
             .sql(
                 """
-                INSERT INTO outcome (id, user_id, week_start, title, priority_id, carried_from)
-                VALUES (:id, :user, :start, :title, CAST(:priority AS UUID), CAST(:carriedFrom AS UUID))
+                INSERT INTO outcome (id, user_id, week_start, title, priority_id, carried_from, position)
+                VALUES (:id, :user, :start, :title, CAST(:priority AS UUID), CAST(:carriedFrom AS UUID),
+                        (SELECT COALESCE(MAX(position), 0) + 1 FROM outcome
+                         WHERE user_id = :user AND week_start = :start))
                 """,
             ).param("id", id)
             .param("user", caller.id)

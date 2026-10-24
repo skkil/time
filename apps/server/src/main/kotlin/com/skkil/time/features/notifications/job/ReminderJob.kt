@@ -6,6 +6,7 @@ import com.skkil.time.features.notifications.domain.Push
 import com.skkil.time.features.notifications.domain.PushMessage
 import com.skkil.time.features.notifications.push.PushSender
 import com.skkil.time.features.notifications.service.DeviceService
+import com.skkil.time.features.sync.service.ServerWrites
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.scheduling.annotation.Scheduled
@@ -25,7 +26,9 @@ internal const val REMINDER_LOCK_KEY = 0x736B6B696C_0001L
 
 /**
  * The desktop reminder thread as a job: a timed, open task fires once per due date and time, within
- * [GRACE_MINUTES] of its due moment in the owner's zone, to every device the owner registered.
+ * [GRACE_MINUTES] of its due moment in the owner's zone, to every device the owner registered. Marking a task as
+ * reminded is a server write per owner; `reminded_for` is left out of the task's row image, since devices keep their
+ * own.
  */
 @Component
 class ReminderJob(
@@ -33,6 +36,7 @@ class ReminderJob(
     private val devices: DeviceService,
     private val senders: List<PushSender>,
     private val clock: MutationClock,
+    private val writes: ServerWrites,
     transactions: PlatformTransactionManager,
 ) {
     private val transaction = TransactionTemplate(transactions)
@@ -65,13 +69,17 @@ class ReminderJob(
                 if (mine.isEmpty()) emptySet() else sender.send(mine)
             }
         devices.forget(gone)
-        due.forEach { task ->
-            jdbc
-                .sql("UPDATE task SET reminded_for = :key WHERE id = :id AND user_id = :user")
-                .param("key", task.remindedFor)
-                .param("id", task.id)
-                .param("user", task.user)
-                .update()
+        due.groupBy { it.scope }.forEach { (scope, tasks) ->
+            writes.run(scope) {
+                tasks.forEach { task ->
+                    jdbc
+                        .sql("UPDATE task SET reminded_for = :key WHERE id = :id AND user_id = :user")
+                        .param("key", task.remindedFor)
+                        .param("id", task.id)
+                        .param("user", task.user)
+                        .update()
+                }
+            }
         }
         return due.size
     }
@@ -93,7 +101,7 @@ class ReminderJob(
         return jdbc
             .sql(
                 """
-                SELECT t.id, t.user_id, t.title, t.due_date, t.due_time
+                SELECT t.id, t.user_id, u.scope_id, t.title, t.due_date, t.due_time
                 FROM task t
                 JOIN app_user u ON u.id = t.user_id
                 LEFT JOIN item_type it ON it.id = t.type_id
@@ -122,6 +130,7 @@ class ReminderJob(
                 DueTask(
                     rs.uuid("id"),
                     rs.getLong("user_id"),
+                    rs.uuid("scope_id"),
                     rs.getString("title"),
                     rs.getObject("due_date", LocalDate::class.java),
                     rs.getInt("due_time"),
@@ -129,7 +138,14 @@ class ReminderJob(
             }.list()
     }
 
-    private data class DueTask(val id: UUID, val user: Long, val title: String, val date: LocalDate, val minute: Int) {
+    private data class DueTask(
+        val id: UUID,
+        val user: Long,
+        val scope: UUID,
+        val title: String,
+        val date: LocalDate,
+        val minute: Int,
+    ) {
         val remindedFor = "$date $minute"
         val push = Push(title, "%02d:%02d".format(minute / 60, minute % 60), id)
     }

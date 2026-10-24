@@ -1996,7 +1996,28 @@
         }
       }
     },
-    "/api/v1/undo-snapshots" : {
+    "/api/v1/undo/restore" : {
+      "post" : {
+        "tags" : [ "undo-controller" ],
+        "operationId" : "restore",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskSnapshot"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/undo/capture" : {
       "post" : {
         "tags" : [ "undo-controller" ],
         "operationId" : "capture",
@@ -2016,31 +2037,10 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "type" : "string",
-                  "format" : "uuid"
+                  "$ref" : "#/components/schemas/TaskSnapshot"
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/api/v1/undo-snapshots/{id}/restore" : {
-      "post" : {
-        "tags" : [ "undo-controller" ],
-        "operationId" : "restore",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "responses" : {
-          "204" : {
-            "description" : "No Content"
           }
         }
       }
@@ -2445,6 +2445,34 @@
         "responses" : {
           "204" : {
             "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/sync/token" : {
+      "post" : {
+        "tags" : [ "sync-controller" ],
+        "operationId" : "token",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SyncTokenRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SyncGrant"
+                }
+              }
+            }
           }
         }
       }
@@ -3179,6 +3207,30 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/habits/measurements" : {
+      "post" : {
+        "tags" : [ "habit-controller" ],
+        "operationId" : "recordMeasurements",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "array",
+                "items" : {
+                  "$ref" : "#/components/schemas/HabitMeasurement"
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
           }
         }
       }
@@ -5106,6 +5158,109 @@
         },
         "required" : [ "completed", "endAt", "id", "priority", "projectId", "startAt", "taskId", "title" ]
       },
+      "SnapshotCreated" : {
+        "type" : "object",
+        "description" : "[id, createdAt]",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "createdAt", "id" ]
+      },
+      "SnapshotDependency" : {
+        "type" : "object",
+        "description" : "[taskId, blockedById]",
+        "properties" : {
+          "taskId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "blockedById" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "blockedById", "taskId" ]
+      },
+      "SnapshotLink" : {
+        "type" : "object",
+        "description" : "[table, id, taskId]",
+        "properties" : {
+          "table" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "taskId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "id", "table", "taskId" ]
+      },
+      "SnapshotRows" : {
+        "type" : "object",
+        "properties" : {
+          "table" : {
+            "type" : "string"
+          },
+          "columns" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "values" : {
+            "type" : "array",
+            "items" : {
+              "type" : "array",
+              "description" : "A snapshot row: its values in column order"
+            }
+          }
+        },
+        "required" : [ "columns", "table", "values" ]
+      },
+      "TaskSnapshot" : {
+        "type" : "object",
+        "properties" : {
+          "tasks" : {
+            "$ref" : "#/components/schemas/SnapshotRows"
+          },
+          "created" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SnapshotCreated"
+            }
+          },
+          "copies" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SnapshotRows"
+            }
+          },
+          "dependencies" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SnapshotDependency"
+            }
+          },
+          "links" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SnapshotLink"
+            }
+          }
+        },
+        "required" : [ "copies", "created", "dependencies", "links", "tasks" ]
+      },
       "TaskIds" : {
         "type" : "object",
         "properties" : {
@@ -5196,6 +5351,35 @@
           }
         },
         "required" : [ "dueDate", "ids" ]
+      },
+      "SyncTokenRequest" : {
+        "type" : "object",
+        "properties" : {
+          "clientId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "clientId" ]
+      },
+      "SyncGrant" : {
+        "type" : "object",
+        "properties" : {
+          "token" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "storeUrl" : {
+            "type" : "string"
+          },
+          "pushUrl" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "expiresAt", "pushUrl", "storeUrl", "token" ]
       },
       "SectionInput" : {
         "type" : "object",
@@ -5408,6 +5592,24 @@
           }
         },
         "required" : [ "activitywatch", "hasWebData", "hasWindowData", "message" ]
+      },
+      "HabitMeasurement" : {
+        "type" : "object",
+        "properties" : {
+          "habitId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "value" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        },
+        "required" : [ "date", "habitId", "value" ]
       },
       "ItemStatus" : {
         "type" : "object",

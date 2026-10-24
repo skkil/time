@@ -15,6 +15,7 @@ import com.skkil.time.features.habits.domain.DayStatus
 import com.skkil.time.features.habits.domain.Habit
 import com.skkil.time.features.habits.domain.HabitDay
 import com.skkil.time.features.habits.domain.HabitInput
+import com.skkil.time.features.habits.domain.HabitMeasurement
 import com.skkil.time.features.habits.domain.ManualStatus
 import com.skkil.time.features.habits.domain.SyncReport
 import com.skkil.time.features.habits.domain.TrackerState
@@ -174,6 +175,21 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
         }
         val watched = tracked.any { it.tracking?.source != "project" }
         return SyncReport(if (watched) TrackerState.UNREACHABLE else TrackerState.NOT_NEEDED, false, false, null)
+    }
+
+    /**
+     * Writes values a device measured for its website and app habits (from ActivityWatch) as `auto` logs. A status set
+     * by hand still wins, as with [sync].
+     */
+    fun recordMeasurements(caller: Caller, measurements: List<HabitMeasurement>) {
+        for ((habitId, date, value) in measurements) {
+            ensureLoggable(caller, date)
+            ensure(value.isFinite() && value >= 0) { "A measured value can't be negative." }
+            ensure(find(caller.id, habitId).orNotFound("Habit").tracking != null) {
+                "Only tracked habits take measurements."
+            }
+            recordAuto(caller, habitId, date, value)
+        }
     }
 
     private fun find(user: Long, id: UUID): Habit? =

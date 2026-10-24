@@ -1,5 +1,6 @@
 package com.skkil.time.support
 
+import com.skkil.time.features.sync.service.ServerWrites
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -32,6 +33,8 @@ abstract class ApiTest {
 
     @Autowired lateinit var jdbc: JdbcClient
 
+    @Autowired lateinit var writes: ServerWrites
+
     var subject: String = ""
     var zone: String = "UTC"
 
@@ -40,7 +43,7 @@ abstract class ApiTest {
         subject = UUID.randomUUID().toString()
     }
 
-    private fun token() =
+    fun token() =
         jwt().jwt { it.subject(subject).issuer("https://issuer.test/").claim("email", "$subject@example.com") }
 
     fun getJson(path: String): JsonNode = read(get(path))
@@ -100,6 +103,12 @@ abstract class ApiTest {
     }
 
     fun userId(): Long = getJson("/api/v1/me")["id"].asLong()
+
+    /** Runs direct SQL on synced tables as a server write in the current user's scope. */
+    fun <T> asServer(block: () -> T): T = writes.run(scopeId(), block)
+
+    fun scopeId(): UUID =
+        jdbc.sql("SELECT scope_id FROM app_user WHERE id = :id").param("id", userId()).query(UUID::class.java).single()
 
     fun JsonNode.id(): UUID = uuid("id")
 

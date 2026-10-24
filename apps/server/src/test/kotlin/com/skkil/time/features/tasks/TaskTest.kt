@@ -39,11 +39,13 @@ class TaskTest : TaskApiTest() {
     fun `leaves out tasks closed over two weeks ago`() {
         val old = create(input("Old")).id()
         create(input("Recent"))
-        jdbc
-            .sql("UPDATE task SET completed_at = :at WHERE id = :id")
-            .param("at", Instant.now().epochSecond - 15 * TaskRules.DAY_SECONDS)
-            .param("id", old)
-            .update()
+        asServer {
+            jdbc
+                .sql("UPDATE task SET completed_at = :at WHERE id = :id")
+                .param("at", Instant.now().epochSecond - 15 * TaskRules.DAY_SECONDS)
+                .param("id", old)
+                .update()
+        }
         assertEquals(listOf("Recent"), titles())
         assertEquals("Old", task(old)["title"].asString())
     }
@@ -183,14 +185,16 @@ class TaskTest : TaskApiTest() {
     fun `completing a task stops a timer on any of its steps`() {
         val parent = create(input("Pack")).id()
         val step = create(input("Socks").copy(parentId = parent)).id()
-        jdbc
-            .sql(
-                "INSERT INTO running_timer (id, user_id, task_id, started_at) VALUES (gen_random_uuid(), :user, :task, :at)",
-            )
-            .param("user", userId())
-            .param("task", step)
-            .param("at", Instant.now().epochSecond - 600)
-            .update()
+        asServer {
+            jdbc
+                .sql(
+                    "INSERT INTO running_timer (id, user_id, task_id, started_at) VALUES (gen_random_uuid(), :user, :task, :at)",
+                )
+                .param("user", userId())
+                .param("task", step)
+                .param("at", Instant.now().epochSecond - 600)
+                .update()
+        }
         complete(parent)
         val running =
             jdbc.sql(

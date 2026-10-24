@@ -11,11 +11,12 @@ import java.time.ZoneId
 import java.util.UUID
 
 /**
- * The signed-in user a request acts for, with the time zone that decides "today", the [clock] every write reads
- * "now" from and the [ids] that name the rows it creates.
+ * The signed-in user a request acts for, with the store scope their rows sync in, the time zone that decides "today",
+ * the [clock] every write reads "now" from and the [ids] that name the rows it creates.
  */
 data class Caller(
     val id: Long,
+    val scopeId: UUID,
     val zone: ZoneId,
     val clock: MutationClock = SystemMutationClock,
     val ids: IdGenerator = UuidV7Generator(),

@@ -19,11 +19,13 @@ class TimerTest : TaskApiTest() {
     private fun running() = getJson("/api/v1/timer")
 
     private fun backdate(column: String, seconds: Long) {
-        jdbc
-            .sql("UPDATE running_timer SET $column = :at WHERE user_id = :user")
-            .param("at", now() - seconds)
-            .param("user", userId())
-            .update()
+        asServer {
+            jdbc
+                .sql("UPDATE running_timer SET $column = :at WHERE user_id = :user")
+                .param("at", now() - seconds)
+                .param("user", userId())
+                .update()
+        }
     }
 
     private fun entryCount() =
@@ -112,7 +114,7 @@ class TimerTest : TaskApiTest() {
     fun `deleting the linked task keeps the timer`() {
         val task = create(input("Draft")).id()
         start(details(taskId = task))
-        jdbc.sql("DELETE FROM task WHERE id = :id").param("id", task).update()
+        asServer { jdbc.sql("DELETE FROM task WHERE id = :id").param("id", task).update() }
         assertTrue(running()["taskId"].isNull)
     }
 
