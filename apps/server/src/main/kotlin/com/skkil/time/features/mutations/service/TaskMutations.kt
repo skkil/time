@@ -4,6 +4,7 @@ import com.skkil.time.features.mutations.domain.Mutation.Companion.mutation
 import com.skkil.time.features.mutations.domain.MutationSet
 import com.skkil.time.features.tasks.domain.TaskInput
 import com.skkil.time.features.tasks.domain.TaskPlacement
+import com.skkil.time.features.tasks.domain.TaskSnapshot
 import com.skkil.time.features.tasks.service.DependencyService
 import com.skkil.time.features.tasks.service.TaskService
 import com.skkil.time.features.tasks.service.UndoService
@@ -52,11 +53,8 @@ class TaskMutations(
             mutation("deleteTask", "id") { caller, args ->
                 tasks.delete(caller.id, args.get<UUID>("id"))
             },
-            mutation("captureTasks", "ids") { caller, args ->
-                undo.capture(caller, args.get<List<UUID>>("ids"))
-            },
             mutation("restoreTasks", "snapshot") { caller, args ->
-                undo.restore(caller.id, args.get<UUID>("snapshot"))
+                undo.restore(caller, args.get<TaskSnapshot>("snapshot"))
             },
             mutation("addTaskDependency", "taskId", "blockedById") { caller, args ->
                 dependencies.add(caller, args.get<UUID>("taskId"), args.get<UUID>("blockedById"))

@@ -23,7 +23,7 @@ class StoreRegistrationTest : TaskApiTest() {
         val registered = names("SELECT table_name FROM store_table")
         val triggered = names("SELECT tgrelid::regclass::text FROM pg_trigger WHERE tgname = 'store_capture'")
 
-        assertEquals(uuidKeyed - "undo_snapshot", registered)
+        assertEquals(uuidKeyed, registered)
         assertEquals(registered, triggered)
         assertTrue("app_user" !in registered && "push_device" !in registered)
     }

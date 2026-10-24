@@ -1996,7 +1996,28 @@
         }
       }
     },
-    "/api/v1/undo-snapshots" : {
+    "/api/v1/undo/restore" : {
+      "post" : {
+        "tags" : [ "undo-controller" ],
+        "operationId" : "restore",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskSnapshot"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/undo/capture" : {
       "post" : {
         "tags" : [ "undo-controller" ],
         "operationId" : "capture",
@@ -2016,31 +2037,10 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "type" : "string",
-                  "format" : "uuid"
+                  "$ref" : "#/components/schemas/TaskSnapshot"
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/api/v1/undo-snapshots/{id}/restore" : {
-      "post" : {
-        "tags" : [ "undo-controller" ],
-        "operationId" : "restore",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "responses" : {
-          "204" : {
-            "description" : "No Content"
           }
         }
       }
@@ -5157,6 +5157,187 @@
           }
         },
         "required" : [ "completed", "endAt", "id", "priority", "projectId", "startAt", "taskId", "title" ]
+      },
+      "JsonNode" : {
+        "type" : "object",
+        "properties" : {
+          "empty" : {
+            "type" : "boolean"
+          },
+          "array" : {
+            "type" : "boolean"
+          },
+          "null" : {
+            "type" : "boolean"
+          },
+          "object" : {
+            "type" : "boolean"
+          },
+          "float" : {
+            "type" : "boolean"
+          },
+          "container" : {
+            "type" : "boolean"
+          },
+          "integralNumber" : {
+            "type" : "boolean"
+          },
+          "valueNode" : {
+            "type" : "boolean"
+          },
+          "pojo" : {
+            "type" : "boolean"
+          },
+          "number" : {
+            "type" : "boolean"
+          },
+          "floatingPointNumber" : {
+            "type" : "boolean"
+          },
+          "short" : {
+            "type" : "boolean"
+          },
+          "int" : {
+            "type" : "boolean"
+          },
+          "long" : {
+            "type" : "boolean"
+          },
+          "double" : {
+            "type" : "boolean"
+          },
+          "bigDecimal" : {
+            "type" : "boolean"
+          },
+          "bigInteger" : {
+            "type" : "boolean"
+          },
+          "textual" : {
+            "type" : "boolean",
+            "deprecated" : true
+          },
+          "boolean" : {
+            "type" : "boolean"
+          },
+          "binary" : {
+            "type" : "boolean"
+          },
+          "nodeType" : {
+            "type" : "string",
+            "enum" : [ "ARRAY", "BINARY", "BOOLEAN", "MISSING", "NULL", "NUMBER", "OBJECT", "POJO", "STRING" ]
+          },
+          "string" : {
+            "type" : "boolean"
+          },
+          "missingNode" : {
+            "type" : "boolean"
+          },
+          "embeddedValue" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SnapshotCreated" : {
+        "type" : "object",
+        "description" : "[id, createdAt]",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "createdAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "createdAt", "id" ]
+      },
+      "SnapshotDependency" : {
+        "type" : "object",
+        "description" : "[taskId, blockedById]",
+        "properties" : {
+          "taskId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "blockedById" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "blockedById", "taskId" ]
+      },
+      "SnapshotLink" : {
+        "type" : "object",
+        "description" : "[table, id, taskId]",
+        "properties" : {
+          "table" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "taskId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "id", "table", "taskId" ]
+      },
+      "SnapshotRows" : {
+        "type" : "object",
+        "properties" : {
+          "table" : {
+            "type" : "string"
+          },
+          "columns" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "values" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/JsonNode"
+            }
+          }
+        },
+        "required" : [ "columns", "table", "values" ]
+      },
+      "TaskSnapshot" : {
+        "type" : "object",
+        "properties" : {
+          "tasks" : {
+            "$ref" : "#/components/schemas/SnapshotRows"
+          },
+          "created" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SnapshotCreated"
+            }
+          },
+          "copies" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SnapshotRows"
+            }
+          },
+          "dependencies" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SnapshotDependency"
+            }
+          },
+          "links" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SnapshotLink"
+            }
+          }
+        },
+        "required" : [ "copies", "created", "dependencies", "links", "tasks" ]
       },
       "TaskIds" : {
         "type" : "object",

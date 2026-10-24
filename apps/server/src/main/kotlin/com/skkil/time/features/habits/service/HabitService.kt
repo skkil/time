@@ -37,8 +37,6 @@ private const val SYNC_DAYS = 60L
 private const val ALL_DAYS = 0b111_1111
 private const val CONSISTENCY_DAYS = 14L
 private const val MAX_SKIP_DAYS = 2
-private const val MAX_MEASUREMENTS = 1_000
-private val DEVICE_SOURCES = setOf("website", "app")
 
 private const val SELECT = """
     SELECT id, name, kind, goal, unit, days, time_of_day, area, start_date,
@@ -184,14 +182,12 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
      * by hand still wins, as with [sync].
      */
     fun recordMeasurements(caller: Caller, measurements: List<HabitMeasurement>) {
-        ensure(measurements.size <= MAX_MEASUREMENTS) { "Send at most $MAX_MEASUREMENTS measurements at once." }
-        val habits = active(caller.id).associateBy { it.id }
-        val today = caller.today()
         for ((habitId, date, value) in measurements) {
-            val habit = habits[habitId].orNotFound("Habit")
-            ensure(habit.tracking?.source in DEVICE_SOURCES) { "Only website and app habits take measurements." }
-            ensure(date <= today && date >= habit.startDate) { "That day can't be measured." }
-            ensure(value.isFinite() && value >= 0) { "A measurement can't be negative." }
+            ensureLoggable(caller, date)
+            ensure(value.isFinite() && value >= 0) { "A measured value can't be negative." }
+            ensure(find(caller.id, habitId).orNotFound("Habit").tracking != null) {
+                "Only tracked habits take measurements."
+            }
             recordAuto(caller, habitId, date, value)
         }
     }

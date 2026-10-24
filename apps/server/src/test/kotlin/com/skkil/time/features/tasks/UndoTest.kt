@@ -4,15 +4,16 @@ import com.skkil.time.features.tasks.api.TaskDependency
 import com.skkil.time.features.tasks.api.TaskIds
 import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.JsonNode
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class UndoTest : TaskApiTest() {
-    private fun capture(vararg ids: UUID) = postJson("/api/v1/undo-snapshots", TaskIds(ids.toList())).asUuid()
+    private fun capture(vararg ids: UUID): JsonNode = postJson("/api/v1/undo/capture", TaskIds(ids.toList()))
 
-    private fun restore(snapshot: UUID) = post("/api/v1/undo-snapshots/$snapshot/restore")
+    private fun restore(snapshot: JsonNode) = post("/api/v1/undo/restore", snapshot)
 
     private fun count(sql: String, id: UUID) = jdbc.sql(sql).param("id", id).query(Int::class.java).single()
 
@@ -119,24 +120,43 @@ class UndoTest : TaskApiTest() {
     }
 
     @Test
-    fun `keeps only recent snapshots and each restores once`() {
-        val first = capture()
-        repeat(50) { capture() }
-        expectProblem(restore(first), 422, "invalid")
-        val last = capture()
-        read(restore(last))
-        expectProblem(restore(last), 422, "invalid")
+    fun `a snapshot is plain data in the shape time-core keeps`() {
+        val task = create(input("Write")).id()
+        val held = create(input("Send")).id()
+        read(post("/api/v1/tasks/$held/dependencies", TaskDependency(task)))
+        val snapshot = capture(task)
+
+        assertEquals(listOf("copies", "created", "dependencies", "links", "tasks"), snapshot.propertyNames().sorted())
+        assertEquals("task", snapshot["tasks"]["table"].asString())
+        val columns = snapshot["tasks"]["columns"].values().map { it.asString() }
+        assertTrue("title" in columns && "user_id" !in columns && "reminded_for" !in columns)
+        assertEquals("Write", snapshot["tasks"]["values"][0][columns.indexOf("title")].asString())
+        assertEquals(task.toString(), snapshot["created"][0][0].asString())
+        assertTrue(snapshot["created"][0][1].isIntegralNumber)
+        assertEquals(listOf("time_block", "record_phase"), snapshot["copies"].values().map { it["table"].asString() })
+        assertEquals(
+            listOf(held.toString(), task.toString()),
+            snapshot["dependencies"][0].values().map {
+                it.asString()
+            },
+        )
     }
 
     @Test
-    fun `restores only the caller's own snapshots`() {
+    fun `a snapshot never writes into another account`() {
         val id = create(input("Mine")).id()
         val snapshot = capture(id)
         subject = UUID.randomUUID().toString()
         expectProblem(restore(snapshot), 422, "invalid")
-        assertEquals(1, count("SELECT COUNT(*) FROM undo_snapshot WHERE id = :id", snapshot))
-        val empty = capture(id)
-        delete("/api/v1/tasks/$id")
-        read(restore(empty))
+
+        val project = project("Theirs")
+        subject = UUID.randomUUID().toString()
+        val own = create(input("Moved")).id()
+        val stolen = capture(own)
+        val columns = stolen["tasks"]["columns"].values().map { it.asString() }
+        (stolen["tasks"]["values"][0] as tools.jackson.databind.node.ArrayNode)
+            .set(columns.indexOf("project_id"), mapper.valueToTree<JsonNode>(project.toString()))
+        expectProblem(restore(stolen), 422, "invalid")
+        assertTrue(task(own)["projectId"].isNull)
     }
 }

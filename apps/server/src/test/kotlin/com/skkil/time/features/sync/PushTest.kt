@@ -2,6 +2,7 @@ package com.skkil.time.features.sync
 
 import com.google.protobuf.ByteString
 import com.skkil.time.common.clock.Hlc
+import com.skkil.time.features.tasks.api.TaskIds
 import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.Test
 import org.skkil.store.push.DerivedIds
@@ -193,5 +194,24 @@ class PushTest : TaskApiTest() {
                 contentType = MediaType("application", "proto")
                 content = PushRequest.getDefaultInstance().toByteArray()
             }.andExpect { status { isUnauthorized() } }
+    }
+
+    @Test
+    fun `undo replays from the snapshot the device kept`() {
+        val task = create(input("Keep me")).id()
+        val snapshot = postJson("/api/v1/undo/capture", TaskIds(listOf(task)))
+        delete("/api/v1/tasks/$task").andExpect { status { isNoContent() } }
+
+        val result = push(mutation(1, "restoreTasks", mapOf("snapshot" to snapshot))).resultsList.single()
+
+        assertEquals(Status.STATUS_APPLIED, result.status)
+        assertEquals("Keep me", task(task)["title"].asString())
+    }
+
+    @Test
+    fun `device-only commands are not pushable`() {
+        val result = push(mutation(1, "syncHabits", emptyMap())).resultsList.single()
+        assertEquals(Status.STATUS_REJECTED, result.status)
+        assertEquals("unknown mutation: syncHabits", result.reason)
     }
 }

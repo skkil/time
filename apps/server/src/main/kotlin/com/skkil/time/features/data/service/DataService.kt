@@ -72,7 +72,7 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
         }
 
     private fun wipe(user: Long) {
-        for (table in TABLES.asReversed().filter { it.ownedDirectly } + UNDO) {
+        for (table in TABLES.asReversed().filter { it.ownedDirectly }) {
             jdbc.sql("DELETE FROM ${table.name} WHERE user_id = :user").param("user", user).update()
         }
     }
@@ -196,6 +196,5 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
         const val ID = "id"
         const val RITUAL = "ritual"
         const val NOT_A_BACKUP = "That file isn't a skkil time backup."
-        val UNDO = Table("undo_snapshot", true, emptyList())
     }
 }

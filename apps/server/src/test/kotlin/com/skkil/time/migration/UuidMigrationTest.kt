@@ -98,7 +98,7 @@ class UuidMigrationTest {
             ),
         )
         assertEquals(listOf("hi"), text("SELECT c.content FROM project_canvas c JOIN project p ON p.id = c.project_id"))
-        assertEquals(listOf("0"), text("SELECT COUNT(*)::TEXT FROM undo_snapshot"))
+        assertEquals(emptyList(), text("SELECT tablename::TEXT FROM pg_tables WHERE tablename = 'undo_snapshot'"))
         assertEquals(listOf("1"), text("SELECT COUNT(*)::TEXT FROM push_device"))
     }
 
@@ -148,7 +148,6 @@ class UuidMigrationTest {
                 "habit_log",
                 "ritual",
                 "ritual_run",
-                "undo_snapshot",
                 "setting",
                 "user_preference",
             )

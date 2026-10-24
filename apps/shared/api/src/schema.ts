@@ -772,23 +772,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/undo-snapshots': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations['capture'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/undo-snapshots/{id}/restore': {
+  '/api/v1/undo/restore': {
     parameters: {
       query?: never;
       header?: never;
@@ -798,6 +782,22 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations['restore'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/undo/capture': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['capture'];
     delete?: never;
     options?: never;
     head?: never;
@@ -2280,6 +2280,77 @@ export interface components {
       /** Format: int64 */
       endAt: number;
     };
+    JsonNode: {
+      empty?: boolean;
+      array?: boolean;
+      null?: boolean;
+      object?: boolean;
+      float?: boolean;
+      container?: boolean;
+      integralNumber?: boolean;
+      valueNode?: boolean;
+      pojo?: boolean;
+      number?: boolean;
+      floatingPointNumber?: boolean;
+      short?: boolean;
+      int?: boolean;
+      long?: boolean;
+      double?: boolean;
+      bigDecimal?: boolean;
+      bigInteger?: boolean;
+      /** @deprecated */
+      textual?: boolean;
+      boolean?: boolean;
+      binary?: boolean;
+      /** @enum {string} */
+      nodeType?:
+        | 'ARRAY'
+        | 'BINARY'
+        | 'BOOLEAN'
+        | 'MISSING'
+        | 'NULL'
+        | 'NUMBER'
+        | 'OBJECT'
+        | 'POJO'
+        | 'STRING';
+      string?: boolean;
+      missingNode?: boolean;
+      embeddedValue?: boolean;
+    };
+    /** @description [id, createdAt] */
+    SnapshotCreated: {
+      /** Format: uuid */
+      id: string;
+      /** Format: int64 */
+      createdAt: number;
+    };
+    /** @description [taskId, blockedById] */
+    SnapshotDependency: {
+      /** Format: uuid */
+      taskId: string;
+      /** Format: uuid */
+      blockedById: string;
+    };
+    /** @description [table, id, taskId] */
+    SnapshotLink: {
+      table: string;
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      taskId: string;
+    };
+    SnapshotRows: {
+      table: string;
+      columns: string[];
+      values: components['schemas']['JsonNode'][];
+    };
+    TaskSnapshot: {
+      tasks: components['schemas']['SnapshotRows'];
+      created: components['schemas']['SnapshotCreated'][];
+      copies: components['schemas']['SnapshotRows'][];
+      dependencies: components['schemas']['SnapshotDependency'][];
+      links: components['schemas']['SnapshotLink'][];
+    };
     TaskIds: {
       ids: string[];
     };
@@ -2699,6 +2770,12 @@ export type Group = components['schemas']['Group'];
 export type DayNote = components['schemas']['DayNote'];
 export type BlockSpan = components['schemas']['BlockSpan'];
 export type TimeBlock = components['schemas']['TimeBlock'];
+export type JsonNode = components['schemas']['JsonNode'];
+export type SnapshotCreated = components['schemas']['SnapshotCreated'];
+export type SnapshotDependency = components['schemas']['SnapshotDependency'];
+export type SnapshotLink = components['schemas']['SnapshotLink'];
+export type SnapshotRows = components['schemas']['SnapshotRows'];
+export type TaskSnapshot = components['schemas']['TaskSnapshot'];
 export type TaskIds = components['schemas']['TaskIds'];
 export type PhaseTaskInput = components['schemas']['PhaseTaskInput'];
 export type TaskPlacement = components['schemas']['TaskPlacement'];
@@ -4354,6 +4431,28 @@ export interface operations {
       };
     };
   };
+  restore: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskSnapshot'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   capture: {
     parameters: {
       query?: never;
@@ -4373,28 +4472,8 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': string;
+          '*/*': components['schemas']['TaskSnapshot'];
         };
-      };
-    };
-  };
-  restore: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description No Content */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
       };
     };
   };

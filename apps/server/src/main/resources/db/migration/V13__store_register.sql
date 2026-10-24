@@ -1,8 +1,7 @@
 -- Every user-owned table keyed by a uuid id syncs through store from here on. Writes to them need an open
 -- mutation (store_begin or store_begin_server); a later migration that rewrites their rows must run
 -- SET LOCAL store.bypass = on first.
--- Not synced: app_user and user_identity (accounts), push_device and realtime_ticket (per-device server state),
--- undo_snapshot (Undo is device-local).
+-- Not synced: app_user and user_identity (accounts), push_device and realtime_ticket (per-device server state).
 SELECT store_register('setting', 'id', ARRAY['user_id']);
 SELECT store_register('project_group', 'id', ARRAY['user_id']);
 SELECT store_register('project', 'id', ARRAY['user_id']);

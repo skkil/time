@@ -41,9 +41,6 @@ class HabitMutations(
                     args.get<Double?>("delta"),
                 )
             },
-            mutation("syncHabits") { caller, args ->
-                habits.sync(caller)
-            },
             mutation("recordHabitMeasurements", "measurements") { caller, args ->
                 habits.recordMeasurements(caller, args.get<List<HabitMeasurement>>("measurements"))
             },
