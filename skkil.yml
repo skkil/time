@@ -20,11 +20,17 @@ requires:
   - name: workspace dependencies
     check: test -d apps/node_modules
     hint: cd apps && pnpm install
+  - name: store checkout at STORE_VERSION
+    check: test "$(git -C "${STORE_DIR:-../store}" describe --tags --exact-match 2>/dev/null)" = "$(cat STORE_VERSION)"
+    hint: git -C ../store fetch --tags && git -C ../store checkout "$(cat STORE_VERSION)" (first time, clone the store repo with --branch "$(cat STORE_VERSION)" into ../store, or set STORE_DIR)
+  - name: Go
+    check: command -v go
+    hint: install Go 1.27 or later (builds store's conformance suite)
 
 dev:
   run:
     - name: services
-      run: docker compose up
+      run: docker compose up --build
       dir: apps/server
     - name: server
       run: ./gradlew bootRun
@@ -189,6 +195,11 @@ ci:
       format: ./gradlew spotlessCheck
       test: ./gradlew test
       build: ./gradlew bootJar
+    - name: store-conformance
+      dir: apps/server
+      test: ./conformance/run.sh -runs 3
+      depends_on:
+        - server
     - name: web
       dir: apps/web
       format: pnpm format:check
