@@ -324,10 +324,25 @@ cargo clippy --all-targets -- -D warnings
   `MutationClock` and `IdGenerator` of the operation); use
   `caller.now()`/`caller.today()` wherever desktop uses local time, never
   `Instant.now()` (a test enforces it).
-- Every contract write command is registered in `features/mutations`
-  (`MutationDispatcher.dispatch(caller, name, args, clock, idSource)`), for
-  store's Push handler; a new write command needs a line in its feature's
-  `MutationSet` or `DeviceOnlyCommands`, or `MutationCoverageTest` fails.
+- Every `mutations` entry of `apps/shared/contract/src/commands.json` is
+  registered in `features/mutations`
+  (`MutationDispatcher.dispatch(caller, name, args, clock, idSource)`) and
+  nothing else is; `MutationCoverageTest` checks names and parameters.
+- The server is a store product (`features/sync`, store pinned by the root
+  `STORE_VERSION`, adapter-jvm through a Gradle composite build from
+  `STORE_DIR`, default `../store`). Store's SQL is copied as `V9`/`V10`
+  (a test compares them with the checkout) and every user table keyed by a
+  uuid is `store_register`ed, so a write outside the write path fails.
+  Push (`/skkil.store.v1.PushService/Push`, API bearer) runs mutations
+  through the dispatcher at the HLC with derived ids; a `DomainException`
+  rejects. REST writes are server writes through `ServerWriteAspect`
+  (one transaction per endpoint, no version when nothing synced changed);
+  jobs and account setup use `ServerWrites.run(scope)`. Endpoints that open
+  the write path themselves carry `@OwnWritePath`. Sync tokens come from
+  `POST /api/v1/sync/token`; seeded rows take `UuidV5(scopeId,
+  "<table>/<key>")` (rituals: `ritual/<kind>`) on every side. Undo is
+  `captureTasks` (a read returning the snapshot) and `restoreTasks(snapshot)`
+  (a mutation); nothing is stored on the server.
 - Auth is an OAuth2 resource server only (`AUTH_ISSUER_URI`, `AUTH_AUDIENCE`);
   users are `user_identity (issuer, subject)` → `app_user`. Errors are RFC 9457
   problem details with a `kind` matching the desktop `Error`.
@@ -341,6 +356,8 @@ cargo clippy --all-targets -- -D warnings
   forwards it to that user's websockets at `/api/v1/realtime`
   (`features/realtime/websocket/`), opened with a one-time ticket from
   `POST /api/v1/realtime/tickets`. Events carry no data, only "refetch".
+  A Push with an applied mutation does the same (topic `sync`), so REST
+  clients refresh on device writes.
 - Reminders on web and mobile are push (`features/notifications`):
   `job/ReminderJob.kt` runs every 20 s, one sender across instances via
   `pg_try_advisory_xact_lock`, and fires each timed task once per date and
