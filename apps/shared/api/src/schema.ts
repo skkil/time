@@ -1012,6 +1012,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/sync/token': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['token'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/sections': {
     parameters: {
       query?: never;
@@ -1358,6 +1374,22 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations['sync'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/habits/measurements': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['recordMeasurements'];
     delete?: never;
     options?: never;
     head?: never;
@@ -2279,6 +2311,17 @@ export interface components {
       /** Format: date */
       dueDate: string | null;
     };
+    SyncTokenRequest: {
+      /** Format: uuid */
+      clientId: string;
+    };
+    SyncGrant: {
+      token: string;
+      /** Format: int64 */
+      expiresAt: number;
+      storeUrl: string;
+      pushUrl: string;
+    };
     SectionInput: {
       /** Format: uuid */
       projectId: string | null;
@@ -2363,6 +2406,14 @@ export interface components {
       hasWebData: boolean;
       hasWindowData: boolean;
       message: string | null;
+    };
+    HabitMeasurement: {
+      /** Format: uuid */
+      habitId: string;
+      /** Format: date */
+      date: string;
+      /** Format: double */
+      value: number;
     };
     ItemStatus: {
       /** Format: uuid */
@@ -2654,6 +2705,8 @@ export type TaskPlacement = components['schemas']['TaskPlacement'];
 export type TaskDependency = components['schemas']['TaskDependency'];
 export type TasksSomeday = components['schemas']['TasksSomeday'];
 export type TaskReschedule = components['schemas']['TaskReschedule'];
+export type SyncTokenRequest = components['schemas']['SyncTokenRequest'];
+export type SyncGrant = components['schemas']['SyncGrant'];
 export type SectionInput = components['schemas']['SectionInput'];
 export type RitualTask = components['schemas']['RitualTask'];
 export type RitualEvent = components['schemas']['RitualEvent'];
@@ -2670,6 +2723,7 @@ export type ImportSection = components['schemas']['ImportSection'];
 export type ImportTask = components['schemas']['ImportTask'];
 export type HabitDelta = components['schemas']['HabitDelta'];
 export type SyncReport = components['schemas']['SyncReport'];
+export type HabitMeasurement = components['schemas']['HabitMeasurement'];
 export type ItemStatus = components['schemas']['ItemStatus'];
 export type ItemType = components['schemas']['ItemType'];
 export type Milestone = components['schemas']['Milestone'];
@@ -4689,6 +4743,30 @@ export interface operations {
       };
     };
   };
+  token: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SyncTokenRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SyncGrant'];
+        };
+      };
+    };
+  };
   list_1: {
     parameters: {
       query?: never;
@@ -5288,6 +5366,28 @@ export interface operations {
         content: {
           '*/*': components['schemas']['SyncReport'];
         };
+      };
+    };
+  };
+  recordMeasurements: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['HabitMeasurement'][];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

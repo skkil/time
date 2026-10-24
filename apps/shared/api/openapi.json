@@ -2449,6 +2449,34 @@
         }
       }
     },
+    "/api/v1/sync/token" : {
+      "post" : {
+        "tags" : [ "sync-controller" ],
+        "operationId" : "token",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SyncTokenRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SyncGrant"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/sections" : {
       "get" : {
         "tags" : [ "section-controller" ],
@@ -3179,6 +3207,30 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/habits/measurements" : {
+      "post" : {
+        "tags" : [ "habit-controller" ],
+        "operationId" : "recordMeasurements",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "array",
+                "items" : {
+                  "$ref" : "#/components/schemas/HabitMeasurement"
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
           }
         }
       }
@@ -5197,6 +5249,35 @@
         },
         "required" : [ "dueDate", "ids" ]
       },
+      "SyncTokenRequest" : {
+        "type" : "object",
+        "properties" : {
+          "clientId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "clientId" ]
+      },
+      "SyncGrant" : {
+        "type" : "object",
+        "properties" : {
+          "token" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "storeUrl" : {
+            "type" : "string"
+          },
+          "pushUrl" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "expiresAt", "pushUrl", "storeUrl", "token" ]
+      },
       "SectionInput" : {
         "type" : "object",
         "properties" : {
@@ -5408,6 +5489,24 @@
           }
         },
         "required" : [ "activitywatch", "hasWebData", "hasWindowData", "message" ]
+      },
+      "HabitMeasurement" : {
+        "type" : "object",
+        "properties" : {
+          "habitId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "date" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "value" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        },
+        "required" : [ "date", "habitId", "value" ]
       },
       "ItemStatus" : {
         "type" : "object",
