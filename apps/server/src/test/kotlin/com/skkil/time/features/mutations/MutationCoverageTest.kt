@@ -2,6 +2,7 @@ package com.skkil.time.features.mutations
 
 import com.skkil.time.features.mutations.domain.DeviceOnlyCommands
 import com.skkil.time.features.mutations.domain.MutationSet
+import com.skkil.time.features.mutations.domain.PendingContractCommands
 import com.skkil.time.features.mutations.service.DataMutations
 import com.skkil.time.features.mutations.service.HabitMutations
 import com.skkil.time.features.mutations.service.ProjectMutations
@@ -57,7 +58,9 @@ class MutationCoverageTest {
         val writes = commands.keys - READS
         val unclassified = writes - registered.keys - DeviceOnlyCommands.names.keys
         assertEquals(emptySet(), unclassified, "Register these mutations or list them as device-only")
-        assertEquals(emptySet(), registered.keys - commands.keys, "Registered names missing from the contract")
+        val pending = PendingContractCommands.names.keys
+        assertEquals(pending, registered.keys - commands.keys, "Registered names missing from the contract")
+        assertEquals(emptySet(), pending intersect commands.keys, "Remove these from PendingContractCommands")
         assertEquals(emptySet(), DeviceOnlyCommands.names.keys - commands.keys)
         assertEquals(emptySet(), registered.keys intersect DeviceOnlyCommands.names.keys)
         assertEquals(emptySet(), READS - commands.keys, "Reads missing from the contract")
@@ -66,8 +69,9 @@ class MutationCoverageTest {
 
     @Test
     fun `mutations take the contract's parameters in order`() {
-        val mismatched = registered.filter { (name, params) -> commands[name] != params }
-        assertEquals(emptyMap(), mismatched.mapValues { (name, params) -> "$params vs ${commands[name]}" })
+        val expected = commands + PendingContractCommands.names
+        val mismatched = registered.filter { (name, params) -> expected[name] != params }
+        assertEquals(emptyMap(), mismatched.mapValues { (name, params) -> "$params vs ${expected[name]}" })
     }
 
     private companion object {

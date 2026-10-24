@@ -3,6 +3,7 @@ package com.skkil.time.features.habits
 import com.skkil.time.features.habits.api.HabitDelta
 import com.skkil.time.features.habits.api.HabitStatus
 import com.skkil.time.features.habits.domain.HabitInput
+import com.skkil.time.features.habits.domain.HabitMeasurement
 import com.skkil.time.features.habits.domain.ManualStatus
 import com.skkil.time.features.habits.domain.Tracking
 import com.skkil.time.features.projects.domain.ProjectInput
@@ -44,17 +45,19 @@ class HabitTest : ApiTest() {
     private fun project(name: String) = postJson("/api/v1/projects", ProjectInput(name, null, "green")).id()
 
     private fun logEntry(project: UUID, start: Long, minutes: Long) {
-        jdbc
-            .sql(
-                """
+        asServer {
+            jdbc
+                .sql(
+                    """
                 INSERT INTO time_entry (id, user_id, project_id, started_at, ended_at)
                 VALUES (gen_random_uuid(), :user, :project, :start, :end)
                 """,
-            ).param("user", userId())
-            .param("project", project)
-            .param("start", start)
-            .param("end", start + minutes * 60)
-            .update()
+                ).param("user", userId())
+                .param("project", project)
+                .param("start", start)
+                .param("end", start + minutes * 60)
+                .update()
+        }
     }
 
     private fun startOf(date: LocalDate): Long = date.atStartOfDay(ZoneId.of(zone)).toEpochSecond()
@@ -279,6 +282,36 @@ class HabitTest : ApiTest() {
             post("/api/v1/habits", input("Spy", "build").copy(tracking = Tracking("project", emptyList(), project))),
             404,
             "notFound",
+        )
+    }
+
+    @Test
+    fun `website and app habits take the values a device measured`() {
+        val site =
+            create(
+                input("Less news", "limit").copy(tracking = Tracking("website", listOf("news.com"), null)),
+            ).id()
+        val plain = create(input("Read", "build")).id()
+        val yesterday = today().minusDays(1)
+
+        post("/api/v1/habits/measurements", listOf(HabitMeasurement(site, yesterday, 2.0)))
+            .andExpect { status { isNoContent() } }
+        val day =
+            getJson("/api/v1/habits/days?from=$yesterday&to=${yesterday.plusDays(1)}")
+                .values()
+                .first { it.uuid("habitId") == site }
+        assertEquals(2.0, day["value"].asDouble())
+        assertEquals("failed", day["status"].asString())
+
+        expectProblem(
+            post("/api/v1/habits/measurements", listOf(HabitMeasurement(plain, yesterday, 1.0))),
+            422,
+            "invalid",
+        )
+        expectProblem(
+            post("/api/v1/habits/measurements", listOf(HabitMeasurement(site, today().plusDays(1), 1.0))),
+            422,
+            "invalid",
         )
     }
 }

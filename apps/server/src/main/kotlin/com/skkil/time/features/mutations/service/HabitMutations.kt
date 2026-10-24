@@ -1,6 +1,7 @@
 package com.skkil.time.features.mutations.service
 
 import com.skkil.time.features.habits.domain.HabitInput
+import com.skkil.time.features.habits.domain.HabitMeasurement
 import com.skkil.time.features.habits.domain.ManualStatus
 import com.skkil.time.features.habits.service.HabitService
 import com.skkil.time.features.mutations.domain.Mutation.Companion.mutation
@@ -42,6 +43,9 @@ class HabitMutations(
             },
             mutation("syncHabits") { caller, args ->
                 habits.sync(caller)
+            },
+            mutation("recordHabitMeasurements", "measurements") { caller, args ->
+                habits.recordMeasurements(caller, args.get<List<HabitMeasurement>>("measurements"))
             },
         )
 }
