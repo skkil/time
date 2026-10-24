@@ -20,7 +20,7 @@ in `.design/DESIGN.md`.
   criteria, review cadence and `in_order`; archiving or deleting cascades to the
   subtree. There are no areas: ongoing work is a project without a target date.
   `NULL` project means Inbox.
-- **Group** — a named set of top-level projects in `features/groups.rs` (table
+- **Group** — a named set of top-level projects in `apps/core/src/groups/` (table
   `project_group`, migrations 009 and 012); deleting one only clears it from its
   projects. The drawer lists top-level projects under their group; its heading
   opens the group overview (`/projects/groups/$groupId`, a timeline of every
@@ -28,7 +28,7 @@ in `.design/DESIGN.md`.
   project). Each project also has a Timeline layout of its dated tasks
   (`projects/Timeline.tsx`).
 - **Canvas** — one free-form document per project (`project_canvas`, migration
-  013, `features/canvas.rs`), stored as HTML from the Tiptap editor in
+  013, `core/src/canvas/`), stored as HTML from the Tiptap editor in
   `projects/ProjectCanvas.tsx`; autosaves and goes with the project. Shown as
   the project's Notes tab, with its first lines in the side panel.
 - **Section** — ordered group inside a project (or the Inbox); deleting it
@@ -40,7 +40,7 @@ in `.design/DESIGN.md`.
   (`estimate_minutes`), sibling `position`, `rollover_count` (bumped when a due
   task is pushed later), `someday`, `must_on` (≤3 musts per day) and a
   `next_step` resume note. Tasks can wait on other tasks (`task_dependency`,
-  migration 010, `features/dependencies.rs`): `blocked_by` lists every link and
+  migration 010, `core/src/dependencies/`): `blocked_by` lists every link and
   `waiting_on` the still-open ones, so "blocked" is derived, never stored;
   loops, self-links and repeating or event blockers are refused. Completing a
   repeating task moves its date forward instead of closing it.
@@ -65,7 +65,7 @@ in `.design/DESIGN.md`.
   status is derived in `habits::status`, never stored. Websites and apps are
   read from ActivityWatch (`SKKIL_ACTIVITYWATCH_URL`, default
   `http://localhost:5600`).
-- **Ritual / RitualRun** — configurable routines in `features/rituals.rs`:
+- **Ritual / RitualRun** — configurable routines in `core/src/rituals/`:
   morning, evening, wind_down, session (after a timer stops) and weekly. Each
   has one trigger (`first_open`, `at_time`, `end_of_day`, `after_timer_stop`,
   `manual`), weekdays (Monday = bit 0) and ordered steps from a closed library.
@@ -74,7 +74,7 @@ in `.design/DESIGN.md`.
   (`features/rituals`) over the same time-of-day sky as the app
   (`features/zen/ZenBackdrop.tsx`, deepened); there are no image assets.
 - **Item type / Status / Milestone / Saved view** — per-project structure in
-  `features/workflow.rs`. A type is a task or an **event** (happens at a time;
+  `core/src/workflow/`. A type is a task or an **event** (happens at a time;
   never checked off; repeats expand into occurrences via `list_events`; may
   count as tracked time). Statuses are named freely, each in one fixed category
   (backlog, todo, active, done, dropped); a closed category and `completed_at`
@@ -82,7 +82,7 @@ in `.design/DESIGN.md`.
   (`workflow::presets`) set all four at once; Simple sets none, so a plain
   project looks as before. Moving a task between projects maps its type by name
   and its status by category.
-- **Record** — a third type kind (migration 011, `features/records.rs`): a
+- **Record** — a third type kind (migration 011, `core/src/records/`): a
   long-lived item with no checkbox whose status is its current **phase** (e.g.
   one job application per company). Its sub-tasks carry `phase_id` (a status of
   the same project); `record_phase` holds a note per phase, while the record's
@@ -106,7 +106,10 @@ All code lives under `apps/`; the repo root holds only docs, `assets/` and
 `skkil.yml`. TypeScript apps share a pnpm workspace rooted at `apps/`, and the
 server is its own Gradle project:
 
-- `apps/desktop/`: Tauri 2 desktop app (Rust backend + a thin React shell)
+- `apps/core/`: `time-core`, the platform-free Rust domain (types, migrations,
+  rules, queries, the mutation registry) for desktop, WASM and mobile
+- `apps/desktop/`: Tauri 2 desktop app (Tauri wrappers over time-core + a thin
+  React shell)
 - `apps/server/`: Kotlin Spring Boot API (see its README)
 - `apps/web/`: Vite + React web app, a thin shell like desktop
 - `apps/mobile/`: Expo React Native app
@@ -130,8 +133,10 @@ the tools its scripts run.
 **Change once, reach every app.** UI goes in `apps/shared/app` (desktop and
 web), rules in `apps/shared/domain` (all three), colours in
 `apps/shared/tokens/src/colors.ts` (all three). Never copy logic into a shell
-app. A new backend command needs the Rust command, a Kotlin endpoint and a line
-in `apps/shared/remote`; `tsc` in `remote` fails until all three agree.
+app. A new backend command needs the time-core function plus its entry in
+`time_core::mutations` (a write) or its read list, the Tauri wrapper, a Kotlin
+endpoint and a line in `apps/shared/remote`; `tsc` in `remote` fails until
+they all agree.
 
 `skkil.yml` wires the repo into the org CLI (`skkil`): `skkil dev` (Postgres,
 mock sign-in, server, web, desktop), `skkil doctor`, `skkil ci` (format, lint,
@@ -154,9 +159,9 @@ pnpm lint          # ESLint
 pnpm format        # Prettier
 pnpm test          # Vitest
 
-cd src-tauri
+cd src-tauri      # and ../../core for time-core
 cargo test
-cargo clippy --all-targets
+cargo clippy --all-targets -- -D warnings
 ```
 
 ### Todoist parity
@@ -167,45 +172,79 @@ cargo clippy --all-targets
   `apps/shared/app/src/features/tasks/quick-add/`); each grammar is a rule
   table or pattern with tests beside it, and `parse.ts` runs them in order. Clicking a highlighted phrase keeps it as plain text.
 - Repeats are read, advanced and given their first date in
-  `src-tauri/src/recurrence/`: rules in `rule.rs`, matchable days in
+  `apps/core/src/recurrence/`: rules in `rule.rs`, matchable days in
   `pattern.rs`, `every!` and end dates in `mod.rs`. The frontend only claims the
   phrase. `apps/shared/domain/src/quick-add/repeat-phrases.json` is read by the
   TypeScript, Rust and Kotlin (`apps/server/.../recurrence`) test suites, so a
   phrase a backend can't store fails the build.
 
-### Backend (`src-tauri/`)
+### Domain crate (`apps/core/`, `time-core`)
 
-- One crate (`skkil-time`, lib `skkil_time_lib`), no workspace.
-- `src/features/<domain>.rs` holds the types, queries, validation, Tauri
-  commands and tests for one domain.
-- `src/db/migrations/*.sql` are embedded and applied in order, versioned with
-  `PRAGMA user_version`. Never edit a shipped migration; add a new one.
-- The database is `<app data dir>/com.skkil.time/time.db`. Use a scratch
-  `XDG_DATA_HOME` when testing so the real database is never touched.
+- Platform-free Rust crate (lib `time_core`, no workspace; desktop depends on
+  it by path). No Tauri, tokio or HTTP: it builds for
+  `wasm32-unknown-unknown` with `--no-default-features` (rusqlite then uses
+  `sqlite-wasm-rs`); the default `native` feature bundles SQLite, and the
+  `specta` feature derives the TypeScript types (desktop turns it on).
+- One folder per feature (`src/<feature>/`): `model.rs` (types),
+  `queries.rs` (reads), `rules.rs` (validation), `service.rs` (writes) and
+  `tests.rs`, split further where a feature is large (`workflow`, `review`).
+  Shared pieces: `types` (`Id`, `Date`, `Timestamp`), `error`, `db`
+  (connection, migrations), `env`, `recurrence`, `settings`.
+- Ids are UUIDv7 strings (`types::Id`, TypeScript `string`). Migration 017
+  rewrote every integer id and reference in one transaction, minting UUIDs in
+  the old id order; `running_timer` stays the one row with id 1. Never sort
+  by id for creation order: use `created_at` or `position` (migration 018).
+- Writes take `&dyn MutationEnv` (`env/`): `now()`, `today()` and
+  `next_id()`. Hosts pass `LocalEnv`; tests pass `FixedClock` and
+  `SequentialIds`. Writes never open their own transaction; the caller does.
+  Seeded defaults get a name-based id from `env::seed_id(scope, kind)`.
+- `mutations` is the registry of every synced write by its contract name
+  (camelCase, args keyed like the TypeScript command): `apply`,
+  `apply_in_transaction`, `query` for reads, and the `MUTATIONS`, `READS` and
+  `DEVICE_ONLY` lists. Its tests parse `bindings.ts`, so a new command must
+  be classified, and walk every mutation through `apply`.
+- `src/db/migrations/*.sql` (plus Rust code migrations in `db/migrate.rs`)
+  are embedded and applied in order, versioned with `PRAGMA user_version`.
+  Never edit a shipped migration; add a new one.
+
+### Backend (`apps/desktop/src-tauri/`)
+
+- One crate (`skkil-time`, lib `skkil_time_lib`) holding only Tauri concerns.
+  `src/commands/<feature>.rs` are thin `#[tauri::command]` wrappers: writes go
+  through `time_core::mutations` (`commands::mutate`), reads call time-core.
+- The database is `<app data dir>/com.skkil.time/time.db`, opened by
+  `src/db.rs`, which keeps a one-time `time-before-uuid.db` copy before
+  migration 017 runs. Use a scratch `XDG_DATA_HOME` when testing so the real
+  database is never touched.
 - Settings → Data exports with `VACUUM INTO` and restores through SQLite's backup
-  API after staging, validating and migrating the file (`features/data.rs`); the
+  API after staging, validating and migrating the file (`src/backup.rs`); the
   current data is kept as `time-before-restore.db`.
 - Import (Settings → Data) reads CSV files picked in Rust
-  (`features/import.rs`) and converts them in `src/features/import/`: Todoist
-  exports (TYPE/CONTENT/INDENT, priority 4 = p1) or any CSV with a Title
-  column. Dates go through the Quick Add parser; anything it can't read is
-  kept in the notes. Each file becomes a new project, removed again if a row
-  fails, and Undo deletes the imported projects.
+  (`commands/import.rs`) and converts them in
+  `apps/shared/app/src/features/import/`: Todoist exports (TYPE/CONTENT/INDENT,
+  priority 4 = p1) or any CSV with a Title column. Dates go through the Quick
+  Add parser; anything it can't read is kept in the notes. Each file becomes a
+  new project (`importProjects`, one transaction), and Undo deletes the
+  imported projects.
 - `skkil-time --mcp` (`src/mcp.rs`, checked in `main.rs` before Tauri starts)
   is a stdio MCP server for Claude and other agents. It opens the same
-  database (or `SKKIL_TIME_DB`) and wraps the feature functions: add, edit and
-  archive projects and sections, today, list/add/update/move/complete tasks, and focus start/stop/break/history.
+  database (or `SKKIL_TIME_DB`) and writes through the mutation registry: add,
+  edit and archive projects and sections, today, list/add/update/move/complete
+  tasks, and focus start/stop/break/history.
   Both processes share the file through WAL and a 5 s busy timeout; the app
   polls `external_changes` (`PRAGMA data_version`) every 10 s and on focus and
   refetches everything when another process wrote. MCP changes have no Undo.
-- Quick capture (`features/capture.rs`): Ctrl/⌘+Alt+N is a global shortcut
+- Quick capture (`src/capture.rs`): Ctrl/⌘+Alt+N is a global shortcut
   (off with the `capture_hotkey` setting), and a second launch with
   `--quick-add` is forwarded by the single-instance plugin; both emit
   `quick-add`, which opens Quick Add. Wayland blocks global shortcuts, so
   there the user binds the command in their compositor.
-- Reminders run on a backend thread (`features/reminders.rs`, every 20 s). A
+- Reminders run on a backend thread (`src/reminders.rs`, every 20 s). A
   timed task fires once per date and time through `task.reminded_for`; only
   Linux reports the click, which emits `open-task`.
+- ActivityWatch is read in `src/activitywatch.rs`; `sync_habits` measures
+  website and app habits with `habits::measure_activity` and records them
+  with the `recordHabitMeasurements` mutation.
 - `run()` sets `JSC_useJIT=0` on Linux: JavaScriptCore's JIT costs about 70 MB
   of web process memory in use and a planner doesn't need its speed.
 
@@ -233,7 +272,7 @@ cargo clippy --all-targets
   name is the switcher.
 - Destructive and scheduling mutations offer Undo through `offerUndo`
   (`src/lib/undo.ts`, also Mod+Z outside text fields). Task changes restore a
-  backend snapshot (`features/undo.rs`, `capture_tasks`/`restore_tasks`) kept in
+  backend snapshot (`core/src/undo/`, `capture_tasks`/`restore_tasks`) kept in
   memory, so a task returns with its steps, blocks, links and history.
 - Keyboard shortcuts go through `useShortcuts` (`src/lib/shortcuts.ts`);
   per-device UI preferences through `src/lib/preferences.ts`. New settings are a
@@ -269,7 +308,7 @@ cargo clippy --all-targets
 - Kotlin 2.3, Spring Boot 4.1, Java 25, Postgres, Flyway, Spring `JdbcClient`
   with explicit SQL. `./gradlew spotlessApply test` (Testcontainers);
   `docker compose up -d` for local Postgres and a mock OIDC issuer.
-- `features/<domain>/` mirrors `src-tauri/src/features/<domain>.rs`: the same
+- `features/<domain>/` mirrors `apps/core/src/<domain>/`: the same
   rules, validation messages and JSON shapes. Every query filters by
   `user_id`, and every referenced id is checked against the caller.
 - Package by feature, layered inside: `features/<domain>/{api,service,

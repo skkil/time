@@ -1,17 +1,18 @@
 mod activitywatch;
+mod backup;
+mod capture;
+mod commands;
 mod db;
-mod error;
-mod features;
 pub mod mcp;
-mod recurrence;
-mod types;
+mod reminders;
+mod window;
 
 use tauri::Manager;
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
 
-use features::{
-    blocks, canvas, capture, data, dependencies, groups, habits, import, projects, records,
-    reminders, review, rituals, sections, tasks, time_entries, undo, workflow,
+use commands::{
+    blocks, canvas, data, dependencies, groups, habits, import, projects, records, review, rituals,
+    sections, tasks, time_entries, undo, workflow,
 };
 
 #[cfg(any(debug_assertions, test))]
@@ -87,6 +88,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
             habits::list_habit_days,
             habits::set_habit_status,
             habits::add_habit_value,
+            habits::record_habit_measurements,
             habits::sync_habits,
             review::list_days,
             review::rate_day,
@@ -150,10 +152,10 @@ fn specta_builder() -> Builder<tauri::Wry> {
             data::external_changes,
             import::pick_import_files,
             import::import_projects,
-            capture::get_capture_hotkey,
-            capture::set_capture_hotkey,
-            reminders::get_reminders_enabled,
-            reminders::set_reminders_enabled,
+            commands::capture::get_capture_hotkey,
+            commands::capture::set_capture_hotkey,
+            commands::reminders::get_reminders_enabled,
+            commands::reminders::set_reminders_enabled,
             data::export_data,
             data::import_data,
             data::delete_all_data,
@@ -189,10 +191,9 @@ pub fn run() {
             builder.mount_events(app);
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
-            app.manage(db::Db::open(&dir.join("time.db"))?);
-            app.manage(time_entries::Timer::default());
-            app.manage(undo::UndoLog::default());
-            app.manage(data::SeenVersion::default());
+            app.manage(db::open(&dir.join(db::DATABASE_FILE))?);
+            app.manage(time_core::undo::UndoLog::default());
+            app.manage(backup::SeenVersion::default());
             reminders::start(app.handle().clone());
             capture::start(app.handle());
             Ok(())

@@ -1,4 +1,4 @@
-import type { Task, TaskInput } from '@skkil-time/contract';
+import type { Id, Task, TaskInput } from '@skkil-time/contract';
 import { PRIORITIES, formatDue } from '@skkil-time/domain/due';
 import { parseDatePhrase } from '@skkil-time/domain/quick-add/dates';
 import { todayKey } from '@skkil-time/domain/time';
@@ -41,7 +41,7 @@ const inputOf = (task: Task): TaskInput => ({
   estimateMinutes: task.estimateMinutes,
 });
 
-type DetailProps = { id: number; onClose: () => void; embedded?: boolean };
+type DetailProps = { id: Id; onClose: () => void; embedded?: boolean };
 
 /** A task's editor: a full screen on phones, the right-hand pane on tablets. */
 export function TaskDetail({ id, onClose, embedded = false }: DetailProps) {

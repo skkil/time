@@ -1,4 +1,4 @@
-import type { Project, Task } from '@skkil-time/contract';
+import type { Id, Project, Task } from '@skkil-time/contract';
 
 import { TaskRow } from '@/features/tasks/components/TaskRow';
 import { Group } from '@/ui/Group';
@@ -11,7 +11,7 @@ export function TaskList({
 }: {
   title?: string;
   tasks: Task[];
-  projects: Map<number, Project>;
+  projects: Map<Id, Project>;
   trailing?: string;
 }) {
   if (tasks.length === 0) return null;

@@ -99,7 +99,7 @@ function AddOutcome({
         <Select
           value={priorityId === null ? 'none' : String(priorityId)}
           onValueChange={(value) =>
-            setPriorityId(value === 'none' ? null : Number(value))
+            setPriorityId(value === 'none' ? null : value)
           }
         >
           <SelectTrigger className="w-44" aria-label="Priority it serves">

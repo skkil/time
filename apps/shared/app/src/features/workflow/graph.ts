@@ -60,7 +60,7 @@ export function dependencyGraph(
 
   const columns: Task[][] = [];
   for (const task of [...nodes.values()].sort(
-    (a, b) => a.position - b.position || a.id - b.id,
+    (a, b) => a.position - b.position || a.id.localeCompare(b.id),
   )) {
     const at = layer.get(task.id)!;
     (columns[at] ??= []).push(task);

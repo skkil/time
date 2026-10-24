@@ -9,11 +9,16 @@ use rusqlite::Connection;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::db::Db;
-use crate::error::{Error as AppError, Result as AppResult};
-use crate::features::time_entries::{self, EntryDetails, RunningTimer};
-use crate::features::{blocks, groups, projects, sections, tasks};
-use crate::types::{Date, Id, Timestamp};
+use serde::de::DeserializeOwned;
+use serde_json::{Value, json};
+use time_core::db::Db;
+use time_core::env::LocalEnv;
+use time_core::time_entries::{self, EntryDetails, RunningTimer};
+use time_core::types::{Date, Id, Timestamp};
+use time_core::{Error as AppError, Result as AppResult, mutations};
+use time_core::{blocks, groups, projects, sections, tasks};
+
+use crate::db::{self, DATABASE_FILE};
 
 pub const FLAG: &str = "--mcp";
 const DB_ENV: &str = "SKKIL_TIME_DB";
@@ -30,7 +35,7 @@ fn database_path() -> Result<PathBuf, String> {
         return Ok(PathBuf::from(path));
     }
     dirs::data_dir()
-        .map(|dir| dir.join(IDENTIFIER).join("time.db"))
+        .map(|dir| dir.join(IDENTIFIER).join(DATABASE_FILE))
         .ok_or_else(|| format!("No data directory found; set {DB_ENV}."))
 }
 
@@ -42,7 +47,7 @@ pub fn serve() -> Result<(), String> {
             path.display()
         ));
     }
-    let db = Db::open(&path).map_err(|error| error.to_string())?;
+    let db = db::open(&path).map_err(|error| error.to_string())?;
     tokio::runtime::Runtime::new()
         .map_err(|error| error.to_string())?
         .block_on(async {
@@ -57,13 +62,13 @@ pub fn serve() -> Result<(), String> {
 
 #[derive(Debug, Serialize)]
 struct TaskView {
-    id: i64,
+    id: Id,
     title: String,
     project: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     section: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    parent_id: Option<i64>,
+    parent_id: Option<Id>,
     priority: i32,
     #[serde(skip_serializing_if = "Option::is_none")]
     due: Option<String>,
@@ -83,10 +88,10 @@ struct TaskView {
 
 #[derive(Debug, Serialize)]
 struct ProjectView {
-    id: Option<i64>,
+    id: Option<Id>,
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    parent_id: Option<i64>,
+    parent_id: Option<Id>,
     #[serde(skip_serializing_if = "Option::is_none")]
     status: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -106,7 +111,7 @@ struct ProjectView {
 
 #[derive(Debug, Serialize)]
 struct SectionView {
-    id: i64,
+    id: Id,
     name: String,
 }
 
@@ -114,7 +119,7 @@ struct SectionView {
 struct FocusView {
     title: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    task_id: Option<i64>,
+    task_id: Option<Id>,
     started: String,
     focused_minutes: i64,
     on_break: bool,
@@ -124,7 +129,7 @@ struct FocusView {
 struct SpanView {
     title: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    task_id: Option<i64>,
+    task_id: Option<Id>,
     start: String,
     end: String,
 }
@@ -199,14 +204,15 @@ impl Names {
 
     fn project_view(&self, project: &projects::Project) -> ProjectView {
         ProjectView {
-            id: Some(project.id.0),
+            id: Some(project.id.clone()),
             name: project.name.clone(),
-            parent_id: project.parent_id.map(|id| id.0),
+            parent_id: project.parent_id.clone(),
             status: Some(project.status.clone()),
             color: Some(project.color.clone()),
             group: project
                 .group_id
-                .and_then(|id| self.groups.iter().find(|group| group.id == id))
+                .as_ref()
+                .and_then(|id| self.groups.iter().find(|group| &group.id == id))
                 .map(|group| group.name.clone()),
             target_date: project.target_date.map(|date| date.0.to_string()),
             weekly_hours: project
@@ -214,48 +220,45 @@ impl Names {
                 .map(|minutes| f64::from(minutes) / 60.0),
             stop_if: Some(project.kill_criteria.clone()).filter(|text| !text.is_empty()),
             archived: project.archived,
-            sections: self.sections_of(Some(project.id)),
+            sections: self.sections_of(Some(&project.id)),
         }
     }
 
-    fn project(&self, id: Option<Id>) -> String {
-        id.and_then(|id| self.projects.iter().find(|project| project.id == id))
+    fn project(&self, id: Option<&Id>) -> String {
+        id.and_then(|id| self.projects.iter().find(|project| &project.id == id))
             .map_or_else(|| "Inbox".to_owned(), |project| project.name.clone())
     }
 
-    fn section(&self, id: Option<Id>) -> Option<String> {
-        id.and_then(|id| self.sections.iter().find(|section| section.id == id))
+    fn section(&self, id: Option<&Id>) -> Option<String> {
+        id.and_then(|id| self.sections.iter().find(|section| &section.id == id))
             .map(|section| section.name.clone())
     }
 
-    fn sections_of(&self, project_id: Option<Id>) -> Vec<SectionView> {
+    fn sections_of(&self, project_id: Option<&Id>) -> Vec<SectionView> {
         self.sections
             .iter()
-            .filter(|section| section.project_id == project_id)
+            .filter(|section| section.project_id.as_ref() == project_id)
             .map(|section| SectionView {
-                id: section.id.0,
+                id: section.id.clone(),
                 name: section.name.clone(),
             })
             .collect()
     }
 }
 
-fn matches(text: &str, id: Id, name: &str) -> bool {
-    match text.parse::<i64>() {
-        Ok(number) => id.0 == number,
-        Err(_) => name.eq_ignore_ascii_case(text),
-    }
+fn matches(text: &str, id: &Id, name: &str) -> bool {
+    id.as_str().eq_ignore_ascii_case(text) || name.eq_ignore_ascii_case(text)
 }
 
-fn resolve_section(conn: &Connection, project_id: Option<Id>, text: &str) -> AppResult<Id> {
+fn resolve_section(conn: &Connection, project_id: Option<&Id>, text: &str) -> AppResult<Id> {
     let text = text.trim();
     let names = Names::load(conn)?;
     names
         .sections
         .iter()
-        .filter(|section| section.project_id == project_id)
-        .find(|section| matches(text, section.id, &section.name))
-        .map(|section| section.id)
+        .filter(|section| section.project_id.as_ref() == project_id)
+        .find(|section| matches(text, &section.id, &section.name))
+        .map(|section| section.id.clone())
         .ok_or_else(|| {
             let available: Vec<String> = names
                 .sections_of(project_id)
@@ -281,21 +284,20 @@ fn resolve_project(conn: &Connection, text: &str) -> AppResult<Option<Id>> {
     }
     let all = projects::list(conn)?;
     let open = all.iter().filter(|project| !project.archived);
-    let found = match text.parse::<i64>() {
-        Ok(id) => open.clone().find(|project| project.id.0 == id),
-        Err(_) => open
-            .clone()
-            .find(|project| project.name.eq_ignore_ascii_case(text)),
-    };
-    found.map(|project| Some(project.id)).ok_or_else(|| {
-        let names: Vec<&str> = std::iter::once("Inbox")
-            .chain(open.map(|project| project.name.as_str()))
-            .collect();
-        AppError::invalid(format!(
-            "No project called “{text}”. Projects: {}.",
-            names.join(", ")
-        ))
-    })
+    let found = open
+        .clone()
+        .find(|project| matches(text, &project.id, &project.name));
+    found
+        .map(|project| Some(project.id.clone()))
+        .ok_or_else(|| {
+            let names: Vec<&str> = std::iter::once("Inbox")
+                .chain(open.map(|project| project.name.as_str()))
+                .collect();
+            AppError::invalid(format!(
+                "No project called “{text}”. Projects: {}.",
+                names.join(", ")
+            ))
+        })
 }
 
 fn named_project(conn: &Connection, text: &str) -> AppResult<projects::Project> {
@@ -308,15 +310,15 @@ fn named_project(conn: &Connection, text: &str) -> AppResult<projects::Project> 
     let all = projects::list(conn)?;
     let mut found = all
         .iter()
-        .filter(|project| matches(text, project.id, &project.name));
+        .filter(|project| matches(text, &project.id, &project.name));
     let pick = found
         .clone()
         .find(|project| !project.archived)
         .or_else(|| found.next());
     let id = pick
-        .map(|project| project.id)
+        .map(|project| project.id.clone())
         .ok_or_else(|| AppError::invalid(format!("No project called “{text}”.")))?;
-    projects::get(conn, id)
+    projects::get(conn, &id)
 }
 
 fn resolve_group(conn: &Connection, text: &str) -> AppResult<Option<Id>> {
@@ -326,10 +328,12 @@ fn resolve_group(conn: &Connection, text: &str) -> AppResult<Option<Id>> {
     }
     let existing = groups::list(conn)?
         .into_iter()
-        .find(|group| matches(text, group.id, &group.name));
+        .find(|group| matches(text, &group.id, &group.name));
     match existing {
         Some(group) => Ok(Some(group.id)),
-        None => Ok(Some(groups::create(conn, text)?.id)),
+        None => Ok(Some(
+            mutate::<groups::Group>(conn, "createGroup", json!({ "name": text }))?.id,
+        )),
     }
 }
 
@@ -351,7 +355,7 @@ fn hours_to_minutes(hours: f64) -> Option<i32> {
 
 fn settings_of(project: &projects::Project) -> projects::ProjectSettings {
     projects::ProjectSettings {
-        group_id: project.group_id,
+        group_id: project.group_id.clone(),
         status: project.status.clone(),
         outcome: project.outcome.clone(),
         weekly_minutes: project.weekly_minutes,
@@ -364,11 +368,11 @@ fn settings_of(project: &projects::Project) -> projects::ProjectSettings {
 
 fn view(task: &tasks::Task, names: &Names) -> TaskView {
     TaskView {
-        id: task.id.0,
+        id: task.id.clone(),
         title: task.title.clone(),
-        project: names.project(task.project_id),
-        section: names.section(task.section_id),
-        parent_id: task.parent_id.map(|id| id.0),
+        project: names.project(task.project_id.as_ref()),
+        section: names.section(task.section_id.as_ref()),
+        parent_id: task.parent_id.clone(),
         priority: task.priority,
         due: task.due_date.map(|date| match task.due_time {
             Some(minutes) => format!("{} {}", date.0, clock(minutes)),
@@ -384,7 +388,7 @@ fn view(task: &tasks::Task, names: &Names) -> TaskView {
 }
 
 fn focus_view(conn: &Connection, timer: &RunningTimer) -> AppResult<FocusView> {
-    let title = match timer.task_id {
+    let title = match &timer.task_id {
         Some(id) => tasks::get(conn, id)?.title,
         None if !timer.description.is_empty() => timer.description.clone(),
         None => "Focus".to_owned(),
@@ -395,11 +399,21 @@ fn focus_view(conn: &Connection, timer: &RunningTimer) -> AppResult<FocusView> {
     };
     Ok(FocusView {
         title,
-        task_id: timer.task_id.map(|id| id.0),
+        task_id: timer.task_id.clone(),
         started: local_time(timer.started_at),
         focused_minutes: (timer.banked_seconds + current) / 60,
         on_break: timer.paused_at.is_some(),
     })
+}
+
+/// Applies one write through time-core's mutation registry, so the MCP
+/// server changes data exactly as the app does.
+fn mutate<T: DeserializeOwned>(conn: &Connection, name: &str, args: Value) -> AppResult<T> {
+    mutations::result(mutations::apply(conn, &LocalEnv::default(), name, &args)?)
+}
+
+fn parse_id(text: &str) -> AppResult<Id> {
+    Id::parse(text.trim())
 }
 
 fn to_json<T: Serialize>(value: &T) -> AppResult<String> {
@@ -435,7 +449,7 @@ struct AddTask {
     #[schemars(
         description = "Make it a sub-task of this task id; it joins that task's project and section."
     )]
-    parent_id: Option<i64>,
+    parent_id: Option<String>,
     #[schemars(description = "1 (highest) to 4 (normal, the default).")]
     priority: Option<i32>,
     #[schemars(description = "YYYY-MM-DD, today or tomorrow.")]
@@ -451,7 +465,7 @@ struct AddTask {
 
 #[derive(Debug, Deserialize, JsonSchema)]
 struct UpdateTask {
-    id: i64,
+    id: String,
     #[schemars(
         description = "Move to this project (name, id or \"Inbox\"). A moved sub-task becomes a top-level task."
     )]
@@ -477,7 +491,7 @@ struct UpdateTask {
 
 #[derive(Debug, Deserialize, JsonSchema)]
 struct CompleteTask {
-    id: i64,
+    id: String,
     #[schemars(
         description = "false reopens the task. A repeating task moves to its next date instead of closing."
     )]
@@ -487,7 +501,7 @@ struct CompleteTask {
 #[derive(Debug, Deserialize, JsonSchema)]
 struct StartFocus {
     #[schemars(description = "The task being worked on, if any.")]
-    task_id: Option<i64>,
+    task_id: Option<String>,
     #[schemars(description = "What the session is about when there is no task.")]
     description: Option<String>,
 }
@@ -591,6 +605,17 @@ impl Planner {
     fn run<T>(&self, work: impl FnOnce(&mut Connection) -> AppResult<T>) -> Result<T, String> {
         self.db.call(work).map_err(|error| error.to_string())
     }
+
+    /// Runs a tool that writes, in one transaction so a failed step leaves
+    /// nothing half-done.
+    fn write<T>(&self, work: impl FnOnce(&Connection) -> AppResult<T>) -> Result<T, String> {
+        self.run(|conn| {
+            let tx = conn.transaction()?;
+            let value = work(&tx)?;
+            tx.commit()?;
+            Ok(value)
+        })
+    }
 }
 
 #[tool_router]
@@ -653,7 +678,7 @@ impl Planner {
                 .into_iter()
                 .map(|block| SpanView {
                     title: block.title,
-                    task_id: Some(block.task_id.0),
+                    task_id: Some(block.task_id),
                     start: local_time(block.start_at),
                     end: local_time(block.end_at),
                 })
@@ -690,17 +715,17 @@ impl Planner {
                 .map(|text| resolve_project(conn, text))
                 .transpose()?;
             let names = Names::load(conn)?;
-            let section_ids: Option<Vec<Id>> = match (query.section.as_deref(), project) {
+            let section_ids: Option<Vec<Id>> = match (query.section.as_deref(), &project) {
                 (None, _) => None,
                 (Some(text), Some(project_id)) => {
-                    Some(vec![resolve_section(conn, project_id, text)?])
+                    Some(vec![resolve_section(conn, project_id.as_ref(), text)?])
                 }
                 (Some(text), None) => {
                     let ids: Vec<Id> = names
                         .sections
                         .iter()
-                        .filter(|section| matches(text.trim(), section.id, &section.name))
-                        .map(|section| section.id)
+                        .filter(|section| matches(text.trim(), &section.id, &section.name))
+                        .map(|section| section.id.clone())
                         .collect();
                     if ids.is_empty() {
                         return Err(AppError::invalid(format!(
@@ -716,11 +741,11 @@ impl Planner {
             let found: Vec<TaskView> = tasks::list(conn)?
                 .iter()
                 .filter(|task| query.include_done.unwrap_or(false) || task.completed_at.is_none())
-                .filter(|task| project.is_none_or(|id| task.project_id == id))
+                .filter(|task| project.as_ref().is_none_or(|id| &task.project_id == id))
                 .filter(|task| {
-                    section_ids
-                        .as_ref()
-                        .is_none_or(|ids| task.section_id.is_some_and(|id| ids.contains(&id)))
+                    section_ids.as_ref().is_none_or(|ids| {
+                        task.section_id.as_ref().is_some_and(|id| ids.contains(id))
+                    })
                 })
                 .filter(|task| due_by.is_none_or(|by| task.due_date.is_some_and(|date| date <= by)))
                 .filter(|task| {
@@ -738,37 +763,36 @@ impl Planner {
 
     #[tool(description = "Add a task. Returns the new task.")]
     async fn add_task(&self, Parameters(input): Parameters<AddTask>) -> Result<String, String> {
-        self.run(|conn| {
+        self.write(|conn| {
             let parent = input
                 .parent_id
-                .map(|id| tasks::get(conn, Id(id)))
+                .as_deref()
+                .map(|id| tasks::get(conn, &parse_id(id)?))
                 .transpose()?;
             let project_id = match (&parent, input.project.as_deref()) {
-                (Some(parent), _) => parent.project_id,
+                (Some(parent), _) => parent.project_id.clone(),
                 (None, Some(text)) => resolve_project(conn, text)?,
                 (None, None) => None,
             };
             let section_id = match (&parent, input.section.as_deref()) {
-                (Some(parent), _) => parent.section_id,
-                (None, Some(text)) => Some(resolve_section(conn, project_id, text)?),
+                (Some(parent), _) => parent.section_id.clone(),
+                (None, Some(text)) => Some(resolve_section(conn, project_id.as_ref(), text)?),
                 (None, None) => None,
             };
-            let task = tasks::create(
-                conn,
-                &tasks::TaskInput {
-                    title: input.title,
-                    notes: input.notes.unwrap_or_default(),
-                    project_id,
-                    section_id,
-                    parent_id: parent.map(|parent| parent.id),
-                    priority: input.priority.unwrap_or(4),
-                    due_date: optional_date(input.due_date.as_deref())?,
-                    due_time: input.due_time.as_deref().map(parse_clock).transpose()?,
-                    deadline: optional_date(input.deadline.as_deref())?,
-                    recurrence: input.repeat.filter(|repeat| !repeat.trim().is_empty()),
-                    estimate_minutes: input.estimate_minutes,
-                },
-            )?;
+            let input = tasks::TaskInput {
+                title: input.title,
+                notes: input.notes.unwrap_or_default(),
+                project_id,
+                section_id,
+                parent_id: parent.map(|parent| parent.id),
+                priority: input.priority.unwrap_or(4),
+                due_date: optional_date(input.due_date.as_deref())?,
+                due_time: input.due_time.as_deref().map(parse_clock).transpose()?,
+                deadline: optional_date(input.deadline.as_deref())?,
+                recurrence: input.repeat.filter(|repeat| !repeat.trim().is_empty()),
+                estimate_minutes: input.estimate_minutes,
+            };
+            let task: tasks::Task = mutate(conn, "createTask", json!({ "input": input }))?;
             to_json(&view(&task, &Names::load(conn)?))
         })
     }
@@ -780,9 +804,9 @@ impl Planner {
         &self,
         Parameters(change): Parameters<UpdateTask>,
     ) -> Result<String, String> {
-        self.run(|conn| {
-            let id = Id(change.id);
-            let task = tasks::get(conn, id)?;
+        self.write(|conn| {
+            let id = parse_id(&change.id)?;
+            let task = tasks::get(conn, &id)?;
             let cleared = |text: &Option<String>| text.as_deref().map(str::trim) == Some("");
             let input = tasks::TaskInput {
                 title: change.title.unwrap_or(task.title),
@@ -813,28 +837,30 @@ impl Planner {
                 },
                 estimate_minutes: change.estimate_minutes.or(task.estimate_minutes),
             };
-            let mut task = tasks::update(conn, id, &input)?;
+            let mut task: tasks::Task =
+                mutate(conn, "updateTask", json!({ "id": id, "input": input }))?;
             if change.project.is_some() || change.section.is_some() {
                 let project_id = match change.project.as_deref() {
                     Some(text) => resolve_project(conn, text)?,
-                    None => task.project_id,
+                    None => task.project_id.clone(),
                 };
                 let section_id = match change.section.as_deref().map(str::trim) {
                     Some("") => None,
-                    Some(text) => Some(resolve_section(conn, project_id, text)?),
-                    None if project_id == task.project_id => task.section_id,
+                    Some(text) => Some(resolve_section(conn, project_id.as_ref(), text)?),
+                    None if project_id == task.project_id => task.section_id.clone(),
                     None => None,
                 };
                 let keeps_parent = project_id == task.project_id && section_id == task.section_id;
-                task = tasks::move_to(
+                let placement = tasks::TaskPlacement {
+                    project_id,
+                    section_id,
+                    parent_id: if keeps_parent { task.parent_id } else { None },
+                    before: None,
+                };
+                task = mutate(
                     conn,
-                    id,
-                    tasks::TaskPlacement {
-                        project_id,
-                        section_id,
-                        parent_id: if keeps_parent { task.parent_id } else { None },
-                        before: None,
-                    },
+                    "moveTask",
+                    json!({ "id": id, "placement": placement }),
                 )?;
             }
             to_json(&view(&task, &Names::load(conn)?))
@@ -846,8 +872,12 @@ impl Planner {
         &self,
         Parameters(input): Parameters<CompleteTask>,
     ) -> Result<String, String> {
-        self.run(|conn| {
-            let task = tasks::set_completed(conn, Id(input.id), input.done.unwrap_or(true))?;
+        self.write(|conn| {
+            let task: tasks::Task = mutate(
+                conn,
+                "setTaskCompleted",
+                json!({ "id": parse_id(&input.id)?, "completed": input.done.unwrap_or(true) }),
+            )?;
             to_json(&view(&task, &Names::load(conn)?))
         })
     }
@@ -857,39 +887,40 @@ impl Planner {
         &self,
         Parameters(input): Parameters<StartFocus>,
     ) -> Result<String, String> {
-        self.run(|conn| {
-            let timer = time_entries::start(
-                conn,
-                &EntryDetails {
-                    description: input.description.unwrap_or_default(),
-                    project_id: None,
-                    task_id: input.task_id.map(Id),
-                },
-            )?;
+        self.write(|conn| {
+            let details = EntryDetails {
+                description: input.description.unwrap_or_default(),
+                project_id: None,
+                task_id: input.task_id.as_deref().map(parse_id).transpose()?,
+            };
+            let timer: RunningTimer = mutate(conn, "startTimer", json!({ "details": details }))?;
             to_json(&focus_view(conn, &timer)?)
         })
     }
 
     #[tool(description = "Stop the running focus session and log it.")]
     async fn stop_focus(&self, Parameters(_): Parameters<Nothing>) -> Result<String, String> {
-        self.run(|conn| match time_entries::stop(conn)? {
-            Some(entry) => Ok(format!(
-                "Logged {} minutes.",
-                entry.started_at.seconds_until(entry.ended_at) / 60
-            )),
-            None => Ok("No session was running.".to_owned()),
+        self.write(|conn| {
+            match mutate::<Option<time_entries::TimeEntry>>(conn, "stopTimer", json!({}))? {
+                Some(entry) => Ok(format!(
+                    "Logged {} minutes.",
+                    entry.started_at.seconds_until(entry.ended_at) / 60
+                )),
+                None => Ok("No session was running.".to_owned()),
+            }
         })
     }
 
     #[tool(description = "Take a break from the running focus session, or resume it.")]
     async fn toggle_break(&self, Parameters(_): Parameters<Nothing>) -> Result<String, String> {
-        self.run(|conn| {
+        self.write(|conn| {
             let current = time_entries::running(conn)?
                 .ok_or_else(|| AppError::invalid("No session is running."))?;
-            let timer = match current.paused_at {
-                Some(_) => time_entries::resume(conn)?,
-                None => time_entries::pause(conn)?,
+            let toggle = match current.paused_at {
+                Some(_) => "resumeTimer",
+                None => "pauseTimer",
             };
+            let timer: RunningTimer = mutate(conn, toggle, json!({}))?;
             to_json(&focus_view(conn, &timer)?)
         })
     }
@@ -908,9 +939,10 @@ impl Planner {
                 .map(|entry| SpanView {
                     title: entry
                         .task_id
-                        .and_then(|id| all.iter().find(|task| task.id == id))
+                        .as_ref()
+                        .and_then(|id| all.iter().find(|task| &task.id == id))
                         .map_or(entry.description, |task| task.title.clone()),
-                    task_id: entry.task_id.map(|id| id.0),
+                    task_id: entry.task_id,
                     start: local_time(entry.started_at),
                     end: local_time(entry.ended_at),
                 })
@@ -924,20 +956,19 @@ impl Planner {
         &self,
         Parameters(input): Parameters<AddProject>,
     ) -> Result<String, String> {
-        self.run(|conn| {
+        self.write(|conn| {
             let parent_id = match input.parent.as_deref() {
                 Some(text) => Some(named_project(conn, text)?.id),
                 None => None,
             };
             let color = check_color(input.color.as_deref().unwrap_or("blue"))?;
-            let project = projects::create(
-                conn,
-                &projects::ProjectInput {
-                    name: input.name,
-                    parent_id,
-                    color,
-                },
-            )?;
+            let created = projects::ProjectInput {
+                name: input.name,
+                parent_id: parent_id.clone(),
+                color,
+            };
+            let project: projects::Project =
+                mutate(conn, "createProject", json!({ "input": created }))?;
             let mut settings = settings_of(&project);
             if parent_id.is_none() {
                 settings.group_id = input
@@ -950,7 +981,11 @@ impl Planner {
             settings.target_date = optional_date(input.target_date.as_deref())?;
             settings.weekly_minutes = input.weekly_hours.and_then(hours_to_minutes);
             settings.kill_criteria = input.stop_if.unwrap_or_default();
-            let project = projects::update_settings(conn, project.id, &settings)?;
+            let project: projects::Project = mutate(
+                conn,
+                "updateProjectSettings",
+                json!({ "id": project.id, "settings": settings }),
+            )?;
             to_json(&Names::load(conn)?.project_view(&project))
         })
     }
@@ -962,28 +997,25 @@ impl Planner {
         &self,
         Parameters(change): Parameters<UpdateProject>,
     ) -> Result<String, String> {
-        self.run(|conn| {
+        self.write(|conn| {
             let mut project = named_project(conn, &change.project)?;
-            let id = project.id;
+            let id = project.id.clone();
             if change.name.is_some() || change.color.is_some() || change.parent.is_some() {
                 let parent_id = match change.parent.as_deref().map(str::trim) {
                     Some("") => None,
                     Some(text) => Some(named_project(conn, text)?.id),
-                    None => project.parent_id,
+                    None => project.parent_id.clone(),
                 };
                 let color = match change.color.as_deref() {
                     Some(text) => check_color(text)?,
                     None => project.color.clone(),
                 };
-                project = projects::update(
-                    conn,
-                    id,
-                    &projects::ProjectInput {
-                        name: change.name.clone().unwrap_or(project.name.clone()),
-                        parent_id,
-                        color,
-                    },
-                )?;
+                let input = projects::ProjectInput {
+                    name: change.name.clone().unwrap_or(project.name.clone()),
+                    parent_id,
+                    color,
+                };
+                project = mutate(conn, "updateProject", json!({ "id": id, "input": input }))?;
             }
             let mut settings = settings_of(&project);
             if let Some(text) = change.group.as_deref() {
@@ -1006,10 +1038,18 @@ impl Planner {
             if let Some(text) = change.stop_if {
                 settings.kill_criteria = text.trim().to_owned();
             }
-            project = projects::update_settings(conn, id, &settings)?;
+            project = mutate(
+                conn,
+                "updateProjectSettings",
+                json!({ "id": id, "settings": settings }),
+            )?;
             if let Some(archived) = change.archived {
-                projects::set_archived(conn, id, archived)?;
-                project = projects::get(conn, id)?;
+                mutate::<()>(
+                    conn,
+                    "setProjectArchived",
+                    json!({ "id": id, "archived": archived }),
+                )?;
+                project = projects::get(conn, &id)?;
             }
             to_json(&Names::load(conn)?.project_view(&project))
         })
@@ -1020,11 +1060,15 @@ impl Planner {
         &self,
         Parameters(input): Parameters<AddSection>,
     ) -> Result<String, String> {
-        self.run(|conn| {
+        self.write(|conn| {
             let project_id = resolve_project(conn, &input.project)?;
-            let section = sections::create(conn, project_id, &input.name, None)?;
+            let section: sections::Section = mutate(
+                conn,
+                "createSection",
+                json!({ "projectId": project_id, "name": input.name, "before": null }),
+            )?;
             to_json(&SectionView {
-                id: section.id.0,
+                id: section.id,
                 name: section.name,
             })
         })
@@ -1035,12 +1079,16 @@ impl Planner {
         &self,
         Parameters(input): Parameters<RenameSection>,
     ) -> Result<String, String> {
-        self.run(|conn| {
+        self.write(|conn| {
             let project_id = resolve_project(conn, &input.project)?;
-            let id = resolve_section(conn, project_id, &input.section)?;
-            let section = sections::rename(conn, id, &input.name)?;
+            let id = resolve_section(conn, project_id.as_ref(), &input.section)?;
+            let section: sections::Section = mutate(
+                conn,
+                "renameSection",
+                json!({ "id": id, "name": input.name }),
+            )?;
             to_json(&SectionView {
-                id: section.id.0,
+                id: section.id,
                 name: section.name,
             })
         })
@@ -1075,28 +1123,32 @@ mod tests {
 
     #[test]
     fn finds_projects_by_name_or_id() {
-        let db = Db::in_memory();
+        let db = Db::in_memory().unwrap();
         db.call(|conn| {
-            let thesis = projects::create(
+            let thesis: projects::Project = mutate(
                 conn,
-                &projects::ProjectInput {
-                    name: "Thesis".into(),
-                    parent_id: None,
-                    color: "blue".into(),
-                },
+                "createProject",
+                json!({ "input": { "name": "Thesis", "parentId": null, "color": "blue" } }),
             )?;
-            assert_eq!(resolve_project(conn, "thesis")?, Some(thesis.id));
+            assert_eq!(resolve_project(conn, "thesis")?, Some(thesis.id.clone()));
             assert_eq!(
-                resolve_project(conn, &thesis.id.0.to_string())?,
-                Some(thesis.id)
+                resolve_project(conn, thesis.id.as_str())?,
+                Some(thesis.id.clone())
             );
             assert_eq!(resolve_project(conn, "Inbox")?, None);
             let missing = resolve_project(conn, "Home").unwrap_err().to_string();
             assert!(missing.contains("Projects: Inbox, Thesis."));
-            let drafts = sections::create(conn, Some(thesis.id), "Drafts", None)?;
-            assert_eq!(resolve_section(conn, Some(thesis.id), "drafts")?, drafts.id);
+            let drafts: sections::Section = mutate(
+                conn,
+                "createSection",
+                json!({ "projectId": thesis.id, "name": "Drafts", "before": null }),
+            )?;
+            assert_eq!(
+                resolve_section(conn, Some(&thesis.id), "drafts")?,
+                drafts.id
+            );
             assert!(resolve_section(conn, None, "Drafts").is_err());
-            let missing = resolve_section(conn, Some(thesis.id), "Ideas")
+            let missing = resolve_section(conn, Some(&thesis.id), "Ideas")
                 .unwrap_err()
                 .to_string();
             assert!(missing.contains("Sections: Drafts."));

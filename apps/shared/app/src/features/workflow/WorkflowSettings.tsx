@@ -134,7 +134,7 @@ function RemoveWithMove<T extends { id: Id; name: string }>({
         </select>
         <button
           type="button"
-          onClick={() => onRemove(target ? Number(target) : null)}
+          onClick={() => onRemove(target || null)}
           className="rounded-full bg-white/90 px-3 py-1.5 font-medium text-[#0b1a22]"
         >
           Move and delete

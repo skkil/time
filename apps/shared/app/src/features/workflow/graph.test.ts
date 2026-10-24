@@ -5,10 +5,10 @@ import type { Id, Task } from '@/backend';
 import { dependencyGraph } from './graph';
 
 const task = (patch: Partial<Task>): Task => ({
-  id: 1,
+  id: '1',
   title: 'Task',
   notes: '',
-  projectId: 1,
+  projectId: '1',
   sectionId: null,
   parentId: null,
   priority: 4,
@@ -52,33 +52,33 @@ const index = (tasks: Task[]) => {
 describe('dependencyGraph', () => {
   it('puts tasks after their latest blocker and starts right before what they hold up', () => {
     const tasks = [
-      task({ id: 1, title: 'Copy' }),
-      task({ id: 2, title: 'Design' }),
-      task({ id: 3, title: 'Build', blockedBy: [2] }),
-      task({ id: 4, title: 'Launch', blockedBy: [1, 3] }),
-      task({ id: 5, title: 'Unlinked' }),
+      task({ id: '1', title: 'Copy' }),
+      task({ id: '2', title: 'Design' }),
+      task({ id: '3', title: 'Build', blockedBy: ['2'] }),
+      task({ id: '4', title: 'Launch', blockedBy: ['1', '3'] }),
+      task({ id: '5', title: 'Unlinked' }),
     ];
     const { byId, holding } = index(tasks);
     const { columns, edges } = dependencyGraph(tasks, byId, holding);
     expect(columns.map((column) => column.map((t) => t.id).sort())).toEqual([
-      [2],
-      [1, 3],
-      [4],
+      ['2'],
+      ['1', '3'],
+      ['4'],
     ]);
     expect(edges).toHaveLength(3);
   });
 
   it('keeps finished blockers but drops finished dependents', () => {
     const tasks = [
-      task({ id: 1, completedAt: 5 }),
-      task({ id: 2, blockedBy: [1] }),
-      task({ id: 3, blockedBy: [2], completedAt: 6 }),
+      task({ id: '1', completedAt: 5 }),
+      task({ id: '2', blockedBy: ['1'] }),
+      task({ id: '3', blockedBy: ['2'], completedAt: 6 }),
     ];
     const { byId, holding } = index(tasks);
     const { columns } = dependencyGraph(tasks, byId, holding);
     expect(columns.map((column) => column.map((t) => t.id))).toEqual([
-      [1],
-      [2],
+      ['1'],
+      ['2'],
     ]);
   });
 });

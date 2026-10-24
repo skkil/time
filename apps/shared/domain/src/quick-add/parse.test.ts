@@ -6,13 +6,13 @@ const context: ParseContext = {
   today: '2026-11-04',
   nowMinutes: 10 * 60,
   projects: [
-    { id: 1, name: 'Career' },
-    { id: 2, name: 'STiTy (SKKAI)' },
-    { id: 3, name: 'STiTy' },
+    { id: '1', name: 'Career' },
+    { id: '2', name: 'STiTy (SKKAI)' },
+    { id: '3', name: 'STiTy' },
   ],
   sections: [
-    { id: 10, name: 'Job Applications', projectId: 1 },
-    { id: 11, name: 'Backlog', projectId: null },
+    { id: '10', name: 'Job Applications', projectId: '1' },
+    { id: '11', name: 'Backlog', projectId: null },
   ],
   projectId: null,
 };
@@ -153,14 +153,14 @@ describe('parseQuickAdd', () => {
 
   it('picks the longest matching project and its sections', () => {
     const result = parse('Write tests #STiTy (SKKAI)');
-    expect(result.projectId).toBe(2);
+    expect(result.projectId).toBe('2');
     expect(result.title).toBe('Write tests');
 
     const sectioned = parse(
       'Apply to Ericsson #Career /Job Applications {nov 8}',
     );
-    expect(sectioned.projectId).toBe(1);
-    expect(sectioned.sectionId).toBe(10);
+    expect(sectioned.projectId).toBe('1');
+    expect(sectioned.sectionId).toBe('10');
     expect(sectioned.deadline).toBe('2026-11-08');
     expect(sectioned.title).toBe('Apply to Ericsson');
   });
@@ -174,22 +174,22 @@ describe('parseQuickAdd', () => {
   });
 
   it('uses the inbox sections when no project is set', () => {
-    expect(parse('Idea /Backlog').sectionId).toBe(11);
+    expect(parse('Idea /Backlog').sectionId).toBe('11');
   });
 
   it('reads an item type from the target project', () => {
     const parsed = parseQuickAdd('Fix login +Bug #App', {
       today: '2026-11-02',
       nowMinutes: 0,
-      projects: [{ id: 7, name: 'App' }],
+      projects: [{ id: '7', name: 'App' }],
       sections: [],
       types: [
-        { id: 3, name: 'Bug', projectId: 7 },
-        { id: 4, name: 'Bug', projectId: 8 },
+        { id: '3', name: 'Bug', projectId: '7' },
+        { id: '4', name: 'Bug', projectId: '8' },
       ],
       projectId: null,
     });
-    expect(parsed.typeId).toBe(3);
+    expect(parsed.typeId).toBe('3');
     expect(parsed.title).toBe('Fix login');
   });
 });

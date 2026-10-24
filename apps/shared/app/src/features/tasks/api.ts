@@ -27,8 +27,8 @@ export function useTask(id: Id | null) {
   const { byId } = useTaskIndex();
   const listed = id === null ? undefined : byId.get(id);
   const { data: unlisted } = useQuery({
-    queryKey: keys.task(id ?? 0),
-    queryFn: () => commands.getTask(id ?? 0),
+    queryKey: keys.task(id ?? ''),
+    queryFn: () => commands.getTask(id ?? ''),
     enabled: id !== null && listed === undefined,
   });
   return listed ?? (id === null ? undefined : unlisted);

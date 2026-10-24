@@ -1,3 +1,4 @@
+import { LIVE_ENTRY_ID } from '@skkil-time/domain/timer';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import type { Id, TimeEntry } from '@/backend';
@@ -164,9 +165,9 @@ export function DayThread({
             <button
               key={entry.id}
               type="button"
-              disabled={entry.id === -1}
+              disabled={entry.id === LIVE_ENTRY_ID}
               onClick={() => setEditing(entry)}
-              title={`${label} · ${formatClockTime(entry.startedAt)}–${entry.id === -1 ? 'now' : formatClockTime(entry.endedAt)} · ${formatDuration(entry.endedAt - entry.startedAt)}`}
+              title={`${label} · ${formatClockTime(entry.startedAt)}–${entry.id === LIVE_ENTRY_ID ? 'now' : formatClockTime(entry.endedAt)} · ${formatDuration(entry.endedAt - entry.startedAt)}`}
               className="absolute right-0 left-16 overflow-hidden rounded-md px-2 text-right text-[11px] leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70"
               style={{
                 top: scale.top(from),

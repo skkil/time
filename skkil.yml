@@ -129,11 +129,19 @@ assets:
 
 ci:
   tasks:
-    - name: core
+    - name: time-core
+      dir: apps/core
+      format: cargo fmt --check
+      lint: cargo clippy --all-targets --features specta -- -D warnings
+      test: cargo test
+      build: cargo build --target wasm32-unknown-unknown --no-default-features
+    - name: desktop-tauri
       dir: apps/desktop/src-tauri
       format: cargo fmt --check
-      lint: cargo clippy --all-targets
+      lint: cargo clippy --all-targets -- -D warnings
       test: cargo test && git diff --exit-code -- ../../shared/contract/src/bindings.ts
+      depends_on:
+        - time-core
     - name: shared-domain
       dir: apps/shared/domain
       format: pnpm format:check
@@ -166,7 +174,7 @@ ci:
       lint: pnpm lint
       build: pnpm compile
       depends_on:
-        - core
+        - desktop-tauri
         - shared-api
     - name: shared-contract
       dir: apps/shared/contract
@@ -197,4 +205,4 @@ ci:
       lint: pnpm lint
       build: pnpm tauri build
       depends_on:
-        - core
+        - desktop-tauri

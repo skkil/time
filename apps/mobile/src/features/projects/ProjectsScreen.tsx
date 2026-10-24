@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import type { Project } from '@skkil-time/contract';
+import type { Id, Project } from '@skkil-time/contract';
 import { Link } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -14,13 +14,13 @@ import { spacing, type, useProjectColor, useTheme } from '@/ui/theme';
 type Row = { project: Project; depth: number };
 
 function flatten(projects: Project[]): Row[] {
-  const children = new Map<number | null, Project[]>();
+  const children = new Map<Id | null, Project[]>();
   for (const project of projects) {
     const siblings = children.get(project.parentId) ?? [];
     siblings.push(project);
     children.set(project.parentId, siblings);
   }
-  const walk = (parent: number | null, depth: number): Row[] =>
+  const walk = (parent: Id | null, depth: number): Row[] =>
     (children.get(parent) ?? [])
       .sort((a, b) => a.position - b.position)
       .flatMap((project) => [
@@ -45,7 +45,7 @@ export function ProjectsScreen() {
     [projects.data],
   );
   const openCount = useMemo(() => {
-    const counts = new Map<number, number>();
+    const counts = new Map<Id, number>();
     for (const task of tasks.data ?? []) {
       if (
         task.projectId !== null &&

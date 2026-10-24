@@ -1,7 +1,8 @@
 import type { Commands } from '#backend';
 import { unwrap } from '@skkil-time/api';
+import type { Id } from '@skkil-time/contract';
 
-const byId = (id: number) => ({ params: { path: { id } } });
+const byId = (id: Id) => ({ params: { path: { id } } });
 
 export const time: Commands<
   | 'listBlocks'

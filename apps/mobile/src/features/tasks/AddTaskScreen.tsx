@@ -19,7 +19,7 @@ import { radius, spacing, type, useTheme } from '@/ui/theme';
 export function AddTaskScreen() {
   const theme = useTheme();
   const params = useLocalSearchParams<{ projectId?: string }>();
-  const startProject = params.projectId ? Number(params.projectId) : null;
+  const startProject = params.projectId || null;
   const projects = useProjects();
   const sections = useSections();
   const create = useCreateTask();

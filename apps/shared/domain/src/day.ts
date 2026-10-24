@@ -28,7 +28,7 @@ export function earlierTasks(tasks: Task[], date: DateKey) {
 }
 
 export function nextActions(projects: Project[], tasks: Task[]) {
-  const firstOpen = new Map<number, Task>();
+  const firstOpen = new Map<string, Task>();
   for (const task of [...tasks].sort((a, b) => a.position - b.position)) {
     if (
       task.projectId !== null &&
