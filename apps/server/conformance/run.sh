@@ -1,8 +1,4 @@
 #!/bin/sh
-# Runs store's conformance suite against this server with time's mutation
-# profile. Starts Postgres, the mock issuer and the store service with Docker
-# Compose and the server from its boot jar, unless REUSE_STACK=1 says they are
-# already running (skkil dev).
 set -eu
 
 here=$(cd "$(dirname "$0")" && pwd)
