@@ -49,7 +49,7 @@ class QuarterService(private val jdbc: JdbcClient) {
                       (SELECT COUNT(*) FROM outcome o
                         WHERE o.user_id = p.user_id AND o.priority_id = p.id AND o.status = 'achieved'
                           AND o.week_start >= :from AND o.week_start < :to) AS achieved
-                    FROM priority p WHERE p.user_id = :user AND p.quarter_id = :quarter ORDER BY p.id
+                    FROM priority p WHERE p.user_id = :user AND p.quarter_id = :quarter ORDER BY p.position, p.id
                     """,
                 ).param("from", startDate)
                 .param("to", startDate.plusWeeks(WEEKS_PER_QUARTER))
@@ -104,7 +104,13 @@ class QuarterService(private val jdbc: JdbcClient) {
                 .orNotFound("Quarter")
         ensure(count < MAX_PRIORITIES) { "3 priorities max. Remove one first." }
         jdbc
-            .sql("INSERT INTO priority (id, user_id, quarter_id, title) VALUES (:id, :user, :quarter, :title)")
+            .sql(
+                """
+                INSERT INTO priority (id, user_id, quarter_id, title, position)
+                VALUES (:id, :user, :quarter, :title,
+                        (SELECT COALESCE(MAX(position), 0) + 1 FROM priority WHERE quarter_id = :quarter))
+                """,
+            )
             .param("id", id ?: caller.nextId())
             .param("user", user)
             .param("quarter", quarterId)

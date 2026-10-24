@@ -25,22 +25,24 @@ import kotlin.test.assertTrue
 class RitualTest : TaskApiTest() {
     @Autowired lateinit var rituals: RitualService
 
-    private fun caller() = Caller(userId(), ZoneOffset.UTC)
+    private fun caller() = Caller(userId(), scopeId(), ZoneOffset.UTC)
 
     private fun moment(day: String, minute: Int): Moment {
         val date = LocalDate.parse(day)
         return Moment(date, minute, date.atStartOfDay(ZoneOffset.UTC).toEpochSecond() + minute * 60L)
     }
 
-    private fun due(at: Moment, event: RitualEvent): String? = rituals.due(caller(), at, event)?.kind
+    private fun due(at: Moment, event: RitualEvent): String? = asServer { rituals.due(caller(), at, event) }?.kind
 
     private fun disable(vararg kinds: String) {
         kinds.forEach { kind ->
-            jdbc
-                .sql("UPDATE ritual SET enabled = FALSE WHERE user_id = :user AND kind = :kind")
-                .param("user", userId())
-                .param("kind", kind)
-                .update()
+            asServer {
+                jdbc
+                    .sql("UPDATE ritual SET enabled = FALSE WHERE user_id = :user AND kind = :kind")
+                    .param("user", userId())
+                    .param("kind", kind)
+                    .update()
+            }
         }
     }
 
@@ -75,38 +77,40 @@ class RitualTest : TaskApiTest() {
     @Test
     fun `morning runs once on first open`() {
         disable("weekly")
-        rituals.setPlanningTime(caller(), "morning")
+        asServer { rituals.setPlanningTime(caller(), "morning") }
         val at = moment("2026-11-03", 8 * 60)
         assertEquals("morning", due(at, RitualEvent.Open))
-        val started = rituals.start(caller(), "morning", at, null)
+        val started = asServer { rituals.start(caller(), "morning", at, null) }
         assertNull(due(at, RitualEvent.Tick))
 
-        rituals.snooze(userId(), started.id, at.stamp)
-        val error = assertThrows<DomainException> { rituals.snooze(userId(), started.id, at.stamp) }
+        asServer { rituals.snooze(userId(), started.id, at.stamp) }
+        val error = assertThrows<DomainException> { asServer { rituals.snooze(userId(), started.id, at.stamp) } }
         assertEquals("This ritual was already snoozed once.", error.message)
         val later = moment("2026-11-03", 8 * 60 + 16)
         assertEquals("morning", due(later, RitualEvent.Tick))
-        rituals.skip(userId(), started.id)
+        asServer { rituals.skip(userId(), started.id) }
         assertNull(due(later, RitualEvent.Tick))
-        assertEquals(started.id, rituals.start(caller(), "morning", later, null).id)
+        assertEquals(started.id, asServer { rituals.start(caller(), "morning", later, null) }.id)
     }
 
     @Test
     fun `evening follows the clock or the last block`() {
         disable("weekly")
-        rituals.setPlanningTime(caller(), "evening")
+        asServer { rituals.setPlanningTime(caller(), "evening") }
         val day = "2026-11-03"
         assertNull(due(moment(day, 16 * 60), RitualEvent.Tick))
         val task = create(input("Write")).id()
-        jdbc
-            .sql(
-                "INSERT INTO time_block (id, user_id, task_id, start_at, end_at) VALUES (gen_random_uuid(), :user, :task, :from, :to)",
-            )
-            .param("user", userId())
-            .param("task", task)
-            .param("from", moment(day, 14 * 60).stamp)
-            .param("to", moment(day, 15 * 60 + 30).stamp)
-            .update()
+        asServer {
+            jdbc
+                .sql(
+                    "INSERT INTO time_block (id, user_id, task_id, start_at, end_at) VALUES (gen_random_uuid(), :user, :task, :from, :to)",
+                )
+                .param("user", userId())
+                .param("task", task)
+                .param("from", moment(day, 14 * 60).stamp)
+                .param("to", moment(day, 15 * 60 + 30).stamp)
+                .update()
+        }
         assertEquals("evening", due(moment(day, 16 * 60), RitualEvent.Tick))
         assertEquals("evening", due(moment("2026-11-04", 17 * 60 + 30), RitualEvent.Tick))
     }
@@ -117,9 +121,9 @@ class RitualTest : TaskApiTest() {
         val at = moment("2026-11-03", 10 * 60)
         assertNull(due(at, RitualEvent.TimerStopped(12)))
         assertEquals("session", due(at, RitualEvent.TimerStopped(25)))
-        val first = rituals.start(caller(), "session", at, null)
-        rituals.finish(userId(), first.id, at.stamp)
-        assertNotEquals(first.id, rituals.start(caller(), "session", at, null).id)
+        val first = asServer { rituals.start(caller(), "session", at, null) }
+        asServer { rituals.finish(userId(), first.id, at.stamp) }
+        assertNotEquals(first.id, asServer { rituals.start(caller(), "session", at, null) }.id)
     }
 
     @Test
@@ -128,12 +132,14 @@ class RitualTest : TaskApiTest() {
         val tuesday = moment("2026-11-03", 9 * 60)
         assertEquals("weekly", due(monday, RitualEvent.Open))
         assertNull(due(tuesday, RitualEvent.Open))
-        jdbc
-            .sql(
-                "INSERT INTO week (id, user_id, start_date, reviewed_at) VALUES (gen_random_uuid(), :user, '2026-10-26', 1)",
-            )
-            .param("user", userId())
-            .update()
+        asServer {
+            jdbc
+                .sql(
+                    "INSERT INTO week (id, user_id, start_date, reviewed_at) VALUES (gen_random_uuid(), :user, '2026-10-26', 1)",
+                )
+                .param("user", userId())
+                .update()
+        }
         assertNull(due(monday, RitualEvent.Open))
     }
 

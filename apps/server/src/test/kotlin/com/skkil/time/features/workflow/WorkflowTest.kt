@@ -167,15 +167,17 @@ class WorkflowTest : TaskApiTest() {
         apply(id, preset("course"))
         val reading = create(input("Chapter", id)).id()
         read(setType(reading, idOf("types", id, "Reading")))
-        jdbc
-            .sql(
-                "INSERT INTO time_entry (id, user_id, task_id, started_at, ended_at) VALUES (gen_random_uuid(), :user, :task, :start, :end)",
-            )
-            .param("user", userId())
-            .param("task", reading)
-            .param("start", start("2026-11-03"))
-            .param("end", start("2026-11-03") + 1800)
-            .update()
+        asServer {
+            jdbc
+                .sql(
+                    "INSERT INTO time_entry (id, user_id, task_id, started_at, ended_at) VALUES (gen_random_uuid(), :user, :task, :start, :end)",
+                )
+                .param("user", userId())
+                .param("task", reading)
+                .param("start", start("2026-11-03"))
+                .param("end", start("2026-11-03") + 1800)
+                .update()
+        }
         val talk = create(input("Lecture", id).copy(dueDate = d("2026-11-02"), dueTime = 540)).id()
         read(setType(talk, idOf("types", id, "Lecture")))
         putJson("/api/v1/tasks/$talk/event-details", TaskEventDetails(" Hall B ", true))

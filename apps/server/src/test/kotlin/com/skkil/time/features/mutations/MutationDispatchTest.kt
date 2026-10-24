@@ -24,7 +24,7 @@ class MutationDispatchTest : TaskApiTest() {
 
     private val acted = Instant.parse("2026-03-04T05:06:07Z")
 
-    private fun caller() = Caller(userId(), ZoneId.of(zone))
+    private fun caller() = Caller(userId(), scopeId(), ZoneId.of(zone))
 
     private fun ids(vararg ids: UUID): IdGenerator {
         val next = ids.iterator()
@@ -36,7 +36,8 @@ class MutationDispatchTest : TaskApiTest() {
         args: Map<String, Any?> = emptyMap(),
         at: Instant = acted,
         idSource: IdGenerator = UuidV7Generator(),
-    ): Any? = mutations.dispatch(caller(), name, mapper.valueToTree(args), MutationClock.fixed(at), idSource)
+    ): Any? =
+        asServer { mutations.dispatch(caller(), name, mapper.valueToTree(args), MutationClock.fixed(at), idSource) }
 
     private fun quarterArgs(id: UUID?, label: String) = mapOf("id" to id, "label" to label, "startDate" to "2026-01-05")
 
@@ -137,5 +138,37 @@ class MutationDispatchTest : TaskApiTest() {
         val rejected = failure { dispatch("createTask", mapOf("input" to input(" "))) }
         assertEquals(ErrorKind.INVALID, rejected.kind)
         assertEquals(0, getJson("/api/v1/tasks").size())
+    }
+
+    @Test
+    fun `priorities and outcomes keep the order they were made in, whatever their ids`() {
+        val high = UUID.fromString("ffffffff-ffff-7fff-bfff-ffffffffffff")
+        val low = UUID.fromString("00000000-0000-7000-8000-000000000000")
+        val quarter = UUID.randomUUID()
+        dispatch("upsertQuarter", quarterArgs(null, "Q1"), idSource = ids(quarter))
+        dispatch("createPriority", mapOf("quarterId" to quarter, "title" to "First"), idSource = ids(high))
+        dispatch("createPriority", mapOf("quarterId" to quarter, "title" to "Second"), idSource = ids(low))
+        assertEquals(
+            listOf("First", "Second"),
+            getJson("/api/v1/quarter?date=2026-02-02")["priorities"].values().map { it["title"].asString() },
+        )
+
+        val week = "2026-03-02"
+        dispatch(
+            "createOutcome",
+            mapOf("date" to week, "title" to "A", "priorityId" to null),
+            idSource = ids(UUID.randomUUID(), high),
+        )
+        dispatch(
+            "createOutcome",
+            mapOf("date" to week, "title" to "B", "priorityId" to null),
+            idSource = ids(UUID.randomUUID(), low),
+        )
+        assertEquals(
+            listOf("A", "B"),
+            getJson("/api/v1/weeks/$week")["outcomes"].values().map {
+                it["title"].asString()
+            },
+        )
     }
 }

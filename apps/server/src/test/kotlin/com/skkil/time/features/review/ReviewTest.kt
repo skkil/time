@@ -136,25 +136,29 @@ class ReviewTest : TaskApiTest() {
         val start = startOf(monday)
 
         fun entry(from: Long, to: Long) =
-            jdbc
-                .sql(
-                    "INSERT INTO time_entry (id, user_id, started_at, ended_at) VALUES (gen_random_uuid(), :user, :from, :to)",
-                )
-                .param("user", user)
-                .param("from", from)
-                .param("to", to)
-                .update()
+            asServer {
+                jdbc
+                    .sql(
+                        "INSERT INTO time_entry (id, user_id, started_at, ended_at) VALUES (gen_random_uuid(), :user, :from, :to)",
+                    )
+                    .param("user", user)
+                    .param("from", from)
+                    .param("to", to)
+                    .update()
+            }
         entry(start - 1800, start + 1800)
         entry(start + 3600, start + 5400)
-        jdbc
-            .sql(
-                "INSERT INTO time_block (id, user_id, task_id, start_at, end_at) VALUES (gen_random_uuid(), :user, :task, :from, :to)",
-            )
-            .param("user", user)
-            .param("task", task)
-            .param("from", start + 7200)
-            .param("to", start + 14400)
-            .update()
+        asServer {
+            jdbc
+                .sql(
+                    "INSERT INTO time_block (id, user_id, task_id, start_at, end_at) VALUES (gen_random_uuid(), :user, :task, :from, :to)",
+                )
+                .param("user", user)
+                .param("task", task)
+                .param("from", start + 7200)
+                .param("to", start + 14400)
+                .update()
+        }
         create(input("Call the bank").copy(dueDate = monday.plusDays(2), dueTime = 600, estimateMinutes = 30))
 
         val summaries = getJson("/api/v1/weeks?from=${monday.minusDays(7)}&to=${monday.plusDays(7)}").values().toList()

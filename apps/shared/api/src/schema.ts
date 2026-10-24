@@ -772,23 +772,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/undo-snapshots': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations['capture'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/undo-snapshots/{id}/restore': {
+  '/api/v1/undo/restore': {
     parameters: {
       query?: never;
       header?: never;
@@ -798,6 +782,22 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations['restore'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/undo/capture': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['capture'];
     delete?: never;
     options?: never;
     head?: never;
@@ -1006,6 +1006,22 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations['deleteMany'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/sync/token': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['token'];
     delete?: never;
     options?: never;
     head?: never;
@@ -1358,6 +1374,22 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations['sync'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/habits/measurements': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['recordMeasurements'];
     delete?: never;
     options?: never;
     head?: never;
@@ -2248,6 +2280,40 @@ export interface components {
       /** Format: int64 */
       endAt: number;
     };
+    /** @description [id, createdAt] */
+    SnapshotCreated: {
+      /** Format: uuid */
+      id: string;
+      /** Format: int64 */
+      createdAt: number;
+    };
+    /** @description [taskId, blockedById] */
+    SnapshotDependency: {
+      /** Format: uuid */
+      taskId: string;
+      /** Format: uuid */
+      blockedById: string;
+    };
+    /** @description [table, id, taskId] */
+    SnapshotLink: {
+      table: string;
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      taskId: string;
+    };
+    SnapshotRows: {
+      table: string;
+      columns: string[];
+      values: unknown[][];
+    };
+    TaskSnapshot: {
+      tasks: components['schemas']['SnapshotRows'];
+      created: components['schemas']['SnapshotCreated'][];
+      copies: components['schemas']['SnapshotRows'][];
+      dependencies: components['schemas']['SnapshotDependency'][];
+      links: components['schemas']['SnapshotLink'][];
+    };
     TaskIds: {
       ids: string[];
     };
@@ -2278,6 +2344,17 @@ export interface components {
       ids: string[];
       /** Format: date */
       dueDate: string | null;
+    };
+    SyncTokenRequest: {
+      /** Format: uuid */
+      clientId: string;
+    };
+    SyncGrant: {
+      token: string;
+      /** Format: int64 */
+      expiresAt: number;
+      storeUrl: string;
+      pushUrl: string;
     };
     SectionInput: {
       /** Format: uuid */
@@ -2363,6 +2440,14 @@ export interface components {
       hasWebData: boolean;
       hasWindowData: boolean;
       message: string | null;
+    };
+    HabitMeasurement: {
+      /** Format: uuid */
+      habitId: string;
+      /** Format: date */
+      date: string;
+      /** Format: double */
+      value: number;
     };
     ItemStatus: {
       /** Format: uuid */
@@ -2648,12 +2733,19 @@ export type Group = components['schemas']['Group'];
 export type DayNote = components['schemas']['DayNote'];
 export type BlockSpan = components['schemas']['BlockSpan'];
 export type TimeBlock = components['schemas']['TimeBlock'];
+export type SnapshotCreated = components['schemas']['SnapshotCreated'];
+export type SnapshotDependency = components['schemas']['SnapshotDependency'];
+export type SnapshotLink = components['schemas']['SnapshotLink'];
+export type SnapshotRows = components['schemas']['SnapshotRows'];
+export type TaskSnapshot = components['schemas']['TaskSnapshot'];
 export type TaskIds = components['schemas']['TaskIds'];
 export type PhaseTaskInput = components['schemas']['PhaseTaskInput'];
 export type TaskPlacement = components['schemas']['TaskPlacement'];
 export type TaskDependency = components['schemas']['TaskDependency'];
 export type TasksSomeday = components['schemas']['TasksSomeday'];
 export type TaskReschedule = components['schemas']['TaskReschedule'];
+export type SyncTokenRequest = components['schemas']['SyncTokenRequest'];
+export type SyncGrant = components['schemas']['SyncGrant'];
 export type SectionInput = components['schemas']['SectionInput'];
 export type RitualTask = components['schemas']['RitualTask'];
 export type RitualEvent = components['schemas']['RitualEvent'];
@@ -2670,6 +2762,7 @@ export type ImportSection = components['schemas']['ImportSection'];
 export type ImportTask = components['schemas']['ImportTask'];
 export type HabitDelta = components['schemas']['HabitDelta'];
 export type SyncReport = components['schemas']['SyncReport'];
+export type HabitMeasurement = components['schemas']['HabitMeasurement'];
 export type ItemStatus = components['schemas']['ItemStatus'];
 export type ItemType = components['schemas']['ItemType'];
 export type Milestone = components['schemas']['Milestone'];
@@ -4300,6 +4393,28 @@ export interface operations {
       };
     };
   };
+  restore: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskSnapshot'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   capture: {
     parameters: {
       query?: never;
@@ -4319,28 +4434,8 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': string;
+          '*/*': components['schemas']['TaskSnapshot'];
         };
-      };
-    };
-  };
-  restore: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description No Content */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
       };
     };
   };
@@ -4686,6 +4781,30 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  token: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SyncTokenRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SyncGrant'];
+        };
       };
     };
   };
@@ -5288,6 +5407,28 @@ export interface operations {
         content: {
           '*/*': components['schemas']['SyncReport'];
         };
+      };
+    };
+  };
+  recordMeasurements: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['HabitMeasurement'][];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

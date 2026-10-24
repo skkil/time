@@ -1,13 +1,19 @@
 package com.skkil.time.features.rituals.service
 
-import com.skkil.time.common.id.IdGenerator
+import com.skkil.time.common.id.UuidV5
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Component
+import java.util.UUID
 
-/** The five ritual templates every new user starts with, as on desktop. */
+/**
+ * The five ritual templates every new user starts with, as on desktop. Their ids are [idFor] the scope and kind, so
+ * seeding twice, or on a device before its first sync, makes the same rows.
+ */
 @Component
 class RitualDefaults(private val jdbc: JdbcClient) {
-    fun seed(user: Long, ids: IdGenerator) {
+    fun idFor(scope: UUID, kind: String): UUID = UuidV5.of(scope, "ritual/$kind")
+
+    fun seed(user: Long, scope: UUID) {
         for (template in TEMPLATES) {
             val (kind, enabled, trigger) = template
             jdbc
@@ -15,9 +21,9 @@ class RitualDefaults(private val jdbc: JdbcClient) {
                     """
                     INSERT INTO ritual (id, user_id, kind, enabled, trigger, at_minute, weekdays, steps)
                     VALUES (:id, :user, :kind, :enabled, :trigger, :atMinute, :weekdays, :steps)
-                    ON CONFLICT (user_id, kind) DO NOTHING
+                    ON CONFLICT DO NOTHING
                     """,
-                ).param("id", ids.next())
+                ).param("id", idFor(scope, kind))
                 .param("user", user)
                 .param("kind", kind)
                 .param("enabled", enabled)

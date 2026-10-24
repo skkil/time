@@ -34,48 +34,60 @@ class DataTest : TaskApiTest() {
         put("/api/v1/projects/$home/canvas", CanvasContent("<p>Plan</p>"))
         put("/api/v1/settings/reminders", Enabled(false))
         val user = userId()
-        jdbc.sql("INSERT INTO week (id, user_id, start_date, felt) VALUES (gen_random_uuid(), :user, :week, 4)")
-            .param("user", user)
-            .param("week", week)
-            .update()
-        val outcome =
-            jdbc
-                .sql(
-                    "INSERT INTO outcome (id, user_id, week_start, title) " +
-                        "VALUES (gen_random_uuid(), :user, :week, 'Ship') RETURNING id",
-                ).param("user", user)
+        asServer {
+            jdbc.sql("INSERT INTO week (id, user_id, start_date, felt) VALUES (gen_random_uuid(), :user, :week, 4)")
+                .param("user", user)
                 .param("week", week)
-                .query(UUID::class.java)
-                .single()
-        jdbc.sql(
-            "UPDATE task SET outcome_id = :outcome WHERE id = :id",
-        ).param("outcome", outcome).param("id", sink).update()
-        jdbc
-            .sql(
-                "INSERT INTO time_entry (id, user_id, project_id, task_id, started_at, ended_at) " +
-                    "VALUES (gen_random_uuid(), :user, :p, :t, 100, 400)",
-            ).param("user", user)
-            .param("p", home)
-            .param("t", washer)
-            .update()
-        val habit =
+                .update()
+        }
+        val outcome =
+            asServer {
+                jdbc
+                    .sql(
+                        "INSERT INTO outcome (id, user_id, week_start, title) " +
+                            "VALUES (gen_random_uuid(), :user, :week, 'Ship') RETURNING id",
+                    ).param("user", user)
+                    .param("week", week)
+                    .query(UUID::class.java)
+                    .single()
+            }
+        asServer {
+            jdbc.sql(
+                "UPDATE task SET outcome_id = :outcome WHERE id = :id",
+            ).param("outcome", outcome).param("id", sink).update()
+        }
+        asServer {
             jdbc
                 .sql(
-                    """
+                    "INSERT INTO time_entry (id, user_id, project_id, task_id, started_at, ended_at) " +
+                        "VALUES (gen_random_uuid(), :user, :p, :t, 100, 400)",
+                ).param("user", user)
+                .param("p", home)
+                .param("t", washer)
+                .update()
+        }
+        val habit =
+            asServer {
+                jdbc
+                    .sql(
+                        """
                     INSERT INTO habit (id, user_id, name, goal, start_date, track_source, track_project_id)
                     VALUES (gen_random_uuid(), :user, 'Read', 1.5, :week, 'project', :p) RETURNING id
                     """,
-                ).param("user", user)
+                    ).param("user", user)
+                    .param("week", week)
+                    .param("p", garden)
+                    .query(UUID::class.java)
+                    .single()
+            }
+        asServer {
+            jdbc.sql(
+                "INSERT INTO habit_log (id, habit_id, date, status, value) VALUES (gen_random_uuid(), :h, :week, 'done', 2.5)",
+            )
+                .param("h", habit)
                 .param("week", week)
-                .param("p", garden)
-                .query(UUID::class.java)
-                .single()
-        jdbc.sql(
-            "INSERT INTO habit_log (id, habit_id, date, status, value) VALUES (gen_random_uuid(), :h, :week, 'done', 2.5)",
-        )
-            .param("h", habit)
-            .param("week", week)
-            .update()
+                .update()
+        }
         return Seeded(home, garden, sink, washer, mow)
     }
 
@@ -221,7 +233,7 @@ class DataTest : TaskApiTest() {
     @Test
     fun `deleting everything empties the data and restores defaults`() {
         seed()
-        jdbc.sql("DELETE FROM ritual WHERE user_id = :user").param("user", userId()).update()
+        asServer { jdbc.sql("DELETE FROM ritual WHERE user_id = :user").param("user", userId()).update() }
 
         delete("/api/v1/data").andExpect { status { isNoContent() } }
 

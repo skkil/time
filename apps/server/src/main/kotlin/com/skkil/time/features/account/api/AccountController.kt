@@ -1,6 +1,7 @@
 package com.skkil.time.features.account.api
 
 import com.skkil.time.common.web.Caller
+import com.skkil.time.features.sync.web.OwnWritePath
 import com.skkil.time.security.AccountService
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -15,8 +16,9 @@ class AccountController(private val accounts: AccountService) {
     @GetMapping
     fun me(caller: Caller) = Me(caller.id, caller.zone.id)
 
-    /** Deletes the account and every row it owns. Required by the app stores. */
+    /** Deletes the account, every row it owns and its sync log. Required by the app stores. */
+    @OwnWritePath
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(caller: Caller) = accounts.delete(caller.id)
+    fun delete(caller: Caller) = accounts.delete(caller.id, caller.scopeId)
 }

@@ -129,7 +129,7 @@ Each item is one commit. Check it off when it lands.
       migration, `Id = string` in the contract)
 - [ ] 9.3 Mutation registries (Rust and Kotlin) keyed by command name, clock
       and ids from the mutation
-- [ ] 9.4 Server: store write path, Push endpoint, sync tokens, every write
+- [x] 9.4 Server: store write path, Push endpoint, sync tokens, every write
       logged
 - [ ] 9.5 Desktop: store-core replica, sign-in, Sync settings, issues list
 - [ ] 9.6 Web: time-core + store-core as WASM on OPFS, local backend

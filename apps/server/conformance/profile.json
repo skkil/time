@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "mutations": [
+    {
+      "name": "createProject",
+      "kind": "create",
+      "weight": 2,
+      "args": { "input": { "name": "{{text}}", "parentId": null, "color": "teal" } },
+      "creates": ["project"]
+    },
+    {
+      "name": "createTask",
+      "kind": "create",
+      "weight": 4,
+      "args": {
+        "input": {
+          "title": "{{text}}", "notes": "", "projectId": null, "sectionId": null, "parentId": null, "priority": 4,
+          "dueDate": null, "dueTime": null, "deadline": null, "recurrence": null, "estimateMinutes": null
+        }
+      },
+      "creates": ["task"]
+    },
+    {
+      "name": "createTask",
+      "kind": "create",
+      "weight": 2,
+      "args": {
+        "input": {
+          "title": "{{text}}", "notes": "", "projectId": "{{row:project}}", "sectionId": null, "parentId": null,
+          "priority": 2, "dueDate": null, "dueTime": null, "deadline": null, "recurrence": null, "estimateMinutes": null
+        }
+      },
+      "creates": ["task"]
+    },
+    {
+      "name": "createSection",
+      "kind": "create",
+      "weight": 1,
+      "args": { "projectId": "{{row:project}}", "name": "{{text}}", "before": null },
+      "creates": ["section"]
+    },
+    {
+      "name": "updateTask",
+      "kind": "update",
+      "weight": 3,
+      "args": {
+        "id": "{{row:task}}",
+        "input": {
+          "title": "{{text}}", "notes": "{{text}}", "projectId": null, "sectionId": null, "parentId": null, "priority": 3,
+          "dueDate": null, "dueTime": null, "deadline": null, "recurrence": null, "estimateMinutes": null
+        }
+      }
+    },
+    { "name": "setTaskCompleted", "kind": "update", "weight": 2, "args": { "id": "{{row:task}}", "completed": "{{bool}}" } },
+    { "name": "renameSection", "kind": "update", "weight": 1, "args": { "id": "{{row:section}}", "name": "{{text}}" } },
+    { "name": "deleteTask", "kind": "delete", "weight": 1, "args": { "id": "{{row:task}}" } },
+    { "name": "deleteProject", "kind": "delete", "weight": 1, "args": { "id": "{{row:project}}" } },
+    {
+      "name": "createTask",
+      "kind": "reject",
+      "weight": 1,
+      "args": {
+        "input": {
+          "title": " ", "notes": "", "projectId": null, "sectionId": null, "parentId": null, "priority": 4,
+          "dueDate": null, "dueTime": null, "deadline": null, "recurrence": null, "estimateMinutes": null
+        }
+      }
+    },
+    {
+      "name": "createProject",
+      "kind": "reject",
+      "weight": 1,
+      "args": { "input": { "name": "", "parentId": null, "color": "teal" } }
+    },
+    { "name": "renameSection", "kind": "reject", "weight": 1, "args": { "id": "{{row:section}}", "name": "" } }
+  ]
+}

@@ -1,6 +1,5 @@
 package com.skkil.time.features.mutations
 
-import com.skkil.time.features.mutations.domain.DeviceOnlyCommands
 import com.skkil.time.features.mutations.domain.MutationSet
 import com.skkil.time.features.mutations.service.DataMutations
 import com.skkil.time.features.mutations.service.HabitMutations
@@ -14,13 +13,21 @@ import com.skkil.time.features.mutations.service.TimeMutations
 import com.skkil.time.features.mutations.service.WorkflowMutations
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import tools.jackson.databind.json.JsonMapper
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/** Every write command in the contract is a registered mutation with the contract's parameters, or device-only. */
+/**
+ * The registry is exactly the `mutations` of `commands.json`, never a read or a device-only command, and each mutation
+ * takes the contract's parameters in order.
+ */
 class MutationCoverageTest {
-    private val commands: Map<String, List<String>> =
+    private val classified = JsonMapper.builder().build().readTree(File("../shared/contract/src/commands.json"))
+
+    private fun names(kind: String): Set<String> = classified[kind].values().map { it.asString() }.toSet()
+
+    private val parameters: Map<String, List<String>> =
         File("../shared/contract/src/bindings.ts")
             .readLines()
             .mapNotNull { COMMAND.find(it) }
@@ -47,65 +54,26 @@ class MutationCoverageTest {
         }.associate { it.name to it.params }
 
     @Test
-    fun `reads the contract`() {
-        assertTrue(commands.size > 120, "Found ${commands.size} commands in bindings.ts")
-        assertEquals(listOf("id", "placement"), commands["moveTask"])
+    fun `reads the classification and the contract`() {
+        assertTrue(names("mutations").size > 80, "Found ${names("mutations").size} mutations in commands.json")
+        assertEquals(listOf("id", "placement"), parameters["moveTask"])
+        val classifiedNames = names("mutations") + names("reads") + names("deviceOnly")
+        assertEquals(parameters.keys, classifiedNames, "commands.json and bindings.ts list different commands")
     }
 
     @Test
-    fun `every write command is registered or device-only`() {
-        val writes = commands.keys - READS
-        val unclassified = writes - registered.keys - DeviceOnlyCommands.names.keys
-        assertEquals(emptySet(), unclassified, "Register these mutations or list them as device-only")
-        assertEquals(emptySet(), registered.keys - commands.keys, "Registered names missing from the contract")
-        assertEquals(emptySet(), DeviceOnlyCommands.names.keys - commands.keys)
-        assertEquals(emptySet(), registered.keys intersect DeviceOnlyCommands.names.keys)
-        assertEquals(emptySet(), READS - commands.keys, "Reads missing from the contract")
-        assertEquals(emptySet(), READS intersect registered.keys, "A read is registered as a mutation")
+    fun `registers exactly the contract's mutations`() {
+        assertEquals(names("mutations"), registered.keys)
     }
 
     @Test
     fun `mutations take the contract's parameters in order`() {
-        val mismatched = registered.filter { (name, params) -> commands[name] != params }
-        assertEquals(emptyMap(), mismatched.mapValues { (name, params) -> "$params vs ${commands[name]}" })
+        val mismatched = registered.filter { (name, params) -> parameters[name] != params }
+        assertEquals(emptyMap(), mismatched.mapValues { (name, params) -> "$params vs ${parameters[name]}" })
     }
 
     private companion object {
         val COMMAND = Regex("""^\s+(\w+): \(([^)]*)\) => __TAURI_INVOKE""")
         val PARAM = Regex("""(\w+)\s*:""")
-        val READS =
-            setOf(
-                "listProjects",
-                "listGroups",
-                "getProjectCanvas",
-                "listTasks",
-                "getTask",
-                "listSections",
-                "listBlocks",
-                "listTimeEntries",
-                "listTaskEntries",
-                "listProjectEntries",
-                "getTimer",
-                "listHabits",
-                "listHabitDays",
-                "listDays",
-                "getWeek",
-                "listWeeks",
-                "getQuarter",
-                "listRituals",
-                "getPlanningTime",
-                "dueRitual",
-                "listRitualRuns",
-                "getWorkflow",
-                "listPresets",
-                "saveProjectPreset",
-                "readPreset",
-                "listEvents",
-                "listTimeByType",
-                "listRecordPhases",
-                "externalChanges",
-                "getCaptureHotkey",
-                "getRemindersEnabled",
-            )
     }
 }

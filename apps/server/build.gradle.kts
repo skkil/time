@@ -21,6 +21,7 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-aspectj")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-security")
@@ -34,6 +35,7 @@ dependencies {
     implementation(libs.springdoc.webmvc)
     implementation("org.postgresql:postgresql")
     implementation(libs.webpush)
+    implementation(libs.store.adapter.jvm)
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     testImplementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
@@ -61,10 +63,12 @@ spotless {
 }
 
 val openApiFile = rootProject.layout.projectDirectory.file("../shared/api/openapi.json")
+val storeDir = gradle.extra["storeDir"] as String
 
 tasks.withType<Test> {
     useJUnitPlatform()
     systemProperty("openapi.file", openApiFile.asFile.absolutePath)
+    systemProperty("store.dir", storeDir)
     providers.systemProperty("openapi.write").orNull?.let { systemProperty("openapi.write", it) }
 }
 
@@ -82,4 +86,13 @@ tasks.register<Test>("openApi") {
 
 tasks.named<Jar>("jar") {
     enabled = false
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    if (!providers.environmentVariable(
+            "SPRING_PROFILES_ACTIVE",
+        ).isPresent
+    ) {
+        systemProperty("spring.profiles.active", "dev")
+    }
 }

@@ -41,7 +41,14 @@ class SecurityConfig(private val properties: AppProperties) {
                 it
                     .requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
-                    .requestMatchers("/livez", "/readyz", "/actuator/**", "/v3/api-docs/**", "/api/v1/realtime")
+                    .requestMatchers(
+                        "/livez",
+                        "/readyz",
+                        "/actuator/**",
+                        "/v3/api-docs/**",
+                        "/api/v1/realtime",
+                        "/api/v1/sync/jwks.json",
+                    )
                     .permitAll()
                     .anyRequest()
                     .authenticated()
@@ -61,6 +68,20 @@ class SecurityConfig(private val properties: AppProperties) {
                 allowedHeaders = listOf("Authorization", "Content-Type", TIME_ZONE_HEADER, CLIENT_ID_HEADER)
                 maxAge = 3600
             }
-        return UrlBasedCorsConfigurationSource().apply { registerCorsConfiguration("/api/**", config) }
+        val push =
+            CorsConfiguration().apply {
+                allowedOrigins = properties.cors.allowedOrigins
+                allowedMethods = listOf("POST", "OPTIONS")
+                allowedHeaders = listOf("Authorization", "Content-Type", "Content-Encoding") + CONNECT_HEADERS
+                maxAge = 3600
+            }
+        return UrlBasedCorsConfigurationSource().apply {
+            registerCorsConfiguration("/api/**", config)
+            registerCorsConfiguration("/skkil.store.v1.PushService/**", push)
+        }
+    }
+
+    private companion object {
+        val CONNECT_HEADERS = listOf("Connect-Protocol-Version", "Connect-Timeout-Ms")
     }
 }

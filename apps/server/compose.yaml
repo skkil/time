@@ -26,5 +26,21 @@ services:
         {"interactiveLogin": true, "tokenCallbacks": [{"issuerId": "default", "tokenExpiry": 3600,
         "requestMappings": [{"requestParam": "client_id", "match": "*", "claims": {"aud": ["time-api"]}}]}]}
 
+  store:
+    build: ${STORE_DIR:-../../../store}/modules/service
+    ports:
+      - "8091:8080"
+    environment:
+      STORE_DATABASE_URL: postgres://time:time@postgres:5432/time
+      STORE_TOKEN_ISSUER: time
+      STORE_TOKEN_JWKS_URL: http://host.docker.internal:8080/api/v1/sync/jwks.json
+      STORE_ALLOWED_ORIGINS: http://localhost:5173
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres:

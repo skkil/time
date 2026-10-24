@@ -9,7 +9,7 @@ needs none of this.
 
 | Piece | Artifact | Runs as |
 |---|---|---|
-| API | `apps/server/Dockerfile` (`docker build apps/server`) | Container on the shared app host or ECS; port 8080 public, 8081 private |
+| API | `apps/server/Dockerfile` (`docker build --build-context store=../store apps/server`, store checked out at `STORE_VERSION`) | Container on the shared app host or ECS; port 8080 public, 8081 private |
 | Web | `apps/web/Dockerfile` (`docker build -f apps/web/Dockerfile apps`) | nginx container on port 8080, or the `dist/` folder on S3 + CloudFront |
 | Database | Postgres 17 (RDS) | Flyway migrates on API start; one database `time` |
 | Sign-in | Any OIDC provider (Auth0 per the platform plan) | One API, one SPA app, one native app |
@@ -47,7 +47,17 @@ WEB_PUSH_PUBLIC_KEY=<vapid public>           # npx web-push generate-vapid-keys
 WEB_PUSH_PRIVATE_KEY=<secret>
 WEB_PUSH_SUBJECT=mailto:<contact>
 EXPO_ACCESS_TOKEN=<secret, optional>
+STORE_URL=https://<store service host>       # handed to devices with each sync token
+STORE_TOKEN_PRIVATE_KEY_PEM=<secret>         # ES256, PKCS#8; ./gradlew syncTokenKeys in store's adapter-jvm
+STORE_TOKEN_PUBLIC_KEY_PEM=<SPKI PEM>
 ```
+
+The API refuses to start without the token keys (only the `dev` profile
+makes its own). The store service (`modules/service` of the store checkout)
+runs beside it on the same database with `STORE_TOKEN_ISSUER=time` and
+`STORE_TOKEN_JWKS_URL=https://<api host>/api/v1/sync/jwks.json` (or the public
+key PEM). Store's SQL needs the `pgcrypto` extension, which its migration
+creates; grant the migrating role that right or create it beforehand.
 
 - Health: `GET /readyz` (load balancer target), `GET /livez` (restart probe).
 - Metrics: `GET :8081/actuator/prometheus`. Keep 8081 off the public listener.
@@ -57,7 +67,7 @@ EXPO_ACCESS_TOKEN=<secret, optional>
 - The built-in rate limit is a per-address safety net. Put WAF rate rules at
   the edge.
 - Scaling: the API holds no state of its own; run two or more instances behind
-  the load balancer. Undo snapshots and realtime tickets live in Postgres, and
+  the load balancer. Realtime tickets live in Postgres, and
   change events reach every instance through Postgres `LISTEN/NOTIFY`.
 - Websockets: `/api/v1/realtime` upgrades on the same port. Raise the load
   balancer's idle timeout above 30 s (the server pings every 25 s); no sticky

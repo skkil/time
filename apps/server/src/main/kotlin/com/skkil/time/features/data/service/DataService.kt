@@ -40,7 +40,7 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
             wipe(caller.id)
             val ids = mutableMapOf<String, IdMap>()
             for (table in TABLES) ids[table.name] = insert(caller, table, backup[table.name].orEmpty(), ids)
-            rituals.seed(caller.id, caller.ids)
+            rituals.seed(caller.id, caller.scopeId)
         } catch (_: DataAccessException) {
             invalid(NOT_A_BACKUP)
         }
@@ -48,7 +48,7 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
 
     fun deleteAll(caller: Caller) {
         wipe(caller.id)
-        rituals.seed(caller.id, caller.ids)
+        rituals.seed(caller.id, caller.scopeId)
     }
 
     private fun rows(user: Long, table: Table): List<Map<String, Any?>> =
@@ -72,7 +72,7 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
         }
 
     private fun wipe(user: Long) {
-        for (table in TABLES.asReversed().filter { it.ownedDirectly } + UNDO) {
+        for (table in TABLES.asReversed().filter { it.ownedDirectly }) {
             jdbc.sql("DELETE FROM ${table.name} WHERE user_id = :user").param("user", user).update()
         }
     }
@@ -106,7 +106,11 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
             VALUES (${(listOf(ID) + owner + columns.map { it.name }).joinToString { ":$it" }})
             """
         for (row in rows) {
-            val id = caller.nextId()
+            val id =
+                when (table.name) {
+                    RITUAL -> rituals.idFor(caller.scopeId, row.path("kind").asString())
+                    else -> caller.nextId()
+                }
             var statement = jdbc.sql(sql).param(ID, id).param("user_id", user)
             val pending = mutableListOf<Pair<Column, String>>()
             for (column in columns) {
@@ -190,7 +194,7 @@ class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, 
         const val VERSION = 2
         const val FIRST_VERSION = 1
         const val ID = "id"
+        const val RITUAL = "ritual"
         const val NOT_A_BACKUP = "That file isn't a skkil time backup."
-        val UNDO = Table("undo_snapshot", true, emptyList())
     }
 }
