@@ -4,7 +4,7 @@ use rusqlite::types::Value;
 use rusqlite::{Connection, OptionalExtension, params, params_from_iter};
 use serde::{Deserialize, Serialize};
 
-use crate::env::MutationEnv;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::tasks;
 use crate::types::Id;
@@ -164,11 +164,7 @@ fn local_columns(conn: &Connection, table: &str) -> Result<HashSet<String>> {
 /// `id` drawn from `env` when the snapshot left it out.
 type Row = Vec<(String, Value)>;
 
-fn known_rows(
-    conn: &Connection,
-    env: &dyn MutationEnv,
-    rows: &SnapshotRows,
-) -> Result<Vec<Row>> {
+fn known_rows(conn: &Connection, env: &dyn MutationEnv, rows: &SnapshotRows) -> Result<Vec<Row>> {
     let known = local_columns(conn, &rows.table)?;
     let has_id = rows.columns.iter().any(|column| column == "id");
     rows.values
@@ -204,9 +200,9 @@ fn parents_first(rows: Vec<Row>) -> Vec<Row> {
     let mut ordered = Vec::with_capacity(pending.len());
     while !pending.is_empty() {
         let waiting: HashSet<String> = pending.iter().filter_map(|row| text(row, "id")).collect();
-        let (ready, rest): (Vec<Row>, Vec<Row>) = pending
-            .into_iter()
-            .partition(|row| text(row, "parent_id").is_none_or(|parent| !waiting.contains(&parent)));
+        let (ready, rest): (Vec<Row>, Vec<Row>) = pending.into_iter().partition(|row| {
+            text(row, "parent_id").is_none_or(|parent| !waiting.contains(&parent))
+        });
         if ready.is_empty() {
             ordered.extend(rest);
             break;
@@ -218,7 +214,10 @@ fn parents_first(rows: Vec<Row>) -> Vec<Row> {
 }
 
 fn write(conn: &Connection, table: &str, row: &Row, upsert: bool) -> Result<()> {
-    let columns = row.iter().map(|(name, _)| format!("\"{name}\"")).collect::<Vec<_>>();
+    let columns = row
+        .iter()
+        .map(|(name, _)| format!("\"{name}\""))
+        .collect::<Vec<_>>();
     let slots = vec!["?"; columns.len()].join(", ");
     let conflict = if upsert {
         let updates = columns
@@ -310,7 +309,11 @@ pub fn restore(conn: &Connection, env: &dyn MutationEnv, snapshot: &TaskSnapshot
              SELECT ?1, ?2, ?3
              WHERE EXISTS (SELECT 1 FROM task WHERE id = ?2)
                AND EXISTS (SELECT 1 FROM task WHERE id = ?3)",
-            params![env.next_id(), task, blocker],
+            params![
+                env.keyed_id(NaturalKey::TaskDependency(task, blocker)),
+                task,
+                blocker
+            ],
         )?;
     }
     for (table, row, task) in &snapshot.links {

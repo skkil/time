@@ -10,8 +10,8 @@ use std::time::Duration;
 
 use rusqlite::Connection;
 
-pub use sync_ids::{DEVICE_KEYS, KEYED_TABLES};
 pub use migrate::{UUID_IDS_VERSION, latest_version, migrate, migrate_to, schema_version};
+pub use sync_ids::{DEVICE_KEYS, KEYED_TABLES};
 
 use crate::error::Result;
 

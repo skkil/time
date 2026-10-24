@@ -1,6 +1,7 @@
 use rusqlite::{Connection, params};
+use uuid::Uuid;
 
-use crate::env::{SeedScope, seed_id};
+use crate::env::NaturalKey;
 use crate::error::Result;
 use crate::types::Id;
 
@@ -58,9 +59,9 @@ pub const DEFAULTS: [RitualDefault; 5] = [
     },
 ];
 
-/// The seeded id of the `kind` ritual in `scope`: `ritual/<kind>`.
-pub fn ritual_id(scope: SeedScope, kind: &str) -> Id {
-    seed_id(scope, &format!("ritual/{kind}"))
+/// The seeded id of the `kind` ritual in an account: `ritual/<kind>`.
+pub fn ritual_id(scope: Uuid, kind: &str) -> Id {
+    NaturalKey::Ritual(kind).id(scope)
 }
 
 /// Puts every ritual back to its defaults in place, keeping its id.

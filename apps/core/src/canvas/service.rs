@@ -1,7 +1,7 @@
 use rusqlite::{Connection, OptionalExtension, params};
 
 use super::model::{MAX_CONTENT, ProjectCanvas};
-use crate::env::MutationEnv;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::projects;
 use crate::types::Id;
@@ -38,7 +38,12 @@ pub fn save(
     conn.execute(
         "INSERT INTO project_canvas (id, project_id, content, updated_at) VALUES (?1, ?2, ?3, ?4)
          ON CONFLICT (project_id) DO UPDATE SET content = ?3, updated_at = ?4",
-        params![env.next_id(), project_id, content, env.timestamp()],
+        params![
+            env.keyed_id(NaturalKey::ProjectCanvas(project_id)),
+            project_id,
+            content,
+            env.timestamp()
+        ],
     )?;
     get(conn, project_id)
 }

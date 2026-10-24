@@ -3,7 +3,7 @@
 
 use rusqlite::{Connection, OptionalExtension, params};
 
-use crate::env::MutationEnv;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::Result;
 
 pub fn read(conn: &Connection, key: &str) -> Result<Option<String>> {
@@ -20,7 +20,7 @@ pub fn write(conn: &Connection, env: &dyn MutationEnv, key: &str, value: &str) -
     conn.execute(
         "INSERT INTO setting (id, key, value) VALUES (?1, ?2, ?3)
          ON CONFLICT (key) DO UPDATE SET value = excluded.value",
-        params![env.next_id(), key, value],
+        params![env.keyed_id(NaturalKey::Setting(key)), key, value],
     )?;
     Ok(())
 }

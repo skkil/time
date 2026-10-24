@@ -16,5 +16,6 @@ pub use model::*;
 pub use queries::{active, days, get, list};
 pub use service::*;
 pub use sync::{
-    activity_span, measure_activity, needs_source, project_measurements, record_measurements, tracked,
+    activity_span, measure_activity, needs_source, project_measurements, record_measurements,
+    tracked,
 };

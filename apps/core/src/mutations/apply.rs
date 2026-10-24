@@ -5,8 +5,8 @@ use super::args::{Args, out};
 use crate::env::MutationEnv;
 use crate::error::{Error, Result};
 use crate::{
-    blocks, canvas, data, dependencies, groups, habits, imports, projects, records, reminders, review,
-    rituals, sections, tasks, time_entries, undo, workflow,
+    blocks, canvas, data, dependencies, groups, habits, imports, projects, records, reminders,
+    review, rituals, sections, tasks, time_entries, undo, workflow,
 };
 
 /// Applies one write command by its contract name. Run it inside a

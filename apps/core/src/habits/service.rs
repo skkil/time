@@ -3,7 +3,7 @@ use rusqlite::{Connection, params};
 use super::model::{Habit, HabitInput, ManualStatus};
 use super::queries::get;
 use super::rules::{ensure_loggable, validate};
-use crate::env::MutationEnv;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::types::{Date, Id};
 use crate::validate::ensure_changed;
@@ -95,7 +95,12 @@ pub fn set_status(
     conn.execute(
         "INSERT INTO habit_log (id, habit_id, date, status) VALUES (?1, ?2, ?3, ?4)
          ON CONFLICT(habit_id, date) DO UPDATE SET status = excluded.status",
-        params![env.next_id(), habit_id, date, status.map(ManualStatus::as_str)],
+        params![
+            env.keyed_id(NaturalKey::HabitLog(habit_id, date)),
+            habit_id,
+            date,
+            status.map(ManualStatus::as_str)
+        ],
     )?;
     Ok(())
 }
@@ -115,7 +120,12 @@ pub fn add_value(
     conn.execute(
         "INSERT INTO habit_log (id, habit_id, date, value) VALUES (?1, ?2, ?3, MAX(0, ?4))
          ON CONFLICT(habit_id, date) DO UPDATE SET value = MAX(0, value + ?4)",
-        params![env.next_id(), habit_id, date, delta],
+        params![
+            env.keyed_id(NaturalKey::HabitLog(habit_id, date)),
+            habit_id,
+            date,
+            delta
+        ],
     )?;
     Ok(())
 }

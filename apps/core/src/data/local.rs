@@ -6,9 +6,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Number, Value};
 
 use super::tables::{ID_COLUMN, SYNCED_TABLES};
-use crate::env::SeedScope;
+use uuid::Uuid;
+
+use crate::env::NaturalKey;
 use crate::error::{Error, Result};
-use crate::rituals::{DEFAULTS, ritual_id};
+use crate::rituals::DEFAULTS;
+use crate::types::{Date, Id};
 
 /// The rows of one synced table, each as a JSON object keyed by column.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -34,19 +37,49 @@ impl LocalData {
         self.tables.iter().map(|table| table.rows.len()).sum()
     }
 
-    /// Gives every ritual the seeded id it has in `scope`, so the upload
-    /// lands on the rituals the account already has.
-    pub fn with_seed_ids(mut self, scope: SeedScope) -> Self {
-        for table in self.tables.iter_mut().filter(|table| table.table == "ritual") {
+    /// Gives every row with a natural key (a ritual's kind, a week's start,
+    /// a setting's key, …) the id it has in `scope`, so the upload lands on
+    /// the rows the account already has. Nothing points at these ids.
+    pub fn with_seed_ids(mut self, scope: Uuid) -> Self {
+        for table in &mut self.tables {
             for row in &mut table.rows {
-                if let Some(kind) = row.get("kind").and_then(Value::as_str) {
-                    let id = ritual_id(scope, kind);
+                if let Some(id) = keyed_id(&table.table, row, scope) {
                     row.insert(ID_COLUMN.to_owned(), Value::String(id.to_string()));
                 }
             }
         }
         self
     }
+}
+
+fn keyed_id(table: &str, row: &Map<String, Value>, scope: Uuid) -> Option<Id> {
+    let text = |column: &str| row.get(column).and_then(Value::as_str);
+    let id = |column: &str| text(column).and_then(|value| Id::parse(value).ok());
+    let date = |column: &str| {
+        row.get(column)
+            .and_then(|value| serde_json::from_value::<Date>(value.clone()).ok())
+    };
+    let key = match table {
+        "ritual" => NaturalKey::Ritual(text("kind")?),
+        "week" => NaturalKey::Week(date("start_date")?),
+        "day" => NaturalKey::Day(date("date")?),
+        "setting" => NaturalKey::Setting(text("key")?),
+        "habit_log" => {
+            return Some(NaturalKey::HabitLog(&id("habit_id")?, date("date")?).id(scope));
+        }
+        "project_canvas" => return Some(NaturalKey::ProjectCanvas(&id("project_id")?).id(scope)),
+        "record_phase" => {
+            return Some(NaturalKey::RecordPhase(&id("task_id")?, &id("status_id")?).id(scope));
+        }
+        "task_dependency" => {
+            return Some(
+                NaturalKey::TaskDependency(&id("task_id")?, &id("blocked_by_id")?).id(scope),
+            );
+        }
+        "running_timer" => NaturalKey::RunningTimer,
+        _ => return None,
+    };
+    Some(key.id(scope))
 }
 
 fn to_json(value: SqlValue) -> Value {
@@ -97,9 +130,13 @@ fn parents_first<'a>(table: &str, rows: &'a [Map<String, Value>]) -> Vec<&'a Map
     let Some(column) = self_reference(table) else {
         return rows.iter().collect();
     };
-    let id = |row: &Map<String, Value>| row.get(ID_COLUMN).and_then(Value::as_str).map(str::to_owned);
+    let id = |row: &Map<String, Value>| {
+        row.get(ID_COLUMN)
+            .and_then(Value::as_str)
+            .map(str::to_owned)
+    };
     let mut placed: HashSet<String> = HashSet::new();
-    let present: HashSet<String> = rows.iter().filter_map(|row| id(row)).collect();
+    let present: HashSet<String> = rows.iter().filter_map(&id).collect();
     let mut pending: Vec<&Map<String, Value>> = rows.iter().collect();
     let mut ordered = Vec::with_capacity(rows.len());
     while !pending.is_empty() {
@@ -112,7 +149,7 @@ fn parents_first<'a>(table: &str, rows: &'a [Map<String, Value>]) -> Vec<&'a Map
             ordered.extend(waiting);
             break;
         }
-        placed.extend(ready.iter().filter_map(|row| id(row)));
+        placed.extend(ready.iter().copied().filter_map(id));
         ordered.extend(ready);
         pending = waiting;
     }

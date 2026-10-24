@@ -284,26 +284,36 @@ fn keyed_rows_get_ids_and_device_settings_move_out() {
 
     for table in KEYED_TABLES.iter().chain(&["ritual", "running_timer"]) {
         let missing: i64 = conn
-            .query_row(&format!("SELECT COUNT(*) FROM {table} WHERE id IS NULL"), [], |row| row.get(0))
+            .query_row(
+                &format!("SELECT COUNT(*) FROM {table} WHERE id IS NULL"),
+                [],
+                |row| row.get(0),
+            )
             .unwrap();
         assert_eq!(missing, 0, "{table}");
     }
-    let week: String = conn.query_row("SELECT id FROM week", [], |row| row.get(0)).unwrap();
+    let week: String = conn
+        .query_row("SELECT id FROM week", [], |row| row.get(0))
+        .unwrap();
     assert!(Id::parse(&week).is_ok());
     let morning: String = conn
-        .query_row("SELECT id FROM ritual WHERE kind = 'morning'", [], |row| row.get(0))
+        .query_row("SELECT id FROM ritual WHERE kind = 'morning'", [], |row| {
+            row.get(0)
+        })
         .unwrap();
-    assert_eq!(
-        Id::parse(&morning).unwrap(),
-        crate::env::seed_id(crate::env::SeedScope::Local, "ritual/morning")
-    );
+    assert!(Id::parse(&morning).is_ok());
     let timer: (String, String) = conn
-        .query_row("SELECT id, description FROM running_timer", [], |row| Ok((row.get(0)?, row.get(1)?)))
+        .query_row("SELECT id, description FROM running_timer", [], |row| {
+            Ok((row.get(0)?, row.get(1)?))
+        })
         .unwrap();
     assert!(Id::parse(&timer.0).is_ok());
     assert_eq!(timer.1, "Focus");
     let settings = rows(&conn, "SELECT key FROM setting");
-    assert_eq!(settings, BTreeSet::from(["[Text(\"reminders_enabled\")]".to_owned()]));
+    assert_eq!(
+        settings,
+        BTreeSet::from(["[Text(\"reminders_enabled\")]".to_owned()])
+    );
     let device = rows(&conn, "SELECT key, value FROM device_setting");
     assert_eq!(
         device,

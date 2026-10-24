@@ -1,7 +1,7 @@
 use rusqlite::{Connection, params};
 
 use super::model::Day;
-use crate::env::MutationEnv;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::types::Date;
 use crate::validate::optional_text;
@@ -42,7 +42,7 @@ pub fn set_day_felt(conn: &Connection, env: &dyn MutationEnv, date: Date, felt: 
     conn.execute(
         "INSERT INTO day (id, date, felt) VALUES (?1, ?2, ?3)
          ON CONFLICT(date) DO UPDATE SET felt = excluded.felt, skipped = 0",
-        params![env.next_id(), date, felt],
+        params![env.keyed_id(NaturalKey::Day(date)), date, felt],
     )?;
     Ok(())
 }
@@ -58,7 +58,7 @@ pub fn set_day_note(
     conn.execute(
         "INSERT INTO day (id, date, reflection) VALUES (?1, ?2, ?3)
          ON CONFLICT(date) DO UPDATE SET reflection = excluded.reflection",
-        params![env.next_id(), date, note],
+        params![env.keyed_id(NaturalKey::Day(date)), date, note],
     )?;
     Ok(())
 }
@@ -67,7 +67,7 @@ pub fn skip_day(conn: &Connection, env: &dyn MutationEnv, date: Date) -> Result<
     conn.execute(
         "INSERT INTO day (id, date, skipped) VALUES (?1, ?2, 1)
          ON CONFLICT(date) DO UPDATE SET skipped = 1",
-        params![env.next_id(), date],
+        params![env.keyed_id(NaturalKey::Day(date)), date],
     )?;
     Ok(())
 }

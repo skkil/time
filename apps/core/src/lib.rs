@@ -12,6 +12,7 @@ pub mod env;
 pub mod error;
 pub mod recurrence;
 pub mod settings;
+pub mod sync;
 pub mod types;
 
 pub mod blocks;

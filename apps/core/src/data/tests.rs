@@ -5,7 +5,6 @@ use serde_json::{Value, json};
 
 use super::*;
 use crate::device_settings;
-use crate::env::SeedScope;
 use crate::error::Result;
 use crate::mutations::apply;
 use crate::rituals::ritual_id;
@@ -13,8 +12,10 @@ use crate::testing::{db, env, project_input, task_input};
 use crate::types::Id;
 
 fn count(conn: &Connection, table: &str) -> i64 {
-    conn.query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |row| row.get(0))
-        .unwrap()
+    conn.query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |row| {
+        row.get(0)
+    })
+    .unwrap()
 }
 
 fn id(value: &Value) -> Id {
@@ -25,21 +26,51 @@ fn id(value: &Value) -> Id {
 /// step, a rated day, a setting and a customised ritual.
 fn fill(conn: &Connection) -> Result<()> {
     let env = env();
-    let child = apply(conn, &env, "createProject", &json!({ "input": project_input("Copy", None) }))?;
-    let parent = apply(conn, &env, "createProject", &json!({ "input": project_input("Site", None) }))?;
+    let child = apply(
+        conn,
+        &env,
+        "createProject",
+        &json!({ "input": project_input("Copy", None) }),
+    )?;
+    let parent = apply(
+        conn,
+        &env,
+        "createProject",
+        &json!({ "input": project_input("Site", None) }),
+    )?;
     apply(
         conn,
         &env,
         "updateProject",
         &json!({ "id": id(&child), "input": project_input("Copy", Some(&id(&parent))) }),
     )?;
-    let task = apply(conn, &env, "createTask", &json!({ "input": task_input("Write", Some(&id(&parent))) }))?;
+    let task = apply(
+        conn,
+        &env,
+        "createTask",
+        &json!({ "input": task_input("Write", Some(&id(&parent))) }),
+    )?;
     let mut step = task_input("Outline", None);
     step.parent_id = Some(id(&task));
     apply(conn, &env, "createTask", &json!({ "input": step }))?;
-    apply(conn, &env, "rateDay", &json!({ "date": "2026-11-02", "felt": 4 }))?;
-    apply(conn, &env, "setRemindersEnabled", &json!({ "enabled": false }))?;
-    apply(conn, &env, "choosePlanningTime", &json!({ "time": "morning" }))?;
+    apply(
+        conn,
+        &env,
+        "rateDay",
+        &json!({ "date": "2026-11-02", "felt": 4 }),
+    )?;
+    apply(
+        conn,
+        &env,
+        "setRemindersEnabled",
+        &json!({ "enabled": false }),
+    )?;
+    apply(
+        conn,
+        &env,
+        "choosePlanningTime",
+        &json!({ "time": "morning" }),
+    )?;
     Ok(())
 }
 
@@ -55,7 +86,8 @@ fn tables_of(conn: &Connection) -> BTreeSet<String> {
 #[test]
 fn every_table_either_syncs_or_belongs_to_the_device() {
     db().call(|conn| {
-        let mut expected: BTreeSet<String> = SYNCED_TABLES.iter().map(|t| (*t).to_owned()).collect();
+        let mut expected: BTreeSet<String> =
+            SYNCED_TABLES.iter().map(|t| (*t).to_owned()).collect();
         expected.insert("device_setting".to_owned());
         assert_eq!(tables_of(conn), expected);
         for table in SYNCED_TABLES {
@@ -110,7 +142,11 @@ fn a_dump_imports_into_an_empty_database_unchanged() {
         .call(|conn| {
             import(conn, &data)?;
             import(conn, &data)?;
-            assert_eq!(dump(conn)?, data);
+            let scope = uuid::Uuid::from_u128(7);
+            assert_eq!(
+                dump(conn)?.with_seed_ids(scope),
+                data.clone().with_seed_ids(scope)
+            );
             Ok(())
         })
         .unwrap();
@@ -124,13 +160,20 @@ fn imports_take_the_account_seed_ids_and_refuse_strange_tables() {
             dump(conn)
         })
         .unwrap();
-    let scope = SeedScope::Account(uuid::Uuid::from_u128(42));
+    let scope = uuid::Uuid::from_u128(42);
     let rekeyed = data.with_seed_ids(scope);
     let rituals = rekeyed.tables.iter().find(|t| t.table == "ritual").unwrap();
     for row in &rituals.rows {
         let kind = row["kind"].as_str().unwrap();
         assert_eq!(row["id"], ritual_id(scope, kind).as_str());
     }
+    let days = rekeyed.tables.iter().find(|t| t.table == "day").unwrap();
+    assert_eq!(
+        days.rows[0]["id"],
+        crate::env::NaturalKey::Day(crate::types::date("2026-11-02"))
+            .id(scope)
+            .as_str()
+    );
 
     let strange = LocalData {
         tables: vec![TableRows {

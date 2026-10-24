@@ -5,7 +5,7 @@ use super::activity::{self, Event, Usage};
 use super::model::{Habit, HabitMeasurement, SYNC_DAYS};
 use super::queries::{active, get};
 use super::rules::ensure_loggable;
-use crate::env::MutationEnv;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::types::{Date, Id, Timestamp};
 
@@ -29,7 +29,12 @@ fn record_auto(
         "INSERT INTO habit_log (id, habit_id, date, value, source) VALUES (?1, ?2, ?3, ?4, 'auto')
          ON CONFLICT(habit_id, date) DO UPDATE SET value = excluded.value,
            source = CASE WHEN habit_log.status IS NULL THEN 'auto' ELSE habit_log.source END",
-        params![env.next_id(), habit_id, date, value],
+        params![
+            env.keyed_id(NaturalKey::HabitLog(habit_id, date)),
+            habit_id,
+            date,
+            value
+        ],
     )?;
     Ok(())
 }

@@ -1,9 +1,7 @@
 use rusqlite::{Connection, params};
 use uuid::Uuid;
 
-use crate::env::SeedScope;
 use crate::error::Result;
-use crate::rituals::ritual_id;
 
 /// Tables keyed by something other than an id (a date, a pair, a key) that
 /// get an `id` column, the row id store syncs them by.
@@ -49,8 +47,8 @@ ALTER TABLE running_timer_new RENAME TO running_timer;
 ";
 
 /// Migration 019: gives every synced row a single id column, the shape the
-/// server registers with store. Keyed tables get a UUIDv7 per row, rituals
-/// their seeded id, the running timer a text id, and device settings move
+/// server registers with store. Keyed tables and rituals get a UUIDv7 per
+/// row (re-keyed to the account's ids on sign-in), the running timer a text id, and device settings move
 /// to `device_setting`.
 pub fn migrate(conn: &Connection) -> Result<()> {
     for table in KEYED_TABLES {
@@ -76,7 +74,7 @@ pub fn migrate(conn: &Connection) -> Result<()> {
     for kind in kinds {
         conn.execute(
             "UPDATE ritual SET id = ?1 WHERE kind = ?2",
-            params![ritual_id(SeedScope::Local, &kind), kind],
+            params![Uuid::now_v7().to_string(), kind],
         )?;
     }
     conn.execute_batch("CREATE UNIQUE INDEX ritual_id ON ritual(id)")?;

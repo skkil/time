@@ -3,7 +3,7 @@ use rusqlite::{Connection, OptionalExtension, params};
 use super::model::{EntryDetails, EntryInput, MAX_ENTRY_SECONDS, RunningTimer, TimeEntry};
 use super::rules::resolve;
 use super::service::create;
-use crate::env::MutationEnv;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::types::{Id, Timestamp};
 
@@ -28,9 +28,8 @@ pub fn running(conn: &Connection) -> Result<Option<RunningTimer>> {
 }
 
 /// Writes the account's one running timer, keeping its row id when it
-/// exists. A new id is drawn either way, as the server does.
+/// exists.
 fn save_running(conn: &Connection, env: &dyn MutationEnv, running: &RunningTimer) -> Result<()> {
-    let id = env.next_id();
     let existing: Option<Id> = conn
         .query_row("SELECT id FROM running_timer LIMIT 1", [], |row| row.get(0))
         .optional()?;
@@ -43,7 +42,7 @@ fn save_running(conn: &Connection, env: &dyn MutationEnv, running: &RunningTimer
            started_at = excluded.started_at, paused_at = excluded.paused_at,
            banked_seconds = excluded.banked_seconds",
         params![
-            existing.unwrap_or(id),
+            existing.unwrap_or_else(|| env.keyed_id(NaturalKey::RunningTimer)),
             running.description,
             running.project_id,
             running.task_id,

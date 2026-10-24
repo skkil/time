@@ -2,7 +2,7 @@ use rusqlite::{Connection, params};
 
 use super::model::RecordPhase;
 use super::rules::{check_phase, record};
-use crate::env::MutationEnv;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::tasks::{self, Task, TaskInput};
 use crate::types::Id;
@@ -40,7 +40,12 @@ pub fn set_notes(
         conn.execute(
             "INSERT INTO record_phase (id, task_id, status_id, notes) VALUES (?1, ?2, ?3, ?4)
              ON CONFLICT (task_id, status_id) DO UPDATE SET notes = excluded.notes",
-            params![env.next_id(), task_id, status_id, notes],
+            params![
+                env.keyed_id(NaturalKey::RecordPhase(task_id, status_id)),
+                task_id,
+                status_id,
+                notes
+            ],
         )?;
     }
     Ok(())

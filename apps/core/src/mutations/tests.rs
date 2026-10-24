@@ -495,7 +495,13 @@ fn every_mutation_round_trips_through_the_registry() {
     db.call(|conn| {
         assert_eq!(query(conn, "listTasks", &json!({}))?, json!([]));
         assert_eq!(query(conn, "getRemindersEnabled", &json!({}))?, json!(true));
-        assert_eq!(query(conn, "listRituals", &json!({}))?.as_array().unwrap().len(), 5);
+        assert_eq!(
+            query(conn, "listRituals", &json!({}))?
+                .as_array()
+                .unwrap()
+                .len(),
+            5
+        );
         Ok(())
     })
     .unwrap();
