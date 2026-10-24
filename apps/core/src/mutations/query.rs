@@ -6,7 +6,7 @@ use crate::error::{Error, Result};
 use crate::rituals::Moment;
 use crate::{
     blocks, canvas, groups, habits, projects, records, reminders, review, rituals, sections, tasks,
-    time_entries, workflow,
+    time_entries, undo, workflow,
 };
 
 /// Answers one read command by its contract name from the local database.
@@ -18,6 +18,7 @@ pub fn query(conn: &Connection, name: &str, args: &Value) -> Result<Value> {
         "getProjectCanvas" => out(canvas::get(conn, &a.id("projectId")?)?),
         "listTasks" => out(tasks::list(conn)?),
         "getTask" => out(tasks::get(conn, &a.id("id")?)?),
+        "captureTasks" => out(undo::capture(conn, &a.get::<Vec<_>>("ids")?)?),
         "listSections" => out(sections::list(conn)?),
         "listBlocks" => out(blocks::list(conn, a.get("from")?, a.get("to")?)?),
         "listTimeEntries" => out(time_entries::list(conn, a.get("from")?, a.get("to")?)?),
@@ -37,6 +38,7 @@ pub fn query(conn: &Connection, name: &str, args: &Value) -> Result<Value> {
         "getWorkflow" => out(workflow::list(conn)?),
         "listPresets" => out(workflow::presets()),
         "readPreset" => out(workflow::parse_preset(&a.text("text")?)?),
+        "saveProjectPreset" => out(workflow::export_preset(conn, &a.id("id")?)?),
         "listEvents" => out(workflow::occurrences(conn, a.get("from")?, a.get("to")?)?),
         "listTimeByType" => out(workflow::time_by_type(conn, a.get("from")?, a.get("to")?)?),
         "listRecordPhases" => out(records::phases(conn, &a.id("taskId")?)?),

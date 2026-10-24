@@ -60,15 +60,15 @@ fn records_hold_tasks_and_notes_per_phase() {
         )?;
         assert_eq!(set_phase(conn, &prep.id, None)?.phase_id, None);
 
-        set_notes(conn, &acme.id, &interviewing, "Panel of three")?;
-        set_notes(conn, &acme.id, &applied, "Sent via referral")?;
-        set_notes(conn, &acme.id, &applied, "  ")?;
+        set_notes(conn, &env, &acme.id, &interviewing, "Panel of three")?;
+        set_notes(conn, &env, &acme.id, &applied, "Sent via referral")?;
+        set_notes(conn, &env, &acme.id, &applied, "  ")?;
         let notes = phases(conn, &acme.id)?;
         assert_eq!(notes.len(), 1);
         assert_eq!(notes[0].notes, "Panel of three");
 
         let plain = tasks::create(conn, &env, &input("Update CV", Some(&project)))?;
-        assert!(set_notes(conn, &plain.id, &applied, "x").is_err());
+        assert!(set_notes(conn, &env, &plain.id, &applied, "x").is_err());
         assert!(set_phase(conn, &plain.id, Some(&applied)).is_err());
         Ok(())
     })
@@ -85,7 +85,7 @@ fn moving_a_record_keeps_phases_by_name() {
         let acme = application(conn, &a, "Acme")?;
         let offer_a = status(&flow, &a, "Offer");
         let task = create_task(conn, &env, &acme.id, &offer_a, "Negotiate")?;
-        set_notes(conn, &acme.id, &offer_a, "Ask for remote")?;
+        set_notes(conn, &env, &acme.id, &offer_a, "Ask for remote")?;
 
         tasks::move_to(
             conn,

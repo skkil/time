@@ -10,8 +10,8 @@ fn waits_until_every_blocker_is_done() {
         let launch = create(conn, &env, &input("Launch", None))?;
         let copy = create(conn, &env, &input("Write copy", None))?;
         let site = create(conn, &env, &input("Build site", None))?;
-        add(conn, &launch.id, &copy.id)?;
-        let launch = add(conn, &launch.id, &site.id)?;
+        add(conn, &env, &launch.id, &copy.id)?;
+        let launch = add(conn, &env, &launch.id, &site.id)?;
         assert_eq!(launch.blocked_by.len(), 2);
         assert_eq!(launch.waiting_on.len(), 2);
 
@@ -34,16 +34,16 @@ fn refuses_loops_self_and_repeating_blockers() {
         let a = create(conn, &env, &input("A", None))?;
         let b = create(conn, &env, &input("B", None))?;
         let c = create(conn, &env, &input("C", None))?;
-        add(conn, &a.id, &b.id)?;
-        add(conn, &b.id, &c.id)?;
-        assert!(add(conn, &c.id, &a.id).is_err());
-        assert!(add(conn, &a.id, &a.id).is_err());
+        add(conn, &env, &a.id, &b.id)?;
+        add(conn, &env, &b.id, &c.id)?;
+        assert!(add(conn, &env, &c.id, &a.id).is_err());
+        assert!(add(conn, &env, &a.id, &a.id).is_err());
 
         let mut daily = input("Inbox zero", None);
         daily.due_date = Some(date("2026-11-03"));
         daily.recurrence = Some("every day".into());
         let daily = create(conn, &env, &daily)?;
-        assert!(add(conn, &a.id, &daily.id).is_err());
+        assert!(add(conn, &env, &a.id, &daily.id).is_err());
 
         tasks::delete(conn, &b.id)?;
         assert!(tasks::get(conn, &a.id)?.blocked_by.is_empty());

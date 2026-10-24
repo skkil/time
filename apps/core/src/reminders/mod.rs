@@ -6,6 +6,7 @@ mod tests;
 
 use rusqlite::{Connection, params};
 
+use crate::env::MutationEnv;
 use crate::error::Result;
 use crate::settings;
 use crate::types::{Date, Id};
@@ -24,8 +25,8 @@ pub fn enabled(conn: &Connection) -> Result<bool> {
     settings::switch_on(conn, ENABLED_SETTING)
 }
 
-pub fn set_enabled(conn: &Connection, enabled: bool) -> Result<()> {
-    settings::set_switch(conn, ENABLED_SETTING, enabled)
+pub fn set_enabled(conn: &Connection, env: &dyn MutationEnv, enabled: bool) -> Result<()> {
+    settings::set_switch(conn, env, ENABLED_SETTING, enabled)
 }
 
 /// Open tasks due on `today` within the last few minutes before `minute`

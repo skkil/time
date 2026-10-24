@@ -93,9 +93,9 @@ pub fn set_status(
     ensure_loggable(date, env.today())?;
     get(conn, habit_id)?;
     conn.execute(
-        "INSERT INTO habit_log (habit_id, date, status) VALUES (?1, ?2, ?3)
+        "INSERT INTO habit_log (id, habit_id, date, status) VALUES (?1, ?2, ?3, ?4)
          ON CONFLICT(habit_id, date) DO UPDATE SET status = excluded.status",
-        params![habit_id, date, status.map(ManualStatus::as_str)],
+        params![env.next_id(), habit_id, date, status.map(ManualStatus::as_str)],
     )?;
     Ok(())
 }
@@ -113,9 +113,9 @@ pub fn add_value(
         return Err(Error::invalid("This habit is tracked automatically."));
     }
     conn.execute(
-        "INSERT INTO habit_log (habit_id, date, value) VALUES (?1, ?2, MAX(0, ?3))
-         ON CONFLICT(habit_id, date) DO UPDATE SET value = MAX(0, value + ?3)",
-        params![habit_id, date, delta],
+        "INSERT INTO habit_log (id, habit_id, date, value) VALUES (?1, ?2, ?3, MAX(0, ?4))
+         ON CONFLICT(habit_id, date) DO UPDATE SET value = MAX(0, value + ?4)",
+        params![env.next_id(), habit_id, date, delta],
     )?;
     Ok(())
 }

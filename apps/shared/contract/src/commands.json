@@ -1,5 +1,5 @@
 {
-  "$comment": "Every contract command, classified once. Read by the Rust (time-core) and Kotlin (server) registry tests. Mutations sync through store; reads never write; device-only commands touch only the local device.",
+  "$comment": "Every contract command, classified once. Read by the Rust (time-core) and Kotlin (server) registry tests. Mutations sync through store; reads never write; device-only commands touch only the local device. syncMutations are not commands: sync sends them on a device's behalf (importLocal uploads a device's rows on its first sign-in), and both registries apply them.",
   "mutations": [
     "addHabitValue",
     "addTaskDependency",
@@ -138,5 +138,6 @@
     "pickImportFiles",
     "setCaptureHotkey",
     "syncHabits"
-  ]
+  ],
+  "syncMutations": ["importLocal"]
 }

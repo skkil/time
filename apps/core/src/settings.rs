@@ -1,5 +1,9 @@
+//! Account-wide settings: one row per key in `setting`, synced like any
+//! other row. Device settings live in [`crate::device_settings`].
+
 use rusqlite::{Connection, OptionalExtension, params};
 
+use crate::env::MutationEnv;
 use crate::error::Result;
 
 pub fn read(conn: &Connection, key: &str) -> Result<Option<String>> {
@@ -12,11 +16,11 @@ pub fn read(conn: &Connection, key: &str) -> Result<Option<String>> {
         .optional()?)
 }
 
-pub fn write(conn: &Connection, key: &str, value: &str) -> Result<()> {
+pub fn write(conn: &Connection, env: &dyn MutationEnv, key: &str, value: &str) -> Result<()> {
     conn.execute(
-        "INSERT INTO setting (key, value) VALUES (?1, ?2)
+        "INSERT INTO setting (id, key, value) VALUES (?1, ?2, ?3)
          ON CONFLICT (key) DO UPDATE SET value = excluded.value",
-        params![key, value],
+        params![env.next_id(), key, value],
     )?;
     Ok(())
 }
@@ -25,6 +29,6 @@ pub fn switch_on(conn: &Connection, key: &str) -> Result<bool> {
     Ok(read(conn, key)?.as_deref() != Some("off"))
 }
 
-pub fn set_switch(conn: &Connection, key: &str, on: bool) -> Result<()> {
-    write(conn, key, if on { "on" } else { "off" })
+pub fn set_switch(conn: &Connection, env: &dyn MutationEnv, key: &str, on: bool) -> Result<()> {
+    write(conn, env, key, if on { "on" } else { "off" })
 }

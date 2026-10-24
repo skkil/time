@@ -77,7 +77,7 @@ fn insert_outcome(
     if open_outcomes(conn, start, None)? >= MAX_OPEN_OUTCOMES {
         return Err(too_many());
     }
-    ensure_week(conn, start)?;
+    ensure_week(conn, env, start)?;
     let id = env.next_id();
     conn.execute(
         "INSERT INTO outcome (id, week_start, title, priority_id, carried_from, created_at)

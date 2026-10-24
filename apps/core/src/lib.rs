@@ -7,6 +7,7 @@
 //! connection.
 
 pub mod db;
+pub mod device_settings;
 pub mod env;
 pub mod error;
 pub mod recurrence;
@@ -15,6 +16,7 @@ pub mod types;
 
 pub mod blocks;
 pub mod canvas;
+pub mod data;
 pub mod dependencies;
 pub mod groups;
 pub mod habits;

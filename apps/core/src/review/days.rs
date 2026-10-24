@@ -40,9 +40,9 @@ pub fn set_day_felt(conn: &Connection, env: &dyn MutationEnv, date: Date, felt: 
     check_felt(felt)?;
     check_past(date, env.today())?;
     conn.execute(
-        "INSERT INTO day (date, felt) VALUES (?1, ?2)
+        "INSERT INTO day (id, date, felt) VALUES (?1, ?2, ?3)
          ON CONFLICT(date) DO UPDATE SET felt = excluded.felt, skipped = 0",
-        params![date, felt],
+        params![env.next_id(), date, felt],
     )?;
     Ok(())
 }
@@ -56,18 +56,18 @@ pub fn set_day_note(
     check_past(date, env.today())?;
     let note = optional_text(note, "Note", 280)?;
     conn.execute(
-        "INSERT INTO day (date, reflection) VALUES (?1, ?2)
+        "INSERT INTO day (id, date, reflection) VALUES (?1, ?2, ?3)
          ON CONFLICT(date) DO UPDATE SET reflection = excluded.reflection",
-        params![date, note],
+        params![env.next_id(), date, note],
     )?;
     Ok(())
 }
 
-pub fn skip_day(conn: &Connection, date: Date) -> Result<()> {
+pub fn skip_day(conn: &Connection, env: &dyn MutationEnv, date: Date) -> Result<()> {
     conn.execute(
-        "INSERT INTO day (date, skipped) VALUES (?1, 1)
+        "INSERT INTO day (id, date, skipped) VALUES (?1, ?2, 1)
          ON CONFLICT(date) DO UPDATE SET skipped = 1",
-        params![date],
+        params![env.next_id(), date],
     )?;
     Ok(())
 }

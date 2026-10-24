@@ -5,8 +5,8 @@ use super::args::{Args, out};
 use crate::env::MutationEnv;
 use crate::error::{Error, Result};
 use crate::{
-    blocks, canvas, dependencies, groups, habits, imports, projects, records, reminders, review,
-    rituals, sections, tasks, time_entries, workflow,
+    blocks, canvas, data, dependencies, groups, habits, imports, projects, records, reminders, review,
+    rituals, sections, tasks, time_entries, undo, workflow,
 };
 
 /// Applies one write command by its contract name. Run it inside a
@@ -33,6 +33,7 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
 
         "addTaskDependency" => out(dependencies::add(
             conn,
+            env,
             &a.id("taskId")?,
             &a.id("blockedById")?,
         )?),
@@ -125,12 +126,12 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
         )?),
         "deleteTimeEntry" => out(time_entries::delete(conn, &a.id("id")?)?),
         "startTimer" => out(time_entries::start(conn, env, &a.get("details")?)?),
-        "editTimer" => out(time_entries::edit_running(conn, &a.get("details")?)?),
+        "editTimer" => out(time_entries::edit_running(conn, env, &a.get("details")?)?),
         "stopTimer" => out(time_entries::stop(conn, env)?),
         "pauseTimer" => out(time_entries::pause(conn, env)?),
         "resumeTimer" => out(time_entries::resume(conn, env)?),
         "discardTimer" => out(time_entries::discard(conn)?),
-        "restoreTimer" => out(time_entries::restore_running(conn, &a.get("timer")?)?),
+        "restoreTimer" => out(time_entries::restore_running(conn, env, &a.get("timer")?)?),
 
         "createHabit" => out(habits::create(conn, env, &a.get("input")?)?),
         "updateHabit" => out(habits::update(conn, &a.id("id")?, &a.get("input")?)?),
@@ -168,10 +169,25 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
             a.get("date")?,
             &a.text("note")?,
         )?),
-        "skipDayCheckIn" => out(review::skip_day(conn, a.get("date")?)?),
-        "saveWeekNotes" => out(review::save_notes(conn, a.get("date")?, &a.get("notes")?)?),
-        "rateWeek" => out(review::set_week_felt(conn, a.get("date")?, a.get("felt")?)?),
-        "reachReviewStep" => out(review::set_week_step(conn, a.get("date")?, a.get("step")?)?),
+        "skipDayCheckIn" => out(review::skip_day(conn, env, a.get("date")?)?),
+        "saveWeekNotes" => out(review::save_notes(
+            conn,
+            env,
+            a.get("date")?,
+            &a.get("notes")?,
+        )?),
+        "rateWeek" => out(review::set_week_felt(
+            conn,
+            env,
+            a.get("date")?,
+            a.get("felt")?,
+        )?),
+        "reachReviewStep" => out(review::set_week_step(
+            conn,
+            env,
+            a.get("date")?,
+            a.get("step")?,
+        )?),
         "finishWeekReview" => out(review::finish_week(conn, env, a.get("date")?)?),
         "createOutcome" => out(review::add_outcome(
             conn,
@@ -215,7 +231,7 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
         "removePriority" => out(review::delete_priority(conn, &a.id("id")?)?),
 
         "updateRitual" => out(rituals::update(conn, &a.text("kind")?, &a.get("input")?)?),
-        "choosePlanningTime" => out(rituals::set_planning_time(conn, &a.text("time")?)?),
+        "choosePlanningTime" => out(rituals::set_planning_time(conn, env, &a.text("time")?)?),
         "startRitual" => out(rituals::start(
             conn,
             env,
@@ -319,6 +335,7 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
 
         "setRecordPhaseNotes" => out(records::set_notes(
             conn,
+            env,
             &a.id("taskId")?,
             &a.id("statusId")?,
             &a.text("notes")?,
@@ -336,8 +353,12 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
             &a.text("title")?,
         )?),
 
+        "restoreTasks" => out(undo::restore(conn, env, &a.get("snapshot")?)?),
+        "deleteAllData" => out(data::delete_all(conn)?),
+        "importLocal" => out(data::import(conn, &a.get("data")?)?),
+
         "importProjects" => out(imports::import(conn, env, &a.get::<Vec<_>>("projects")?)?),
-        "setRemindersEnabled" => out(reminders::set_enabled(conn, a.get("enabled")?)?),
+        "setRemindersEnabled" => out(reminders::set_enabled(conn, env, a.get("enabled")?)?),
 
         other => Err(Error::invalid(format!("{other} isn't a mutation."))),
     }

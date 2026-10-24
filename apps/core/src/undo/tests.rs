@@ -22,7 +22,7 @@ fn deleted_tasks_return_with_steps_blocks_links_and_history() {
         step.parent_id = Some(task.id.clone());
         let step = tasks::create(conn, &env, &step)?;
         let held = tasks::create(conn, &env, &input("Send draft", None))?;
-        dependencies::add(conn, &held.id, &task.id)?;
+        dependencies::add(conn, &env, &held.id, &task.id)?;
         let start = date("2026-11-02").start().0;
         blocks::create(conn, &env, &task.id, &span(start))?;
         let entry = time_entries::create(
@@ -43,7 +43,7 @@ fn deleted_tasks_return_with_steps_blocks_links_and_history() {
         tasks::delete(conn, &task.id)?;
         assert!(tasks::get(conn, &step.id).is_err());
 
-        restore(conn, &snapshot)?;
+        restore(conn, &env, &snapshot)?;
 
         assert_eq!(tasks::get(conn, &task.id)?.title, "Write intro");
         assert_eq!(tasks::get(conn, &step.id)?.parent_id, Some(task.id.clone()));
@@ -74,7 +74,7 @@ fn undoing_done_reopens_steps_and_rewinds_a_repeat() {
         let step = tasks::create(conn, &env, &step)?;
         let snapshot = capture(conn, std::slice::from_ref(&parent.id))?;
         tasks::set_completed(conn, &env, &parent.id, true)?;
-        restore(conn, &snapshot)?;
+        restore(conn, &env, &snapshot)?;
         assert!(tasks::get(conn, &parent.id)?.completed_at.is_none());
         assert!(tasks::get(conn, &step.id)?.completed_at.is_none());
 
@@ -86,7 +86,7 @@ fn undoing_done_reopens_steps_and_rewinds_a_repeat() {
         let snapshot = capture(conn, std::slice::from_ref(&repeat.id))?;
         tasks::set_completed(conn, &env, &repeat.id, true)?;
         assert_ne!(tasks::get(conn, &repeat.id)?.due_date, due);
-        restore(conn, &snapshot)?;
+        restore(conn, &env, &snapshot)?;
         assert_eq!(tasks::get(conn, &repeat.id)?.due_date, due);
         Ok(())
     })
@@ -105,7 +105,7 @@ fn refuses_to_overwrite_a_task_that_reused_the_id() {
             params![task.id],
         )?;
 
-        assert!(restore(conn, &snapshot).is_err());
+        assert!(restore(conn, &env, &snapshot).is_err());
         assert_eq!(tasks::get(conn, &task.id)?.title, "New");
         Ok(())
     })
@@ -113,15 +113,45 @@ fn refuses_to_overwrite_a_task_that_reused_the_id() {
 }
 
 #[test]
-fn the_log_keeps_only_recent_snapshots() {
-    let db = db();
-    let log = UndoLog::default();
-    let first = db
-        .call(|conn| capture(conn, &[]))
-        .map(|snapshot| log.keep(snapshot))
-        .unwrap();
-    for _ in 0..KEPT_SNAPSHOTS {
-        log.keep(db.call(|conn| capture(conn, &[])).unwrap());
-    }
-    assert!(log.take(&first).is_none());
+fn snapshots_travel_as_json_and_refuse_foreign_rows() {
+    let (db, env) = (db(), env());
+    db.call(|conn| {
+        let task = tasks::create(conn, &env, &input("Draft", None))?;
+        let snapshot = capture(conn, std::slice::from_ref(&task.id))?;
+        let json = serde_json::to_value(&snapshot).unwrap();
+        assert_eq!(json["tasks"]["table"], "task");
+        assert_eq!(json["created"][0][0], task.id.as_str());
+        let back: TaskSnapshot = serde_json::from_value(json.clone()).unwrap();
+        assert_eq!(back, snapshot);
+
+        tasks::delete(conn, &task.id)?;
+        let mut foreign = back.clone();
+        foreign.tasks.table = "project".into();
+        assert!(restore(conn, &env, &foreign).is_err());
+        let mut stranger = back.clone();
+        stranger.created.clear();
+        assert!(restore(conn, &env, &stranger).is_err());
+
+        let mut from_server = json;
+        let someday = snapshot
+            .tasks
+            .columns
+            .iter()
+            .position(|column| column == "someday")
+            .unwrap();
+        from_server["tasks"]["values"][0][someday] = serde_json::json!(true);
+        from_server["tasks"]["columns"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!("server_only"));
+        from_server["tasks"]["values"][0]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!(1));
+        let from_server: TaskSnapshot = serde_json::from_value(from_server).unwrap();
+        restore(conn, &env, &from_server)?;
+        assert!(tasks::get(conn, &task.id)?.someday);
+        Ok(())
+    })
+    .unwrap();
 }

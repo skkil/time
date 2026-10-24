@@ -267,7 +267,9 @@ fn project_time_completes_a_build_habit() {
                 ended_at: Timestamp(start + 75 * 60),
             },
         )?;
-        sync_projects(conn, &[get(conn, &habit.id)?], Date::today())?;
+        let measured = project_measurements(conn, &[get(conn, &habit.id)?], Date::today())?;
+        record_measurements(conn, &env, &measured)?;
+        assert!(project_measurements(conn, &[get(conn, &habit.id)?], Date::today())?.is_empty());
         assert_eq!(status_on(conn, &habit.id, yesterday), DayStatus::Done);
         Ok(())
     })

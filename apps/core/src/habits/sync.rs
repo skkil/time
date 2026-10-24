@@ -1,5 +1,5 @@
 use chrono::Days;
-use rusqlite::{Connection, params};
+use rusqlite::{Connection, OptionalExtension, params};
 
 use super::activity::{self, Event, Usage};
 use super::model::{Habit, HabitMeasurement, SYNC_DAYS};
@@ -18,12 +18,18 @@ pub fn tracked(conn: &Connection) -> Result<Vec<Habit>> {
 }
 
 /// Writes a measured value; a status the user set keeps its manual source.
-fn record_auto(conn: &Connection, habit_id: &Id, date: Date, value: f64) -> Result<()> {
+fn record_auto(
+    conn: &Connection,
+    env: &dyn MutationEnv,
+    habit_id: &Id,
+    date: Date,
+    value: f64,
+) -> Result<()> {
     conn.execute(
-        "INSERT INTO habit_log (habit_id, date, value, source) VALUES (?1, ?2, ?3, 'auto')
+        "INSERT INTO habit_log (id, habit_id, date, value, source) VALUES (?1, ?2, ?3, ?4, 'auto')
          ON CONFLICT(habit_id, date) DO UPDATE SET value = excluded.value,
            source = CASE WHEN habit_log.status IS NULL THEN 'auto' ELSE habit_log.source END",
-        params![habit_id, date, value],
+        params![env.next_id(), habit_id, date, value],
     )?;
     Ok(())
 }
@@ -63,22 +69,40 @@ fn project_minutes(conn: &Connection, project_id: &Id, day: Date) -> Result<f64>
     Ok((seconds as f64 / 6.0).round() / 10.0)
 }
 
-/// Records each project-tracking habit's daily minutes from tracked time.
-pub fn sync_projects(conn: &Connection, habits: &[Habit], today: Date) -> Result<()> {
+fn logged_value(conn: &Connection, habit_id: &Id, date: Date) -> Result<Option<f64>> {
+    Ok(conn
+        .query_row(
+            "SELECT value FROM habit_log WHERE habit_id = ?1 AND date = ?2",
+            params![habit_id, date],
+            |row| row.get(0),
+        )
+        .optional()?)
+}
+
+/// Each project-tracking habit's daily minutes from tracked time, only
+/// where they differ from what is logged, for `recordHabitMeasurements`.
+pub fn project_measurements(
+    conn: &Connection,
+    habits: &[Habit],
+    today: Date,
+) -> Result<Vec<HabitMeasurement>> {
+    let mut measurements = Vec::new();
     for habit in habits {
         let Some(project_id) = habit.tracking.as_ref().and_then(|t| t.project_id.as_ref()) else {
             continue;
         };
-        for day in sync_window(habit, today) {
-            record_auto(
-                conn,
-                &habit.id,
-                day,
-                project_minutes(conn, project_id, day)?,
-            )?;
+        for date in sync_window(habit, today) {
+            let value = project_minutes(conn, project_id, date)?;
+            if logged_value(conn, &habit.id, date)?.unwrap_or(0.0) != value {
+                measurements.push(HabitMeasurement {
+                    habit_id: habit.id.clone(),
+                    date,
+                    value,
+                });
+            }
         }
     }
-    Ok(())
+    Ok(measurements)
 }
 
 /// Whether any habit tracks this kind of source (`website` or `app`).
@@ -153,6 +177,7 @@ pub fn record_measurements(
         }
         record_auto(
             conn,
+            env,
             &measurement.habit_id,
             measurement.date,
             measurement.value,
