@@ -4,6 +4,7 @@ import com.skkil.time.common.error.ensure
 import com.skkil.time.common.error.ensureChanged
 import com.skkil.time.common.error.invalid
 import com.skkil.time.common.error.orNotFound
+import com.skkil.time.common.id.NaturalIds
 import com.skkil.time.common.persistence.intOrNull
 import com.skkil.time.common.persistence.longOrNull
 import com.skkil.time.common.persistence.uuid
@@ -59,7 +60,7 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
                 INSERT INTO day (id, user_id, date, felt) VALUES (:id, :user, :date, :felt)
                 ON CONFLICT (user_id, date) DO UPDATE SET felt = excluded.felt, skipped = FALSE
                 """,
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.day(caller.scopeId, date))
             .param("user", caller.id)
             .param("date", date)
             .param("felt", felt)
@@ -75,7 +76,7 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
                 INSERT INTO day (id, user_id, date, reflection) VALUES (:id, :user, :date, :note)
                 ON CONFLICT (user_id, date) DO UPDATE SET reflection = excluded.reflection
                 """,
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.day(caller.scopeId, date))
             .param("user", caller.id)
             .param("date", date)
             .param("note", text)
@@ -89,7 +90,7 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
                 INSERT INTO day (id, user_id, date, skipped) VALUES (:id, :user, :date, TRUE)
                 ON CONFLICT (user_id, date) DO UPDATE SET skipped = TRUE
                 """,
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.day(caller.scopeId, date))
             .param("user", caller.id)
             .param("date", date)
             .update()
@@ -138,7 +139,7 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
                 ON CONFLICT (user_id, start_date) DO UPDATE SET
                   worked = excluded.worked, fell_short = excluded.fell_short, change = excluded.change
                 """,
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.week(caller.scopeId, date.monday()))
             .param("user", caller.id)
             .param("start", date.monday())
             .param("worked", text(notes.worked))
@@ -355,7 +356,7 @@ class ReviewService(private val jdbc: JdbcClient, private val events: TaskWorkfl
             .sql(
                 "INSERT INTO week (id, user_id, start_date) VALUES (:id, :user, :start) " +
                     "ON CONFLICT (user_id, start_date) DO NOTHING",
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.week(caller.scopeId, start))
             .param("user", caller.id)
             .param("start", start)
             .update()

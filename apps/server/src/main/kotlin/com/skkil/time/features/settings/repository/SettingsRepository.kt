@@ -1,5 +1,6 @@
 package com.skkil.time.features.settings.repository
 
+import com.skkil.time.common.id.NaturalIds
 import com.skkil.time.common.web.Caller
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Component
@@ -23,7 +24,7 @@ class SettingsRepository(private val jdbc: JdbcClient) {
                 INSERT INTO setting (id, user_id, key, value) VALUES (:id, :user, :key, :value)
                 ON CONFLICT (user_id, key) DO UPDATE SET value = excluded.value
                 """,
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.setting(caller.scopeId, key))
             .param("user", caller.id)
             .param("key", key)
             .param("value", value)

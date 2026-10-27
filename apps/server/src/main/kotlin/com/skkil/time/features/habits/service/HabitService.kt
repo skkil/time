@@ -4,6 +4,7 @@ import com.skkil.time.common.error.ensure
 import com.skkil.time.common.error.ensureChanged
 import com.skkil.time.common.error.invalid
 import com.skkil.time.common.error.orNotFound
+import com.skkil.time.common.id.NaturalIds
 import com.skkil.time.common.persistence.date
 import com.skkil.time.common.persistence.longOrNull
 import com.skkil.time.common.persistence.uuid
@@ -135,7 +136,7 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
                 INSERT INTO habit_log (id, habit_id, date, status) VALUES (:id, :habit, :date, CAST(:status AS TEXT))
                 ON CONFLICT (habit_id, date) DO UPDATE SET status = excluded.status
                 """,
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.habitLog(caller.scopeId, habitId, date))
             .param("habit", habitId)
             .param("date", date)
             .param("status", status?.value)
@@ -153,7 +154,7 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
                 INSERT INTO habit_log (id, habit_id, date, value) VALUES (:id, :habit, :date, GREATEST(0, :delta))
                 ON CONFLICT (habit_id, date) DO UPDATE SET value = GREATEST(0, habit_log.value + :delta)
                 """,
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.habitLog(caller.scopeId, habitId, date))
             .param("habit", habitId)
             .param("date", date)
             .param("delta", delta)
@@ -399,7 +400,7 @@ class HabitService(private val jdbc: JdbcClient, private val projects: ProjectSe
                 ON CONFLICT (habit_id, date) DO UPDATE SET value = excluded.value,
                   source = CASE WHEN habit_log.status IS NULL THEN 'auto' ELSE habit_log.source END
                 """,
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.habitLog(caller.scopeId, habitId, date))
             .param("habit", habitId)
             .param("date", date)
             .param("value", value)

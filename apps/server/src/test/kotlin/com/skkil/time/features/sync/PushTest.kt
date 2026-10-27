@@ -2,6 +2,7 @@ package com.skkil.time.features.sync
 
 import com.google.protobuf.ByteString
 import com.skkil.time.common.clock.Hlc
+import com.skkil.time.common.id.NaturalIds
 import com.skkil.time.features.tasks.api.TaskIds
 import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.Test
@@ -14,6 +15,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.ResultActionsDsl
 import org.springframework.test.web.servlet.post
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -73,6 +75,35 @@ class PushTest : TaskApiTest() {
         assertEquals(Status.STATUS_DUPLICATE, again.status)
         assertEquals(first.version, again.version)
         assertEquals(1, getJson("/api/v1/tasks").size())
+    }
+
+    @Test
+    fun `two devices creating the same week offline converge on one row id`() {
+        val monday = "2026-11-02"
+        val laptop = UUID.randomUUID()
+        val phone = UUID.randomUUID()
+        for ((device, worked) in listOf(laptop to "from the laptop", phone to "from the phone")) {
+            val notes = mapOf("worked" to worked, "fellShort" to "", "change" to "")
+            val pushed = send(device, mutation(1, "saveWeekNotes", mapOf("date" to monday, "notes" to notes)))
+            val result = PushResponse.parseFrom(pushed.andReturn().response.contentAsByteArray).resultsList.single()
+            assertEquals(Status.STATUS_APPLIED, result.status)
+        }
+
+        val id = NaturalIds.week(scopeId(), LocalDate.parse(monday))
+        val weeks =
+            jdbc
+                .sql("SELECT id, worked FROM week WHERE user_id = :user")
+                .param("user", userId())
+                .query { rs, _ -> rs.getObject("id", UUID::class.java) to rs.getString("worked") }
+                .list()
+        assertEquals(listOf(id to "from the phone"), weeks)
+        val logged =
+            jdbc
+                .sql("SELECT DISTINCT row_id FROM store_log WHERE scope_id = :scope AND table_name = 'week'")
+                .param("scope", scopeId())
+                .query(String::class.java)
+                .list()
+        assertEquals(listOf(id.toString()), logged)
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.skkil.time.features.time.service
 
 import com.skkil.time.common.error.invalid
+import com.skkil.time.common.id.NaturalIds
 import com.skkil.time.common.persistence.longOrNull
 import com.skkil.time.common.persistence.uuidOrNull
 import com.skkil.time.common.web.Caller
@@ -128,7 +129,7 @@ class TimerService(
                   started_at = EXCLUDED.started_at, paused_at = EXCLUDED.paused_at,
                   banked_seconds = EXCLUDED.banked_seconds
                 """,
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.runningTimer(caller.scopeId))
             .param("user", caller.id)
             .param("description", timer.description)
             .param("project", timer.projectId)

@@ -3,6 +3,7 @@ package com.skkil.time.features.records.service
 import com.skkil.time.common.error.ensure
 import com.skkil.time.common.error.invalid
 import com.skkil.time.common.error.orNotFound
+import com.skkil.time.common.id.NaturalIds
 import com.skkil.time.common.persistence.uuid
 import com.skkil.time.common.text.optionalText
 import com.skkil.time.common.web.Caller
@@ -53,7 +54,14 @@ class RecordService(private val jdbc: JdbcClient, private val tasks: TaskService
             }
         jdbc.sql(
             sql,
-        ).params(mapOf("id" to caller.nextId(), "task" to taskId, "status" to statusId, "notes" to text)).update()
+        ).params(
+            mapOf(
+                "id" to NaturalIds.recordPhase(caller.scopeId, taskId, statusId),
+                "task" to taskId,
+                "status" to statusId,
+                "notes" to text,
+            ),
+        ).update()
     }
 
     fun setPhase(user: Long, id: UUID, phaseId: UUID?): Task {

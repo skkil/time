@@ -1,6 +1,7 @@
 package com.skkil.time.features.projects.service
 
 import com.skkil.time.common.error.ensure
+import com.skkil.time.common.id.NaturalIds
 import com.skkil.time.common.web.Caller
 import com.skkil.time.features.projects.domain.ProjectCanvas
 import com.skkil.time.features.projects.domain.ProjectRules
@@ -33,7 +34,7 @@ class CanvasService(private val jdbc: JdbcClient, private val projects: ProjectS
                 INSERT INTO project_canvas (id, project_id, content, updated_at) VALUES (:canvas, :id, :content, :now)
                 ON CONFLICT (project_id) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at
                 """,
-            ).param("canvas", caller.nextId())
+            ).param("canvas", NaturalIds.projectCanvas(caller.scopeId, projectId))
             .param("id", projectId)
             .param("content", content)
             .param("now", caller.now())

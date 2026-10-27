@@ -86,7 +86,7 @@ named after it. Under `src/main/kotlin/com/skkil/time/`:
 | `common/error/` | `DomainException`, `ErrorKind`, `ensure`/`orNotFound` helpers, `ProblemHandler` |
 | `common/web/` | `Caller`, `RateLimitFilter` |
 | `common/clock/` | `MutationClock` (system, fixed, or from a mutation's HLC) and `Hlc` |
-| `common/id/` | `IdGenerator`, `UuidV7Generator` (the default) and `UuidV5` for seeded rows |
+| `common/id/` | `IdGenerator`, `UuidV7Generator` (the default), `UuidV5` and `NaturalIds` for natural-key rows |
 | `common/persistence/` | `ResultSet` helpers |
 | `common/text/` | Text validation helpers |
 | `features/<domain>/api/` | `@RestController` classes and request bodies used only at the HTTP edge |
@@ -99,8 +99,7 @@ named after it. Under `src/main/kotlin/com/skkil/time/`:
 `mutations` of `apps/shared/contract/src/commands.json`.
 
 `features/sync/` makes the server a store product: `api/` (Push and sync tokens), `service/` (`ServerWrites`,
-`PushService`, `DispatchedMutation`, `SyncTokenService`), `repository/` (store's open-mutation settings and
-`store_client`) and `web/` (`ServerWriteAspect`, `@OwnWritePath`). `config/StoreConfig` wires adapter-jvm.
+`PushService`, `DispatchedMutation`, `SyncTokenService`) and `web/` (`ServerWriteAspect`, `@OwnWritePath`). `config/StoreConfig` wires adapter-jvm.
 
 A feature only has the layers it needs. A few have their own: `changes/web/`
 (the write-tracking filter), `realtime/websocket/`, `notifications/push/` (the
@@ -127,9 +126,14 @@ ordered by the old id, and gave the composite-key tables an `id` too). `app_user
 - **Mutations.** `MutationDispatcher.dispatch(caller, name, args, clock, idSource)` runs one contract write command
   (`createTask`, `moveTask`, ...) in a transaction (or the one already open), with `args` keyed by the contract's
   parameter names. It sets the caller's clock and id source for that operation only. A constraint the rules missed
-  becomes a `conflict`. Upserts (day, week, habit log, settings, ...) draw an id each time they run, even when the row
-  already exists.
-- **Seeded rows.** Rows the app creates on its own take `UuidV5(scopeId, "<table>/<key>")`: the default rituals are
+  becomes a `conflict`.
+- **Natural keys.** Rows identified by a natural key (upserts of setting, project canvas, week, day, task dependency,
+  record phase, running timer, habit log, user preference, and the rituals) take `NaturalIds` (`common/id/`):
+  `UuidV5(scopeId, "<table>/<key parts joined by />")`, such as `week/2026-11-02`, and draw no id. Two devices
+  creating the same week offline make one row. The full list is the "Natural keys" section of
+  `docs/decisions/0001-sync-with-store.md`; migration `V15` re-keyed existing rows (and would carry any foreign key
+  to them along).
+- **Seeded rows.** Rows the app creates on its own take their natural-key id: the default rituals are
   `ritual/<kind>` (`morning`, `evening`, `wind_down`, `session`, `weekly`). The server seeds them once, as a server
   write, when the account is created (and again after Delete all data or a restore); a device seeding before its
   first sync must use the same namespace and names, so both produce the same ids. Migration `V11` re-keyed existing
@@ -140,29 +144,33 @@ ordered by the old id, and gave the composite-key tables an `id` too). `app_user
 
 Contract: store's `docs/protocol.md`; mapping: `docs/decisions/0001-sync-with-store.md`.
 
-- **SQL.** `V9__store_v1.sql` and `V10__store_v2.sql` are store's migrations byte for byte under a header naming the
-  tag (`StoreMigrationsTest` compares them with the checkout). `V13` registers every user table keyed by a uuid; row
+- **SQL.** `V9__store_v1.sql`, `V10__store_v2.sql` and `V14__store_v3.sql` are store's migrations byte for byte under
+  a header naming the tag each was copied at (`StoreMigrationsTest` compares them with the checkout and checks no tag
+  is newer than `STORE_VERSION`). The server calls only store's documented functions, through adapter-jvm's
+  `StoreWritePath`, never the `store_*` tables or `store.*` settings. `V13` registers every user table keyed by a uuid; row
   images leave out `user_id`, and `task.reminded_for` (the reminder job's bookkeeping; devices keep their own).
   Not synced: `app_user`, `user_identity`, `push_device`, `realtime_ticket`. A write to a registered table outside
   the write path fails with SQLSTATE `55000`; a migration that rewrites synced rows must `SET LOCAL store.bypass = on`.
 - **REST writes.** `ServerWriteAspect` wraps every `@PostMapping`/`@PutMapping`/`@PatchMapping`/`@DeleteMapping`
   of a `@RestController` that takes a `Caller` in `ServerWrites.run(caller.scopeId)`: one transaction with
-  `store_begin_server(scope)` before the endpoint and `store_end()` after, so services join it and a failure rolls
-  back rows and log together. A write that changed no synced row closes without a version. Endpoints that open the
+  `store_begin_server(scope)` before the endpoint and `store_end_if_changed()` after, so services join it and a
+  failure rolls back rows and log together. A write that changed no synced row (or only excluded columns, such as
+  `task.reminded_for`) closes without a version; one made while a mutation is open (`store_is_open()`) joins it. Endpoints that open the
   write path themselves (Push, account deletion) or write nothing synced (sync tokens, Undo capture) carry
   `@OwnWritePath`.
 - **Background writers.** `ReminderJob` marks tasks reminded in one server write per owner. Provisioning seeds the
-  rituals as a server write. Deleting the account logs every delete, then drops the scope with its log.
+  rituals as a server write. Deleting the account logs every delete, then drops the scope with its clients and log
+  (`store_drop_scope`).
 - **Push.** `POST /skkil.store.v1.PushService/Push` (Connect, binary or JSON, the API's bearer token) runs adapter-jvm's
   `PushHandler` for the caller's scope; each mutation goes to `MutationDispatcher` as the scope's owner, at
   `MutationClock.fromHlc(hlc)` (server time when `hlc` is 0), naming rows with `MutationContext.nextId()`. A
   `DomainException` is `REJECTED` with its message; anything else aborts the batch. When any mutation applied, the
   account's `data_version` moves and the realtime bus publishes topic `sync`, so REST clients refetch.
 - **Sync tokens.** `POST /api/v1/sync/token` `{clientId}` answers `{token, expiresAt, storeUrl, pushUrl}` (ES256,
-  `iss` `time`, 15 minutes). The client id is claimed in `store_client` for the caller's scope; one already bound to
-  another account is a `conflict`. `GET /api/v1/sync/jwks.json` (public) serves the key for `STORE_TOKEN_JWKS_URL`.
+  `iss` `time`, 15 minutes). The client id is claimed for the caller's scope with `store_claim_client`; one already bound
+  to another account is a `conflict`. `GET /api/v1/sync/jwks.json` (public) serves the key for `STORE_TOKEN_JWKS_URL`.
 - **Undo.** `captureTasks` is a read returning the snapshot, the serde JSON of `time_core::undo::TaskSnapshot`:
   `{tasks: {table, columns, values: [[...]]}, created: [[id, createdAt]], copies: [rows of time_block, record_phase],
   dependencies: [[taskId, blockedById]], links: [[table, id, taskId]]}`. `restoreTasks(snapshot)` is a mutation that
-  restores only columns this server has, as the caller, after checking every reference is the caller's; it draws one
-  id per dependency (and per copied row without an `id`). Nothing is stored on the server.
+  restores only columns this server has, as the caller, after checking every reference is the caller's. Dependencies
+  and copied record phases without an `id` take their natural-key ids; other copied rows without one draw an id. Nothing is stored on the server.
