@@ -4,6 +4,7 @@ import com.skkil.time.common.clock.MutationClock
 import com.skkil.time.common.persistence.uuid
 import com.skkil.time.features.rituals.service.RitualDefaults
 import com.skkil.time.features.sync.service.ServerWrites
+import org.skkil.store.writepath.StoreWritePath
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -20,6 +21,7 @@ class AccountService(
     private val jdbc: JdbcClient,
     private val rituals: RitualDefaults,
     private val writes: ServerWrites,
+    private val writePath: StoreWritePath,
     private val clock: MutationClock,
 ) {
     fun find(identity: Identity): Account? =
@@ -86,7 +88,7 @@ class AccountService(
     @Transactional
     fun delete(user: Long, scope: UUID) {
         writes.run(scope) { jdbc.sql("DELETE FROM app_user WHERE id = :id").param("id", user).update() }
-        jdbc.sql("DELETE FROM store_scope WHERE scope_id = :scope").param("scope", scope).update()
+        writePath.dropScope(scope)
     }
 
     private fun account(rs: ResultSet) =

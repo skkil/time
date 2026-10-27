@@ -1,6 +1,6 @@
 package com.skkil.time.features.rituals.service
 
-import com.skkil.time.common.id.UuidV5
+import com.skkil.time.common.id.NaturalIds
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Component
 import java.util.UUID
@@ -11,7 +11,7 @@ import java.util.UUID
  */
 @Component
 class RitualDefaults(private val jdbc: JdbcClient) {
-    fun idFor(scope: UUID, kind: String): UUID = UuidV5.of(scope, "ritual/$kind")
+    fun idFor(scope: UUID, kind: String): UUID = NaturalIds.ritual(scope, kind)
 
     fun seed(user: Long, scope: UUID) {
         for (template in TEMPLATES) {

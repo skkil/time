@@ -1,6 +1,7 @@
 package com.skkil.time.features.preferences.service
 
 import com.skkil.time.common.error.ensure
+import com.skkil.time.common.id.NaturalIds
 import com.skkil.time.common.web.Caller
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
@@ -39,7 +40,7 @@ class PreferenceService(private val jdbc: JdbcClient, private val mapper: JsonMa
                 VALUES (:id, :user, CAST(:json AS JSONB), :now)
                 ON CONFLICT (user_id) DO UPDATE SET "values" = excluded."values", updated_at = excluded.updated_at
                 """,
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.userPreference(caller.scopeId))
             .param("user", caller.id)
             .param("json", json)
             .param("now", caller.now())

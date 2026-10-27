@@ -1,6 +1,7 @@
 package com.skkil.time.features.tasks.service
 
 import com.skkil.time.common.error.invalid
+import com.skkil.time.common.id.NaturalIds
 import com.skkil.time.common.persistence.uuid
 import com.skkil.time.common.web.Caller
 import com.skkil.time.features.tasks.domain.SnapshotCreated
@@ -159,7 +160,7 @@ class UndoService(
             val task = if (rows.table == TASK) row[ID] else row[TASK_ID]
             if (task == null || UUID.fromString(task.toString()) !in ids) invalid("That isn't a task snapshot.")
             if (USER in known) row[USER] = caller.id
-            if (ID !in rows.columns) row[ID] = caller.nextId()
+            if (ID !in rows.columns) row[ID] = newId(caller, rows.table, row)
             jdbc
                 .sql(
                     """
@@ -171,6 +172,18 @@ class UndoService(
                 .param("user", caller.id)
                 .update()
         }
+    }
+
+    private fun newId(caller: Caller, table: String, row: Map<String, Any?>): UUID =
+        if (table == PHASE) {
+            NaturalIds.recordPhase(caller.scopeId, uuidOf(row[TASK_ID]), uuidOf(row[STATUS_ID]))
+        } else {
+            caller.nextId()
+        }
+
+    private fun uuidOf(value: Any?): UUID {
+        if (value == null) invalid("That isn't a task snapshot.")
+        return UUID.fromString(value.toString())
     }
 
     private fun parentsFirst(rows: List<MutableMap<String, Any?>>): List<MutableMap<String, Any?>> {
@@ -195,7 +208,7 @@ class UndoService(
                   AND EXISTS (SELECT 1 FROM task WHERE id = :blocker AND user_id = :user)
                 ON CONFLICT DO NOTHING
                 """,
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.taskDependency(caller.scopeId, dependency.taskId, dependency.blockedById))
             .param("task", dependency.taskId)
             .param("blocker", dependency.blockedById)
             .param("user", caller.id)
@@ -246,6 +259,7 @@ class UndoService(
         const val ID = "id"
         const val USER = "user_id"
         const val TASK_ID = "task_id"
+        const val STATUS_ID = "status_id"
         const val PARENT = "parent_id"
         const val GONE = "Its project or section is gone, so this can't be undone."
         val COPIED = setOf(BLOCK, PHASE)

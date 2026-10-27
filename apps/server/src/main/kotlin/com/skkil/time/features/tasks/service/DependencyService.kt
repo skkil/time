@@ -2,6 +2,7 @@ package com.skkil.time.features.tasks.service
 
 import com.skkil.time.common.error.ensure
 import com.skkil.time.common.error.invalid
+import com.skkil.time.common.id.NaturalIds
 import com.skkil.time.common.web.Caller
 import com.skkil.time.features.tasks.domain.Task
 import com.skkil.time.features.tasks.repository.TaskRepository
@@ -26,7 +27,7 @@ class DependencyService(private val jdbc: JdbcClient, private val tasks: TaskRep
             .sql(
                 "INSERT INTO task_dependency (id, task_id, blocked_by_id) VALUES (:id, :task, :blocker) " +
                     "ON CONFLICT (task_id, blocked_by_id) DO NOTHING",
-            ).param("id", caller.nextId())
+            ).param("id", NaturalIds.taskDependency(caller.scopeId, taskId, blockedById))
             .param("task", taskId)
             .param("blocker", blockedById)
             .update()

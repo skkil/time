@@ -15,6 +15,37 @@ fixes how time maps onto it.
 - Existing desktop databases are migrated once: every integer id maps to a
   UUIDv7 and every foreign key follows, after a backup.
 
+## Natural keys
+
+A row identified by something other than its id (an upsert keyed by a unique
+natural key, or a row the app seeds on its own) never takes a random or
+mutation-derived id: two devices creating it offline would make two rows.
+Its id is `UuidV5(scope_id, name)` (RFC 9562 version 5, SHA-1, the scope id
+as namespace), where `name` is the table, then each key part, joined by `/`.
+Uuids are lowercase canonical strings and dates `yyyy-MM-dd`. Making such a
+row draws no id from `MutationContext::next_id()`, so the n-th derived id
+stays the same on the device and the server.
+
+| Table | Natural key | Name |
+| --- | --- | --- |
+| `setting` | user, key | `setting/<key>` |
+| `project_canvas` | project | `project_canvas/<projectId>` |
+| `week` | user, Monday | `week/<monday>` |
+| `day` | user, date | `day/<date>` |
+| `task_dependency` | task, blocker | `task_dependency/<taskId>/<blockedById>` |
+| `record_phase` | record task, phase status | `record_phase/<taskId>/<statusId>` |
+| `running_timer` | user (one per account) | `running_timer` |
+| `habit_log` | habit, date | `habit_log/<habitId>/<date>` |
+| `ritual` | user, kind | `ritual/<kind>` |
+| `user_preference` | user (one per account) | `user_preference` |
+
+Example: in scope `x`, the week of 2026-11-02 is
+`UuidV5(x, "week/2026-11-02")`. The server builds these in
+`common/id/NaturalIds.kt`; its migration `V15` re-keyed existing rows.
+`quarter` also has a unique key (user, start date), but it is created
+explicitly and its start date can change, so it keeps an ordinary id and a
+second offline create is rejected as a conflict.
+
 ## Mutations
 
 - A mutation is a write command. Its `name` is the command's contract name
