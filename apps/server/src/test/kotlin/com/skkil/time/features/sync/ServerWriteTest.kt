@@ -96,6 +96,42 @@ class ServerWriteTest : TaskApiTest() {
     }
 
     @Test
+    fun `a change to an excluded column only logs no version`() {
+        val task = create(input("Call")).id()
+        val before = head()
+
+        asServer {
+            jdbc
+                .sql("UPDATE task SET reminded_for = 'x' WHERE id = :id")
+                .param("id", task)
+                .update()
+        }
+
+        assertEquals(before, head())
+    }
+
+    @Test
+    fun `a server write joins a mutation already open`() {
+        val task = create(input("Call")).id()
+        val before = head()
+
+        fun retitle(title: String) =
+            jdbc
+                .sql("UPDATE task SET title = :title WHERE id = :id")
+                .param("title", title)
+                .param("id", task)
+                .update()
+
+        asServer {
+            retitle("Call back")
+            asServer { retitle("Call mum") }
+        }
+
+        assertEquals(before + 1, head())
+        assertEquals(2, log().count { it.version == before + 1 })
+    }
+
+    @Test
     fun `deleting the account logs its rows away and drops its scope`() {
         project("Home")
         val scope = scopeId()
