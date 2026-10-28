@@ -6,6 +6,7 @@ import {
   KeyboardIcon,
   type LucideIcon,
   PaletteIcon,
+  RefreshCwIcon,
   SunIcon,
   SunriseIcon,
   UserIcon,
@@ -18,6 +19,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { SyncSettings } from '@/features/sync/SyncSettings';
 import { type Platform, platform } from '@/platform';
 
 import { AccountSettings } from './AccountSettings';
@@ -108,6 +110,14 @@ const sections: Section[] = [
     icon: UserIcon,
     content: AccountSettings,
     available: (platform) => platform.account !== null,
+  },
+  {
+    id: 'sync',
+    label: 'Sync',
+    description: 'Sign in and keep your devices in step.',
+    icon: RefreshCwIcon,
+    content: SyncSettings,
+    available: (platform) => platform.sync !== undefined,
   },
 ];
 

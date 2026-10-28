@@ -9,6 +9,7 @@ import {
   type Task,
   type TaskInput,
   type TaskPlacement,
+  type TaskSnapshot,
   commands,
 } from '@/backend';
 import { formatDate } from '@/features/tasks/meta';
@@ -106,7 +107,7 @@ function useTaskCache() {
         client.invalidateQueries({ queryKey: keys.allBlocks }),
         client.invalidateQueries({ queryKey: keys.review }),
       ]),
-    offerRestore: (message: string, snapshot: Id) =>
+    offerRestore: (message: string, snapshot: TaskSnapshot) =>
       offerUndo(message, async () => {
         await commands.restoreTasks(snapshot);
         await Promise.all([
