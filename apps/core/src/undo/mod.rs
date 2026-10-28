@@ -6,4 +6,4 @@ mod snapshot;
 #[cfg(test)]
 mod tests;
 
-pub use snapshot::{SnapshotRows, SnapshotValue, TaskSnapshot, capture, restore};
+pub use snapshot::{SnapshotRows, SnapshotValue, TaskSnapshot, Whole, capture, restore};

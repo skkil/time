@@ -7,13 +7,19 @@ use serde::{Deserialize, Serialize};
 use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::tasks;
-use crate::types::Id;
+use crate::types::{Id, Timestamp};
 
 const TASK_TABLE: &str = "task";
 const COPIED_TABLES: [&str; 2] = ["time_block", "record_phase"];
 const LINKED_TABLES: [&str; 2] = ["time_entry", "ritual_run"];
 const NOT_A_SNAPSHOT: &str = "That isn't a task snapshot.";
 const GONE: &str = "Its project or section is gone, so this can't be undone.";
+
+/// A whole number column value.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
+#[serde(transparent)]
+pub struct Whole(#[cfg_attr(feature = "specta", specta(type = specta_typescript::Number))] pub i64);
 
 /// One captured column value: a JSON scalar. Booleans come from snapshots
 /// the server took and are stored as 0 or 1.
@@ -23,7 +29,7 @@ const GONE: &str = "Its project or section is gone, so this can't be undone.";
 pub enum SnapshotValue {
     Null,
     Bool(bool),
-    Integer(i64),
+    Integer(Whole),
     Real(f64),
     Text(String),
 }
@@ -32,7 +38,7 @@ impl From<Value> for SnapshotValue {
     fn from(value: Value) -> Self {
         match value {
             Value::Null | Value::Blob(_) => Self::Null,
-            Value::Integer(number) => Self::Integer(number),
+            Value::Integer(number) => Self::Integer(Whole(number)),
             Value::Real(number) => Self::Real(number),
             Value::Text(text) => Self::Text(text),
         }
@@ -44,7 +50,7 @@ impl From<&SnapshotValue> for Value {
         match value {
             SnapshotValue::Null => Value::Null,
             SnapshotValue::Bool(flag) => Value::Integer(i64::from(*flag)),
-            SnapshotValue::Integer(number) => Value::Integer(*number),
+            SnapshotValue::Integer(number) => Value::Integer(number.0),
             SnapshotValue::Real(number) => Value::Real(*number),
             SnapshotValue::Text(text) => Value::Text(text.clone()),
         }
@@ -70,7 +76,7 @@ pub struct SnapshotRows {
 #[cfg_attr(feature = "specta", derive(specta::Type))]
 pub struct TaskSnapshot {
     pub tasks: SnapshotRows,
-    pub created: Vec<(Id, i64)>,
+    pub created: Vec<(Id, Timestamp)>,
     pub copies: Vec<SnapshotRows>,
     pub dependencies: Vec<(Id, Id)>,
     pub links: Vec<(String, Id, Id)>,
@@ -250,7 +256,7 @@ fn write(conn: &Connection, table: &str, row: &Row, upsert: bool) -> Result<()> 
 
 fn ensure_ids_are_free(conn: &Connection, snapshot: &TaskSnapshot) -> Result<()> {
     for (id, created_at) in &snapshot.created {
-        let current: Option<i64> = conn
+        let current: Option<Timestamp> = conn
             .query_row(
                 "SELECT created_at FROM task WHERE id = ?1",
                 params![id],

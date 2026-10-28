@@ -5,9 +5,12 @@ mod commands;
 mod db;
 pub mod mcp;
 mod reminders;
+mod sync;
 mod window;
 
-use tauri::Manager;
+use std::sync::Arc;
+
+use tauri::{Manager, WindowEvent};
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
 
 use commands::{
@@ -20,6 +23,40 @@ const BINDINGS_PATH: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../shared/contract/src/bindings.ts"
 );
+#[cfg(any(debug_assertions, test))]
+const PLATFORM_BINDINGS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../src/bindings.ts");
+
+/// Commands only the desktop shell calls, behind `Platform.sync`: kept out
+/// of the shared contract and exported to `apps/desktop/src/bindings.ts`.
+fn platform_builder() -> Builder<tauri::Wry> {
+    Builder::<tauri::Wry>::new()
+        .error_handling(ErrorHandlingMode::Throw)
+        .disable_serde_phases()
+        .typ::<sync::view::RemoteChange>()
+        .commands(collect_commands![
+            sync::commands::sync_status,
+            sync::commands::sync_now,
+            sync::commands::sync_issues,
+            sync::commands::dismiss_sync_issue,
+            sync::commands::sign_in,
+            sync::commands::choose_account_data,
+            sync::commands::sign_out,
+            sync::commands::get_sync_config,
+            sync::commands::set_sync_config,
+        ])
+}
+
+const PLATFORM_COMMANDS: [&str; 9] = [
+    "sync_status",
+    "sync_now",
+    "sync_issues",
+    "dismiss_sync_issue",
+    "sign_in",
+    "choose_account_data",
+    "sign_out",
+    "get_sync_config",
+    "set_sync_config",
+];
 
 fn specta_builder() -> Builder<tauri::Wry> {
     Builder::<tauri::Wry>::new()
@@ -163,10 +200,16 @@ fn specta_builder() -> Builder<tauri::Wry> {
 }
 
 #[cfg(any(debug_assertions, test))]
-fn export_bindings(builder: &Builder<tauri::Wry>) {
+fn export_bindings(builder: &Builder<tauri::Wry>, platform: &Builder<tauri::Wry>) {
     builder
         .export(specta_typescript::Typescript::default(), BINDINGS_PATH)
         .expect("TypeScript bindings export");
+    platform
+        .export(
+            specta_typescript::Typescript::default(),
+            PLATFORM_BINDINGS_PATH,
+        )
+        .expect("platform bindings export");
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -177,22 +220,47 @@ pub fn run() {
     }
 
     let builder = specta_builder();
+    let platform = platform_builder();
 
     #[cfg(debug_assertions)]
-    export_bindings(&builder);
+    export_bindings(&builder, &platform);
+
+    let contract_handler = builder.invoke_handler();
+    let platform_handler = platform.invoke_handler();
 
     tauri::Builder::default()
         .plugin(capture::single_instance())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(capture::plugin())
-        .invoke_handler(builder.invoke_handler())
+        .invoke_handler(move |invoke| {
+            if PLATFORM_COMMANDS.contains(&invoke.message.command()) {
+                platform_handler(invoke)
+            } else {
+                contract_handler(invoke)
+            }
+        })
+        .on_window_event(|window, event| {
+            if let WindowEvent::Focused(true) = event
+                && let Some(sync) = window.try_state::<Arc<sync::SyncService>>()
+            {
+                sync.trigger(sync::Trigger::Focus);
+            }
+        })
         .setup(move |app| {
             builder.mount_events(app);
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
             app.manage(db::open(&dir.join(db::DATABASE_FILE))?);
-            app.manage(time_core::undo::UndoLog::default());
+            let service = sync::SyncService::new(
+                app.handle().clone(),
+                Box::new(sync::auth::tokens::KeyringStore),
+            );
+            let writes = Arc::clone(&service);
+            app.state::<db::Db>()
+                .on_write(move || writes.trigger(sync::Trigger::Write));
+            service.resume();
+            app.manage(service);
             app.manage(backup::SeenVersion::default());
             reminders::start(app.handle().clone());
             capture::start(app.handle());
@@ -206,6 +274,15 @@ pub fn run() {
 mod tests {
     #[test]
     fn exports_bindings() {
-        super::export_bindings(&super::specta_builder());
+        super::export_bindings(&super::specta_builder(), &super::platform_builder());
+    }
+
+    #[test]
+    fn every_platform_command_is_routed() {
+        super::export_bindings(&super::specta_builder(), &super::platform_builder());
+        let bindings = std::fs::read_to_string(super::PLATFORM_BINDINGS_PATH).unwrap();
+        for command in super::PLATFORM_COMMANDS {
+            assert!(bindings.contains(&format!("\"{command}\"")), "{command}");
+        }
     }
 }

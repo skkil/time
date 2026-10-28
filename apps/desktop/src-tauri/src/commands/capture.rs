@@ -1,6 +1,6 @@
+use crate::db::Db;
 use tauri::{AppHandle, State};
 use time_core::Result;
-use time_core::db::Db;
 
 use crate::capture;
 

@@ -48,16 +48,24 @@ pub struct Engine {
 impl Engine {
     /// Migrates the database, installs store and registers every synced
     /// table, then finishes an upload a crash interrupted.
-    pub fn open(mut conn: Connection) -> Result<Self> {
+    pub fn open(conn: Connection) -> Result<Self> {
         conn.busy_timeout(BUSY_TIMEOUT)?;
-        db::migrate(&mut conn)?;
-        store_core::install(&conn)?;
+        let mut engine = Self { conn };
+        engine.refresh()?;
+        Ok(engine)
+    }
+
+    /// Brings the database up to date again after its file was replaced
+    /// (a restored backup): migrations, store and table registrations.
+    pub fn refresh(&mut self) -> Result<()> {
+        db::migrate(&mut self.conn)?;
+        store_core::install(&self.conn)?;
         for table in SYNCED_TABLES {
-            store_core::register_table(&conn, table, ID_COLUMN)?;
+            store_core::register_table(&self.conn, table, ID_COLUMN)?;
         }
-        store_core::set_product_schema_version(&conn, db::latest_version() as u32)?;
-        upload::resume(&mut conn)?;
-        Ok(Self { conn })
+        store_core::set_product_schema_version(&self.conn, db::latest_version() as u32)?;
+        upload::resume(&mut self.conn)?;
+        Ok(())
     }
 
     pub fn in_memory() -> Result<Self> {

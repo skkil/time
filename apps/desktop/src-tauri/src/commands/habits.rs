@@ -1,6 +1,6 @@
+use crate::db::Db;
 use serde_json::json;
 use tauri::State;
-use time_core::db::Db;
 use time_core::habits::activity::{Event, WEB_BUCKET, WINDOW_BUCKET};
 use time_core::habits::{
     self, Habit, HabitDay, HabitInput, HabitMeasurement, ManualStatus, SyncReport, TrackerState,
@@ -112,10 +112,10 @@ fn report(activitywatch: TrackerState, web: &[Event], windows: &[Event]) -> Sync
 #[specta::specta]
 pub async fn sync_habits(db: State<'_, Db>) -> Result<SyncReport> {
     let today = Date::today();
-    let watched: Vec<Habit> = db.call(|conn| {
+    let (watched, from_projects): (Vec<Habit>, _) = db.call(|conn| {
         let tracked = habits::tracked(conn)?;
-        habits::sync_projects(conn, &tracked, today)?;
-        Ok(tracked
+        let measured = habits::project_measurements(conn, &tracked, today)?;
+        let watched = tracked
             .into_iter()
             .filter(|habit| {
                 habit
@@ -123,8 +123,16 @@ pub async fn sync_habits(db: State<'_, Db>) -> Result<SyncReport> {
                     .as_ref()
                     .is_some_and(|t| t.source != "project")
             })
-            .collect())
+            .collect();
+        Ok((watched, measured))
     })?;
+    if !from_projects.is_empty() {
+        mutate::<()>(
+            &db,
+            "recordHabitMeasurements",
+            json!({ "measurements": from_projects }),
+        )?;
+    }
     if watched.is_empty() {
         return Ok(report(TrackerState::NotNeeded, &[], &[]));
     }
