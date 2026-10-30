@@ -3,7 +3,7 @@ use rusqlite::{Connection, OptionalExtension, params};
 use super::model::{EntryDetails, EntryInput, MAX_ENTRY_SECONDS, RunningTimer, TimeEntry};
 use super::rules::resolve;
 use super::service::create;
-use crate::env::MutationEnv;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::types::{Id, Timestamp};
 
@@ -11,7 +11,7 @@ pub fn running(conn: &Connection) -> Result<Option<RunningTimer>> {
     Ok(conn
         .query_row(
             "SELECT description, project_id, task_id, started_at, paused_at, banked_seconds
-             FROM running_timer WHERE id = 1",
+             FROM running_timer LIMIT 1",
             [],
             |row| {
                 Ok(RunningTimer {
@@ -27,12 +27,22 @@ pub fn running(conn: &Connection) -> Result<Option<RunningTimer>> {
         .optional()?)
 }
 
-fn save_running(conn: &Connection, running: &RunningTimer) -> Result<()> {
+/// Writes the account's one running timer, keeping its row id when it
+/// exists.
+fn save_running(conn: &Connection, env: &dyn MutationEnv, running: &RunningTimer) -> Result<()> {
+    let existing: Option<Id> = conn
+        .query_row("SELECT id FROM running_timer LIMIT 1", [], |row| row.get(0))
+        .optional()?;
     conn.execute(
-        "INSERT OR REPLACE INTO running_timer
+        "INSERT INTO running_timer
            (id, description, project_id, task_id, started_at, paused_at, banked_seconds)
-         VALUES (1, ?1, ?2, ?3, ?4, ?5, ?6)",
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+         ON CONFLICT (id) DO UPDATE SET description = excluded.description,
+           project_id = excluded.project_id, task_id = excluded.task_id,
+           started_at = excluded.started_at, paused_at = excluded.paused_at,
+           banked_seconds = excluded.banked_seconds",
         params![
+            existing.unwrap_or_else(|| env.keyed_id(NaturalKey::RunningTimer)),
             running.description,
             running.project_id,
             running.task_id,
@@ -97,7 +107,7 @@ pub fn start(
         paused_at: None,
         banked_seconds: 0,
     };
-    save_running(conn, &next)?;
+    save_running(conn, env, &next)?;
     Ok(next)
 }
 
@@ -111,7 +121,7 @@ pub fn pause(conn: &Connection, env: &dyn MutationEnv) -> Result<RunningTimer> {
         current.banked_seconds += entry.started_at.seconds_until(entry.ended_at);
     }
     current.paused_at = Some(now);
-    save_running(conn, &current)?;
+    save_running(conn, env, &current)?;
     Ok(current)
 }
 
@@ -119,18 +129,22 @@ pub fn resume(conn: &Connection, env: &dyn MutationEnv) -> Result<RunningTimer> 
     let mut current = running(conn)?.ok_or_else(no_timer)?;
     if current.paused_at.take().is_some() {
         current.started_at = env.timestamp();
-        save_running(conn, &current)?;
+        save_running(conn, env, &current)?;
     }
     Ok(current)
 }
 
-pub fn edit_running(conn: &Connection, details: &EntryDetails) -> Result<RunningTimer> {
+pub fn edit_running(
+    conn: &Connection,
+    env: &dyn MutationEnv,
+    details: &EntryDetails,
+) -> Result<RunningTimer> {
     let details = resolve(conn, details)?;
     let mut current = running(conn)?.ok_or_else(no_timer)?;
     current.description = details.description;
     current.project_id = details.project_id;
     current.task_id = details.task_id;
-    save_running(conn, &current)?;
+    save_running(conn, env, &current)?;
     Ok(current)
 }
 
@@ -160,12 +174,16 @@ pub fn discard(conn: &Connection) -> Result<()> {
     clear_running(conn)
 }
 
-pub fn restore_running(conn: &Connection, timer: &RunningTimer) -> Result<RunningTimer> {
+pub fn restore_running(
+    conn: &Connection,
+    env: &dyn MutationEnv,
+    timer: &RunningTimer,
+) -> Result<RunningTimer> {
     if running(conn)?.is_some() {
         return Err(Error::invalid(
             "Another timer is running, so this can't be undone.",
         ));
     }
-    save_running(conn, timer)?;
+    save_running(conn, env, timer)?;
     Ok(timer.clone())
 }

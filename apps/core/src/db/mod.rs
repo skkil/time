@@ -1,4 +1,5 @@
 mod migrate;
+mod sync_ids;
 mod uuid_ids;
 
 #[cfg(test)]
@@ -10,6 +11,7 @@ use std::time::Duration;
 use rusqlite::Connection;
 
 pub use migrate::{UUID_IDS_VERSION, latest_version, migrate, migrate_to, schema_version};
+pub use sync_ids::{DEVICE_KEYS, KEYED_TABLES};
 
 use crate::error::Result;
 
@@ -36,22 +38,4 @@ impl Db {
             .unwrap_or_else(|poisoned| poisoned.into_inner());
         run(&mut conn)
     }
-}
-
-/// Drops every table and rebuilds an empty, freshly seeded database.
-pub fn reset(conn: &mut Connection) -> Result<()> {
-    conn.pragma_update(None, "foreign_keys", false)?;
-    let tables = conn
-        .prepare(
-            "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
-        )?
-        .query_map([], |row| row.get::<_, String>(0))?
-        .collect::<rusqlite::Result<Vec<_>>>()?;
-    let tx = conn.transaction()?;
-    for table in tables {
-        tx.execute_batch(&format!("DROP TABLE \"{table}\""))?;
-    }
-    tx.pragma_update(None, "user_version", 0)?;
-    tx.commit()?;
-    migrate(conn)
 }

@@ -50,12 +50,12 @@ fn seeds_five_templates() {
 fn choosing_evening_turns_morning_off() {
     let db = db();
     db.call(|conn| {
-        set_planning_time(conn, "morning")?;
-        set_planning_time(conn, "evening")?;
+        set_planning_time(conn, &crate::testing::env(), "morning")?;
+        set_planning_time(conn, &crate::testing::env(), "evening")?;
         assert!(!get(conn, "morning")?.enabled);
         assert!(get(conn, "evening")?.enabled);
         assert_eq!(planning_time(conn)?.as_deref(), Some("evening"));
-        assert!(set_planning_time(conn, "noon").is_err());
+        assert!(set_planning_time(conn, &crate::testing::env(), "noon").is_err());
         Ok(())
     })
     .unwrap();
@@ -66,7 +66,7 @@ fn morning_runs_once_on_first_open() {
     let db = db();
     db.call(|conn| {
         conn.execute("UPDATE ritual SET enabled = 0 WHERE kind = 'weekly'", [])?;
-        set_planning_time(conn, "morning")?;
+        set_planning_time(conn, &crate::testing::env(), "morning")?;
         let eight = clock("2026-11-03", 8 * 60);
         let at = moment("2026-11-03", 8 * 60);
         assert_eq!(
@@ -97,7 +97,7 @@ fn evening_follows_the_clock_or_the_last_block() {
     let db = db();
     db.call(|conn| {
         conn.execute("UPDATE ritual SET enabled = 0 WHERE kind = 'weekly'", [])?;
-        set_planning_time(conn, "evening")?;
+        set_planning_time(conn, &crate::testing::env(), "evening")?;
         let day = "2026-11-03";
         assert_eq!(
             kind(due(conn, moment(day, 16 * 60), RitualEvent::Tick)?),

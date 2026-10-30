@@ -197,7 +197,7 @@ fn integer_ids_become_ordered_uuids_and_every_reference_follows() {
         .map(|(table, key)| ordered(&conn, table, key))
         .collect();
 
-    migrate(&mut conn).unwrap();
+    migrate_to(&mut conn, UUID_IDS_VERSION).unwrap();
 
     let after: Vec<_> = RELATIONS.iter().map(|sql| rows(&conn, sql)).collect();
     for (sql, (before, after)) in RELATIONS.iter().zip(before.iter().zip(&after)) {
@@ -269,24 +269,54 @@ fn a_fresh_database_starts_on_uuids() {
 }
 
 #[test]
-fn reset_empties_data_and_restores_defaults() {
-    let db = Db::in_memory().unwrap();
-    db.call(|conn| {
-        let count = |conn: &Connection, table: &str| -> Result<i64> {
-            Ok(conn.query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |row| row.get(0))?)
-        };
-        let rituals = count(conn, "ritual")?;
-        conn.execute_batch(
-            "INSERT INTO project (id, name) VALUES ('0192f0c1-7a2b-7c3d-8e4f-0123456789ab', 'Thesis');
-             DELETE FROM ritual;",
-        )?;
-
-        reset(conn)?;
-
-        assert_eq!(count(conn, "project")?, 0);
-        assert_eq!(count(conn, "ritual")?, rituals);
-        assert!(rituals > 0);
-        Ok(())
-    })
+fn keyed_rows_get_ids_and_device_settings_move_out() {
+    let mut conn = Connection::open_in_memory().unwrap();
+    migrate_to(&mut conn, latest_version() - 1).unwrap();
+    conn.execute_batch(
+        "INSERT INTO week (start_date) VALUES ('2026-11-02');
+         INSERT INTO day (date, felt) VALUES ('2026-11-03', 4);
+         INSERT INTO setting (key, value) VALUES ('capture_hotkey', 'off'), ('reminders_enabled', 'off');
+         INSERT INTO running_timer (id, description, started_at) VALUES (1, 'Focus', 100);",
+    )
     .unwrap();
+
+    migrate(&mut conn).unwrap();
+
+    for table in KEYED_TABLES.iter().chain(&["ritual", "running_timer"]) {
+        let missing: i64 = conn
+            .query_row(
+                &format!("SELECT COUNT(*) FROM {table} WHERE id IS NULL"),
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(missing, 0, "{table}");
+    }
+    let week: String = conn
+        .query_row("SELECT id FROM week", [], |row| row.get(0))
+        .unwrap();
+    assert!(Id::parse(&week).is_ok());
+    let morning: String = conn
+        .query_row("SELECT id FROM ritual WHERE kind = 'morning'", [], |row| {
+            row.get(0)
+        })
+        .unwrap();
+    assert!(Id::parse(&morning).is_ok());
+    let timer: (String, String) = conn
+        .query_row("SELECT id, description FROM running_timer", [], |row| {
+            Ok((row.get(0)?, row.get(1)?))
+        })
+        .unwrap();
+    assert!(Id::parse(&timer.0).is_ok());
+    assert_eq!(timer.1, "Focus");
+    let settings = rows(&conn, "SELECT key FROM setting");
+    assert_eq!(
+        settings,
+        BTreeSet::from(["[Text(\"reminders_enabled\")]".to_owned()])
+    );
+    let device = rows(&conn, "SELECT key, value FROM device_setting");
+    assert_eq!(
+        device,
+        BTreeSet::from(["[Text(\"capture_hotkey\"), Text(\"off\")]".to_owned()])
+    );
 }

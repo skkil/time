@@ -69,11 +69,15 @@ pub fn planning_time(conn: &Connection) -> Result<Option<String>> {
 }
 
 /// Plans in the morning or the evening, turning the other ritual off.
-pub fn set_planning_time(conn: &Connection, time: &str) -> Result<Vec<Ritual>> {
+pub fn set_planning_time(
+    conn: &Connection,
+    env: &dyn MutationEnv,
+    time: &str,
+) -> Result<Vec<Ritual>> {
     if !matches!(time, "morning" | "evening") {
         return Err(Error::invalid("Plan in the morning or the evening."));
     }
-    settings::write(conn, PLANNING_SETTING, time)?;
+    settings::write(conn, env, PLANNING_SETTING, time)?;
     conn.execute(
         "UPDATE ritual SET enabled = (kind = ?1) WHERE kind IN ('morning', 'evening')",
         params![time],

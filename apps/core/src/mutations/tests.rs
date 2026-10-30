@@ -9,6 +9,29 @@ use crate::db::Db;
 use crate::env::{Env, FixedClock, IdSource, SequentialIds};
 
 const BINDINGS: &str = include_str!("../../../shared/contract/src/bindings.ts");
+const CLASSIFIED: &str = include_str!("../../../shared/contract/src/commands.json");
+
+fn classified(kind: &str) -> BTreeSet<String> {
+    let json: Value = serde_json::from_str(CLASSIFIED).expect("commands.json parses");
+    json[kind]
+        .as_array()
+        .unwrap_or_else(|| panic!("commands.json lists {kind}"))
+        .iter()
+        .map(|name| name.as_str().expect("a command name").to_owned())
+        .collect()
+}
+
+fn owned(names: &[&str]) -> BTreeSet<String> {
+    names.iter().map(|name| (*name).to_owned()).collect()
+}
+
+#[test]
+fn the_registry_matches_commands_json() {
+    assert_eq!(owned(MUTATIONS), classified("mutations"));
+    assert_eq!(owned(READS), classified("reads"));
+    assert_eq!(owned(DEVICE_ONLY), classified("deviceOnly"));
+    assert_eq!(owned(SYNC_MUTATIONS), classified("syncMutations"));
+}
 
 fn contract_commands() -> BTreeSet<&'static str> {
     let commands = BINDINGS
@@ -39,7 +62,7 @@ fn every_mutation_and_read_has_a_dispatch_entry() {
     let db = Db::in_memory().unwrap();
     let env = fixed_env();
     db.call(|conn| {
-        for name in MUTATIONS {
+        for name in MUTATIONS.iter().chain(SYNC_MUTATIONS) {
             let tx = conn.transaction()?;
             if let Err(error) = apply(&tx, &env, name, &json!({})) {
                 assert!(!error.to_string().contains("isn't a mutation"), "{name}");
@@ -432,11 +455,17 @@ fn walk_every_mutation(conn: &Connection) -> Vec<(String, Value)> {
     );
     s.run("deleteItemType", json!({"id": spike, "replacement": null}));
     s.run("deleteTask", json!({"id": call}));
+    let snapshot = s.read("captureTasks", json!({"ids": [tests]}));
+    s.run("deleteTasks", json!({"ids": [tests]}));
+    s.run("restoreTasks", json!({"snapshot": snapshot}));
     s.run("deleteTasks", json!({"ids": [tests]}));
     s.run("deleteSection", json!({"id": later}));
     s.run("deleteGroup", json!({"id": acme}));
     s.run("setProjectArchived", json!({"id": copy, "archived": true}));
     s.run("deleteProject", json!({"id": copy}));
+    let tasks = s.read("listTasks", json!({}));
+    s.run("deleteAllData", json!({}));
+    s.applied.push(("listTasks".to_owned(), tasks));
 
     s.applied
 }
@@ -445,23 +474,33 @@ fn walk_every_mutation(conn: &Connection) -> Vec<(String, Value)> {
 fn every_mutation_round_trips_through_the_registry() {
     let db = Db::in_memory().unwrap();
     let applied = db.call(|conn| Ok(walk_every_mutation(conn))).unwrap();
-    let walked: BTreeSet<&str> = applied.iter().map(|(name, _)| name.as_str()).collect();
+    let walked: BTreeSet<&str> = applied
+        .iter()
+        .map(|(name, _)| name.as_str())
+        .filter(|name| is_mutation(name))
+        .collect();
     let registered: BTreeSet<&str> = MUTATIONS.iter().copied().collect();
     assert_eq!(walked, registered);
 
+    let (_, tasks) = applied.last().unwrap();
+    let titles: Vec<&str> = tasks
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|task| task["title"].as_str())
+        .collect();
+    assert!(titles.contains(&"Fix login") && titles.contains(&"Buy milk"));
+    assert!(!titles.contains(&"Write more tests"));
+
     db.call(|conn| {
-        let tasks = query(conn, "listTasks", &json!({}))?;
-        let titles: Vec<&str> = tasks
-            .as_array()
-            .unwrap()
-            .iter()
-            .filter_map(|task| task["title"].as_str())
-            .collect();
-        assert!(titles.contains(&"Fix login") && titles.contains(&"Buy milk"));
-        assert!(!titles.contains(&"Write more tests"));
+        assert_eq!(query(conn, "listTasks", &json!({}))?, json!([]));
+        assert_eq!(query(conn, "getRemindersEnabled", &json!({}))?, json!(true));
         assert_eq!(
-            query(conn, "getRemindersEnabled", &json!({}))?,
-            json!(false)
+            query(conn, "listRituals", &json!({}))?
+                .as_array()
+                .unwrap()
+                .len(),
+            5
         );
         Ok(())
     })

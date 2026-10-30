@@ -1,7 +1,7 @@
+use crate::db::Db;
 use serde_json::json;
 use tauri::State;
 use time_core::Result;
-use time_core::db::Db;
 use time_core::rituals::{self, Moment, Ritual, RitualEvent, RitualInput, RitualRun};
 use time_core::types::{Date, Id};
 

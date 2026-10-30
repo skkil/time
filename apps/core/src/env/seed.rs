@@ -1,50 +1,72 @@
 use uuid::Uuid;
 
-use crate::types::Id;
+use crate::types::{Date, Id};
 
-/// Placeholder namespace for seeded rows until the server fixes the shared
-/// one; swap it here and every seeded id follows.
-const SEED_NAMESPACE: Uuid = Uuid::from_u128(0x6b1f_3c2e_5a7d_4e90_8c41_2d9a_7f03_b5e6);
-
-/// Where seeded defaults belong: one account, or a device that is signed out.
-#[derive(Debug, Clone, Copy)]
-pub enum SeedScope<'a> {
-    Account(&'a str),
-    Local,
+/// The id of a row that has a natural key in an account: the RFC 9562
+/// version 5 UUID of `name` (`<table>/<key parts joined by />`) with the
+/// account's scope id as namespace. The server derives the same ids, so
+/// devices that write the same key offline agree without coordinating.
+pub fn seed_id(scope: Uuid, name: &str) -> Id {
+    Id::from(Uuid::new_v5(&scope, name.as_bytes()))
 }
 
-/// The id of a default every account starts with (a ritual template, say):
-/// a name-based UUID from its scope and kind, so every device and the server
-/// derive the same one without coordinating.
-pub fn seed_id(scope: SeedScope, kind: &str) -> Id {
-    let scope = match scope {
-        SeedScope::Account(account) => account,
-        SeedScope::Local => "local",
-    };
-    Id::from(Uuid::new_v5(
-        &SEED_NAMESPACE,
-        format!("{scope}/{kind}").as_bytes(),
-    ))
+/// Rows identified by what they are about rather than by a new id. Adding a
+/// table here is the one change that gives its rows deterministic ids.
+#[derive(Debug, Clone, Copy)]
+pub enum NaturalKey<'a> {
+    Ritual(&'a str),
+    Week(Date),
+    Day(Date),
+    Setting(&'a str),
+    HabitLog(&'a Id, Date),
+    ProjectCanvas(&'a Id),
+    RecordPhase(&'a Id, &'a Id),
+    TaskDependency(&'a Id, &'a Id),
+    RunningTimer,
+}
+
+impl NaturalKey<'_> {
+    /// `<table>/<key parts>`, the name [`seed_id`] hashes.
+    pub fn name(&self) -> String {
+        match self {
+            Self::Ritual(kind) => format!("ritual/{kind}"),
+            Self::Week(start) => format!("week/{start}"),
+            Self::Day(date) => format!("day/{date}"),
+            Self::Setting(key) => format!("setting/{key}"),
+            Self::HabitLog(habit, date) => format!("habit_log/{habit}/{date}"),
+            Self::ProjectCanvas(project) => format!("project_canvas/{project}"),
+            Self::RecordPhase(task, status) => format!("record_phase/{task}/{status}"),
+            Self::TaskDependency(task, blocker) => format!("task_dependency/{task}/{blocker}"),
+            Self::RunningTimer => "running_timer".to_owned(),
+        }
+    }
+
+    pub fn id(&self, scope: Uuid) -> Id {
+        seed_id(scope, &self.name())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::types::date;
+
+    const SCOPE: Uuid = Uuid::from_u128(0x0192_f0c1_7a2b_7c3d_8e4f_0123_4567_89ab);
 
     #[test]
-    fn the_same_default_gets_the_same_id_everywhere() {
-        let account = SeedScope::Account("0192f0c1-7a2b-7c3d-8e4f-0123456789ab");
-        assert_eq!(
-            seed_id(account, "ritual/morning"),
-            seed_id(account, "ritual/morning")
-        );
-        assert_ne!(
-            seed_id(account, "ritual/morning"),
-            seed_id(account, "ritual/evening")
-        );
-        assert_ne!(
-            seed_id(account, "ritual/morning"),
-            seed_id(SeedScope::Local, "ritual/morning")
-        );
+    fn the_same_key_gets_the_same_id_in_one_account_only() {
+        let morning = NaturalKey::Ritual("morning");
+        assert_eq!(morning.id(SCOPE), morning.id(SCOPE));
+        assert_ne!(morning.id(SCOPE), NaturalKey::Ritual("evening").id(SCOPE));
+        assert_ne!(morning.id(SCOPE), morning.id(Uuid::from_u128(1)));
+    }
+
+    #[test]
+    fn ids_are_version_5_uuids_of_the_table_and_key() {
+        let id = NaturalKey::Week(date("2026-11-02")).id(SCOPE);
+        let uuid = Uuid::parse_str(id.as_str()).unwrap();
+        assert_eq!(uuid.get_version_num(), 5);
+        assert_eq!(uuid, Uuid::new_v5(&SCOPE, b"week/2026-11-02"));
+        assert_eq!(NaturalKey::RunningTimer.name(), "running_timer");
     }
 }

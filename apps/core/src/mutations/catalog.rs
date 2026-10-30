@@ -1,4 +1,6 @@
-//! Every contract command, by name, in exactly one of three lists.
+//! Every contract command, by name, in exactly one of three lists, as
+//! `apps/shared/contract/src/commands.json` classifies it, plus the
+//! mutations only sync sends.
 
 /// Write commands. Each is applied by [`super::apply`] and syncs through
 /// store as a mutation with the same name and arguments.
@@ -27,6 +29,7 @@ pub const MUTATIONS: &[&str] = &[
     "setTaskNextStep",
     "deleteTasks",
     "deleteTask",
+    "restoreTasks",
     "createSection",
     "renameSection",
     "setSectionCollapsed",
@@ -97,7 +100,12 @@ pub const MUTATIONS: &[&str] = &[
     "createPhaseTask",
     "importProjects",
     "setRemindersEnabled",
+    "deleteAllData",
 ];
+
+/// Mutations no command sends: sync makes them on the device's behalf.
+/// `importLocal` uploads a device's rows on its first sign-in.
+pub const SYNC_MUTATIONS: &[&str] = &["importLocal"];
 
 /// Read commands, answered by [`super::query`] from the local replica.
 pub const READS: &[&str] = &[
@@ -106,6 +114,7 @@ pub const READS: &[&str] = &[
     "getProjectCanvas",
     "listTasks",
     "getTask",
+    "captureTasks",
     "listSections",
     "listBlocks",
     "listTimeEntries",
@@ -125,19 +134,16 @@ pub const READS: &[&str] = &[
     "getWorkflow",
     "listPresets",
     "readPreset",
+    "saveProjectPreset",
     "listEvents",
     "listTimeByType",
     "listRecordPhases",
     "getRemindersEnabled",
 ];
 
-/// Commands that belong to one device and never sync: files and pickers,
-/// the local database file, the in-memory undo log, the capture hotkey and
-/// ActivityWatch.
+/// Commands that belong to one device and never sync: file pickers, the
+/// local database file, the capture hotkey and ActivityWatch.
 pub const DEVICE_ONLY: &[&str] = &[
-    "captureTasks",
-    "restoreTasks",
-    "saveProjectPreset",
     "externalChanges",
     "pickImportFiles",
     "getCaptureHotkey",
@@ -145,5 +151,4 @@ pub const DEVICE_ONLY: &[&str] = &[
     "syncHabits",
     "exportData",
     "importData",
-    "deleteAllData",
 ];

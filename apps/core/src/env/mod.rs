@@ -3,10 +3,11 @@ mod ids;
 mod seed;
 
 use chrono::{DateTime, FixedOffset};
+use uuid::Uuid;
 
 pub use clock::{Clock, FixedClock, SystemClock};
 pub use ids::{IdSource, RandomIds, SequentialIds};
-pub use seed::{SeedScope, seed_id};
+pub use seed::{NaturalKey, seed_id};
 
 use crate::types::{Date, Id, Timestamp};
 
@@ -16,6 +17,21 @@ use crate::types::{Date, Id, Timestamp};
 pub trait MutationEnv {
     fn now(&self) -> DateTime<FixedOffset>;
     fn next_id(&self) -> Id;
+
+    /// The account the write belongs to; `None` on a device that never
+    /// signed in.
+    fn scope(&self) -> Option<Uuid> {
+        None
+    }
+
+    /// The id of the row with this natural key: derived from the account
+    /// when there is one, so every device and the server agree, else new.
+    fn keyed_id(&self, key: NaturalKey) -> Id {
+        match self.scope() {
+            Some(scope) => key.id(scope),
+            None => self.next_id(),
+        }
+    }
 
     fn timestamp(&self) -> Timestamp {
         Timestamp(self.now().timestamp())

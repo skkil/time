@@ -17,6 +17,7 @@ export const habits: Commands<
   | 'setHabitStatus'
   | 'addHabitValue'
   | 'syncHabits'
+  | 'recordHabitMeasurements'
 > = (api) => ({
   listHabits: () => unwrap(api.GET('/api/v1/habits')),
   createHabit: (input) => unwrap(api.POST('/api/v1/habits', { body: input })),
@@ -41,4 +42,12 @@ export const habits: Commands<
       }),
     ),
   syncHabits: () => unwrap(api.POST('/api/v1/habits/sync')),
+  recordHabitMeasurements: (measurements) =>
+    unwrap(
+      api.POST('/api/v1/habits/measurements', {
+        body: measurements.flatMap(({ value, ...rest }) =>
+          value === null ? [] : [{ ...rest, value }],
+        ),
+      }),
+    ),
 });

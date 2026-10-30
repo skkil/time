@@ -69,7 +69,7 @@ fn stays_on_until_turned_off() {
     let db = db();
     db.call(|conn| {
         assert!(enabled(conn)?);
-        set_enabled(conn, false)?;
+        set_enabled(conn, &env(), false)?;
         assert!(!enabled(conn)?);
         Ok(())
     })

@@ -3,16 +3,16 @@ use rusqlite::{Connection, OptionalExtension, params};
 use super::days::check_felt;
 use super::model::{LAST_STEP, TIMED_TASK_MINUTES, Week, WeekNotes, WeekSummary};
 use super::outcomes::outcomes;
-use crate::env::MutationEnv;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::types::{Date, Seconds};
 use crate::validate::optional_text;
 use crate::workflow;
 
-pub(super) fn ensure_week(conn: &Connection, start: Date) -> Result<()> {
+pub(super) fn ensure_week(conn: &Connection, env: &dyn MutationEnv, start: Date) -> Result<()> {
     conn.execute(
-        "INSERT OR IGNORE INTO week (start_date) VALUES (?1)",
-        params![start],
+        "INSERT OR IGNORE INTO week (id, start_date) VALUES (?1, ?2)",
+        params![env.keyed_id(NaturalKey::Week(start)), start],
     )?;
     Ok(())
 }
@@ -98,13 +98,19 @@ pub fn weeks(conn: &Connection, from: Date, to: Date) -> Result<Vec<WeekSummary>
     Ok(summaries)
 }
 
-pub fn save_notes(conn: &Connection, date: Date, notes: &WeekNotes) -> Result<()> {
+pub fn save_notes(
+    conn: &Connection,
+    env: &dyn MutationEnv,
+    date: Date,
+    notes: &WeekNotes,
+) -> Result<()> {
     let text = |value: &str| optional_text(value, "Reflection", 2_000);
     conn.execute(
-        "INSERT INTO week (start_date, worked, fell_short, change) VALUES (?1, ?2, ?3, ?4)
+        "INSERT INTO week (id, start_date, worked, fell_short, change) VALUES (?1, ?2, ?3, ?4, ?5)
          ON CONFLICT(start_date) DO UPDATE SET
            worked = excluded.worked, fell_short = excluded.fell_short, change = excluded.change",
         params![
+            env.keyed_id(NaturalKey::Week(date.monday())),
             date.monday(),
             text(&notes.worked)?,
             text(&notes.fell_short)?,
@@ -114,10 +120,15 @@ pub fn save_notes(conn: &Connection, date: Date, notes: &WeekNotes) -> Result<()
     Ok(())
 }
 
-pub fn set_week_felt(conn: &Connection, date: Date, felt: i32) -> Result<()> {
+pub fn set_week_felt(
+    conn: &Connection,
+    env: &dyn MutationEnv,
+    date: Date,
+    felt: i32,
+) -> Result<()> {
     check_felt(felt)?;
     let start = date.monday();
-    ensure_week(conn, start)?;
+    ensure_week(conn, env, start)?;
     conn.execute(
         "UPDATE week SET felt = ?1 WHERE start_date = ?2",
         params![felt, start],
@@ -125,12 +136,17 @@ pub fn set_week_felt(conn: &Connection, date: Date, felt: i32) -> Result<()> {
     Ok(())
 }
 
-pub fn set_week_step(conn: &Connection, date: Date, step: i32) -> Result<()> {
+pub fn set_week_step(
+    conn: &Connection,
+    env: &dyn MutationEnv,
+    date: Date,
+    step: i32,
+) -> Result<()> {
     if !(0..=LAST_STEP).contains(&step) {
         return Err(Error::invalid("That review step doesn't exist."));
     }
     let start = date.monday();
-    ensure_week(conn, start)?;
+    ensure_week(conn, env, start)?;
     conn.execute(
         "UPDATE week SET step = MAX(step, ?1) WHERE start_date = ?2",
         params![step, start],
@@ -140,7 +156,7 @@ pub fn set_week_step(conn: &Connection, date: Date, step: i32) -> Result<()> {
 
 pub fn finish_week(conn: &Connection, env: &dyn MutationEnv, date: Date) -> Result<()> {
     let start = date.monday();
-    ensure_week(conn, start)?;
+    ensure_week(conn, env, start)?;
     conn.execute(
         "UPDATE week SET step = ?1, reviewed_at = COALESCE(reviewed_at, ?2) WHERE start_date = ?3",
         params![LAST_STEP, env.timestamp(), start],

@@ -1,11 +1,17 @@
 use rusqlite::{Connection, params};
 
 use super::queries::would_loop;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::tasks::{self, Task};
 use crate::types::Id;
 
-pub fn add(conn: &Connection, task_id: &Id, blocked_by_id: &Id) -> Result<Task> {
+pub fn add(
+    conn: &Connection,
+    env: &dyn MutationEnv,
+    task_id: &Id,
+    blocked_by_id: &Id,
+) -> Result<Task> {
     if task_id == blocked_by_id {
         return Err(Error::invalid("A task can't wait on itself."));
     }
@@ -28,8 +34,12 @@ pub fn add(conn: &Connection, task_id: &Id, blocked_by_id: &Id) -> Result<Task> 
         )));
     }
     conn.execute(
-        "INSERT OR IGNORE INTO task_dependency (task_id, blocked_by_id) VALUES (?1, ?2)",
-        params![task_id, blocked_by_id],
+        "INSERT OR IGNORE INTO task_dependency (id, task_id, blocked_by_id) VALUES (?1, ?2, ?3)",
+        params![
+            env.keyed_id(NaturalKey::TaskDependency(task_id, blocked_by_id)),
+            task_id,
+            blocked_by_id
+        ],
     )?;
     tasks::get(conn, task_id)
 }

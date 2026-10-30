@@ -11,14 +11,13 @@ use serde::{Deserialize, Serialize};
 
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
-use time_core::db::Db;
-use time_core::env::LocalEnv;
+use time_core::sync::Engine;
 use time_core::time_entries::{self, EntryDetails, RunningTimer};
 use time_core::types::{Date, Id, Timestamp};
 use time_core::{Error as AppError, Result as AppResult, mutations};
 use time_core::{blocks, groups, projects, sections, tasks};
 
-use crate::db::{self, DATABASE_FILE};
+use crate::db::{self, DATABASE_FILE, Db};
 
 pub const FLAG: &str = "--mcp";
 const DB_ENV: &str = "SKKIL_TIME_DB";
@@ -321,7 +320,7 @@ fn named_project(conn: &Connection, text: &str) -> AppResult<projects::Project> 
     projects::get(conn, &id)
 }
 
-fn resolve_group(conn: &Connection, text: &str) -> AppResult<Option<Id>> {
+fn resolve_group(conn: &mut Writer, text: &str) -> AppResult<Option<Id>> {
     let text = text.trim();
     if text.is_empty() {
         return Ok(None);
@@ -406,10 +405,22 @@ fn focus_view(conn: &Connection, timer: &RunningTimer) -> AppResult<FocusView> {
     })
 }
 
-/// Applies one write through time-core's mutation registry, so the MCP
-/// server changes data exactly as the app does.
-fn mutate<T: DeserializeOwned>(conn: &Connection, name: &str, args: Value) -> AppResult<T> {
-    mutations::result(mutations::apply(conn, &LocalEnv::default(), name, &args)?)
+/// The engine a writing tool works through: it reads like a connection,
+/// and [`mutate`] applies each change as a synced mutation.
+struct Writer<'a>(&'a mut Engine);
+
+impl std::ops::Deref for Writer<'_> {
+    type Target = Connection;
+
+    fn deref(&self) -> &Connection {
+        self.0.connection()
+    }
+}
+
+/// Applies one write through the sync engine, so the MCP server changes
+/// data exactly as the app does and the change syncs.
+fn mutate<T: DeserializeOwned>(writer: &mut Writer, name: &str, args: Value) -> AppResult<T> {
+    mutations::result(writer.0.mutate(name, &args)?)
 }
 
 fn parse_id(text: &str) -> AppResult<Id> {
@@ -606,15 +617,12 @@ impl Planner {
         self.db.call(work).map_err(|error| error.to_string())
     }
 
-    /// Runs a tool that writes, in one transaction so a failed step leaves
-    /// nothing half-done.
-    fn write<T>(&self, work: impl FnOnce(&Connection) -> AppResult<T>) -> Result<T, String> {
-        self.run(|conn| {
-            let tx = conn.transaction()?;
-            let value = work(&tx)?;
-            tx.commit()?;
-            Ok(value)
-        })
+    /// Runs a tool that writes; each change is one mutation, checked
+    /// before it is applied.
+    fn write<T>(&self, work: impl FnOnce(&mut Writer) -> AppResult<T>) -> Result<T, String> {
+        self.db
+            .engine(|engine| work(&mut Writer(engine)))
+            .map_err(|error| error.to_string())
     }
 }
 
@@ -1123,8 +1131,9 @@ mod tests {
 
     #[test]
     fn finds_projects_by_name_or_id() {
-        let db = Db::in_memory().unwrap();
-        db.call(|conn| {
+        let db = Db::new(Engine::in_memory().unwrap());
+        db.engine(|engine| {
+            let conn = &mut Writer(engine);
             let thesis: projects::Project = mutate(
                 conn,
                 "createProject",

@@ -33,8 +33,8 @@ export const commands = {
 	setTaskNextStep: (id: Id, nextStep: string) => __TAURI_INVOKE<Task>("set_task_next_step", { id, nextStep }),
 	deleteTasks: (ids: Id[]) => __TAURI_INVOKE<null>("delete_tasks", { ids }),
 	deleteTask: (id: Id) => __TAURI_INVOKE<null>("delete_task", { id }),
-	captureTasks: (ids: Id[]) => __TAURI_INVOKE<Id>("capture_tasks", { ids }),
-	restoreTasks: (snapshot: Id) => __TAURI_INVOKE<null>("restore_tasks", { snapshot }),
+	captureTasks: (ids: Id[]) => __TAURI_INVOKE<TaskSnapshot>("capture_tasks", { ids }),
+	restoreTasks: (snapshot: TaskSnapshot) => __TAURI_INVOKE<null>("restore_tasks", { snapshot }),
 	listSections: () => __TAURI_INVOKE<Section[]>("list_sections"),
 	createSection: (projectId: Id | null, name: string, before: Id | null) => __TAURI_INVOKE<Section>("create_section", { projectId, name, before }),
 	renameSection: (id: Id, name: string) => __TAURI_INVOKE<Section>("rename_section", { id, name }),
@@ -467,6 +467,19 @@ export type Section = {
 	collapsed: boolean,
 };
 
+/**  Rows of one table: column names and, per row, the values in that order. */
+export type SnapshotRows = {
+	table: string,
+	columns: string[],
+	values: SnapshotValue[][],
+};
+
+/**
+ *  One captured column value: a JSON scalar. Booleans come from snapshots
+ *  the server took and are stored as 0 or 1.
+ */
+export type SnapshotValue = null | boolean | Whole | number | null | string;
+
 export type StatusInput = {
 	name: string,
 	category: string,
@@ -533,6 +546,22 @@ export type TaskPlacement = {
 	sectionId: Id | null,
 	parentId: Id | null,
 	before: Id | null,
+};
+
+/**
+ *  Tasks with every sub-task, their blocks, phase notes, dependencies and
+ *  the entries and ritual runs linked to them, as they were when captured.
+ *  The client keeps it and sends it back as the `restoreTasks` mutation, so
+ *  its JSON is the contract with the server: `created` holds
+ *  `[id, createdAt]`, `dependencies` `[taskId, blockedById]` and `links`
+ *  `[table, id, taskId]`.
+ */
+export type TaskSnapshot = {
+	tasks: SnapshotRows,
+	created: ([Id, Timestamp])[],
+	copies: SnapshotRows[],
+	dependencies: ([Id, Id])[],
+	links: ([string, Id, Id])[],
 };
 
 export type TimeBlock = {
@@ -611,6 +640,9 @@ export type WeekSummary = {
 	plannedSeconds: Seconds,
 	tasksCompleted: number,
 };
+
+/**  A whole number column value. */
+export type Whole = number;
 
 export type Workflow = {
 	types: ItemType[],

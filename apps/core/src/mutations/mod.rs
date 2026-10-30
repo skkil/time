@@ -16,14 +16,14 @@ use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 pub use apply::apply;
-pub use catalog::{DEVICE_ONLY, MUTATIONS, READS};
+pub use catalog::{DEVICE_ONLY, MUTATIONS, READS, SYNC_MUTATIONS};
 pub use query::query;
 
 use crate::env::MutationEnv;
 use crate::error::{Error, Result};
 
 pub fn is_mutation(name: &str) -> bool {
-    MUTATIONS.contains(&name)
+    MUTATIONS.contains(&name) || SYNC_MUTATIONS.contains(&name)
 }
 
 pub fn is_read(name: &str) -> bool {

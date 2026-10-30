@@ -1,4 +1,5 @@
 import type { Commands } from '#backend';
+import { fromWire, toWire } from '#snapshot';
 import { unwrap } from '@skkil-time/api';
 import type { Id } from '@skkil-time/contract';
 
@@ -64,10 +65,10 @@ export const tasks: Commands<
   deleteTasks: (ids) =>
     unwrap(api.POST('/api/v1/tasks/delete', { body: { ids } })),
   deleteTask: (id) => unwrap(api.DELETE('/api/v1/tasks/{id}', byId(id))),
-  captureTasks: (ids) =>
-    unwrap(api.POST('/api/v1/undo-snapshots', { body: { ids } })),
+  captureTasks: async (ids) =>
+    fromWire(await unwrap(api.POST('/api/v1/undo/capture', { body: { ids } }))),
   restoreTasks: (snapshot) =>
-    unwrap(api.POST('/api/v1/undo-snapshots/{id}/restore', byId(snapshot))),
+    unwrap(api.POST('/api/v1/undo/restore', { body: toWire(snapshot) })),
   addTaskDependency: (taskId, blockedById) =>
     unwrap(
       api.POST('/api/v1/tasks/{id}/dependencies', {

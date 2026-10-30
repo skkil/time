@@ -2,7 +2,7 @@ use rusqlite::{Connection, params};
 
 use super::model::RecordPhase;
 use super::rules::{check_phase, record};
-use crate::env::MutationEnv;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::tasks::{self, Task, TaskInput};
 use crate::types::Id;
@@ -21,7 +21,13 @@ pub fn phases(conn: &Connection, task_id: &Id) -> Result<Vec<RecordPhase>> {
 }
 
 /// Saves a record's note for one phase; blank notes are removed.
-pub fn set_notes(conn: &Connection, task_id: &Id, status_id: &Id, notes: &str) -> Result<()> {
+pub fn set_notes(
+    conn: &Connection,
+    env: &dyn MutationEnv,
+    task_id: &Id,
+    status_id: &Id,
+    notes: &str,
+) -> Result<()> {
     let record = record(conn, task_id)?;
     check_phase(conn, &record, status_id)?;
     let notes = optional_text(notes, "Phase notes", 20_000)?;
@@ -32,9 +38,14 @@ pub fn set_notes(conn: &Connection, task_id: &Id, status_id: &Id, notes: &str) -
         )?;
     } else {
         conn.execute(
-            "INSERT INTO record_phase (task_id, status_id, notes) VALUES (?1, ?2, ?3)
+            "INSERT INTO record_phase (id, task_id, status_id, notes) VALUES (?1, ?2, ?3, ?4)
              ON CONFLICT (task_id, status_id) DO UPDATE SET notes = excluded.notes",
-            params![task_id, status_id, notes],
+            params![
+                env.keyed_id(NaturalKey::RecordPhase(task_id, status_id)),
+                task_id,
+                status_id,
+                notes
+            ],
         )?;
     }
     Ok(())

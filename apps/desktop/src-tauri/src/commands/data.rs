@@ -1,11 +1,13 @@
 use std::path::PathBuf;
 
+use serde_json::json;
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::DialogExt;
-use time_core::db::{self, Db};
 use time_core::types::Date;
-use time_core::undo::UndoLog;
 use time_core::{Error, Result};
+
+use super::mutate;
+use crate::db::Db;
 
 use crate::backup::{self, SeenVersion};
 
@@ -39,11 +41,7 @@ pub async fn export_data(app: AppHandle, db: State<'_, Db>) -> Result<Option<Str
 
 #[tauri::command]
 #[specta::specta]
-pub async fn import_data(
-    app: AppHandle,
-    db: State<'_, Db>,
-    undo: State<'_, UndoLog>,
-) -> Result<bool> {
+pub async fn import_data(app: AppHandle, db: State<'_, Db>) -> Result<bool> {
     let path: Option<PathBuf> = app
         .dialog()
         .file()
@@ -58,14 +56,15 @@ pub async fn import_data(
         .path()
         .app_data_dir()
         .map_err(|error| Error::invalid(error.to_string()))?;
-    db.call(|conn| backup::restore_from(conn, &path, &data_dir))?;
-    undo.clear();
+    db.engine(|engine| {
+        backup::restore_from(engine.connection_mut(), &path, &data_dir)?;
+        engine.refresh()
+    })?;
     Ok(true)
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn delete_all_data(db: State<'_, Db>, undo: State<'_, UndoLog>) -> Result<()> {
-    undo.clear();
-    db.call(db::reset)
+pub async fn delete_all_data(db: State<'_, Db>) -> Result<()> {
+    mutate(&db, "deleteAllData", json!({}))
 }

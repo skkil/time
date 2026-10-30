@@ -23,14 +23,12 @@ pub mod workflow;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use time_core::Result;
-use time_core::db::Db;
-use time_core::env::LocalEnv;
 use time_core::mutations;
 
-/// Applies a write command in its own transaction with the device's clock
-/// and fresh UUIDv7 ids, and reads its result back as `T`.
+use crate::db::Db;
+
+/// Applies a write command through the sync engine and reads its result
+/// back as `T`.
 pub fn mutate<T: DeserializeOwned>(db: &Db, name: &str, args: Value) -> Result<T> {
-    let result =
-        db.call(|conn| mutations::apply_in_transaction(conn, &LocalEnv::default(), name, &args))?;
-    mutations::result(result)
+    mutations::result(db.mutate(name, &args)?)
 }

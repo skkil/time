@@ -4,9 +4,9 @@
 use std::thread;
 use std::time::Duration;
 
+use crate::db::Db;
 use chrono::{Local, Timelike};
 use tauri::{AppHandle, Emitter, Manager};
-use time_core::db::Db;
 use time_core::reminders::{self, Reminder};
 use time_core::types::{Date, Id};
 

@@ -86,9 +86,9 @@ fn tracks_week_review_progress() {
     let (db, env) = (db(), env());
     db.call(|conn| {
         let monday = date("2026-11-02");
-        set_week_felt(conn, monday, 3)?;
-        set_week_step(conn, monday, 2)?;
-        set_week_step(conn, monday, 1)?;
+        set_week_felt(conn, &env, monday, 3)?;
+        set_week_step(conn, &env, monday, 2)?;
+        set_week_step(conn, &env, monday, 1)?;
         assert_eq!(week(conn, monday)?.step, 2);
         assert!(week(conn, monday)?.reviewed_at.is_none());
         finish_week(conn, &env, monday.add_days(2))?;
@@ -163,7 +163,7 @@ fn rates_past_days_only() {
     let (db, env) = (db(), env());
     db.call(|conn| {
         let today = Date::today();
-        skip_day(conn, today)?;
+        skip_day(conn, &env, today)?;
         set_day_felt(conn, &env, today, 4)?;
         set_day_note(conn, &env, today, "steady")?;
         assert!(set_day_felt(conn, &env, today.add_days(1), 4).is_err());

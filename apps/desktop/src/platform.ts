@@ -6,6 +6,8 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import type { Id } from '@/backend';
 import type { Platform } from '@/platform';
 
+import { onConnectionChange, onRemoteChange, tauriSync } from './sync';
+
 function subscribe<T>(event: string, listener: (payload: T) => void) {
   const stop = listen<T>(event, ({ payload }) => listener(payload));
   return () => void stop.then((unlisten) => unlisten());
@@ -24,6 +26,9 @@ export const tauriPlatform: Platform = {
   onOpenTask: (listener) => subscribe<Id>('open-task', listener),
   onQuickAdd: (listener) => subscribe<null>('quick-add', () => listener()),
   account: null,
+  sync: tauriSync,
+  onRemoteChange,
+  onConnectionChange,
   features: {
     captureHotkey: true,
     reminders: true,

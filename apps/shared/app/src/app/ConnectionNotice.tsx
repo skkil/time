@@ -22,13 +22,19 @@ const MESSAGES: Record<
   },
 };
 
+/** A local-first device keeps saving; only syncing pauses. */
+const SYNC_SIGNED_OUT =
+  'Sync paused. Sign in again to keep your devices in step.';
+
 /** A quiet notice while the app can't save: offline, server down or signed out. */
 export function ConnectionNotice() {
   const [status, setStatus] = useState<ConnectionStatus>('online');
   useEffect(() => platform().onConnectionChange?.(setStatus), []);
   if (status === 'online') return null;
-  const { icon: Icon, text } = MESSAGES[status];
-  const account = platform().account;
+  const { icon: Icon, text: message } = MESSAGES[status];
+  const { account, sync } = platform();
+  const signIn = account?.signInAgain ?? sync?.signIn;
+  const text = status === 'signedOut' && sync ? SYNC_SIGNED_OUT : message;
 
   return (
     <div
@@ -37,8 +43,8 @@ export function ConnectionNotice() {
     >
       <Icon className="size-4 shrink-0 opacity-80" strokeWidth={1.5} />
       <span className="flex-1">{text}</span>
-      {status === 'signedOut' && account && (
-        <Button size="sm" variant="secondary" onClick={account.signInAgain}>
+      {status === 'signedOut' && signIn && (
+        <Button size="sm" variant="secondary" onClick={() => void signIn()}>
           Sign in
         </Button>
       )}

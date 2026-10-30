@@ -1,4 +1,7 @@
 import type { Id } from '@/backend';
+import type { Sync } from '@/platform/sync';
+
+export type * from '@/platform/sync';
 
 type Unsubscribe = () => void;
 
@@ -47,6 +50,8 @@ export interface Platform {
   /** Account-wide preferences; without it every preference stays on this device. */
   preferences?: SharedPreferences;
   notifications?: Notifications;
+  /** Sign-in and background sync for a local-first device. */
+  sync?: Sync;
   features: {
     captureHotkey: boolean;
     reminders: boolean;

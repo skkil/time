@@ -1,11 +1,11 @@
 //! Quick capture: a global shortcut and `--quick-add` on a second launch
 //! both open Quick Add. The shortcut is a device setting and never syncs.
 
+use crate::db::Db;
 use rusqlite::Connection;
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
-use time_core::db::Db;
-use time_core::{Error, Result, settings};
+use time_core::{Error, Result, device_settings};
 
 use crate::window;
 
@@ -23,11 +23,11 @@ fn shortcut() -> Shortcut {
 }
 
 pub fn enabled(conn: &Connection) -> Result<bool> {
-    settings::switch_on(conn, ENABLED_SETTING)
+    device_settings::switch_on(conn, ENABLED_SETTING)
 }
 
 pub fn set_enabled(conn: &Connection, enabled: bool) -> Result<()> {
-    settings::set_switch(conn, ENABLED_SETTING, enabled)
+    device_settings::set_switch(conn, ENABLED_SETTING, enabled)
 }
 
 fn quick_add(app: &AppHandle) {
@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn hotkey_is_on_until_turned_off() {
-        let db = Db::in_memory().unwrap();
+        let db = Db::new(time_core::sync::Engine::in_memory().unwrap());
         db.call(|conn| {
             assert!(enabled(conn)?);
             set_enabled(conn, false)?;
