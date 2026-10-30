@@ -12,6 +12,8 @@ import com.skkil.time.features.data.domain.DataExport
 import com.skkil.time.features.data.domain.TABLES
 import com.skkil.time.features.data.domain.Table
 import com.skkil.time.features.rituals.service.RitualDefaults
+import com.skkil.time.features.sync.service.BaselineService
+import com.skkil.time.features.sync.service.ServerWrites
 import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
@@ -28,22 +30,35 @@ private typealias IdMap = Map<String, UUID>
 
 @Service
 @Transactional
-class DataService(private val jdbc: JdbcClient, private val mapper: JsonMapper, private val rituals: RitualDefaults) {
+class DataService(
+    private val jdbc: JdbcClient,
+    private val mapper: JsonMapper,
+    private val rituals: RitualDefaults,
+    private val writes: ServerWrites,
+    private val baselines: BaselineService,
+) {
     @Transactional(readOnly = true)
     fun export(caller: Caller): DataExport =
         DataExport(FORMAT, VERSION, caller.now(), TABLES.associate { it.name to rows(caller.id, it) })
 
-    /** Replaces all of the user's data with a backup. Every id is new, so links are remapped as rows go in. */
+    /**
+     * Replaces all of the user's data with a backup. Every id is new, so links are remapped as rows go in. The
+     * replacement is one server write; then the scope starts over (a new epoch and a fresh baseline), so every device
+     * resets onto the restored rows.
+     */
     fun restore(caller: Caller, text: String) {
         val backup = parse(text)
         try {
-            wipe(caller.id)
-            val ids = mutableMapOf<String, IdMap>()
-            for (table in TABLES) ids[table.name] = insert(caller, table, backup[table.name].orEmpty(), ids)
-            rituals.seed(caller.id, caller.scopeId)
+            writes.run(caller.scopeId) {
+                wipe(caller.id)
+                val ids = mutableMapOf<String, IdMap>()
+                for (table in TABLES) ids[table.name] = insert(caller, table, backup[table.name].orEmpty(), ids)
+                rituals.seed(caller.id, caller.scopeId)
+            }
         } catch (_: DataAccessException) {
             invalid(NOT_A_BACKUP)
         }
+        baselines.restart(caller.id, caller.scopeId)
     }
 
     fun deleteAll(caller: Caller) {

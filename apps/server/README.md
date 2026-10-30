@@ -68,6 +68,7 @@ ports above free.
 | `WEB_PUSH_SUBJECT` | unset | VAPID contact, `mailto:` or `https:` URL; required for web push |
 | `STORE_URL` | `http://localhost:8091` | Store service base URL handed to devices with a sync token |
 | `STORE_TOKEN_PRIVATE_KEY_PEM` / `STORE_TOKEN_PUBLIC_KEY_PEM` | unset | ES256 key pair (PKCS#8 / SPKI PEM) for sync tokens; required outside the `dev` profile |
+| `STORE_BASELINE_ON_START` | `true` | Run `BaselineJob` when the server is ready (off in tests, which call it directly) |
 | `STORE_DIR` | `../store` (repo root) | Store checkout for the build, Compose and conformance |
 | `SPRING_PROFILES_ACTIVE` | `prod` in the image | `prod` logs JSON (ECS); `dev` (bootRun, tests) makes its own token key |
 
@@ -99,11 +100,12 @@ named after it. Under `src/main/kotlin/com/skkil/time/`:
 `mutations` of `apps/shared/contract/src/commands.json`.
 
 `features/sync/` makes the server a store product: `api/` (Push and sync tokens), `service/` (`ServerWrites`,
-`PushService`, `DispatchedMutation`, `SyncTokenService`) and `web/` (`ServerWriteAspect`, `@OwnWritePath`). `config/StoreConfig` wires adapter-jvm.
+`PushService`, `DispatchedMutation`, `SyncTokenService`, `BaselineService`), `domain/` (`BASELINE_TABLES`), `job/`
+(`BaselineJob`) and `web/` (`ServerWriteAspect`, `@OwnWritePath`). `config/StoreConfig` wires adapter-jvm.
 
 A feature only has the layers it needs. A few have their own: `changes/web/`
 (the write-tracking filter), `realtime/websocket/`, `notifications/push/` (the
-Expo and Web Push senders) and `notifications/job/` (`ReminderJob`).
+Expo and Web Push senders), `notifications/job/` (`ReminderJob`) and `sync/job/` (`BaselineJob`).
 
 Tests in `src/test/kotlin` sit in the same packages as what they test; most are
 HTTP-level and sit at the feature root. `support/` holds the test base classes.
@@ -144,7 +146,7 @@ ordered by the old id, and gave the composite-key tables an `id` too). `app_user
 
 Contract: store's `docs/protocol.md`; mapping: `docs/decisions/0001-sync-with-store.md`.
 
-- **SQL.** `V9__store_v1.sql`, `V10__store_v2.sql` and `V14__store_v3.sql` are store's migrations byte for byte under
+- **SQL.** `V9__store_v1.sql`, `V10__store_v2.sql`, `V14__store_v3.sql` and `V16__store_v4.sql` are store's migrations byte for byte under
   a header naming the tag each was copied at (`StoreMigrationsTest` compares them with the checkout and checks no tag
   is newer than `STORE_VERSION`). The server calls only store's documented functions, through adapter-jvm's
   `StoreWritePath`, never the `store_*` tables or `store.*` settings. `V13` registers every user table keyed by a uuid; row
@@ -161,6 +163,18 @@ Contract: store's `docs/protocol.md`; mapping: `docs/decisions/0001-sync-with-st
 - **Background writers.** `ReminderJob` marks tasks reminded in one server write per owner. Provisioning seeds the
   rituals as a server write. Deleting the account logs every delete, then drops the scope with its clients and log
   (`store_drop_scope`).
+- **Baseline.** Rows written before `V13`, or rewritten under `store.bypass` (`V15`), are not in the log, so a device
+  pulling from version 0 would never see them. `BaselineJob` (`features/sync/job/`) starts when the server is ready
+  (on a virtual thread, retrying every minute while accounts remain; `STORE_BASELINE_ON_START=false` turns it off) and
+  gives every account without a `sync_baseline` row (`V17`) one server write that runs `store_capture_existing` over
+  every registered table, filtered to the account, parents first (`BASELINE_TABLES` in `features/sync/domain/`; a test
+  checks it against `store_table` and the foreign keys). Each account is its own transaction under
+  `pg_try_advisory_xact_lock(BASELINE_LOCK_KEY, hashint8(user))`, so instances share the work and none baselines an
+  account twice; the row records the version. New accounts are marked at provisioning with a `NULL` version, since
+  every row they write is logged.
+- **Restore.** `POST /api/v1/data/import` (`@OwnWritePath`) replaces the rows in one server write, then
+  `BaselineService.restart` bumps the scope's epoch (`store_bump_epoch`), so every device resets and pulls from version
+  0, and baselines it again, all in one transaction. Delete all data stays an ordinary logged write.
 - **Push.** `POST /skkil.store.v1.PushService/Push` (Connect, binary or JSON, the API's bearer token) runs adapter-jvm's
   `PushHandler` for the caller's scope; each mutation goes to `MutationDispatcher` as the scope's owner, at
   `MutationClock.fromHlc(hlc)` (server time when `hlc` is 0), naming rows with `MutationContext.nextId()`. A

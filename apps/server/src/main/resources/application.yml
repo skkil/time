@@ -65,6 +65,7 @@ time:
     store-url: ${STORE_URL:http://localhost:8091}
     token-private-key-pem: ${STORE_TOKEN_PRIVATE_KEY_PEM:}
     token-public-key-pem: ${STORE_TOKEN_PUBLIC_KEY_PEM:}
+    baseline-on-start: ${STORE_BASELINE_ON_START:true}
 
 
 ---
