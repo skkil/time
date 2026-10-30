@@ -32,8 +32,9 @@ export function AccountChoiceDialog({
             This computer has another account’s data
           </AlertDialogTitle>
           <AlertDialogDescription>
-            It last synced with a different account than {account}. Choose what
-            happens to the projects and tasks on this computer.
+            It last synced with a different account than {account}. Keep and
+            upload adds this computer’s projects and tasks to {account}; Start
+            fresh replaces them with what {account} already has.
           </AlertDialogDescription>
         </AlertDialogHeader>
         {choose.isError && (
@@ -58,7 +59,7 @@ export function AccountChoiceDialog({
               Start fresh
             </Button>
             <Button disabled={busy} onClick={() => choose.mutate('keepLocal')}>
-              Upload this computer’s data
+              Keep and upload
             </Button>
           </div>
         </AlertDialogFooter>
