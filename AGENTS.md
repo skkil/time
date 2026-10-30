@@ -2,10 +2,10 @@
 
 skkil/time is a personal planner: tasks, nested projects, time-blocking, time
 tracking, habits, and a weekly/quarterly review. The desktop app is
-local-first (one SQLite file, no account). The web and mobile apps use the same
-model through `apps/server` (Postgres, one account per user). Sync between
-desktop and server will come from the separate `../store` project; nothing here
-syncs yet.
+local-first (one SQLite file, account optional). The web and mobile apps use the same
+model through `apps/server` (Postgres, one account per user). The desktop
+syncs with the server through the separate `../store` project once signed in
+(`docs/decisions/0001-sync-with-store.md`); signed out it stays fully local.
 
 Product docs live at the repo root (`IMPROVEMENTS.md`, `OPEN-LOOPS.md`,
 `REEVALUATION-SUNSAMA.md`), the spec under `.jennifer/`, and the design memory
@@ -245,6 +245,19 @@ cargo clippy --all-targets -- -D warnings
 - ActivityWatch is read in `src/activitywatch.rs`; `sync_habits` measures
   website and app habits with `habits::measure_activity` and records them
   with the `recordHabitMeasurements` mutation.
+- Sync (`src/sync/`): every write goes through `time_core::sync::Engine`
+  (`db::Db::mutate`), which captures it once the device is bound to an
+  account. Sign-in is OIDC with PKCE in the system browser and a loopback
+  redirect (`sync/auth/`), with tokens in the OS keychain (`keyring`) and
+  refreshed. `SyncService` runs a worker thread that pushes then pulls with
+  `skkil-store-http` on start, after writes (1.5 s debounce), on pokes, on
+  window focus and every 60 s, backing off on failures (`sync/schedule.rs`,
+  pure and tested); sync tokens come from `POST /api/v1/sync/token`. It
+  emits `sync-status` and `remote-change`. Server URL, issuer, client id and
+  audience are device settings defaulting to `SKKIL_SERVER_URL`,
+  `SKKIL_AUTH_AUTHORITY`, `SKKIL_AUTH_CLIENT_ID` and `SKKIL_AUTH_AUDIENCE` at
+  build time. Its commands are a second specta builder exported to
+  `apps/desktop/src/bindings.ts`, outside the shared contract.
 - `run()` sets `JSC_useJIT=0` on Linux: JavaScriptCore's JIT costs about 70 MB
   of web process memory in use and a planner doesn't need its speed.
 
@@ -259,7 +272,11 @@ cargo clippy --all-targets -- -D warnings
   (`src/platform/index.ts`): opening URLs, window focus, zoom, Tauri events, the
   signed-in account and `features` flags (capture hotkey, reminders,
   ActivityWatch, database-file backups). Settings sections declare
-  `available(platform)`.
+  `available(platform)`. A local-first shell adds `sync` (status, Sync now,
+  issues, sign in/out, account choice, server config), shown as
+  Settings → Sync (`features/sync/`, view logic in `view.ts`); desktop fills
+  it in `apps/desktop/src/sync.ts` and reuses `onRemoteChange` and
+  `onConnectionChange`. Undo keeps the `TaskSnapshot` payload in memory.
 - `src/features/<domain>/api.ts` holds the queries and mutations for a domain;
   components live beside it.
 - A project page always opens on Tasks, with Notes and Focus beside it. List,
