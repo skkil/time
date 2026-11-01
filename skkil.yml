@@ -26,6 +26,15 @@ requires:
   - name: Go
     check: command -v go
     hint: install Go 1.27 or later (builds store's conformance suite)
+  - name: store client built
+    check: test -f "${STORE_DIR:-../store}/modules/client-ts/dist/index.js"
+    hint: (cd "${STORE_DIR:-../store}/modules/client-ts" && pnpm install --frozen-lockfile && pnpm build) (the mobile app links it)
+  - name: cargo-ndk
+    check: command -v cargo-ndk
+    hint: cargo install cargo-ndk && rustup target add aarch64-linux-android x86_64-linux-android aarch64-apple-ios aarch64-apple-ios-sim
+  - name: Android NDK 30
+    check: test -d "${ANDROID_NDK_HOME:-${ANDROID_HOME:-$HOME/Android/Sdk}/ndk/30.0.14904198}"
+    hint: sdkmanager "ndk;30.0.14904198" (or set ANDROID_NDK_HOME); builds apps/core-native for Android
 
 dev:
   run:
@@ -213,11 +222,28 @@ ci:
       format: pnpm format:check
       lint: pnpm lint
       build: pnpm build
+    - name: core-native
+      dir: apps/core-native
+      format: cargo fmt --check && pnpm format:check
+      lint: cargo clippy --all-targets -- -D warnings && pnpm lint
+      test: cargo test && pnpm test && pnpm check:ios
+      build: pnpm check:generated && pnpm compile
+      depends_on:
+        - time-core
     - name: mobile
       dir: apps/mobile
       format: pnpm format:check
       lint: pnpm lint
-      build: pnpm compile
+      test: pnpm test
+      build: pnpm compile && npx expo-doctor && npx expo export --platform android --platform ios --output-dir dist
+      depends_on:
+        - core-native
+        - shared-local
+    - name: mobile-android
+      dir: apps/mobile
+      build: npx expo prebuild --platform android --no-install --clean && (cd android && ./gradlew assembleDebug)
+      depends_on:
+        - mobile
     - name: desktop
       dir: apps/desktop
       format: pnpm format:check

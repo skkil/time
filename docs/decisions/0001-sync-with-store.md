@@ -146,6 +146,34 @@ until the user picks `keep_local` or `start_fresh`). Uploading:
 `importLocal` is listed under `syncMutations` in `commands.json`: a
 mutation with no contract command, which the server must implement.
 
+## Mobile
+
+- `apps/core-native` (crate `time-core-native`) exports one uniffi object,
+  `TimeCore`, over the `Engine`: `open(path)`, `mutate`/`query` (JSON text),
+  the `CoreHandle` byte functions (`pushRequest`, `applyPushResponse`,
+  `pullRequest`, `applyPullResponse`, `status`), `bindScope` (the engine's
+  `sign_in`), `keepLocal`, `startFresh`, `forget`, `issues` and
+  `dismissIssue`. Errors keep the desktop `{kind, message}` shape.
+  uniffi-bindgen-react-native turns it into the Turbo Module
+  `@skkil-time/core-native`; its generated bindings are committed, the
+  static libraries are built (`cargo-ndk`, NDK 30; Xcode for iOS).
+- The engine lives on one Rust thread that runs jobs in order. Commands and
+  account steps are async futures that wait on that thread, so the JS
+  thread never waits for SQLite and writes keep their order. The
+  `CoreHandle` calls block, because store's TypeScript driver calls them
+  synchronously; each builds or applies one page (100 mutations, 500
+  versions).
+- The app drives sync with `@skkil/store-client` and `expo/fetch` (React
+  Native's own fetch can't stream Pokes). The first sync token also tells
+  the app where store and Push live, so the driver starts once the server
+  is reachable; until then the phone keeps working locally.
+- The phone is bound on sign-in: scope from `/me` `scopeId`, else the `sub`
+  of a token for a fresh client id. Another account's rows ask Keep this
+  data (`keepLocal`) or Use the account's data (`startFresh`), as on
+  desktop. The app always needs an account, so signing out on purpose
+  calls `forget`; a sign-in that lapses on its own keeps the replica for
+  the next one.
+
 ## Seeded and natural-key ids
 
 Rows the server and every device can create on their own get ids derived
