@@ -1,0 +1,842 @@
+{
+  "$comment": "Mutation round-trip vectors: the same mutations, in order, with the same clock (at, else the file's at) and ids (each step draws exactly its ids, in order), in the account with this scope. Rust (time-core mutations::vectors) and Kotlin (MutationVectorsTest) replay them from an empty account and compare each expected row's listed columns (booleans as true/false; SQLite stores 0/1) and that gone rows are gone, so the two registries can't drift. Natural-key ids are UuidV5(scope, name).",
+  "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+  "at": "2026-11-03T09:00:00+09:00",
+  "steps": [
+    {
+      "name": "createProject",
+      "args": {
+        "input": {
+          "name": "Home",
+          "parentId": null,
+          "color": "teal"
+        }
+      },
+      "ids": ["019a4b00-0000-7000-8000-000000000001"],
+      "expect": [
+        {
+          "table": "project",
+          "id": "019a4b00-0000-7000-8000-000000000001",
+          "row": {
+            "name": "Home",
+            "color": "teal",
+            "position": 1,
+            "archived": false,
+            "status": "active",
+            "parent_id": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "createSection",
+      "args": {
+        "projectId": "019a4b00-0000-7000-8000-000000000001",
+        "name": "Kitchen",
+        "before": null
+      },
+      "ids": ["019a4b00-0000-7000-8000-000000000002"],
+      "expect": [
+        {
+          "table": "section",
+          "id": "019a4b00-0000-7000-8000-000000000002",
+          "row": {
+            "project_id": "019a4b00-0000-7000-8000-000000000001",
+            "name": "Kitchen",
+            "position": 1,
+            "collapsed": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "createTask",
+      "args": {
+        "input": {
+          "title": "Fix the tap",
+          "notes": "",
+          "projectId": "019a4b00-0000-7000-8000-000000000001",
+          "sectionId": "019a4b00-0000-7000-8000-000000000002",
+          "parentId": null,
+          "priority": 2,
+          "dueDate": "2026-11-04",
+          "dueTime": null,
+          "deadline": null,
+          "recurrence": null,
+          "estimateMinutes": 30
+        }
+      },
+      "ids": ["019a4b00-0000-7000-8000-000000000003"],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000003",
+          "row": {
+            "title": "Fix the tap",
+            "project_id": "019a4b00-0000-7000-8000-000000000001",
+            "section_id": "019a4b00-0000-7000-8000-000000000002",
+            "parent_id": null,
+            "priority": 2,
+            "due_date": "2026-11-04",
+            "estimate_minutes": 30,
+            "created_at": 1793664000,
+            "completed_at": null,
+            "position": 1,
+            "someday": false,
+            "rollover_count": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "createTask",
+      "args": {
+        "input": {
+          "title": "Buy a washer",
+          "notes": "",
+          "projectId": "019a4b00-0000-7000-8000-000000000001",
+          "sectionId": "019a4b00-0000-7000-8000-000000000002",
+          "parentId": "019a4b00-0000-7000-8000-000000000003",
+          "priority": 4,
+          "dueDate": null,
+          "dueTime": null,
+          "deadline": null,
+          "recurrence": null,
+          "estimateMinutes": null
+        }
+      },
+      "ids": ["019a4b00-0000-7000-8000-000000000004"],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000004",
+          "row": {
+            "parent_id": "019a4b00-0000-7000-8000-000000000003",
+            "project_id": "019a4b00-0000-7000-8000-000000000001",
+            "section_id": "019a4b00-0000-7000-8000-000000000002",
+            "position": 1,
+            "priority": 4
+          }
+        }
+      ]
+    },
+    {
+      "name": "updateTask",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-000000000003",
+        "input": {
+          "title": "Fix the tap",
+          "notes": "Under the sink",
+          "projectId": "019a4b00-0000-7000-8000-000000000001",
+          "sectionId": "019a4b00-0000-7000-8000-000000000002",
+          "parentId": null,
+          "priority": 1,
+          "dueDate": "2026-11-04",
+          "dueTime": null,
+          "deadline": null,
+          "recurrence": null,
+          "estimateMinutes": 45
+        }
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000003",
+          "row": {
+            "notes": "Under the sink",
+            "priority": 1,
+            "estimate_minutes": 45,
+            "due_date": "2026-11-04"
+          }
+        }
+      ]
+    },
+    {
+      "name": "setTaskNextStep",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-000000000003",
+        "nextStep": "Turn off the water"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000003",
+          "row": {
+            "next_step": "Turn off the water"
+          }
+        }
+      ]
+    },
+    {
+      "name": "setTaskMust",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-000000000003",
+        "mustOn": "2026-11-03"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000003",
+          "row": {
+            "must_on": "2026-11-03"
+          }
+        }
+      ]
+    },
+    {
+      "name": "createTask",
+      "args": {
+        "input": {
+          "title": "Call the plumber",
+          "notes": "",
+          "projectId": null,
+          "sectionId": null,
+          "parentId": null,
+          "priority": 4,
+          "dueDate": null,
+          "dueTime": null,
+          "deadline": null,
+          "recurrence": null,
+          "estimateMinutes": null
+        }
+      },
+      "ids": ["019a4b00-0000-7000-8000-000000000005"],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000005",
+          "row": {
+            "project_id": null,
+            "section_id": null,
+            "position": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "addTaskDependency",
+      "args": {
+        "taskId": "019a4b00-0000-7000-8000-000000000003",
+        "blockedById": "019a4b00-0000-7000-8000-000000000005"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "task_dependency",
+          "id": "f01584b1-69f1-566f-aa7b-e61429e2ebda",
+          "row": {
+            "task_id": "019a4b00-0000-7000-8000-000000000003",
+            "blocked_by_id": "019a4b00-0000-7000-8000-000000000005"
+          }
+        }
+      ]
+    },
+    {
+      "name": "createBlock",
+      "args": {
+        "taskId": "019a4b00-0000-7000-8000-000000000003",
+        "span": {
+          "startAt": 1793667600,
+          "endAt": 1793669400
+        }
+      },
+      "ids": ["019a4b00-0000-7000-8000-000000000006"],
+      "expect": [
+        {
+          "table": "time_block",
+          "id": "019a4b00-0000-7000-8000-000000000006",
+          "row": {
+            "task_id": "019a4b00-0000-7000-8000-000000000003",
+            "start_at": 1793667600,
+            "end_at": 1793669400
+          }
+        }
+      ]
+    },
+    {
+      "name": "startTimer",
+      "args": {
+        "details": {
+          "description": "",
+          "projectId": null,
+          "taskId": "019a4b00-0000-7000-8000-000000000003"
+        }
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "running_timer",
+          "id": "57c2fc55-03da-5686-881d-2bb8bf2afab8",
+          "row": {
+            "task_id": "019a4b00-0000-7000-8000-000000000003",
+            "project_id": "019a4b00-0000-7000-8000-000000000001",
+            "started_at": 1793664000,
+            "paused_at": null,
+            "banked_seconds": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "stopTimer",
+      "args": {},
+      "at": "2026-11-03T09:25:00+09:00",
+      "ids": ["019a4b00-0000-7000-8000-000000000007"],
+      "expect": [
+        {
+          "table": "time_entry",
+          "id": "019a4b00-0000-7000-8000-000000000007",
+          "row": {
+            "task_id": "019a4b00-0000-7000-8000-000000000003",
+            "project_id": "019a4b00-0000-7000-8000-000000000001",
+            "started_at": 1793664000,
+            "ended_at": 1793665500,
+            "description": ""
+          }
+        }
+      ],
+      "gone": [
+        {
+          "table": "running_timer",
+          "id": "57c2fc55-03da-5686-881d-2bb8bf2afab8"
+        }
+      ]
+    },
+    {
+      "name": "setTaskCompleted",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-000000000005",
+        "completed": true
+      },
+      "at": "2026-11-03T09:30:00+09:00",
+      "ids": [],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000005",
+          "row": {
+            "completed_at": 1793665800
+          }
+        }
+      ]
+    },
+    {
+      "name": "rateDay",
+      "args": {
+        "date": "2026-11-03",
+        "felt": 4
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "day",
+          "id": "e8fb19d0-15d9-5033-9355-82cb98356d4c",
+          "row": {
+            "date": "2026-11-03",
+            "felt": 4
+          }
+        }
+      ]
+    },
+    {
+      "name": "saveDayNote",
+      "args": {
+        "date": "2026-11-03",
+        "note": "A good day"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "day",
+          "id": "e8fb19d0-15d9-5033-9355-82cb98356d4c",
+          "row": {
+            "reflection": "A good day",
+            "felt": 4
+          }
+        }
+      ]
+    },
+    {
+      "name": "saveWeekNotes",
+      "args": {
+        "date": "2026-11-04",
+        "notes": {
+          "worked": "Mornings",
+          "fellShort": "Evenings",
+          "change": "Sleep"
+        }
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "week",
+          "id": "02d0c996-47c0-5e89-b4a8-266ff4070fcb",
+          "row": {
+            "start_date": "2026-11-02",
+            "worked": "Mornings",
+            "fell_short": "Evenings",
+            "change": "Sleep"
+          }
+        }
+      ]
+    },
+    {
+      "name": "upsertQuarter",
+      "args": {
+        "id": null,
+        "label": "Q4",
+        "startDate": "2026-10-05"
+      },
+      "ids": ["019a4b00-0000-7000-8000-000000000008"],
+      "expect": [
+        {
+          "table": "quarter",
+          "id": "019a4b00-0000-7000-8000-000000000008",
+          "row": {
+            "label": "Q4",
+            "start_date": "2026-10-05"
+          }
+        }
+      ]
+    },
+    {
+      "name": "createPriority",
+      "args": {
+        "quarterId": "019a4b00-0000-7000-8000-000000000008",
+        "title": "Health"
+      },
+      "ids": ["019a4b00-0000-7000-8000-000000000009"],
+      "expect": [
+        {
+          "table": "priority",
+          "id": "019a4b00-0000-7000-8000-000000000009",
+          "row": {
+            "quarter_id": "019a4b00-0000-7000-8000-000000000008",
+            "title": "Health",
+            "note": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "createOutcome",
+      "args": {
+        "date": "2026-11-04",
+        "title": "Dry floor",
+        "priorityId": "019a4b00-0000-7000-8000-000000000009"
+      },
+      "ids": ["019a4b00-0000-7000-8000-000000000064"],
+      "expect": [
+        {
+          "table": "outcome",
+          "id": "019a4b00-0000-7000-8000-000000000064",
+          "row": {
+            "week_start": "2026-11-02",
+            "title": "Dry floor",
+            "priority_id": "019a4b00-0000-7000-8000-000000000009",
+            "status": "open"
+          }
+        }
+      ]
+    },
+    {
+      "name": "createHabit",
+      "args": {
+        "input": {
+          "name": "Walk",
+          "kind": "build",
+          "goal": 1,
+          "unit": "times",
+          "days": 127,
+          "timeOfDay": "anytime",
+          "area": "",
+          "startDate": "2026-11-01",
+          "tracking": null,
+          "skipDays": 1,
+          "anchor": ""
+        }
+      },
+      "ids": ["019a4b00-0000-7000-8000-00000000000a"],
+      "expect": [
+        {
+          "table": "habit",
+          "id": "019a4b00-0000-7000-8000-00000000000a",
+          "row": {
+            "name": "Walk",
+            "kind": "build",
+            "goal": 1.0,
+            "days": 127,
+            "start_date": "2026-11-01",
+            "archived": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "setHabitStatus",
+      "args": {
+        "habitId": "019a4b00-0000-7000-8000-00000000000a",
+        "date": "2026-11-03",
+        "status": "done"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "habit_log",
+          "id": "20e8dcd8-32e8-5b9a-9f89-fefe884b2996",
+          "row": {
+            "habit_id": "019a4b00-0000-7000-8000-00000000000a",
+            "date": "2026-11-03",
+            "status": "done",
+            "source": "manual"
+          }
+        }
+      ]
+    },
+    {
+      "name": "createGroup",
+      "args": {
+        "name": "Life"
+      },
+      "ids": ["019a4b00-0000-7000-8000-00000000000b"],
+      "expect": [
+        {
+          "table": "project_group",
+          "id": "019a4b00-0000-7000-8000-00000000000b",
+          "row": {
+            "name": "Life",
+            "position": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "updateProjectSettings",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-000000000001",
+        "settings": {
+          "groupId": "019a4b00-0000-7000-8000-00000000000b",
+          "status": "active",
+          "outcome": "A dry kitchen",
+          "weeklyMinutes": 60,
+          "targetDate": "2026-12-01",
+          "killCriteria": "",
+          "reviewEveryWeeks": 2,
+          "inOrder": true
+        }
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "project",
+          "id": "019a4b00-0000-7000-8000-000000000001",
+          "row": {
+            "group_id": "019a4b00-0000-7000-8000-00000000000b",
+            "outcome": "A dry kitchen",
+            "weekly_minutes": 60,
+            "target_date": "2026-12-01",
+            "review_every_weeks": 2,
+            "in_order": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "saveProjectCanvas",
+      "args": {
+        "projectId": "019a4b00-0000-7000-8000-000000000001",
+        "content": "<p>Plan</p>"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "project_canvas",
+          "id": "3f62c797-8bb1-5d0d-8295-9ea3a3312bb4",
+          "row": {
+            "project_id": "019a4b00-0000-7000-8000-000000000001",
+            "content": "<p>Plan</p>",
+            "updated_at": 1793664000
+          }
+        }
+      ]
+    },
+    {
+      "name": "setRemindersEnabled",
+      "args": {
+        "enabled": false
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "setting",
+          "id": "661afcd3-4d5c-52a7-85dc-29166138c506",
+          "row": {
+            "key": "reminders_enabled",
+            "value": "off"
+          }
+        }
+      ]
+    },
+    {
+      "name": "choosePlanningTime",
+      "args": {
+        "time": "evening"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "setting",
+          "id": "17d6f138-3a96-5250-989f-2f832af7adf2",
+          "row": {
+            "key": "planning_time",
+            "value": "evening"
+          }
+        }
+      ]
+    },
+    {
+      "name": "createItemStatus",
+      "args": {
+        "projectId": "019a4b00-0000-7000-8000-000000000001",
+        "input": {
+          "name": "Doing",
+          "category": "active"
+        }
+      },
+      "ids": ["019a4b00-0000-7000-8000-00000000000c"],
+      "expect": [
+        {
+          "table": "item_status",
+          "id": "019a4b00-0000-7000-8000-00000000000c",
+          "row": {
+            "project_id": "019a4b00-0000-7000-8000-000000000001",
+            "name": "Doing",
+            "category": "active"
+          }
+        }
+      ]
+    },
+    {
+      "name": "setTaskStatusId",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-000000000003",
+        "statusId": "019a4b00-0000-7000-8000-00000000000c"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000003",
+          "row": {
+            "status_id": "019a4b00-0000-7000-8000-00000000000c",
+            "status_changed_at": 1793664000,
+            "completed_at": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "startRitual",
+      "args": {
+        "kind": "evening",
+        "taskId": null
+      },
+      "ids": ["019a4b00-0000-7000-8000-00000000000d"],
+      "expect": [
+        {
+          "table": "ritual_run",
+          "id": "019a4b00-0000-7000-8000-00000000000d",
+          "row": {
+            "kind": "evening",
+            "date": "2026-11-03",
+            "started_at": 1793664000,
+            "finished_at": null,
+            "step": 0,
+            "skipped": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "moveTask",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-000000000005",
+        "placement": {
+          "projectId": "019a4b00-0000-7000-8000-000000000001",
+          "sectionId": null,
+          "parentId": null,
+          "before": null
+        }
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000005",
+          "row": {
+            "project_id": "019a4b00-0000-7000-8000-000000000001",
+            "section_id": null,
+            "parent_id": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "rescheduleTasks",
+      "args": {
+        "ids": ["019a4b00-0000-7000-8000-000000000003"],
+        "dueDate": "2026-11-05"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000003",
+          "row": {
+            "due_date": "2026-11-05",
+            "rollover_count": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "setSectionCollapsed",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-000000000002",
+        "collapsed": true
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "section",
+          "id": "019a4b00-0000-7000-8000-000000000002",
+          "row": {
+            "collapsed": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "deleteTask",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-000000000004"
+      },
+      "ids": [],
+      "expect": [],
+      "gone": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000004"
+        }
+      ]
+    },
+    {
+      "name": "importLocal",
+      "args": {
+        "data": {
+          "tables": [
+            {
+              "table": "project_group",
+              "rows": [
+                {
+                  "id": "019a4b00-0000-7000-8000-0000000000c8",
+                  "name": "life",
+                  "position": 5
+                }
+              ]
+            },
+            {
+              "table": "project",
+              "rows": [
+                {
+                  "id": "019a4b00-0000-7000-8000-0000000000c9",
+                  "name": "Garden",
+                  "color": "green",
+                  "group_id": "019a4b00-0000-7000-8000-0000000000c8",
+                  "archived": 0,
+                  "in_order": 1,
+                  "position": 2
+                }
+              ]
+            },
+            {
+              "table": "day",
+              "rows": [
+                {
+                  "id": "019a4b00-0000-7000-8000-0000000000cb",
+                  "date": "2026-11-04",
+                  "felt": 5,
+                  "skipped": 0
+                }
+              ]
+            },
+            {
+              "table": "task",
+              "rows": [
+                {
+                  "id": "019a4b00-0000-7000-8000-0000000000ca",
+                  "title": "Plant",
+                  "project_id": "019a4b00-0000-7000-8000-0000000000c9",
+                  "created_at": 1793664000,
+                  "someday": 1,
+                  "position": 1
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "project_group",
+          "id": "019a4b00-0000-7000-8000-00000000000b",
+          "row": {
+            "name": "life",
+            "position": 5
+          }
+        },
+        {
+          "table": "project",
+          "id": "019a4b00-0000-7000-8000-0000000000c9",
+          "row": {
+            "group_id": "019a4b00-0000-7000-8000-00000000000b",
+            "archived": false,
+            "in_order": true,
+            "position": 2
+          }
+        },
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-0000000000ca",
+          "row": {
+            "project_id": "019a4b00-0000-7000-8000-0000000000c9",
+            "someday": true,
+            "created_at": 1793664000
+          }
+        },
+        {
+          "table": "day",
+          "id": "27b9090d-8c1d-53d4-abc3-af197c28f27a",
+          "row": {
+            "felt": 5,
+            "skipped": false
+          }
+        }
+      ],
+      "gone": [
+        {
+          "table": "project_group",
+          "id": "019a4b00-0000-7000-8000-0000000000c8"
+        },
+        {
+          "table": "day",
+          "id": "019a4b00-0000-7000-8000-0000000000cb"
+        }
+      ]
+    }
+  ]
+}

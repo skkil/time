@@ -64,9 +64,18 @@ spotless {
 
 val openApiFile = rootProject.layout.projectDirectory.file("../shared/api/openapi.json")
 val storeDir = gradle.extra["storeDir"] as String
+val sharedFixtures =
+    files(
+        rootProject.layout.projectDirectory.dir("../shared/contract/src"),
+        rootProject.layout.projectDirectory.file("../shared/domain/src/quick-add/repeat-phrases.json"),
+    )
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    inputs
+        .files(sharedFixtures)
+        .withPropertyName("sharedFixtures")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
     systemProperty("openapi.file", openApiFile.asFile.absolutePath)
     systemProperty("store.dir", storeDir)
     providers.systemProperty("openapi.write").orNull?.let { systemProperty("openapi.write", it) }
