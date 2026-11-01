@@ -252,8 +252,10 @@ cargo clippy --all-targets -- -D warnings
   refreshed. `SyncService` runs a worker thread that pushes then pulls with
   `skkil-store-http` on start, after writes (1.5 s debounce), on pokes, on
   window focus and every 60 s, backing off on failures (`sync/schedule.rs`,
-  pure and tested); sync tokens come from `POST /api/v1/sync/token`. It
-  emits `sync-status` and `remote-change`. Server URL, issuer, client id and
+  pure and tested); the account's scope comes from `scopeId` in
+  `GET /api/v1/me` and sync tokens from `POST /api/v1/sync/token`. The first
+  sign-in uploads the device's rows as one `importLocal` mutation (rules in
+  the decision record's "First sign-in"). It emits `sync-status` and `remote-change`. Server URL, issuer, client id and
   audience are device settings defaulting to `SKKIL_SERVER_URL`,
   `SKKIL_AUTH_AUTHORITY`, `SKKIL_AUTH_CLIENT_ID` and `SKKIL_AUTH_AUDIENCE` at
   build time. Its commands are a second specta builder exported to
@@ -341,10 +343,15 @@ cargo clippy --all-targets -- -D warnings
   `MutationClock` and `IdGenerator` of the operation); use
   `caller.now()`/`caller.today()` wherever desktop uses local time, never
   `Instant.now()` (a test enforces it).
-- Every `mutations` entry of `apps/shared/contract/src/commands.json` is
-  registered in `features/mutations`
+- Every `mutations` and `syncMutations` entry of
+  `apps/shared/contract/src/commands.json` is registered in
+  `features/mutations`
   (`MutationDispatcher.dispatch(caller, name, args, clock, idSource)`) and
   nothing else is; `MutationCoverageTest` checks names and parameters.
+  Arguments take `0`/`1` for booleans. `natural-keys.json` and
+  `mutation-vectors.json` beside it are read by the Rust and Kotlin tests
+  alike, so ids and rows can't drift; extend the vectors when a mutation
+  changes.
 - The server is a store product (`features/sync`, store pinned by the root
   `STORE_VERSION`, adapter-jvm through a Gradle composite build from
   `STORE_DIR`, default `../store`). Store's SQL is copied as `V9`, `V10`,

@@ -129,12 +129,19 @@ signed out, and waits for that account.
 
 ## First sign-in
 
+The desktop learns the account's scope from `scopeId` in `GET /api/v1/me`
+after the OIDC sign-in (a public client with PKCE and a loopback redirect;
+see `docs/deployment.md`).
+
 `sign_in(scope)` returns `Synced` (already this account), `Uploading`
 (first sign-in) or `OtherAccount` (bound to another scope; nothing happens
 until the user picks `keep_local` or `start_fresh`). Uploading:
 
 1. `data::dump` copies every synced row (default rituals left out) into
-   `device_setting.sync_upload`.
+   `device_setting.sync_upload`. When the device was bound to another
+   account (`keep_local`), every row first takes a new id and every
+   reference follows (`LocalData::with_new_ids`): that account still owns
+   the old ids, and the server refuses to overwrite another account's rows.
 2. `forget`, `bind_scope(scope)`, then the account's default rituals are
    seeded with their scope-derived ids outside capture.
 3. One `importLocal` mutation (`{"data": {"tables": [{"table", "rows"}]}}`,
@@ -144,7 +151,59 @@ until the user picks `keep_local` or `start_fresh`). Uploading:
    the next open.
 
 `importLocal` is listed under `syncMutations` in `commands.json`: a
-mutation with no contract command, which the server must implement.
+mutation with no contract command, which both registries implement
+(`time_core::data::import`, the server's `LocalImportService`) with the same
+rules. Store applies it once like any mutation, and the server's capture
+logs every row it writes.
+
+- Rows are SQLite-shaped: column names as in the tables, booleans as `0`/`1`
+  or `true`/`false`, dates `yyyy-MM-dd`. Tables go in `SYNCED_TABLES` order
+  and a table's rows parents first. A table that doesn't sync (including
+  the server's own `user_preference`) is refused, and so is a row without a
+  uuid `id`. Columns the receiver doesn't keep are ignored; `user_id` is
+  never read from a row. The server also refuses a value of the wrong type.
+- A natural-key row takes its key's id in the account, whatever id it
+  arrived with (the device sends it already re-keyed).
+- A row whose id another account owns is refused (`conflict`, "That id is
+  already taken."). A row whose id the account has takes the uploaded
+  values.
+- Otherwise, a row whose natural key another of the account's rows holds
+  merges into that row: it keeps the account's id, takes the uploaded
+  values, and every later uploaded reference to the uploaded id follows
+  it. The keys (`NATURAL_KEYS` in `data/tables.rs`, `LocalTables.kt`) are
+  the natural-key tables above plus a group's name (ignoring case), a
+  quarter's start date and the `external_id` of imported projects,
+  sections and tasks. Without this, an account that already had the
+  device's quarter or group would reject the whole upload and the device
+  would lose the rows it had just forgotten.
+- Anything else is inserted with the id the device chose.
+- Every reference must name a row of the account, uploaded or already
+  there; a dangling or foreign one is refused (`invalid`, "A task row
+  points at a project that isn't there.").
+
+So on an account that already has data, uploaded values win for rows they
+share (the same day's note, a customised ritual, a setting, the running
+timer) and everything else is added. A rejected upload is still lost to
+the device, so these rules only refuse what can't be merged safely.
+
+## Cross-language checks
+
+Three files under `apps/shared/contract/src` keep the two registries in
+step; the Rust and Kotlin tests both read them:
+
+- `commands.json`: every command's category. `MutationCoverageTest` fails on
+  a category it doesn't know, and the server registers exactly
+  `mutations` plus `syncMutations`.
+- `natural-keys.json`: `(kind, scope, parts) → name → id` vectors for every
+  natural key above, computed with Python's `uuid.uuid5`.
+- `mutation-vectors.json`: an ordered run of mutations (34 steps over 32 of
+  the 97 mutations, `importLocal` included) with fixed clocks and ids in a
+  fixed scope, each followed by the rows it must leave. Both sides replay it
+  from an empty account, so a rule, an id draw or a natural id that differs
+  fails the build. Extend it when a mutation changes.
+
+The server also accepts `0`/`1` wherever a mutation argument is a boolean,
+at any depth, since SQLite devices may send either.
 
 ## Seeded and natural-key ids
 
