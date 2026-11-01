@@ -2,8 +2,8 @@
 
 How the server, web and mobile apps run in production on AWS, following
 `../PLATFORM_PLAN.md`: one product section in `skkil.yml`, shared platform
-layers owning the infrastructure. The desktop app ships as a Tauri bundle and
-needs none of this.
+layers owning the infrastructure. The desktop app ships as a Tauri bundle; it
+needs only a sign-in client (below) to sync.
 
 ## Pieces
 
@@ -12,7 +12,7 @@ needs none of this.
 | API | `apps/server/Dockerfile` (`docker build --build-context store=../store apps/server`, store checked out at `STORE_VERSION`) | Container on the shared app host or ECS; port 8080 public, 8081 private |
 | Web | `apps/web/Dockerfile` (`docker build -f apps/web/Dockerfile apps`) | nginx container on port 8080, or the `dist/` folder on S3 + CloudFront |
 | Database | Postgres 17 (RDS) | Flyway migrates on API start; one database `time` |
-| Sign-in | Any OIDC provider (Auth0 per the platform plan) | One API, one SPA app, one native app |
+| Sign-in | Any OIDC provider (Auth0 per the platform plan) | One API, one SPA app, two native apps (mobile, desktop) |
 | Mobile | EAS builds | App Store and Play Store |
 
 ## Sign-in provider
@@ -25,6 +25,22 @@ Create, per environment:
    `https://<web host>/`, allowed web origin `https://<web host>`.
 3. A **native application** for mobile: Authorization Code + PKCE, refresh
    token rotation on, callback `skkiltime://auth`, logout `skkiltime://`.
+4. A **native application** for desktop, client id `time-desktop` (or the
+   build's `SKKIL_AUTH_CLIENT_ID`): a public client (no secret),
+   Authorization Code + PKCE (S256), refresh tokens on. The app receives the
+   code on an RFC 8252 loopback redirect, `http://127.0.0.1:<port>/callback`
+   with a port the OS picks per sign-in, so the provider must accept any port
+   on `127.0.0.1` for that path (RFC 8252 §7.3; Auth0 and Keycloak do for
+   native clients, others take a wildcard such as `http://127.0.0.1:*/callback`).
+   Builds point at it with `SKKIL_SERVER_URL`, `SKKIL_AUTH_AUTHORITY`,
+   `SKKIL_AUTH_CLIENT_ID` and `SKKIL_AUTH_AUDIENCE=time-api`; users can
+   change all four in Settings → Sync. After sign-in the desktop reads its
+   store scope from `GET /api/v1/me` (`scopeId`).
+
+Locally, `apps/server/compose.yaml` runs mock-oauth2-server as the issuer
+(`http://localhost:8090/default`): it accepts any client and redirect, signs
+`time-desktop` tokens for the `time-api` audience, and shows a login form
+where any subject signs in.
 
 Allow the scopes `openid profile email offline_access`. Moving to the skkil auth
 service later only changes `AUTH_ISSUER_URI` on the server and the authority
@@ -145,6 +161,7 @@ auth:
   clients:
     - { name: web, type: spa, callbacks: ["https://{host}/"] }
     - { name: mobile, type: native, callbacks: ["skkiltime://auth"] }
+    - { name: time-desktop, type: native, public: true, callbacks: ["http://127.0.0.1:*/callback"] }
 ```
 
 ## Release checklist
