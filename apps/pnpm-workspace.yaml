@@ -2,6 +2,7 @@ packages:
   - desktop
   - web
   - mobile
+  - core-native
   - shared/*
 
 overrides:
