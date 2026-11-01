@@ -11,6 +11,7 @@ import com.skkil.time.features.tasks.api.TaskDependency
 import com.skkil.time.features.time.domain.EntryDetails
 import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.Test
+import java.io.File
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -44,6 +45,68 @@ class NaturalIdsTest : TaskApiTest() {
     }
 
     @Test
+    fun `match the shared vectors the desktop checks too`() {
+        val vectors = mapper.readTree(File("../shared/contract/src/natural-keys.json"))["vectors"].values()
+        val kinds = mutableSetOf<String>()
+        for (vector in vectors) {
+            val kind = vector["kind"].asString()
+            val scope = vector.uuid("scope")
+            val parts = vector["parts"].values().map { it.asString() }
+            val expected = vector.uuid("id")
+            val built =
+                when (kind) {
+                    "setting" -> {
+                        NaturalIds.setting(scope, parts[0])
+                    }
+
+                    "project_canvas" -> {
+                        NaturalIds.projectCanvas(scope, UUID.fromString(parts[0]))
+                    }
+
+                    "week" -> {
+                        NaturalIds.week(scope, LocalDate.parse(parts[0]))
+                    }
+
+                    "day" -> {
+                        NaturalIds.day(scope, LocalDate.parse(parts[0]))
+                    }
+
+                    "task_dependency" -> {
+                        NaturalIds.taskDependency(scope, UUID.fromString(parts[0]), UUID.fromString(parts[1]))
+                    }
+
+                    "record_phase" -> {
+                        NaturalIds.recordPhase(scope, UUID.fromString(parts[0]), UUID.fromString(parts[1]))
+                    }
+
+                    "running_timer" -> {
+                        NaturalIds.runningTimer(scope)
+                    }
+
+                    "habit_log" -> {
+                        NaturalIds.habitLog(scope, UUID.fromString(parts[0]), LocalDate.parse(parts[1]))
+                    }
+
+                    "ritual" -> {
+                        NaturalIds.ritual(scope, parts[0])
+                    }
+
+                    "user_preference" -> {
+                        NaturalIds.userPreference(scope)
+                    }
+
+                    else -> {
+                        error("Unknown natural key kind $kind")
+                    }
+                }
+            assertEquals(expected, built, vector["name"].asString())
+            assertEquals(expected, UuidV5.of(scope, vector["name"].asString()))
+            kinds += kind
+        }
+        assertEquals(KINDS, kinds)
+    }
+
+    @Test
     fun `upserts by natural key name their rows by it, however often they run`() {
         val scope = scopeId()
         repeat(2) {
@@ -68,5 +131,22 @@ class NaturalIdsTest : TaskApiTest() {
             listOf(NaturalIds.taskDependency(scope, launch, copy)),
             ids("task_dependency", "task_id = '$launch'"),
         )
+    }
+
+    private companion object {
+        /** Every natural key of the decision record's table. */
+        val KINDS =
+            setOf(
+                "setting",
+                "project_canvas",
+                "week",
+                "day",
+                "task_dependency",
+                "record_phase",
+                "running_timer",
+                "habit_log",
+                "ritual",
+                "user_preference",
+            )
     }
 }
