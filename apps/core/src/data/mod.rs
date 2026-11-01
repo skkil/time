@@ -8,5 +8,5 @@ mod tests;
 mod wipe;
 
 pub use local::{LocalData, TableRows, dump, import};
-pub use tables::{ID_COLUMN, SYNCED_TABLES, is_synced};
+pub use tables::{ID_COLUMN, NATURAL_KEYS, REFERENCES, SYNCED_TABLES, is_synced};
 pub use wipe::delete_all;

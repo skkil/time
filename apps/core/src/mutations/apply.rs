@@ -355,7 +355,7 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
 
         "restoreTasks" => out(undo::restore(conn, env, &a.get("snapshot")?)?),
         "deleteAllData" => out(data::delete_all(conn)?),
-        "importLocal" => out(data::import(conn, &a.get("data")?)?),
+        "importLocal" => out(data::import(conn, env, &a.get("data")?)?),
 
         "importProjects" => out(imports::import(conn, env, &a.get::<Vec<_>>("projects")?)?),
         "setRemindersEnabled" => out(reminders::set_enabled(conn, env, a.get("enabled")?)?),

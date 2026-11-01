@@ -1,14 +1,14 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use rusqlite::types::Value as SqlValue;
-use rusqlite::{Connection, params, params_from_iter};
+use rusqlite::{Connection, OptionalExtension, params, params_from_iter};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Number, Value};
 
-use super::tables::{ID_COLUMN, SYNCED_TABLES};
+use super::tables::{ID_COLUMN, NATURAL_KEYS, REFERENCES, SYNCED_TABLES};
 use uuid::Uuid;
 
-use crate::env::NaturalKey;
+use crate::env::{MutationEnv, NaturalKey};
 use crate::error::{Error, Result};
 use crate::rituals::DEFAULTS;
 use crate::types::{Date, Id};
@@ -50,6 +50,41 @@ impl LocalData {
         }
         self
     }
+
+    /// Gives every row a new id and points every reference at the new ids:
+    /// rows that belonged to another account keep none of its ids, which
+    /// the server refuses to overwrite. Natural-key rows take their account
+    /// ids afterwards, from [`Self::with_seed_ids`].
+    pub fn with_new_ids(mut self) -> Self {
+        let mut renamed: HashMap<(String, String), String> = HashMap::new();
+        for table in &mut self.tables {
+            for row in &mut table.rows {
+                if let Some(Value::String(old)) = row.get(ID_COLUMN) {
+                    let new = Uuid::now_v7().to_string();
+                    renamed.insert((table.table.clone(), old.clone()), new.clone());
+                    row.insert(ID_COLUMN.to_owned(), Value::String(new));
+                }
+            }
+        }
+        for table in &mut self.tables {
+            for row in &mut table.rows {
+                for (_, column, target) in references_of(&table.table) {
+                    if let Some(Value::String(old)) = row.get(*column)
+                        && let Some(new) = renamed.get(&((*target).to_owned(), old.clone()))
+                    {
+                        row.insert((*column).to_owned(), Value::String(new.clone()));
+                    }
+                }
+            }
+        }
+        self
+    }
+}
+
+fn references_of(
+    table: &str,
+) -> impl Iterator<Item = &'static (&'static str, &'static str, &'static str)> {
+    REFERENCES.iter().filter(move |(from, _, _)| *from == table)
 }
 
 fn keyed_id(table: &str, row: &Map<String, Value>, scope: Uuid) -> Option<Id> {
@@ -118,11 +153,9 @@ fn at_default(row: &Map<String, Value>) -> bool {
 
 /// The column through which a table's rows point at other rows of it.
 fn self_reference(table: &str) -> Option<&'static str> {
-    match table {
-        "project" | "task" => Some("parent_id"),
-        "outcome" => Some("carried_from"),
-        _ => None,
-    }
+    references_of(table)
+        .find(|(_, _, target)| *target == table)
+        .map(|(_, column, _)| *column)
 }
 
 /// `rows` reordered so a row comes after the row it points at.
@@ -196,30 +229,85 @@ fn local_columns(conn: &Connection, table: &str) -> Result<HashSet<String>> {
         .collect::<rusqlite::Result<_>>()?)
 }
 
-fn upsert(conn: &Connection, table: &str, row: &[(&String, &Value)]) -> Result<()> {
-    let columns: Vec<String> = row.iter().map(|(name, _)| format!("\"{name}\"")).collect();
+fn exists(conn: &Connection, table: &str, id: &str) -> Result<bool> {
+    Ok(conn
+        .query_row(
+            &format!("SELECT 1 FROM {table} WHERE id = ?1"),
+            params![id],
+            |_| Ok(()),
+        )
+        .optional()?
+        .is_some())
+}
+
+/// The id of the row that already holds `row`'s natural key, if any.
+fn holder(conn: &Connection, table: &str, row: &Map<String, Value>) -> Result<Option<String>> {
+    let Some((_, columns)) = NATURAL_KEYS.iter().find(|(name, _)| *name == table) else {
+        return Ok(None);
+    };
+    let values: Option<Vec<SqlValue>> = columns
+        .iter()
+        .map(|column| {
+            row.get(*column)
+                .filter(|value| !value.is_null())
+                .map(to_sql)
+        })
+        .collect();
+    let Some(values) = values else {
+        return Ok(None);
+    };
+    let filter = columns
+        .iter()
+        .enumerate()
+        .map(|(index, column)| format!(" AND \"{column}\" = ?{}", index + 1))
+        .collect::<String>();
+    Ok(conn
+        .query_row(
+            &format!("SELECT id FROM {table} WHERE 1 = 1{filter} LIMIT 1"),
+            params_from_iter(values),
+            |row| row.get(0),
+        )
+        .optional()?)
+}
+
+fn upsert(conn: &Connection, table: &str, row: &Map<String, Value>) -> Result<()> {
+    let columns: Vec<String> = row.keys().map(|name| format!("\"{name}\"")).collect();
     let slots = vec!["?"; columns.len()].join(", ");
     let updates = columns
         .iter()
         .filter(|column| column.as_str() != "\"id\"")
         .map(|column| format!("{column} = excluded.{column}"))
-        .collect::<Vec<_>>()
-        .join(", ");
+        .collect::<Vec<_>>();
+    let action = if updates.is_empty() {
+        "NOTHING".to_owned()
+    } else {
+        format!("UPDATE SET {}", updates.join(", "))
+    };
     conn.execute(
         &format!(
-            "INSERT INTO {table} ({}) VALUES ({slots}) ON CONFLICT DO UPDATE SET {updates}",
+            "INSERT INTO {table} ({}) VALUES ({slots}) ON CONFLICT(id) DO {action}",
             columns.join(", ")
         ),
-        params_from_iter(row.iter().map(|(_, value)| to_sql(value))),
+        params_from_iter(row.values().map(to_sql)),
     )?;
     Ok(())
 }
 
-/// `importLocal`: writes an uploaded copy of a device's rows, parents
-/// first. A row whose id or natural key (a date, a setting key, a ritual
-/// kind) already exists takes the uploaded values. Columns this database
-/// doesn't have are ignored; tables it doesn't sync are refused.
-pub fn import(conn: &Connection, data: &LocalData) -> Result<()> {
+/// `importLocal`: writes an uploaded copy of a device's rows into the
+/// account, table by table in [`SYNCED_TABLES`] order and parents first.
+///
+/// - Tables that don't sync are refused, and so is a row without an id.
+///   Columns this database doesn't have are ignored.
+/// - In an account, a natural-key row (a ritual's kind, a day, a setting,
+///   …) takes its key's id there, whatever id it arrived with.
+/// - A row whose id exists takes the uploaded values. Otherwise a row whose
+///   natural key ([`NATURAL_KEYS`]: a group's name, a quarter's start, an
+///   imported row's external id, …) another row already holds merges into
+///   that row: it keeps its id, takes the uploaded values, and every later
+///   uploaded reference to the uploaded id follows it. Anything else is
+///   inserted with the id the device chose.
+/// - Every reference must name a row the account has, uploaded or not.
+pub fn import(conn: &Connection, env: &dyn MutationEnv, data: &LocalData) -> Result<()> {
     if let Some(unknown) = data
         .tables
         .iter()
@@ -230,18 +318,53 @@ pub fn import(conn: &Connection, data: &LocalData) -> Result<()> {
             unknown.table
         )));
     }
+    let mut merged: HashMap<(&str, String), String> = HashMap::new();
     for table in SYNCED_TABLES {
         let known = local_columns(conn, table)?;
         for rows in data.tables.iter().filter(|rows| rows.table == table) {
-            for row in parents_first(table, &rows.rows) {
-                if !row.get(ID_COLUMN).is_some_and(Value::is_string) {
+            for uploaded in parents_first(table, &rows.rows) {
+                let Some(sent) = uploaded
+                    .get(ID_COLUMN)
+                    .and_then(Value::as_str)
+                    .and_then(|id| Id::parse(id).ok())
+                else {
                     return Err(Error::invalid(format!("A {table} row has no id.")));
-                }
-                let fields: Vec<(&String, &Value)> = row
+                };
+                let mut row: Map<String, Value> = uploaded
                     .iter()
                     .filter(|(column, _)| known.contains(column.as_str()))
+                    .map(|(column, value)| (column.clone(), value.clone()))
                     .collect();
-                upsert(conn, table, &fields)?;
+                for (_, column, target) in references_of(table) {
+                    let Some(Value::String(value)) = row.get(*column) else {
+                        continue;
+                    };
+                    let value = merged
+                        .get(&(*target, value.clone()))
+                        .cloned()
+                        .unwrap_or_else(|| value.clone());
+                    if !exists(conn, target, &value)? {
+                        return Err(Error::invalid(format!(
+                            "A {table} row points at a {target} that isn't there."
+                        )));
+                    }
+                    row.insert((*column).to_owned(), Value::String(value));
+                }
+                let mut id = env
+                    .scope()
+                    .and_then(|scope| keyed_id(table, &row, scope))
+                    .unwrap_or_else(|| sent.clone())
+                    .to_string();
+                if !exists(conn, table, &id)?
+                    && let Some(holder) = holder(conn, table, &row)?
+                {
+                    id = holder;
+                }
+                if id != sent.as_str() {
+                    merged.insert((table, sent.to_string()), id.clone());
+                }
+                row.insert(ID_COLUMN.to_owned(), Value::String(id));
+                upsert(conn, table, &row)?;
             }
         }
     }
