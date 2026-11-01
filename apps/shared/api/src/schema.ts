@@ -2618,6 +2618,8 @@ export interface components {
       /** Format: int64 */
       id: number;
       timeZone: string;
+      /** Format: uuid */
+      scopeId: string;
     };
     HabitDay: {
       /** Format: uuid */

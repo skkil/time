@@ -6033,9 +6033,13 @@
           },
           "timeZone" : {
             "type" : "string"
+          },
+          "scopeId" : {
+            "type" : "string",
+            "format" : "uuid"
           }
         },
-        "required" : [ "id", "timeZone" ]
+        "required" : [ "id", "scopeId", "timeZone" ]
       },
       "HabitDay" : {
         "type" : "object",
