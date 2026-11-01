@@ -15,3 +15,5 @@ time:
     requests-per-minute: 100000
   push:
     reminders: false
+  sync:
+    baseline-on-start: false

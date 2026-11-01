@@ -25,10 +25,12 @@ data class AppProperties(
     /**
      * Sync through store: the store service's base URL handed to devices, and the ES256 key pair (PKCS#8 and SPKI
      * PEM) that signs sync tokens. Without keys, only the `dev` profile starts, with a key made at startup.
+     * [baselineOnStart] runs the baseline job when the server is ready.
      */
     data class Sync(
         val storeUrl: String = "http://localhost:8091",
         val tokenPrivateKeyPem: String = "",
         val tokenPublicKeyPem: String = "",
+        val baselineOnStart: Boolean = true,
     )
 }

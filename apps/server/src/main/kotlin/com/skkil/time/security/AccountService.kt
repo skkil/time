@@ -3,6 +3,7 @@ package com.skkil.time.security
 import com.skkil.time.common.clock.MutationClock
 import com.skkil.time.common.persistence.uuid
 import com.skkil.time.features.rituals.service.RitualDefaults
+import com.skkil.time.features.sync.service.BaselineService
 import com.skkil.time.features.sync.service.ServerWrites
 import org.skkil.store.writepath.StoreWritePath
 import org.springframework.jdbc.core.simple.JdbcClient
@@ -13,8 +14,9 @@ import java.time.ZoneId
 import java.util.UUID
 
 /**
- * Accounts and their store scopes. Provisioning seeds the default rows as one server write, and deleting an account
- * logs the deletes and then drops its scope with the log.
+ * Accounts and their store scopes. Provisioning seeds the default rows as one server write and marks the account
+ * baselined, since its log holds every row from the first; deleting an account logs the deletes and then drops its
+ * scope with the log.
  */
 @Service
 class AccountService(
@@ -22,6 +24,7 @@ class AccountService(
     private val rituals: RitualDefaults,
     private val writes: ServerWrites,
     private val writePath: StoreWritePath,
+    private val baselines: BaselineService,
     private val clock: MutationClock,
 ) {
     fun find(identity: Identity): Account? =
@@ -73,6 +76,7 @@ class AccountService(
             jdbc.sql("DELETE FROM app_user WHERE id = :id").param("id", id).update()
             return find(identity) ?: error("Identity vanished during provisioning")
         }
+        baselines.markNew(id)
         writes.run(scope) { rituals.seed(id, scope) }
         return Account(id, scope, ZoneId.of("UTC"))
     }

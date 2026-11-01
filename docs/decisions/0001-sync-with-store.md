@@ -75,6 +75,32 @@ The running timer is one row per account and syncs like any other row
 timer everywhere). Device-only state (zoom, layout, ActivityWatch source
 data) never syncs.
 
+## Baseline
+
+A device that pulls a scope from version 0 receives only what store's log
+holds. The server registered its tables in `V13`, so rows written before it,
+and rows `V15` re-keyed under `store.bypass`, were never logged. Each account
+is therefore baselined once: one server write that runs store's
+`store_capture_existing` over every registered table, filtered to the
+account (by `user_id`, or through the parent row for tables without one),
+parents before children, so every row reaches the log as an ordinary
+upsert. `sync_baseline` records the accounts whose log is complete and the
+version that baselined them.
+
+- `BaselineJob` baselines every account without a row when the server
+  starts and retries while any remain. An advisory lock per account lets
+  several instances run it at once without baselining an account twice.
+- Accounts created after `V17` are recorded at provisioning, with no
+  version: their log holds every row from the first.
+- A restore replaces the account's rows in one logged server write, then
+  bumps the scope's epoch (`store_bump_epoch`) and baselines again in the
+  same transaction. Every device resets and pulls from version 0 onto the
+  restored rows; device mutations still pending are kept and replayed, and
+  those naming ids the restore replaced are rejected.
+- A future migration that rewrites synced rows under `store.bypass` must
+  delete their accounts' `sync_baseline` rows, so the job captures them
+  again.
+
 ## Offline everywhere
 
 Desktop, web and mobile all run `time-core` over a local SQLite replica with
