@@ -4,12 +4,16 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
+    "@react-native-community/netinfo": "12.0.1",
+    "@skkil/store-client": "link:../../../store/modules/client-ts",
     "@skkil-time/api": "workspace:*",
     "@skkil-time/auth": "workspace:*",
     "@skkil-time/contract": "workspace:*",
+    "@skkil-time/core-native": "workspace:*",
     "@skkil-time/domain": "workspace:*",
-    "@skkil-time/remote": "workspace:*",
+    "@skkil-time/local": "workspace:*",
     "@skkil-time/tokens": "workspace:*",
+    "@ubjs/core": "0.31.0-6",
     "@tanstack/react-query": "^5.107.1",
     "date-fns": "^4.4.0",
     "expo": "~58.0.23",
@@ -18,6 +22,7 @@
     "expo-crypto": "~58.0.7",
     "expo-font": "~58.0.11",
     "expo-device": "~58.0.5",
+    "expo-file-system": "~58.0.13",
     "expo-haptics": "~58.0.7",
     "expo-linking": "~58.0.16",
     "expo-notifications": "~58.1.8",
@@ -31,7 +36,8 @@
     "react-native": "0.88.1",
     "react-native-gesture-handler": "~3.3.0",
     "react-native-safe-area-context": "~5.11.1",
-    "react-native-screens": "~4.30.1"
+    "react-native-screens": "~4.30.1",
+    "uniffi-bindgen-react-native": "0.31.0-6"
   },
   "devDependencies": {
     "@skkil-time/tooling": "workspace:*",
@@ -47,7 +53,7 @@
     "ios": "expo run:ios",
     "lint": "eslint .",
     "compile": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "doctor": "expo-doctor",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

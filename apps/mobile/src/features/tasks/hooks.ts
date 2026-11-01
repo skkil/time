@@ -1,8 +1,8 @@
 import type { Id, TaskInput } from '@skkil-time/contract';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-import { commands } from '@/core/api/client';
 import { keys } from '@/core/api/query-client';
+import { commands } from '@/core/local/backend';
 
 export const useTasks = () =>
   useQuery({ queryKey: keys.tasks, queryFn: commands.listTasks });

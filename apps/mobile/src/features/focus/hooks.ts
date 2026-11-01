@@ -2,8 +2,8 @@ import type { Id } from '@skkil-time/contract';
 import type { DateKey } from '@skkil-time/domain/time';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-import { commands } from '@/core/api/client';
 import { keys } from '@/core/api/query-client';
+import { commands } from '@/core/local/backend';
 
 export const useTimer = () =>
   useQuery({

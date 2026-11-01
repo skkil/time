@@ -12,8 +12,8 @@ import { Link } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { commands } from '@/core/api/client';
 import { useSession } from '@/core/auth/session';
+import { commands } from '@/core/local/backend';
 import { initialOf, useDisplayName } from '@/features/account/profile';
 import { useProjects } from '@/features/projects/hooks';
 import { AddButton } from '@/features/tasks/components/AddButton';

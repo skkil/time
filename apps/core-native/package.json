@@ -46,6 +46,7 @@
     "react-native": "*"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.13",
     "@skkil-time/tooling": "workspace:*",
     "eslint": "^10.14.0",
     "prettier": "^3.9.10",

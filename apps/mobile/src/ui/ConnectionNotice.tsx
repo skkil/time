@@ -3,14 +3,26 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { isDown, subscribeConnection } from '@/core/realtime/connection-status';
+import { useSyncView } from '@/core/sync/use-sync';
 import { radius, spacing, type } from '@/ui/theme';
 
+const SHOW_AFTER_MS = 5_000;
+
+/** Says so, calmly, when sync has been offline for a while with changes waiting. */
 export function ConnectionNotice() {
   const insets = useSafeAreaInsets();
-  const [unreachable, setUnreachable] = useState(isDown);
-  useEffect(() => subscribeConnection(setUnreachable), []);
-  if (!unreachable) return null;
+  const { phase, pending } = useSyncView();
+  const offline = phase === 'offline' && pending > 0;
+  const [lasting, setLasting] = useState(false);
+  useEffect(() => {
+    if (!offline) return;
+    const timer = setTimeout(() => setLasting(true), SHOW_AFTER_MS);
+    return () => {
+      clearTimeout(timer);
+      setLasting(false);
+    };
+  }, [offline]);
+  if (!offline || !lasting) return null;
 
   return (
     <View
@@ -20,7 +32,8 @@ export function ConnectionNotice() {
     >
       <Ionicons name="cloud-offline-outline" size={16} color="#fff" />
       <Text style={[type.small, styles.text]}>
-        Can’t reach skkil time. Changes won’t save until you’re back online.
+        Offline. Your changes are saved on this phone and sync when you’re back
+        online.
       </Text>
     </View>
   );

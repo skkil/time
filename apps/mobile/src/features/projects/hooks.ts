@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { commands } from '@/core/api/client';
 import { keys } from '@/core/api/query-client';
+import { commands } from '@/core/local/backend';
 
 export const useProjects = () =>
   useQuery({ queryKey: keys.projects, queryFn: commands.listProjects });
