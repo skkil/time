@@ -10,13 +10,16 @@ import {
   View,
 } from 'react-native';
 
-import { auth, commands, deleteAccount } from '@/core/api/client';
+import { deleteAccount, signOut } from '@/core/auth/account';
 import { useSession } from '@/core/auth/session';
+import { commands } from '@/core/local/backend';
 import {
   disableReminders,
   enableReminders,
   remindersAllowed,
 } from '@/core/notifications/reminders';
+import { useSyncView } from '@/core/sync/use-sync';
+import { SyncSettings } from '@/features/account/components/SyncSettings';
 import { useDisplayName } from '@/features/account/profile';
 import { Group } from '@/ui/Group';
 import { Button } from '@/ui/States';
@@ -74,10 +77,30 @@ function Reminders() {
 const LEGAL_URL =
   process.env.EXPO_PUBLIC_LEGAL_URL ?? 'https://time.skkil.org/legal';
 
+const signOutFailed = () =>
+  Alert.alert('Couldn’t sign out', 'You’re still signed in. Try again.');
+
 export function SettingsScreen() {
   const theme = useTheme();
   const { session } = useSession();
   const name = useDisplayName();
+  const { pending } = useSyncView();
+
+  const confirmSignOut = () => {
+    if (pending === 0) return void signOut().catch(signOutFailed);
+    Alert.alert(
+      'Sign out?',
+      `${pending === 1 ? '1 change hasn’t' : `${pending} changes haven’t`} synced yet. Signing out removes them from this phone.`,
+      [
+        { text: 'Stay signed in', style: 'cancel' },
+        {
+          text: 'Sign out',
+          style: 'destructive',
+          onPress: () => void signOut().catch(signOutFailed),
+        },
+      ],
+    );
+  };
 
   const confirmDelete = () =>
     Alert.alert(
@@ -122,14 +145,11 @@ export function SettingsScreen() {
           </Text>
         </View>
       </Group>
+      <SyncSettings />
       <Group title="Notifications">
         <Reminders />
       </Group>
-      <Button
-        label="Sign out"
-        tone="secondary"
-        onPress={() => void auth.signOut()}
-      />
+      <Button label="Sign out" tone="secondary" onPress={confirmSignOut} />
       <Button
         label="Privacy and terms"
         tone="secondary"

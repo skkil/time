@@ -15,7 +15,7 @@ import {
   View,
 } from 'react-native';
 
-import { commands } from '@/core/api/client';
+import { commands } from '@/core/local/backend';
 import { useTimerActions } from '@/features/focus/hooks';
 import { useProjects } from '@/features/projects/hooks';
 import {

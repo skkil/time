@@ -10,7 +10,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { queryClient } from '@/core/api/query-client';
 import { SessionProvider, useSession } from '@/core/auth/session';
 import { useReminders } from '@/core/notifications/reminders';
-import { useRealtime } from '@/core/realtime/use-realtime';
+import { useSync } from '@/core/sync/use-sync';
+import { useAccountChoice } from '@/features/account/account-choice';
 import { SelectionProvider } from '@/features/tasks/selection';
 import { ConnectionNotice } from '@/ui/ConnectionNotice';
 import { useTheme } from '@/ui/theme';
@@ -24,7 +25,8 @@ AppState.addEventListener('change', (status) =>
 function Routes() {
   const theme = useTheme();
   const { session, loading } = useSession();
-  useRealtime(session !== null);
+  useSync(session !== null);
+  useAccountChoice();
   useReminders(session !== null);
   useEffect(() => {
     if (!loading) void SplashScreen.hideAsync();

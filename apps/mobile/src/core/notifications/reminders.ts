@@ -6,7 +6,8 @@ import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
-import { api, commands } from '@/core/api/client';
+import { api } from '@/core/api/client';
+import { commands } from '@/core/local/backend';
 
 const REMINDER_CHANNEL = 'reminders';
 
@@ -90,7 +91,7 @@ export function useReminders(signedIn: boolean) {
     const taskId: unknown = response?.notification.request.content.data?.taskId;
     if (
       !signedIn ||
-      typeof taskId !== 'number' ||
+      typeof taskId !== 'string' ||
       response?.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER
     )
       return;

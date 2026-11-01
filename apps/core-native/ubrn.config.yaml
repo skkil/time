@@ -1,0 +1,23 @@
+rust:
+  directory: .
+  manifestPath: Cargo.toml
+bindings:
+  cpp: cpp/generated
+  ts: src/native/generated
+  uniffiToml: ./uniffi.toml
+android:
+  directory: ./android
+  targets:
+    - arm64-v8a
+    - x86_64
+  apiLevel: 24
+ios:
+  directory: ./ios
+  targets:
+    - aarch64-apple-ios
+    - aarch64-apple-ios-sim
+  frameworkName: build/TimeCoreFramework
+turboModule:
+  cpp: cpp
+  ts: src/native
+  entrypoint: src/native/index.tsx

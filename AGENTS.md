@@ -2,10 +2,12 @@
 
 skkil/time is a personal planner: tasks, nested projects, time-blocking, time
 tracking, habits, and a weekly/quarterly review. The desktop app is
-local-first (one SQLite file, account optional). The web and mobile apps use the same
-model through `apps/server` (Postgres, one account per user). The desktop
-syncs with the server through the separate `../store` project once signed in
-(`docs/decisions/0001-sync-with-store.md`); signed out it stays fully local.
+local-first (one SQLite file, account optional). The web app uses the same
+model through `apps/server` (Postgres, one account per user); the mobile app
+runs `time-core` on the phone over its own SQLite file. Desktop and mobile
+sync with the server through the separate `../store` project once signed in
+(`docs/decisions/0001-sync-with-store.md`); a signed-out desktop stays fully
+local.
 
 Product docs live at the repo root (`IMPROVEMENTS.md`, `OPEN-LOOPS.md`,
 `REEVALUATION-SUNSAMA.md`), the spec under `.jennifer/`, and the design memory
@@ -113,6 +115,9 @@ server is its own Gradle project:
 - `apps/server/`: Kotlin Spring Boot API (see its README)
 - `apps/web/`: Vite + React web app, a thin shell like desktop
 - `apps/mobile/`: Expo React Native app
+- `apps/core-native/`: `time-core-native`, time-core behind a uniffi interface,
+  and `@skkil-time/core-native`, the React Native Turbo Module that
+  uniffi-bindgen-react-native generates from it
 - `apps/shared/*`: TypeScript packages; see `apps/shared/README.md`
   - `contract`: `bindings.ts` generated from Rust, the type contract for every app
   - `app`: the whole desktop/web UI, behind `Backend` and `Platform` ports
@@ -120,6 +125,7 @@ server is its own Gradle project:
   - `tokens`: colours and the sky; `pnpm generate` writes `tokens.css`
   - `api`: the server's `openapi.json`, generated types, typed fetch client
   - `remote`: the `Backend` over HTTP (`satisfies Backend`)
+  - `local`: the `Backend` over a local time-core engine (`createLocalBackend`)
   - `auth`: provider-neutral OIDC sign-in
   - `tooling`: the ESLint, Prettier and TypeScript configs every package uses
 
@@ -404,10 +410,32 @@ cargo clippy --all-targets -- -D warnings
   browser `Platform`: host, connection, live updates, account preferences) and
   `notifications/`; `main.tsx` only starts the app.
 - Mobile (`apps/mobile/`) is Expo Router. It shares `domain`, `tokens`,
-  `contract`, `api` and `remote`, not DOM components. `app/` holds routes
+  `contract`, `api` and `local`, not DOM components. `app/` holds routes
   only; screens, components and hooks live in `src/features/<name>/`,
   services in `src/core/`, shared UI in `src/ui/` (see its README).
-  `pnpm compile` and `npx expo export` check it.
+  `pnpm compile`, `pnpm test` and `npx expo export` check it.
   Screens pass `aside={<TaskAside />}` to `Screen` to show the task beside
-  the list on screens 768pt or wider (`ui/responsive.ts`); `useRealtime`
-  refetches on other devices' writes.
+  the list on screens 768pt or wider (`ui/responsive.ts`).
+- Mobile works offline: `commands` (`src/core/local/backend.ts`) is
+  `createLocalBackend` over `@skkil-time/core-native`, opened on
+  `<documents>/time.db` (`src/core/local/replica.ts`). The engine runs on its
+  own Rust thread: commands and account steps are async, store's
+  `CoreHandle` calls are synchronous (the driver's contract). The `api`
+  client is only for what the server alone does: sync tokens, `/me`, account
+  deletion, preferences, push devices.
+- Mobile sync (`src/core/sync/`) runs `@skkil/store-client` (linked from
+  `../store` at `STORE_VERSION`) with `expo/fetch` for the Pokes stream.
+  `controller.ts` binds the replica to the account (scope from `/me`
+  `scopeId`, else the `sub` of a token for a fresh client id), asks Keep this
+  data / Use the account's data when it holds another account's rows, and
+  pushes soon after every local write. `use-sync.ts` starts it while signed
+  in, restarts it on foreground and reconnect and pauses it in the
+  background; pulls refresh the queries. Signing out in Settings forgets the
+  replica; an expired sign-in keeps it. Settings → Sync shows pending
+  changes, last sync, Sync now and refused changes.
+- `apps/core-native`: `pnpm build:android` (cargo-ndk, NDK 30, arm64-v8a and
+  x86_64) builds the static libraries into `android/src/main/jniLibs` and
+  regenerates the committed bindings (`src/native`, `cpp`, `android`, `ios`,
+  `CoreNative.podspec`); `pnpm build:ios` needs macOS, `pnpm check:ios`
+  type-checks the iOS targets on Linux. Build the libraries before
+  `expo prebuild` / `expo run:*`.

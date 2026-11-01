@@ -7,6 +7,7 @@ import {
 import {
   AuthRequest,
   type DiscoveryDocument,
+  ResponseError,
   exchangeCodeAsync,
   fetchDiscoveryAsync,
   refreshAsync,
@@ -46,13 +47,24 @@ function claims(idToken: string | null): Session | null {
   }
 }
 
-/** The phone's sign-in: OIDC Authorization Code + PKCE in the system browser, tokens in the keychain. */
+/**
+ * The phone's sign-in: OIDC Authorization Code + PKCE in the system browser,
+ * tokens in the keychain. The session outlives the network: a refresh that
+ * fails offline keeps it, and only the issuer refusing the refresh token
+ * signs out.
+ */
 export function createNativeAuth(config: AuthConfig): Auth {
   const listeners = new Set<(session: Session | null) => void>();
   let discovery: Promise<DiscoveryDocument> | null = null;
   let refreshing: Promise<Tokens | null> | null = null;
 
-  const discover = () => (discovery ??= fetchDiscoveryAsync(config.authority));
+  const discover = () =>
+    (discovery ??= fetchDiscoveryAsync(config.authority).catch(
+      (error: unknown) => {
+        discovery = null;
+        throw error;
+      },
+    ));
   const read = async () => {
     const saved = await SecureStore.getItemAsync(STORE_KEY);
     return saved ? (JSON.parse(saved) as Tokens) : null;
@@ -93,8 +105,9 @@ export function createNativeAuth(config: AuthConfig): Auth {
         const next = fromResponse(response, tokens);
         await save(next);
         return next;
-      } catch {
-        await save(null);
+      } catch (error) {
+        if (!tokens.refreshToken || error instanceof ResponseError)
+          await save(null);
         return null;
       } finally {
         refreshing = null;
@@ -111,7 +124,7 @@ export function createNativeAuth(config: AuthConfig): Auth {
 
   return {
     async session() {
-      const tokens = await current();
+      const tokens = await read();
       return tokens
         ? (claims(tokens.idToken) ?? { subject: '', email: null, name: null })
         : null;

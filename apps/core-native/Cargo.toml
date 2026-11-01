@@ -1,0 +1,32 @@
+[package]
+name = "time-core-native"
+version = "0.1.0"
+description = "time-core and store-core for React Native, through uniffi-bindgen-react-native"
+authors = ["hyoungjoojin"]
+edition = "2024"
+
+[lib]
+name = "time_core_native"
+crate-type = ["staticlib", "rlib"]
+
+[features]
+default = ["bundled"]
+bundled = ["time-core/native"]
+
+[dependencies]
+futures-channel = "0.3"
+rusqlite = "0.41"
+serde_json = "1"
+thiserror = "2"
+time-core = { path = "../core", default-features = false }
+uniffi = "=0.31"
+
+[dev-dependencies]
+pollster = "0.4"
+prost = "0.14"
+tempfile = "3"
+
+[profile.release]
+lto = true
+opt-level = "s"
+codegen-units = 1

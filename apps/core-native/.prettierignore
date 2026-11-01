@@ -1,0 +1,8 @@
+src/native
+cpp
+android
+ios
+target
+build
+*.podspec
+Cargo.lock
