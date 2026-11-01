@@ -69,6 +69,10 @@ creates; grant the migrating role that right or create it beforehand.
 - Scaling: the API holds no state of its own; run two or more instances behind
   the load balancer. Realtime tickets live in Postgres, and
   change events reach every instance through Postgres `LISTEN/NOTIFY`.
+- Sync baseline: on its first start after `V17`, each instance runs
+  `BaselineJob`, which logs every older account's rows for store once (one
+  account per transaction, shared between instances by advisory locks). It
+  runs beside traffic and logs `Baselined N accounts`.
 - Websockets: `/api/v1/realtime` upgrades on the same port. Raise the load
   balancer's idle timeout above 30 s (the server pings every 25 s); no sticky
   sessions are needed. Behind RDS Proxy, `LISTEN` pins a connection, which is

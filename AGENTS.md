@@ -330,9 +330,15 @@ cargo clippy --all-targets -- -D warnings
   nothing else is; `MutationCoverageTest` checks names and parameters.
 - The server is a store product (`features/sync`, store pinned by the root
   `STORE_VERSION`, adapter-jvm through a Gradle composite build from
-  `STORE_DIR`, default `../store`). Store's SQL is copied as `V9`/`V10`
-  (a test compares them with the checkout) and every user table keyed by a
-  uuid is `store_register`ed, so a write outside the write path fails.
+  `STORE_DIR`, default `../store`). Store's SQL is copied as `V9`, `V10`,
+  `V14` and `V16` (a test compares them with the checkout) and every user
+  table keyed by a uuid is `store_register`ed, so a write outside the write
+  path fails. `BaselineJob` (`features/sync/job/`) logs each account's
+  unlogged rows once (`store_capture_existing` over `BASELINE_TABLES`,
+  parents first, one advisory lock per account) and records it in
+  `sync_baseline`; new accounts are recorded at creation, and a restore bumps
+  the scope's epoch and baselines again. A migration that rewrites synced
+  rows under `store.bypass` must clear those accounts' `sync_baseline` rows.
   Push (`/skkil.store.v1.PushService/Push`, API bearer) runs mutations
   through the dispatcher at the HLC with derived ids; a `DomainException`
   rejects. REST writes are server writes through `ServerWriteAspect`
