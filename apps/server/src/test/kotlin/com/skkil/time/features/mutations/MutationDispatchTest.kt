@@ -141,6 +141,50 @@ class MutationDispatchTest : TaskApiTest() {
     }
 
     @Test
+    fun `booleans arrive as JSON booleans or as the 1 and 0 of a SQLite device, at any depth`() {
+        val task = create(input("Call")).id()
+        assertEquals(
+            acted.epochSecond,
+            (dispatch("setTaskCompleted", mapOf("id" to task, "completed" to 1)) as Task).completedAt,
+        )
+        assertEquals(null, (dispatch("setTaskCompleted", mapOf("id" to task, "completed" to 0)) as Task).completedAt)
+        dispatch("setTasksSomeday", mapOf("ids" to listOf(task), "someday" to true))
+        assertEquals(true, task(task)["someday"].asBoolean())
+
+        val project = UUID.randomUUID()
+        dispatch("createProject", projectArgs("Thesis"), idSource = ids(project))
+        val settings =
+            mapOf(
+                "groupId" to null,
+                "status" to "active",
+                "outcome" to "",
+                "weeklyMinutes" to null,
+                "targetDate" to null,
+                "killCriteria" to "",
+                "reviewEveryWeeks" to 4,
+                "inOrder" to 1,
+            )
+        dispatch("updateProjectSettings", mapOf("id" to project, "settings" to settings))
+        assertEquals(true, getJson("/api/v1/projects").values().single { it.id() == project }["inOrder"].asBoolean())
+
+        for (wrong in listOf(2, "true", 1.0)) {
+            val refused = failure { dispatch("setTaskCompleted", mapOf("id" to task, "completed" to wrong)) }
+            assertEquals("The “completed” argument isn't valid.", refused.message)
+        }
+        val nested =
+            failure {
+                dispatch(
+                    "updateProjectSettings",
+                    mapOf(
+                        "id" to project,
+                        "settings" to settings + ("inOrder" to 5),
+                    ),
+                )
+            }
+        assertEquals("The “settings” argument isn't valid.", nested.message)
+    }
+
+    @Test
     fun `priorities and outcomes keep the order they were made in, whatever their ids`() {
         val high = UUID.fromString("ffffffff-ffff-7fff-bfff-ffffffffffff")
         val low = UUID.fromString("00000000-0000-7000-8000-000000000000")
