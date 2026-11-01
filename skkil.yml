@@ -182,6 +182,14 @@ ci:
       depends_on:
         - desktop-tauri
         - shared-api
+    - name: shared-local
+      dir: apps/shared/local
+      format: pnpm format:check
+      lint: pnpm check:generated && pnpm lint
+      test: pnpm test
+      build: pnpm compile
+      depends_on:
+        - desktop-tauri
     - name: shared-contract
       dir: apps/shared/contract
       format: pnpm format:check
