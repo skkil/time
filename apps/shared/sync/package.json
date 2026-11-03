@@ -1,0 +1,28 @@
+{
+  "name": "@skkil-time/sync",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Glue between time's server and store's sync driver: sync tokens, the account's scope and push headers",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "imports": {
+    "#*": "./src/*.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "compile": "tsc -b",
+    "test": "vitest run",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@skkil-time/tooling": "workspace:*",
+    "eslint": "^10.14.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.5"
+  },
+  "prettier": "@skkil-time/tooling/prettier"
+}

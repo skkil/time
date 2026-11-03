@@ -23,6 +23,12 @@ requires:
   - name: store checkout at STORE_VERSION
     check: test "$(git -C "${STORE_DIR:-../store}" describe --tags --exact-match 2>/dev/null)" = "$(cat STORE_VERSION)"
     hint: git -C ../store fetch --tags && git -C ../store checkout "$(cat STORE_VERSION)" (first time, clone the store repo with --branch "$(cat STORE_VERSION)" into ../store, or set STORE_DIR)
+  - name: wasm-bindgen-cli
+    check: wasm-bindgen --version | grep -q "$(sed -n 's/^wasm-bindgen = "=\(.*\)"$/\1/p' apps/core-wasm/Cargo.toml)"
+    hint: cargo install wasm-bindgen-cli --locked --version <the wasm-bindgen pin in apps/core-wasm/Cargo.toml>, and rustup target add wasm32-unknown-unknown
+  - name: store client build
+    check: test -f "${STORE_DIR:-../store}/modules/client-ts/dist/index.js"
+    hint: (cd "${STORE_DIR:-../store}/modules/client-ts" && pnpm install --frozen-lockfile && pnpm build); apps/web links it by path
   - name: Go
     check: command -v go
     hint: install Go 1.27 or later (builds store's conformance suite)
@@ -150,6 +156,14 @@ ci:
       lint: cargo clippy --all-targets --features specta -- -D warnings
       test: cargo test
       build: cargo build --target wasm32-unknown-unknown --no-default-features
+    - name: core-wasm
+      dir: apps/core-wasm
+      format: cargo fmt --check
+      lint: cargo clippy --all-targets -- -D warnings
+      test: cargo test
+      build: sh scripts/build.sh
+      depends_on:
+        - time-core
     - name: desktop-tauri
       dir: apps/desktop/src-tauri
       format: cargo fmt --check
@@ -202,6 +216,12 @@ ci:
     - name: shared-contract
       dir: apps/shared/contract
       format: pnpm format:check
+    - name: shared-sync
+      dir: apps/shared/sync
+      format: pnpm format:check
+      lint: pnpm lint
+      test: pnpm test
+      build: pnpm compile
     - name: shared-auth
       dir: apps/shared/auth
       format: pnpm format:check
@@ -221,7 +241,10 @@ ci:
       dir: apps/web
       format: pnpm format:check
       lint: pnpm lint
+      test: pnpm test
       build: pnpm build
+      depends_on:
+        - core-wasm
     - name: core-native
       dir: apps/core-native
       format: cargo fmt --check && pnpm format:check

@@ -23,8 +23,10 @@ const MESSAGES: Record<
 };
 
 /** A local-first device keeps saving; only syncing pauses. */
-const SYNC_SIGNED_OUT =
-  'Sync paused. Sign in again to keep your devices in step.';
+const LOCAL_FIRST: Partial<Record<ConnectionStatus, string>> = {
+  offline: 'You’re offline. Changes are kept here and sync when you’re back.',
+  signedOut: 'Sync paused. Sign in again to keep your devices in step.',
+};
 
 /** A quiet notice while the app can't save: offline, server down or signed out. */
 export function ConnectionNotice() {
@@ -34,7 +36,7 @@ export function ConnectionNotice() {
   const { icon: Icon, text: message } = MESSAGES[status];
   const { account, sync } = platform();
   const signIn = account?.signInAgain ?? sync?.signIn;
-  const text = status === 'signedOut' && sync ? SYNC_SIGNED_OUT : message;
+  const text = (sync && LOCAL_FIRST[status]) || message;
 
   return (
     <div

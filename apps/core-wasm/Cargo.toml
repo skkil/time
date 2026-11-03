@@ -1,0 +1,34 @@
+[package]
+name = "time-core-wasm"
+version = "0.1.0"
+description = "time-core and store-core in the browser: the sync Engine over SQLite on OPFS, through wasm-bindgen"
+authors = ["hyoungjoojin"]
+edition = "2024"
+publish = false
+
+[lib]
+name = "time_core_wasm"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+time-core = { path = "../core", default-features = false }
+rusqlite = "0.41"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde-wasm-bindgen = "0.6"
+wasm-bindgen = "=0.2.130"
+js-sys = "0.3"
+wasm-bindgen-futures = "0.4"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+sqlite-wasm-rs = { version = "0.6.2", default-features = false, features = ["wasm-bindgen"] }
+sqlite-wasm-vfs = { version = "0.3", features = ["sahpool"] }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.80"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"

@@ -1,19 +1,14 @@
-import { createApi, unwrap } from '@skkil-time/api';
 import { createWebAuth } from '@skkil-time/auth/web';
-import { createRemoteBackend } from '@skkil-time/remote';
 import { createRoot } from 'react-dom/client';
 import { config } from '~/app/config';
+import { startLocal } from '~/app/start-local';
+import { startRemote } from '~/app/start-remote';
 import { SignInPage } from '~/auth/SignInPage';
-import { setUpWebPush } from '~/notifications/web-push';
-import { createConnection } from '~/platform/connection';
-import { webHost } from '~/platform/host';
-import { createLiveUpdates } from '~/platform/live-updates';
-import { accountPreferences } from '~/platform/shared-preferences';
-import { webPlatform } from '~/platform/web-platform';
+import { EngineUnavailable } from '~/engine/client';
+import { startEngine } from '~/engine/start';
 
 import { syncColorScheme } from '@/hooks/use-color-scheme';
 import { claimPreferences } from '@/lib/preferences';
-import { mount } from '@/mount';
 
 const auth = createWebAuth(config.auth);
 
@@ -24,7 +19,11 @@ function showSignIn(error?: string) {
   );
 }
 
-/** Finishes any sign-in redirect, then shows the sign-in page or the app. */
+/**
+ * Finishes any sign-in redirect, then opens the app on this browser's offline database. Whoever signed in
+ * last can open it even offline or with expired tokens; syncing waits for a new sign-in. Browsers that
+ * can't keep the database fall back to the online-only server backend.
+ */
 export async function bootstrap() {
   let error: string | undefined;
   try {
@@ -33,35 +32,18 @@ export async function bootstrap() {
     error = 'Sign-in didn’t finish. Try again.';
   }
   const session = await auth.session();
-  if (!session) return showSignIn(error);
-  claimPreferences(session.subject);
+  const profile = session ?? (await auth.lastSession());
+  if (!profile) return showSignIn(error);
+  claimPreferences(profile.subject);
 
-  const host = webHost();
-  const connection = createConnection();
-  const api = createApi({
-    baseUrl: config.apiUrl,
-    getToken: auth.getToken,
-    clientId: host.clientId,
-    onUnauthorized: connection.signedOut,
-  });
-  const onRemoteChange = createLiveUpdates({
-    api,
-    baseUrl: config.apiUrl,
-    clientId: host.clientId,
-    onStatus: connection.realtime,
-  });
-  const notifications = await setUpWebPush(api);
-
-  mount({
-    backend: createRemoteBackend(api, host),
-    platform: webPlatform(auth, session, {
-      deleteAccount: async () => {
-        await unwrap(api.DELETE('/api/v1/me'));
-      },
-      preferences: accountPreferences(api),
-      notifications,
-      onConnectionChange: connection.subscribe,
-      onRemoteChange,
-    }),
-  });
+  const engine = startEngine(config.apiUrl, { accessToken: auth.getToken });
+  try {
+    await engine.ready;
+  } catch (failure) {
+    engine.stop();
+    if (!(failure instanceof EngineUnavailable)) throw failure;
+    if (!session) return showSignIn(failure.message);
+    return startRemote(auth, session, failure.message);
+  }
+  await startLocal(auth, engine, session, profile);
 }

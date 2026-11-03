@@ -207,6 +207,8 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
+  core-wasm: {}
+
   desktop:
     dependencies:
       '@skkil-time/app':
@@ -657,6 +659,24 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
+  shared/sync:
+    devDependencies:
+      '@skkil-time/tooling':
+        specifier: workspace:*
+        version: link:../tooling
+      eslint:
+        specifier: ^10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.5
+        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
+
   shared/tokens:
     devDependencies:
       '@skkil-time/tooling':
@@ -725,9 +745,21 @@ importers:
       '@skkil-time/contract':
         specifier: workspace:*
         version: link:../shared/contract
+      '@skkil-time/core-wasm':
+        specifier: workspace:*
+        version: link:../core-wasm
+      '@skkil-time/local':
+        specifier: workspace:*
+        version: link:../shared/local
       '@skkil-time/remote':
         specifier: workspace:*
         version: link:../shared/remote
+      '@skkil-time/sync':
+        specifier: workspace:*
+        version: link:../shared/sync
+      '@skkil/store-client':
+        specifier: link:../../../store/modules/client-ts
+        version: link:../../../store/modules/client-ts
       lucide-react:
         specifier: ^1.70.0
         version: 1.70.0(@types/react@19.3.0)(react@19.3.0)
@@ -737,6 +769,9 @@ importers:
       react-dom:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
+      sonner:
+        specifier: ^2.0.8
+        version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     devDependencies:
       '@babel/core':
         specifier: ^8.0.10

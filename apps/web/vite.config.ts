@@ -1,8 +1,15 @@
 import babel from '@rolldown/plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
+import { realpathSync } from 'node:fs';
 import { URL, fileURLToPath } from 'node:url';
-import { defineConfig } from 'vite';
+import { defineConfig, searchForWorkspaceRoot } from 'vite';
+
+import { shellFiles } from './shell-files.ts';
+
+const storeClient = realpathSync(
+  fileURLToPath(new URL('./node_modules/@skkil/store-client', import.meta.url)),
+);
 
 export default defineConfig({
   resolve: {
@@ -16,7 +23,14 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
+    shellFiles(),
   ],
-  server: { port: 5173, strictPort: true },
+  worker: { format: 'es' },
+  optimizeDeps: { exclude: ['@skkil-time/core-wasm'] },
+  server: {
+    port: 5173,
+    strictPort: true,
+    fs: { allow: [searchForWorkspaceRoot(process.cwd()), storeClient] },
+  },
   build: { sourcemap: true },
 });

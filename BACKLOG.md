@@ -132,7 +132,7 @@ Each item is one commit. Check it off when it lands.
 - [x] 9.4 Server: store write path, Push endpoint, sync tokens, every write
       logged
 - [ ] 9.5 Desktop: store-core replica, sign-in, Sync settings, issues list
-- [ ] 9.6 Web: time-core + store-core as WASM on OPFS, local backend
+- [x] 9.6 Web: time-core + store-core as WASM on OPFS, local backend
 - [ ] 9.7 Mobile: time-core + store-core through uniffi-bindgen-react-native
 - [ ] 9.8 Live updates from store's Pokes; conformance suite in CI;
       `STORE_VERSION` pin checked by `skkil doctor`

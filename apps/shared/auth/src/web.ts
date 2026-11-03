@@ -6,16 +6,21 @@ import {
 } from '#index';
 import { User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
 
-const toSession = (user: User | null): Session | null =>
-  user && !user.expired
-    ? {
-        subject: user.profile.sub,
-        email: user.profile.email ?? null,
-        name: user.profile.name ?? null,
-      }
-    : null;
+const profile = (user: User): Session => ({
+  subject: user.profile.sub,
+  email: user.profile.email ?? null,
+  name: user.profile.name ?? null,
+});
 
-export function createWebAuth(config: AuthConfig): Auth {
+const toSession = (user: User | null): Session | null =>
+  user && !user.expired ? profile(user) : null;
+
+export type WebAuth = Auth & {
+  /** Who last signed in on this browser, even when their tokens ran out; null after signing out. */
+  lastSession(): Promise<Session | null>;
+};
+
+export function createWebAuth(config: AuthConfig): WebAuth {
   const manager = new UserManager({
     authority: config.authority,
     client_id: config.clientId,
@@ -36,6 +41,10 @@ export function createWebAuth(config: AuthConfig): Auth {
 
   return {
     session: async () => toSession(await fresh()),
+    lastSession: async () => {
+      const user = await manager.getUser();
+      return user ? profile(user) : null;
+    },
     signIn: () => manager.signinRedirect(),
     signOut: async () => {
       await manager.removeUser();

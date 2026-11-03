@@ -33,8 +33,18 @@ export function useSyncIssues() {
   return useQuery({ queryKey: keys.issues, queryFn: () => sync().issues() });
 }
 
+const editable = () => {
+  const { config, saveConfig } = sync();
+  if (!config || !saveConfig)
+    throw new Error('This platform syncs with a fixed server');
+  return { config, saveConfig };
+};
+
 export function useSyncConfig() {
-  return useQuery({ queryKey: keys.config, queryFn: () => sync().config() });
+  return useQuery({
+    queryKey: keys.config,
+    queryFn: () => editable().config(),
+  });
 }
 
 function useRefreshingMutation<T>(run: (input: T) => Promise<void>) {
@@ -55,4 +65,4 @@ export const useChooseAccountData = () =>
     sync().chooseAccountData(choice),
   );
 export const useSaveSyncConfig = () =>
-  useRefreshingMutation((config: SyncConfig) => sync().saveConfig(config));
+  useRefreshingMutation((config: SyncConfig) => editable().saveConfig(config));

@@ -13,6 +13,7 @@ TypeScript packages the apps share. They are source-only workspace packages
 | `remote` (`@skkil-time/remote`)     | web, mobile  | The `Backend` over HTTP. It must `satisfies Backend`, so `tsc` fails when Kotlin and Rust types drift                 |
 | `local` (`@skkil-time/local`)       | web, mobile  | The `Backend` over a local time-core engine: mutations and reads by contract name, device-only commands from the host |
 | `auth` (`@skkil-time/auth`)         | web, mobile  | Provider-neutral sign-in interface; `auth/web` implements it with `oidc-client-ts`                                    |
+| `sync` (`@skkil-time/sync`)         | web, mobile  | Sync tokens (`createSyncAccount`, `syncTokens`), the account's store scope and push headers for `@skkil/store-client` |
 | `tooling` (`@skkil-time/tooling`)   | all          | The shared ESLint, Prettier and TypeScript configs                                                                    |
 
 Where a change lands:
