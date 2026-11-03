@@ -9,3 +9,4 @@ server
 .git
 .claude
 desktop/src-tauri
+core-wasm/pkg
