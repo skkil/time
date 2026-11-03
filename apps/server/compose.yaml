@@ -25,6 +25,7 @@ services:
       JSON_CONFIG: >-
         {"interactiveLogin": true, "tokenCallbacks": [{"issuerId": "default", "tokenExpiry": 3600,
         "requestMappings": [{"requestParam": "grant_type", "match": "client_credentials", "claims": {"sub": "$${clientId}", "aud": ["time-api"]}},
+        {"requestParam": "client_id", "match": "time-desktop", "claims": {"aud": ["time-api"], "azp": "time-desktop"}},
         {"requestParam": "client_id", "match": "*", "claims": {"aud": ["time-api"]}}]}]}
 
   store:

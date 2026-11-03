@@ -2,8 +2,6 @@ use serde::Deserialize;
 use serde_json::json;
 use time_core::sync::Uuid;
 
-use super::auth::claims;
-
 /// The server's answer to `POST /api/v1/sync/token`: a store token for
 /// Pull and Pokes, and where the two halves of the protocol live.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -14,13 +12,6 @@ pub struct SyncGrant {
     pub expires_at: i64,
     pub store_url: String,
     pub push_url: String,
-}
-
-impl SyncGrant {
-    /// The account the token is for: its `sub`, the store scope.
-    pub fn scope(&self) -> Option<Uuid> {
-        claims::decode(&self.token)?.sub?.parse().ok()
-    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -46,7 +37,7 @@ impl std::fmt::Display for ApiError {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Me {
-    scope_id: Option<Uuid>,
+    scope_id: Uuid,
 }
 
 fn endpoint(server_url: &str, path: &str) -> String {
@@ -86,21 +77,25 @@ pub fn sync_token(
         .map_err(|error| ApiError::Unavailable(error.to_string()))
 }
 
-/// The store scope of the signed-in account: `scopeId` from `/api/v1/me`
-/// when the server reports it, else the `sub` of a token issued for a
-/// fresh client id (a device bound to another account can't use its own).
+/// The store scope of the signed-in account: `scopeId` from `/api/v1/me`.
 pub fn scope_of(server_url: &str, access_token: &str) -> Result<Uuid, ApiError> {
-    let me = ureq::get(&endpoint(server_url, "/api/v1/me"))
+    let mut response = ureq::get(&endpoint(server_url, "/api/v1/me"))
+        .config()
+        .http_status_as_error(false)
+        .build()
         .header("Authorization", &format!("Bearer {access_token}"))
         .call()
-        .ok()
-        .and_then(|mut response| response.body_mut().read_json::<Me>().ok());
-    if let Some(scope) = me.and_then(|me| me.scope_id) {
-        return Ok(scope);
+        .map_err(|error| ApiError::Unavailable(error.to_string()))?;
+    let status = response.status().as_u16();
+    if status != 200 {
+        let body = response.body_mut().read_to_string().unwrap_or_default();
+        return Err(status_error(status, body));
     }
-    sync_token(server_url, access_token, Uuid::now_v7())?
-        .scope()
-        .ok_or_else(|| ApiError::Unavailable("the sync token names no account".into()))
+    response
+        .body_mut()
+        .read_json::<Me>()
+        .map(|me| me.scope_id)
+        .map_err(|error| ApiError::Unavailable(error.to_string()))
 }
 
 #[cfg(test)]
@@ -108,20 +103,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn a_grant_names_its_account() {
-        let scope = Uuid::now_v7();
-        let grant = SyncGrant {
-            token: claims::encode(&json!({ "sub": scope.to_string(), "exp": 1 })),
-            expires_at: 1,
-            store_url: "http://localhost:8091".into(),
-            push_url: "http://localhost:8080".into(),
-        };
-        assert_eq!(grant.scope(), Some(scope));
+    fn reads_the_grant_and_the_account_scope() {
         let parsed: SyncGrant = serde_json::from_value(json!({
             "token": "t", "expiresAt": 5, "storeUrl": "s", "pushUrl": "p"
         }))
         .unwrap();
         assert_eq!(parsed.expires_at, 5);
+        let scope = Uuid::now_v7();
+        let me: Me = serde_json::from_value(json!({
+            "id": 1, "timeZone": "UTC", "scopeId": scope.to_string()
+        }))
+        .unwrap();
+        assert_eq!(me.scope_id, scope);
     }
 
     #[test]

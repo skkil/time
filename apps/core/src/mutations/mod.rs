@@ -9,6 +9,8 @@ mod catalog;
 mod query;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod vectors;
 
 use rusqlite::Connection;
 use serde::Serialize;

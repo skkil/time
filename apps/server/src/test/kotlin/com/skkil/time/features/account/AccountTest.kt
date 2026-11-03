@@ -24,6 +24,11 @@ class AccountTest : ApiTest() {
     }
 
     @Test
+    fun `names the store scope the account syncs in`() {
+        assertEquals(scopeId().toString(), getJson("/api/v1/me")["scopeId"].asString())
+    }
+
+    @Test
     fun `rejects requests without a token`() {
         mvc.get("/api/v1/me").andExpect {
             status { isUnauthorized() }

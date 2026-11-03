@@ -30,8 +30,8 @@ docker compose up -d --build   # Postgres on 5433, mock OIDC issuer on 8090, sto
 startup; the store service reads it from `/api/v1/sync/jwks.json` (restart the
 store container after restarting the server if pulls answer `unauthenticated`).
 
-Sign in from the web app with any username. The mock issuer accepts it and
-stamps the `time-api` audience.
+Sign in from the web app or the desktop (client `time-desktop`, PKCE, loopback redirect on any
+`127.0.0.1` port) with any username. The mock issuer accepts it and stamps the `time-api` audience.
 
 ## Check
 
@@ -128,11 +128,19 @@ ordered by the old id, and gave the composite-key tables an `id` too). `app_user
 - **Mutations.** `MutationDispatcher.dispatch(caller, name, args, clock, idSource)` runs one contract write command
   (`createTask`, `moveTask`, ...) in a transaction (or the one already open), with `args` keyed by the contract's
   parameter names. It sets the caller's clock and id source for that operation only. A constraint the rules missed
-  becomes a `conflict`.
+  becomes a `conflict`. Booleans in the arguments may also be `1`/`0` (`SqliteBooleans`), at any depth.
+  `MutationCoverageTest` keeps the registry equal to the `mutations` and `syncMutations` of `commands.json`, and
+  `MutationVectorsTest` replays `apps/shared/contract/src/mutation-vectors.json`, which `time-core` replays too.
+- **importLocal.** The one sync-only mutation: a signed-out desktop's whole database on its first sign-in
+  (`features/data/service/LocalImportService`, tables in `LOCAL_TABLES`). It keeps the device's ids, re-keys
+  natural-key rows for the scope, refuses another account's ids and references, and merges a row into the account's
+  row with the same natural key (a group's name, a quarter's start, an external id). The decision record's "First
+  sign-in" spells out the rules.
 - **Natural keys.** Rows identified by a natural key (upserts of setting, project canvas, week, day, task dependency,
   record phase, running timer, habit log, user preference, and the rituals) take `NaturalIds` (`common/id/`):
   `UuidV5(scopeId, "<table>/<key parts joined by />")`, such as `week/2026-11-02`, and draw no id. Two devices
-  creating the same week offline make one row. The full list is the "Natural keys" section of
+  creating the same week offline make one row. `NaturalIdsTest` checks them against
+  `apps/shared/contract/src/natural-keys.json`, as the desktop does. The full list is the "Natural keys" section of
   `docs/decisions/0001-sync-with-store.md`; migration `V15` re-keyed existing rows (and would carry any foreign key
   to them along).
 - **Seeded rows.** Rows the app creates on its own take their natural-key id: the default rituals are

@@ -1,6 +1,8 @@
 package com.skkil.time.features.mutations.service
 
+import com.skkil.time.features.data.domain.LocalData
 import com.skkil.time.features.data.service.DataService
+import com.skkil.time.features.data.service.LocalImportService
 import com.skkil.time.features.imports.domain.ImportProject
 import com.skkil.time.features.imports.service.ImportService
 import com.skkil.time.features.mutations.domain.Mutation.Companion.mutation
@@ -13,6 +15,7 @@ class DataMutations(
     private val imports: ImportService,
     private val data: DataService,
     private val settings: SettingsRepository,
+    private val local: LocalImportService,
 ) : MutationSet {
     override val mutations =
         listOf(
@@ -24,6 +27,9 @@ class DataMutations(
             },
             mutation("deleteAllData") { caller, args ->
                 data.deleteAll(caller)
+            },
+            mutation("importLocal", "data") { caller, args ->
+                local.import(caller, args.get<LocalData>("data"))
             },
         )
 }

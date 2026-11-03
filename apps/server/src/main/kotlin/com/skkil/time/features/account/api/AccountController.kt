@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/me")
 class AccountController(private val accounts: AccountService) {
     @GetMapping
-    fun me(caller: Caller) = Me(caller.id, caller.zone.id)
+    fun me(caller: Caller) = Me(caller.id, caller.zone.id, caller.scopeId)
 
     /** Deletes the account, every row it owns and its sync log. Required by the app stores. */
     @OwnWritePath

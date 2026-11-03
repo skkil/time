@@ -1,0 +1,133 @@
+{
+  "$comment": "Natural-key ids (docs/decisions/0001-sync-with-store.md, \"Natural keys\"): UuidV5(scope, name), name = the table, then each key part, joined by /. Read by the Rust (time-core env) and Kotlin (NaturalIdsTest) tests, so devices and the server name these rows alike. Ids come from Python uuid.uuid5.",
+  "vectors": [
+    {
+      "kind": "setting",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": ["reminders_enabled"],
+      "name": "setting/reminders_enabled",
+      "id": "661afcd3-4d5c-52a7-85dc-29166138c506"
+    },
+    {
+      "kind": "setting",
+      "scope": "7d4e3c2b-1a09-4f8e-9d7c-6b5a49382716",
+      "parts": ["planning_time"],
+      "name": "setting/planning_time",
+      "id": "79f96ff0-7c0b-5b61-bc54-eb2a2f8127ba"
+    },
+    {
+      "kind": "project_canvas",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": ["019a5f2e-0000-7aaa-8bbb-ccccdddd0001"],
+      "name": "project_canvas/019a5f2e-0000-7aaa-8bbb-ccccdddd0001",
+      "id": "6d75124a-7cc2-5ac6-9eec-a5e1915c5166"
+    },
+    {
+      "kind": "week",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": ["2026-11-02"],
+      "name": "week/2026-11-02",
+      "id": "02d0c996-47c0-5e89-b4a8-266ff4070fcb"
+    },
+    {
+      "kind": "week",
+      "scope": "7d4e3c2b-1a09-4f8e-9d7c-6b5a49382716",
+      "parts": ["2026-12-28"],
+      "name": "week/2026-12-28",
+      "id": "b8893df1-70b6-52c6-844b-21be4968c654"
+    },
+    {
+      "kind": "day",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": ["2026-11-03"],
+      "name": "day/2026-11-03",
+      "id": "e8fb19d0-15d9-5033-9355-82cb98356d4c"
+    },
+    {
+      "kind": "day",
+      "scope": "7d4e3c2b-1a09-4f8e-9d7c-6b5a49382716",
+      "parts": ["2027-01-01"],
+      "name": "day/2027-01-01",
+      "id": "d4fc7024-7128-5a5a-aab3-610f406b47fa"
+    },
+    {
+      "kind": "task_dependency",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": [
+        "019a5f2e-3c4d-7e8f-9a0b-1c2d3e4f5a6b",
+        "019a5f2e-3c4d-7e8f-9a0b-1c2d3e4f5a6c"
+      ],
+      "name": "task_dependency/019a5f2e-3c4d-7e8f-9a0b-1c2d3e4f5a6b/019a5f2e-3c4d-7e8f-9a0b-1c2d3e4f5a6c",
+      "id": "8ce8298a-143d-57be-bf02-7af103afd0d5"
+    },
+    {
+      "kind": "task_dependency",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": [
+        "019a5f2e-3c4d-7e8f-9a0b-1c2d3e4f5a6c",
+        "019a5f2e-3c4d-7e8f-9a0b-1c2d3e4f5a6b"
+      ],
+      "name": "task_dependency/019a5f2e-3c4d-7e8f-9a0b-1c2d3e4f5a6c/019a5f2e-3c4d-7e8f-9a0b-1c2d3e4f5a6b",
+      "id": "72475e89-47c9-5a15-bbbe-950e1fc98dec"
+    },
+    {
+      "kind": "record_phase",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": [
+        "019a5f2e-3c4d-7e8f-9a0b-1c2d3e4f5a6b",
+        "019a5f2e-0000-7aaa-8bbb-ccccdddd0002"
+      ],
+      "name": "record_phase/019a5f2e-3c4d-7e8f-9a0b-1c2d3e4f5a6b/019a5f2e-0000-7aaa-8bbb-ccccdddd0002",
+      "id": "d889c6ba-04c7-5b46-b3c8-e6d2e92b0c16"
+    },
+    {
+      "kind": "running_timer",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": [],
+      "name": "running_timer",
+      "id": "57c2fc55-03da-5686-881d-2bb8bf2afab8"
+    },
+    {
+      "kind": "running_timer",
+      "scope": "7d4e3c2b-1a09-4f8e-9d7c-6b5a49382716",
+      "parts": [],
+      "name": "running_timer",
+      "id": "38a13ee0-c29c-5e2b-8029-52771b5dca69"
+    },
+    {
+      "kind": "habit_log",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": ["019a5f2e-0000-7aaa-8bbb-ccccdddd0003", "2026-11-02"],
+      "name": "habit_log/019a5f2e-0000-7aaa-8bbb-ccccdddd0003/2026-11-02",
+      "id": "f70e2e44-fa89-544d-9aeb-6d3466f270d5"
+    },
+    {
+      "kind": "ritual",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": ["morning"],
+      "name": "ritual/morning",
+      "id": "af7f02a6-094f-5413-aaba-3979f829e990"
+    },
+    {
+      "kind": "ritual",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": ["wind_down"],
+      "name": "ritual/wind_down",
+      "id": "854ef3ab-c208-5ef0-b007-cc5205548983"
+    },
+    {
+      "kind": "ritual",
+      "scope": "7d4e3c2b-1a09-4f8e-9d7c-6b5a49382716",
+      "parts": ["weekly"],
+      "name": "ritual/weekly",
+      "id": "aa31d27f-6bd9-5b68-8403-22091a258042"
+    },
+    {
+      "kind": "user_preference",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": [],
+      "name": "user_preference",
+      "id": "3db004d0-e052-599f-8473-a64d48b06e5b"
+    }
+  ]
+}

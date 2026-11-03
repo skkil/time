@@ -55,9 +55,14 @@ pub fn seed_rituals(conn: &Connection, scope: Option<Uuid>) -> Result<()> {
 }
 
 /// Stages every synced row for `scope` and finishes the upload. Returns
-/// how many rows were queued.
+/// how many rows were queued. Rows that belonged to another account take
+/// new ids, since that account still has the old ones.
 pub fn upload(conn: &mut Connection, scope: Uuid) -> Result<usize> {
-    let data = data::dump(conn)?.with_seed_ids(scope);
+    let mut data = data::dump(conn)?;
+    if store_core::status(conn)?.scope_id.is_some() {
+        data = data.with_new_ids();
+    }
+    let data = data.with_seed_ids(scope);
     let staged = serde_json::to_string(&Staged { scope, data })
         .map_err(|error| Error::Database(error.to_string()))?;
     device_settings::write(conn, STAGED_KEY, &staged)?;

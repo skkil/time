@@ -11,6 +11,7 @@ import com.skkil.time.features.mutations.domain.Mutation
 import com.skkil.time.features.mutations.domain.MutationArgs
 import com.skkil.time.features.mutations.domain.MutationDispatcher
 import com.skkil.time.features.mutations.domain.MutationSet
+import com.skkil.time.features.mutations.domain.SqliteBooleans
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
@@ -20,16 +21,17 @@ import tools.jackson.databind.json.JsonMapper
 
 /**
  * Every write command by contract name, each run in one transaction (or the one already open) as the caller acting at
- * the mutation's clock. A constraint the rules did not catch is a `conflict`, so a replayed mutation is rejected rather
- * than retried forever.
+ * the mutation's clock. Booleans in the arguments may also be `1`/`0` ([SqliteBooleans]). A constraint the rules did
+ * not catch is a `conflict`, so a replayed mutation is rejected rather than retried forever.
  */
 @Service
 class MutationRegistry(
     sets: List<MutationSet>,
-    private val mapper: JsonMapper,
+    mapper: JsonMapper,
     transactions: PlatformTransactionManager,
 ) : MutationDispatcher {
     private val transaction = TransactionTemplate(transactions)
+    private val argsMapper = SqliteBooleans.mapper(mapper)
 
     val mutations: Map<String, Mutation> =
         sets.flatMap { it.mutations }.groupBy { it.name }.mapValues { (name, found) ->
@@ -50,7 +52,7 @@ class MutationRegistry(
         if (!args.isObject) invalid("Mutation arguments must be a JSON object.")
         val acting = caller.acting(clock, idSource)
         return try {
-            transaction.execute { mutation.apply(acting, MutationArgs(args, mapper)) }
+            transaction.execute { mutation.apply(acting, MutationArgs(args, argsMapper)) }
         } catch (error: DataIntegrityViolationException) {
             throw error.asIdConflict() ?: DomainException(ErrorKind.CONFLICT, "The change conflicts with existing data")
         }

@@ -140,8 +140,8 @@ fn a_dump_imports_into_an_empty_database_unchanged() {
     let data: LocalData = serde_json::from_value(json).unwrap();
     target
         .call(|conn| {
-            import(conn, &data)?;
-            import(conn, &data)?;
+            import(conn, &env(), &data)?;
+            import(conn, &env(), &data)?;
             let scope = uuid::Uuid::from_u128(7);
             assert_eq!(
                 dump(conn)?.with_seed_ids(scope),
@@ -182,7 +182,193 @@ fn imports_take_the_account_seed_ids_and_refuse_strange_tables() {
         }],
     };
     db().call(|conn| {
-        assert!(import(conn, &strange).is_err());
+        assert!(import(conn, &env(), &strange).is_err());
+        Ok(())
+    })
+    .unwrap();
+}
+
+struct Account(uuid::Uuid);
+
+impl crate::env::MutationEnv for Account {
+    fn now(&self) -> chrono::DateTime<chrono::FixedOffset> {
+        crate::env::Clock::now(&crate::env::SystemClock)
+    }
+
+    fn next_id(&self) -> Id {
+        Id::from(uuid::Uuid::now_v7())
+    }
+
+    fn scope(&self) -> Option<uuid::Uuid> {
+        Some(self.0)
+    }
+}
+
+fn rows(table: &str, rows: Vec<Value>) -> TableRows {
+    TableRows {
+        table: table.into(),
+        rows: rows
+            .into_iter()
+            .map(|row| row.as_object().unwrap().clone())
+            .collect(),
+    }
+}
+
+fn column(conn: &Connection, sql: &str) -> Vec<String> {
+    conn.prepare(sql)
+        .unwrap()
+        .query_map([], |row| row.get(0))
+        .unwrap()
+        .collect::<rusqlite::Result<_>>()
+        .unwrap()
+}
+
+fn new_id() -> Id {
+    Id::from(uuid::Uuid::now_v7())
+}
+
+#[test]
+fn references_list_every_foreign_key_to_an_id() {
+    db().call(|conn| {
+        let mut found = BTreeSet::new();
+        for table in SYNCED_TABLES {
+            let mut stmt = conn.prepare(
+                "SELECT \"table\", \"from\" FROM pragma_foreign_key_list(?1) WHERE \"to\" = 'id'",
+            )?;
+            let keys = stmt.query_map([table], |row| {
+                Ok((
+                    table.to_owned(),
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(0)?,
+                ))
+            })?;
+            for key in keys {
+                found.insert(key?);
+            }
+        }
+        let listed: BTreeSet<(String, String, String)> = REFERENCES
+            .iter()
+            .map(|(table, column, target)| ((*table).into(), (*column).into(), (*target).into()))
+            .collect();
+        assert_eq!(found, listed);
+        Ok(())
+    })
+    .unwrap();
+}
+
+#[test]
+fn an_upload_merges_into_rows_that_hold_its_natural_keys() {
+    db().call(|conn| {
+        let env = env();
+        let group = apply(conn, &env, "createGroup", &json!({ "name": "Home" }))?;
+        let quarter = apply(
+            conn,
+            &env,
+            "upsertQuarter",
+            &json!({ "id": null, "label": "Q1", "startDate": "2026-01-05" }),
+        )?;
+        let (their_group, their_quarter, project, priority) =
+            (new_id(), new_id(), new_id(), new_id());
+        let data = LocalData {
+            tables: vec![
+                rows(
+                    "project_group",
+                    vec![json!({ "id": their_group, "name": "home", "position": 3 })],
+                ),
+                rows(
+                    "project",
+                    vec![json!({ "id": project, "name": "Garden", "group_id": their_group })],
+                ),
+                rows(
+                    "quarter",
+                    vec![json!({ "id": their_quarter, "label": "Winter", "start_date": "2026-01-05" })],
+                ),
+                rows(
+                    "priority",
+                    vec![json!({ "id": priority, "quarter_id": their_quarter, "title": "Rest" })],
+                ),
+            ],
+        };
+        import(conn, &env, &data)?;
+
+        let group_id = group["id"].as_str().unwrap();
+        assert_eq!(column(conn, "SELECT id FROM project_group"), [group_id]);
+        assert_eq!(column(conn, "SELECT name FROM project_group"), ["home"]);
+        assert_eq!(column(conn, "SELECT group_id FROM project"), [group_id]);
+        assert_eq!(column(conn, "SELECT label FROM quarter"), ["Winter"]);
+        assert_eq!(
+            column(conn, "SELECT quarter_id FROM priority"),
+            [quarter.as_str().unwrap()]
+        );
+        assert_eq!(column(conn, "SELECT id FROM priority"), [priority.as_str()]);
+        Ok(())
+    })
+    .unwrap();
+}
+
+#[test]
+fn an_upload_names_natural_key_rows_by_the_account_and_refuses_dangling_references() {
+    let scope = uuid::Uuid::from_u128(9);
+    db().call(|conn| {
+        let day = LocalData {
+            tables: vec![rows(
+                "day",
+                vec![json!({ "id": new_id(), "date": "2026-11-02", "felt": 3 })],
+            )],
+        };
+        import(conn, &Account(scope), &day)?;
+        let expected = crate::env::NaturalKey::Day(crate::types::date("2026-11-02")).id(scope);
+        assert_eq!(column(conn, "SELECT id FROM day"), [expected.as_str()]);
+
+        let dangling = LocalData {
+            tables: vec![rows(
+                "task",
+                vec![json!({ "id": new_id(), "title": "Orphan", "created_at": 1, "project_id": new_id() })],
+            )],
+        };
+        let refused = import(conn, &Account(scope), &dangling).unwrap_err();
+        assert_eq!(
+            refused.to_string(),
+            "A task row points at a project that isn't there."
+        );
+        let unnamed = LocalData {
+            tables: vec![rows(
+                "task",
+                vec![json!({ "id": 7, "title": "Odd", "created_at": 1 })],
+            )],
+        };
+        let refused = import(conn, &Account(scope), &unnamed).unwrap_err();
+        assert_eq!(refused.to_string(), "A task row has no id.");
+        Ok(())
+    })
+    .unwrap();
+}
+
+#[test]
+fn rows_leaving_another_account_take_new_ids_that_their_references_follow() {
+    let data = db()
+        .call(|conn| {
+            fill(conn)?;
+            dump(conn)
+        })
+        .unwrap();
+    let moved = data.clone().with_new_ids();
+    let ids = |data: &LocalData| -> BTreeSet<String> {
+        data.tables
+            .iter()
+            .flat_map(|table| table.rows.iter())
+            .map(|row| row["id"].as_str().unwrap().to_owned())
+            .collect()
+    };
+    assert!(ids(&data).is_disjoint(&ids(&moved)));
+    db().call(|conn| {
+        import(conn, &env(), &moved)?;
+        let steps = column(
+            conn,
+            "SELECT parent_id FROM task WHERE parent_id IS NOT NULL",
+        );
+        assert_eq!(steps.len(), 1);
+        assert!(ids(&moved).contains(&steps[0]));
         Ok(())
     })
     .unwrap();
