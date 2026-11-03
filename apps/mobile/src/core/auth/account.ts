@@ -5,7 +5,7 @@ import { queryClient } from '@/core/api/query-client';
 import { sync } from '@/core/sync/sync';
 
 /**
- * Signs out on purpose: syncing stops and this phone's copy of the
+ * Signs out on purpose: syncing stops and this device's copy of the
  * account is removed, changes not yet synced included. A sign-in that
  * expires on its own keeps the data for the next sign-in.
  */

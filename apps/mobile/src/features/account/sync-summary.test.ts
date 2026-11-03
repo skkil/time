@@ -18,7 +18,7 @@ describe('summarize', () => {
   it('says when it last synced and that nothing waits', () => {
     expect(summarize(view({}), NOW)).toEqual({
       status: 'Synced 2 minutes ago',
-      detail: 'Everything on this phone is synced',
+      detail: 'Everything on this device is synced',
     });
   });
 

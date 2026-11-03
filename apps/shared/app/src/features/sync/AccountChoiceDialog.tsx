@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useChooseAccountData, useSignOut } from '@/features/sync/api';
 
 /**
- * Shown when this computer signs in to an account other than the one its
+ * Shown when this device signs in to an account other than the one its
  * data came from: nothing merges until the user picks.
  */
 export function AccountChoiceDialog({
@@ -29,12 +29,11 @@ export function AccountChoiceDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            This computer has another account’s data
+            This device has another account’s data
           </AlertDialogTitle>
           <AlertDialogDescription>
-            It last synced with a different account than {account}. Keep and
-            upload adds this computer’s projects and tasks to {account}; Start
-            fresh replaces them with what {account} already has.
+            It last synced with an account other than {account}. Keep it to add
+            it to {account}, or replace it with {account}’s data.
           </AlertDialogDescription>
         </AlertDialogHeader>
         {choose.isError && (
@@ -56,10 +55,10 @@ export function AccountChoiceDialog({
               disabled={busy}
               onClick={() => choose.mutate('startFresh')}
             >
-              Start fresh
+              Use {account}’s data
             </Button>
             <Button disabled={busy} onClick={() => choose.mutate('keepLocal')}>
-              Keep and upload
+              Keep this data
             </Button>
           </div>
         </AlertDialogFooter>

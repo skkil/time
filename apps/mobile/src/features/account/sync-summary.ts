@@ -17,7 +17,7 @@ export function summarize(view: SyncView, now: number): SyncSummary {
   const waiting =
     view.pending > 0
       ? `${changes(view.pending)} waiting to sync`
-      : 'Everything on this phone is synced';
+      : 'Everything on this device is synced';
   switch (view.phase) {
     case 'connecting':
       return { status: 'Syncing…', detail: waiting };
@@ -29,7 +29,7 @@ export function summarize(view: SyncView, now: number): SyncSummary {
     case 'needsChoice':
       return {
         status: 'Waiting for your choice',
-        detail: 'Choose what to do with the data on this phone.',
+        detail: 'Choose what to do with the data on this device.',
       };
     case 'off':
       return { status: 'Paused', detail: waiting };
