@@ -86,7 +86,11 @@ export function DataSettings() {
       </SettingRow>
       <SettingRow
         label="Restore from a backup"
-        description={`Replaces the data ${where} with a backup file.`}
+        description={
+          local
+            ? `Replaces the data ${where} with a backup file.`
+            : 'Brings back everything in a backup file. Anything added since stays.'
+        }
       >
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -98,9 +102,9 @@ export function DataSettings() {
             <AlertDialogHeader>
               <AlertDialogTitle>Restore from a backup?</AlertDialogTitle>
               <AlertDialogDescription>
-                Everything here is replaced by the file you pick.
-                {local &&
-                  ' A copy of the current data is saved as time-before-restore.db in the app’s data folder first.'}
+                {local
+                  ? 'Everything here is replaced by the file you pick. A copy of the current data is saved as time-before-restore.db in the app’s data folder first.'
+                  : 'Projects, tasks and the rest come back as they are in the file you pick, and sync to your other devices.'}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

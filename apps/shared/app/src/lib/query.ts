@@ -38,6 +38,18 @@ export const queryClient = new QueryClient({
   }),
 });
 
+/**
+ * On a local-first device every command runs on the local replica, so queries and mutations must not
+ * pause while the browser reports being offline.
+ */
+export function runOffline() {
+  const defaults = queryClient.getDefaultOptions();
+  queryClient.setDefaultOptions({
+    queries: { ...defaults.queries, networkMode: 'always' },
+    mutations: { ...defaults.mutations, networkMode: 'always' },
+  });
+}
+
 export const keys = {
   projects: ['projects'] as const,
   groups: ['groups'] as const,

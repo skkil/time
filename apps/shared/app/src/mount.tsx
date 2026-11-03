@@ -16,7 +16,7 @@ import { syncExternalChanges } from '@/lib/external-changes';
 import { syncIdle } from '@/lib/idle';
 import { syncSharedPreferences } from '@/lib/preferences';
 import { syncPriorityColors } from '@/lib/priority-colors';
-import { queryClient } from '@/lib/query';
+import { queryClient, runOffline } from '@/lib/query';
 import { syncZoom } from '@/lib/zoom';
 import { type Platform, installPlatform } from '@/platform';
 import '@/styles/globals.css';
@@ -34,6 +34,7 @@ export function mount({
 }: MountOptions) {
   installBackend(backend);
   installPlatform(platform);
+  if (platform.sync) runOffline();
   syncColorScheme();
   syncIdle();
   syncZoom();

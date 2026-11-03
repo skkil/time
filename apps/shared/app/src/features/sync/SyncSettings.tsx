@@ -22,6 +22,7 @@ import {
 } from '@/features/sync/view';
 import { useNow } from '@/hooks/use-now';
 import { cn } from '@/lib/utils';
+import { platform } from '@/platform';
 
 const TONES = {
   calm: 'text-muted-foreground',
@@ -145,7 +146,7 @@ export function SyncSettings() {
           </ul>
         </section>
       )}
-      <SyncServerSettings disabled={signedIn} />
+      {platform().sync?.config && <SyncServerSettings disabled={signedIn} />}
       <AccountChoiceDialog
         open={status.phase === 'needsChoice'}
         account={account}

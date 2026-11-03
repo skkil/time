@@ -39,7 +39,7 @@ export type SyncConfig = {
 /** `keepLocal` uploads this device's data into the account; `startFresh` replaces it with the account's. */
 export type AccountChoice = 'keepLocal' | 'startFresh';
 
-/** A local-first device that signs in and syncs on its own (desktop). */
+/** A local-first device that signs in and syncs on its own (desktop, web). */
 export type Sync = {
   status(): Promise<SyncStatus>;
   onStatus(listener: (status: SyncStatus) => void): Unsubscribe;
@@ -49,6 +49,7 @@ export type Sync = {
   signIn(): Promise<void>;
   signOut(): Promise<void>;
   chooseAccountData(choice: AccountChoice): Promise<void>;
-  config(): Promise<SyncConfig>;
-  saveConfig(config: SyncConfig): Promise<void>;
+  /** Where this device syncs, for devices whose server can be changed (desktop). */
+  config?(): Promise<SyncConfig>;
+  saveConfig?(config: SyncConfig): Promise<void>;
 };
