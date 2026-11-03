@@ -1,11 +1,6 @@
 import type { NativeCore, SyncIssue } from '@skkil-time/core-native';
-import type {
-  SyncDriver,
-  SyncDriverOptions,
-  SyncTokenGrant,
-} from '@skkil/store-client';
-
-import type { SyncGrant } from '@/core/sync/grant';
+import { type SyncAccount, syncTokens } from '@skkil-time/sync';
+import type { SyncDriver, SyncDriverOptions } from '@skkil/store-client';
 
 /** What the Sync settings and the offline notice show. */
 export type SyncView = {
@@ -21,10 +16,8 @@ export type AccountChoice = 'keepLocal' | 'startFresh';
 
 export type SyncControllerOptions = {
   core: () => Promise<NativeCore>;
-  /** The store scope of the signed-in account; needs the network. */
-  scope: () => Promise<string>;
-  grant: (clientId: string) => Promise<SyncGrant>;
-  pushHeaders: () => Promise<Record<string, string>>;
+  /** The signed-in account's scope, sync tokens and push headers; needs the network. */
+  account: SyncAccount;
   createDriver: (options: SyncDriverOptions) => SyncDriver;
   /** Streaming fetch for the Pokes stream (`expo/fetch` on a phone). */
   fetch?: typeof globalThis.fetch;
@@ -62,11 +55,6 @@ const messageOf = (error: unknown): string => {
     return String(error.message);
   return String(error);
 };
-
-const toTokenGrant = (grant: SyncGrant): SyncTokenGrant => ({
-  token: grant.token,
-  expiresAt: grant.expiresAt * 1000,
-});
 
 /**
  * Runs store's sync driver for the phone's replica while the user is
@@ -120,7 +108,7 @@ export function createSyncController(
 
   const verify = async (core: NativeCore) => {
     if (verified) return true;
-    const scope = await options.scope();
+    const scope = await options.account.scope();
     const binding = await core.bindScope(scope);
     if (binding.kind === 'otherAccount') {
       choice = scope;
@@ -133,17 +121,14 @@ export function createSyncController(
   };
 
   const run = async (core: NativeCore) => {
-    let first: SyncGrant | null = await options.grant(core.state().clientId);
+    const { clientId } = core.state();
+    const first = await options.account.grant(clientId);
     driver = options.createDriver({
       core: core.handle,
       storeUrl: first.storeUrl,
       pushUrl: first.pushUrl,
-      getSyncToken: async () => {
-        const grant = first ?? (await options.grant(core.state().clientId));
-        first = null;
-        return toTokenGrant(grant);
-      },
-      getPushHeaders: options.pushHeaders,
+      getSyncToken: syncTokens(options.account, clientId, first),
+      getPushHeaders: options.account.pushHeaders,
       onChange: (tables) => {
         options.onChange(tables);
         void publish();

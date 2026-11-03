@@ -1,15 +1,11 @@
 import { createSyncAccount, syncTokens } from '#account';
 import { SyncApiError } from '#errors';
-import { tokenSubject } from '#token';
 import { describe, expect, it, vi } from 'vitest';
 
 const SCOPE = '0195f7a0-0000-7000-8000-000000000001';
 
-const jwt = (claims: object) =>
-  ['e30', btoa(JSON.stringify(claims)).replace(/=+$/, ''), 'sig'].join('.');
-
-const grantBody = (sub = SCOPE) => ({
-  token: jwt({ sub }),
+const grantBody = () => ({
+  token: 'sync-token',
   expiresAt: 1_800_000_000,
   storeUrl: 'http://store.test',
   pushUrl: 'http://api.test',
@@ -26,7 +22,6 @@ function account(fetch: typeof globalThis.fetch, token: string | null = 'a') {
     apiUrl: 'http://api.test/',
     getAccessToken: async () => token,
     fetch,
-    newClientId: () => 'fresh-client',
   });
 }
 
@@ -51,13 +46,11 @@ describe('createSyncAccount', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back to the sub of a token for a fresh client id', async () => {
-    const fetch = vi.fn<typeof globalThis.fetch>(async (url) =>
-      String(url).endsWith('/me') ? json({ id: 1 }) : json(grantBody()),
-    );
-    await expect(account(fetch).scope()).resolves.toBe(SCOPE);
-    expect(JSON.parse(String(fetch.mock.calls[1]![1]?.body))).toEqual({
-      clientId: 'fresh-client',
+  it('reports a refused /me instead of guessing the scope', async () => {
+    await expect(
+      account(async () => json({}, 401)).scope(),
+    ).rejects.toMatchObject({
+      kind: 'unauthorized',
     });
   });
 
@@ -93,13 +86,5 @@ describe('syncTokens', () => {
     await expect(source()).resolves.toMatchObject({ expiresAt: 1 });
     await expect(source()).resolves.toMatchObject({ expiresAt: 2 });
     expect(grant).toHaveBeenCalledWith('client-1');
-  });
-});
-
-describe('tokenSubject', () => {
-  it('reads the sub claim, or null when there is none', () => {
-    expect(tokenSubject(jwt({ sub: SCOPE }))).toBe(SCOPE);
-    expect(tokenSubject(jwt({}))).toBeNull();
-    expect(tokenSubject('not-a-jwt')).toBeNull();
   });
 });

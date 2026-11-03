@@ -1,4 +1,5 @@
 import type { Binding, NativeCore, SyncState } from '@skkil-time/core-native';
+import type { SyncGrant } from '@skkil-time/sync';
 import type {
   SyncDriver,
   SyncDriverOptions,
@@ -10,7 +11,6 @@ import {
   type SyncControllerOptions,
   createSyncController,
 } from '@/core/sync/controller';
-import type { SyncGrant } from '@/core/sync/grant';
 
 const SCOPE = 'scope-a';
 
@@ -44,7 +44,7 @@ function fakeCore(binding: Binding = { kind: 'uploading', rows: 0 }) {
 
 const grant = (token: string): SyncGrant => ({
   token,
-  expiresAt: 2_000,
+  expiresAt: 2_000_000,
   storeUrl: 'https://store.test',
   pushUrl: 'https://time.test',
 });
@@ -53,12 +53,14 @@ function setup(core = fakeCore()) {
   const drivers: { options: SyncDriverOptions; driver: SyncDriver }[] = [];
   const options = {
     core: vi.fn(async () => core),
-    scope: vi.fn(async () => SCOPE),
-    grant: vi
-      .fn<(clientId: string) => Promise<SyncGrant>>()
-      .mockResolvedValueOnce(grant('first'))
-      .mockResolvedValue(grant('next')),
-    pushHeaders: vi.fn(async () => ({ Authorization: 'Bearer access' })),
+    account: {
+      scope: vi.fn(async () => SCOPE),
+      grant: vi
+        .fn<(clientId: string) => Promise<SyncGrant>>()
+        .mockResolvedValueOnce(grant('first'))
+        .mockResolvedValue(grant('next')),
+      pushHeaders: vi.fn(async () => ({ Authorization: 'Bearer access' })),
+    },
     createDriver: vi.fn((driverOptions: SyncDriverOptions) => {
       const driver: SyncDriver = {
         syncNow: vi.fn(async () => undefined),
@@ -84,13 +86,13 @@ describe('createSyncController', () => {
     await sync.start();
 
     expect(core.bindScope).toHaveBeenCalledWith(SCOPE);
-    expect(options.grant).toHaveBeenCalledWith('client-1');
+    expect(options.account.grant).toHaveBeenCalledWith('client-1');
     expect(drivers).toHaveLength(1);
     const driver = drivers[0].options;
     expect(driver.core).toBe(core.handle);
     expect(driver.storeUrl).toBe('https://store.test');
     expect(driver.pushUrl).toBe('https://time.test');
-    expect(driver.getPushHeaders).toBe(options.pushHeaders);
+    expect(driver.getPushHeaders).toBe(options.account.pushHeaders);
 
     await expect(driver.getSyncToken()).resolves.toEqual<SyncTokenGrant>({
       token: 'first',
@@ -100,7 +102,7 @@ describe('createSyncController', () => {
       token: 'next',
       expiresAt: 2_000_000,
     });
-    expect(options.grant).toHaveBeenCalledTimes(2);
+    expect(options.account.grant).toHaveBeenCalledTimes(2);
   });
 
   it('reports what the driver and the replica say', async () => {
@@ -126,7 +128,7 @@ describe('createSyncController', () => {
 
   it('stays local while the server is out of reach and retries on Sync now', async () => {
     const { options, drivers, sync } = setup();
-    options.scope.mockRejectedValueOnce({
+    options.account.scope.mockRejectedValueOnce({
       kind: 'network',
       message: 'Network request failed',
     });
