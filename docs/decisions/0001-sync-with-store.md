@@ -130,6 +130,26 @@ built only through `NaturalKey` (`ritual/<kind>`, `week/<date>`,
 `task_dependency/<task>/<blocked by>`, `running_timer`). Unbound devices
 use random ids. Default rituals are seeded only for a bound scope.
 
+## The web replica
+
+The browser runs `time-core-wasm` (`apps/core-wasm`) in a dedicated Web
+Worker per tab, with SQLite on OPFS through the sync-access-handle pool
+VFS (no cross-origin isolation needed, no WAL). The pool holds its files
+exclusively, so one worker per origin owns the database: whoever holds
+the Web Lock `skkil-time-engine` (store client's `webLock`). It runs
+`@skkil/store-client`'s driver with `noopLock`; the other tabs' workers
+relay their calls to it over a BroadcastChannel and take over, in lock
+order, when it goes away. A call in flight during a hand-over is sent
+again if it is a read and fails if it is a write, so no mutation can run
+twice.
+
+Signing in binds the replica as `sign_in` does on desktop. Signing out of
+a browser calls `forget` (after a last sync, and after asking when changes
+are still waiting), because a browser is often shared; desktop keeps its
+data. A web backup is time-core's JSON dump, and a restore is one
+`importLocal` mutation, so it merges rows back and reaches every device.
+Browsers without OPFS use the online-only remote backend.
+
 ## Undo
 
 `captureTasks` is a read that returns the `TaskSnapshot` payload (rows as

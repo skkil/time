@@ -108,10 +108,14 @@ server is its own Gradle project:
 
 - `apps/core/`: `time-core`, the platform-free Rust domain (types, migrations,
   rules, queries, the mutation registry) for desktop, WASM and mobile
+- `apps/core-wasm/`: `time-core-wasm`, the sync Engine for the browser
+  (wasm-bindgen, SQLite on OPFS); `pnpm build` there writes the
+  `@skkil-time/core-wasm` package to `pkg/` (needs `wasm-bindgen-cli` at the
+  crate's pin)
 - `apps/desktop/`: Tauri 2 desktop app (Tauri wrappers over time-core + a thin
   React shell)
 - `apps/server/`: Kotlin Spring Boot API (see its README)
-- `apps/web/`: Vite + React web app, a thin shell like desktop
+- `apps/web/`: Vite + React web app, offline-first on core-wasm
 - `apps/mobile/`: Expo React Native app
 - `apps/shared/*`: TypeScript packages; see `apps/shared/README.md`
   - `contract`: `bindings.ts` generated from Rust, the type contract for every app
@@ -120,6 +124,9 @@ server is its own Gradle project:
   - `tokens`: colours and the sky; `pnpm generate` writes `tokens.css`
   - `api`: the server's `openapi.json`, generated types, typed fetch client
   - `remote`: the `Backend` over HTTP (`satisfies Backend`)
+  - `local`: the `Backend` over a local time-core engine
+  - `sync`: sync tokens, the account's scope and push headers for store's
+    driver (web now, mobile next)
   - `auth`: provider-neutral OIDC sign-in
   - `tooling`: the ESLint, Prettier and TypeScript configs every package uses
 
@@ -386,17 +393,43 @@ cargo clippy --all-targets -- -D warnings
 
 ## Web and mobile
 
-- Web (`apps/web/`) is `mount()` from `apps/shared/app` with the remote backend,
-  a browser `Platform` and OIDC sign-in (`apps/shared/auth/web`). Config is
-  `VITE_*` at build time or `config.js` at container start.
-- `Platform.onRemoteChange` and `Platform.preferences` are optional ports:
-  web fills them from `connectRealtime` (`apps/shared/api/realtime`) and the
-  preferences endpoint, desktop leaves them out. `SHARED_KEYS` in
-  `lib/preferences.ts` decides which preferences follow the account; the rest
-  stay on the device.
-- Web's `src/` is `app/` (bootstrap, config), `auth/`, `platform/` (the
-  browser `Platform`: host, connection, live updates, account preferences) and
-  `notifications/`; `main.tsx` only starts the app.
+- Web (`apps/web/`) is `mount()` from `apps/shared/app` with
+  `createLocalBackend` over time-core in WASM (`apps/core-wasm`), a browser
+  `Platform` and OIDC sign-in (`apps/shared/auth/web`). Config is `VITE_*` at
+  build time or `config.js` at container start; the store URL comes with each
+  sync token. Details in `apps/web/README.md`.
+- Each tab starts a dedicated worker (`src/engine/worker/`). The worker that
+  holds the Web Lock `skkil-time-engine` opens the database on OPFS (SAH-pool
+  VFS, no COOP/COEP needed) and runs `@skkil/store-client`'s driver
+  (`SyncRunner`, `noopLock`); the others relay calls over the
+  BroadcastChannel of the same name, and a closed owner hands over to the
+  next worker (reads retried, writes fail with "try again"). The page talks
+  to its worker through `src/engine/client.ts` (`EngineClient.call(method,
+  …args)`, errors as `{ kind, message }`).
+- `@skkil/store-client` is linked by path from the store checkout
+  (`link:../../../store/modules/client-ts`, built there); the Docker image
+  builds it and the wasm from `--build-context store=…`.
+- `Platform.sync` on web (`platform/web-sync.ts`) binds the engine to the
+  account's scope (`/api/v1/me` `scopeId`, else a sync token's `sub`), asks
+  before touching another account's data, and maps the worker's
+  `SyncState` to Settings → Sync. Signing out syncs, confirms before
+  dropping unsynced changes and calls `forget`. Whoever signed in last can
+  open the app offline (`WebAuth.lastSession`).
+- Pulled changes and other tabs' writes reach the app as `onRemoteChange`
+  topic `sync`; the realtime socket stays only for account preferences.
+  `mount` sets TanStack Query's `networkMode: 'always'` on platforms with
+  `sync`, so nothing pauses offline.
+- `public/sw.js` keeps the app shell for offline starts (the build's
+  `shell-files.json`, `index.html`, `config.js`). Browsers without OPFS fall
+  back to the remote backend (`app/start-remote.tsx`).
+- `Platform.onRemoteChange` and `Platform.preferences` are optional ports.
+  `SHARED_KEYS` in `lib/preferences.ts` decides which preferences follow the
+  account; the rest stay on the device.
+- Web's `src/` is `app/` (bootstrap, local and remote starts, config),
+  `auth/`, `engine/` (worker RPC and the worker), `platform/` (the browser
+  `Platform`: files, device commands, sync, sign-out, connection, live
+  updates, account preferences) and `notifications/`; `main.tsx` only
+  starts the app.
 - Mobile (`apps/mobile/`) is Expo Router. It shares `domain`, `tokens`,
   `contract`, `api` and `remote`, not DOM components. `app/` holds routes
   only; screens, components and hooks live in `src/features/<name>/`,
