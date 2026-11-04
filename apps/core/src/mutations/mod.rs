@@ -5,6 +5,7 @@
 
 mod apply;
 mod args;
+mod booleans;
 mod catalog;
 mod query;
 #[cfg(test)]

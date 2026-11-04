@@ -2,12 +2,13 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 
+use super::booleans;
 use crate::error::{Error, Result};
 use crate::types::Id;
 
 /// A command's arguments: a JSON object keyed by the contract's parameter
 /// names. A missing key reads as `null`, so optional parameters may be left
-/// out.
+/// out, and a boolean may also be `1`/`0`.
 pub struct Args<'a>(Option<&'a Map<String, Value>>);
 
 impl<'a> Args<'a> {
@@ -25,7 +26,7 @@ impl<'a> Args<'a> {
             .and_then(|fields| fields.get(key))
             .cloned()
             .unwrap_or(Value::Null);
-        serde_json::from_value(value)
+        booleans::from_value(value)
             .map_err(|error| Error::invalid(format!("Argument `{key}`: {error}")))
     }
 
