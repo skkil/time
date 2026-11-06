@@ -9,7 +9,7 @@ Private File System, and syncs it through store's TypeScript driver
 [`apps/shared/auth`](../shared/auth).
 
 ```bash
-pnpm --filter @skkil-time/core-wasm build   # once, and after Rust changes (needs wasm-bindgen-cli)
+pnpm --filter @skkil-time/core-wasm build   # once, and after Rust changes (needs wasm-bindgen-cli; wasm-opt from binaryen shrinks it when installed)
 pnpm dev       # http://localhost:5173, needs the server and the store service (see apps/server)
 pnpm test      # worker RPC, relay, sync runner, platform wiring
 pnpm build     # dist/
