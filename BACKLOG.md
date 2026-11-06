@@ -124,17 +124,17 @@ Each item is one commit. Check it off when it lands.
 
 ## 9. Sync through store (added 2026-11-08, see docs/decisions/0001)
 
-- [ ] 9.1 `time-core` crate: platform-free domain layer shared by every app
-- [ ] 9.2 UUID ids everywhere (desktop migration with backup, server
+- [x] 9.1 `time-core` crate: platform-free domain layer shared by every app
+- [x] 9.2 UUID ids everywhere (desktop migration with backup, server
       migration, `Id = string` in the contract)
-- [ ] 9.3 Mutation registries (Rust and Kotlin) keyed by command name, clock
+- [x] 9.3 Mutation registries (Rust and Kotlin) keyed by command name, clock
       and ids from the mutation
 - [x] 9.4 Server: store write path, Push endpoint, sync tokens, every write
       logged
-- [ ] 9.5 Desktop: store-core replica, sign-in, Sync settings, issues list
+- [x] 9.5 Desktop: store-core replica, sign-in, Sync settings, issues list
 - [x] 9.6 Web: time-core + store-core as WASM on OPFS, local backend
-- [ ] 9.7 Mobile: time-core + store-core through uniffi-bindgen-react-native
-- [ ] 9.8 Live updates from store's Pokes; conformance suite in CI;
+- [x] 9.7 Mobile: time-core + store-core through uniffi-bindgen-react-native
+- [x] 9.8 Live updates from store's Pokes; conformance suite in CI;
       `STORE_VERSION` pin checked by `skkil doctor`
 - [ ] 9.9 End-to-end: offline edits on several devices converge; rejections
       reach every device; shared timer

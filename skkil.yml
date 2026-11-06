@@ -28,13 +28,10 @@ requires:
     hint: cargo install wasm-bindgen-cli --locked --version <the wasm-bindgen pin in apps/core-wasm/Cargo.toml>, and rustup target add wasm32-unknown-unknown
   - name: store client build
     check: test -f "${STORE_DIR:-../store}/modules/client-ts/dist/index.js"
-    hint: (cd "${STORE_DIR:-../store}/modules/client-ts" && pnpm install --frozen-lockfile && pnpm build); apps/web links it by path
+    hint: (cd "${STORE_DIR:-../store}/modules/client-ts" && pnpm install --frozen-lockfile && pnpm build); apps/web and apps/mobile link it by path
   - name: Go
     check: command -v go
     hint: install Go 1.27 or later (builds store's conformance suite)
-  - name: store client built
-    check: test -f "${STORE_DIR:-../store}/modules/client-ts/dist/index.js"
-    hint: (cd "${STORE_DIR:-../store}/modules/client-ts" && pnpm install --frozen-lockfile && pnpm build) (the mobile app links it)
   - name: cargo-ndk
     check: command -v cargo-ndk
     hint: cargo install cargo-ndk && rustup target add aarch64-linux-android x86_64-linux-android aarch64-apple-ios aarch64-apple-ios-sim

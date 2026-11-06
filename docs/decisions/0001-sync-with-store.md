@@ -19,12 +19,15 @@ fixes how time maps onto it.
 
 A row identified by something other than its id (an upsert keyed by a unique
 natural key, or a row the app seeds on its own) never takes a random or
-mutation-derived id: two devices creating it offline would make two rows.
-Its id is `UuidV5(scope_id, name)` (RFC 9562 version 5, SHA-1, the scope id
-as namespace), where `name` is the table, then each key part, joined by `/`.
-Uuids are lowercase canonical strings and dates `yyyy-MM-dd`. Making such a
-row draws no id from `MutationContext::next_id()`, so the n-th derived id
-stays the same on the device and the server.
+mutation-derived id once the device is bound to a scope: two devices creating
+it offline would make two rows. Its id is `UuidV5(scope_id, name)` (RFC 9562
+version 5, SHA-1, the scope id as namespace), where `name` is the table, then
+each key part, joined by `/`, built only through `NaturalKey`. Uuids are
+lowercase canonical strings and dates `yyyy-MM-dd`. Making such a row draws
+no id from `MutationContext::next_id()`, so the n-th derived id stays the
+same on the device and the server. A device that was never bound has no
+scope, so it uses random ids until its first sign-in re-keys them (see First
+sign-in), and seeds the default rituals only once bound.
 
 | Table | Natural key | Name |
 | --- | --- | --- |
@@ -52,7 +55,7 @@ second offline create is rejected as a conflict.
   (`createTask`, `moveTask`, …) and its `args` are the command's parameters as
   a JSON object keyed by the contract's parameter names
   (`{"id": "…", "placement": {…}}`).
-- The desktop (Rust `time-core`) and the server (Kotlin) each keep one
+- `time-core` (Rust, on every device) and the server (Kotlin) each keep one
   registry from name to the same rule. The server's result is authoritative;
   the device's optimistic result is replaced on the next pull.
 - Reads are never mutations. Device-only commands (file pickers, the capture
@@ -63,7 +66,9 @@ second offline create is rejected as a conflict.
 
 ## Ordering
 
-Positions stay dense integers. Moves are intents ("put this at index N
+Positions stay dense integers: a new row takes the next position among its
+siblings, and lists order by `position`, then `id`, on every side (outcomes
+and priorities included). Moves are intents ("put this at index N
 among its siblings") replayed by the server on its own state, and every
 renumbered row reaches devices through the log, so fractional keys are not
 needed while scopes are single-user.
@@ -129,9 +134,9 @@ signed out, and waits for that account.
 
 ## First sign-in
 
-The desktop learns the account's scope from `scopeId` in `GET /api/v1/me`
-after the OIDC sign-in (a public client with PKCE and a loopback redirect;
-see `docs/deployment.md`).
+Every device learns the account's scope from `scopeId` in `GET /api/v1/me`
+after the OIDC sign-in (desktop: a public client with PKCE and a loopback
+redirect; see `docs/deployment.md`).
 
 `sign_in(scope)` returns `Synced` (already this account), `Uploading`
 (first sign-in) or `OtherAccount` (bound to another scope; nothing happens
@@ -196,14 +201,15 @@ step; the Rust and Kotlin tests both read them:
   `mutations` plus `syncMutations`.
 - `natural-keys.json`: `(kind, scope, parts) → name → id` vectors for every
   natural key above, computed with Python's `uuid.uuid5`.
-- `mutation-vectors.json`: an ordered run of mutations (34 steps over 32 of
+- `mutation-vectors.json`: an ordered run of mutations (36 steps over 32 of
   the 97 mutations, `importLocal` included) with fixed clocks and ids in a
   fixed scope, each followed by the rows it must leave. Both sides replay it
   from an empty account, so a rule, an id draw or a natural id that differs
   fails the build. Extend it when a mutation changes.
 
-The server also accepts `0`/`1` wherever a mutation argument is a boolean,
-at any depth, since SQLite devices may send either.
+Both registries accept `0`/`1` wherever a mutation argument is a boolean,
+at any depth (`SqliteBooleans` on the server, `mutations::booleans` in
+time-core), since SQLite devices may send either.
 
 ## Mobile
 
@@ -226,22 +232,12 @@ at any depth, since SQLite devices may send either.
   Native's own fetch can't stream Pokes). The first sync token also tells
   the app where store and Push live, so the driver starts once the server
   is reachable; until then the phone keeps working locally.
-- The phone is bound on sign-in: scope from `/me` `scopeId`, else the `sub`
-  of a token for a fresh client id. Another account's rows ask Keep this
-  data (`keepLocal`) or Use the account's data (`startFresh`), as on
-  desktop. The app always needs an account, so signing out on purpose
+- The phone is bound on sign-in to the scope from `/me` `scopeId`, through
+  `@skkil-time/sync` as on web. Another account's rows ask Keep this data
+  (`keepLocal`) or Use the account's data (`startFresh`), as on desktop and
+  web. The app always needs an account, so signing out on purpose
   calls `forget`; a sign-in that lapses on its own keeps the replica for
   the next one.
-
-## Seeded and natural-key ids
-
-Rows the server and every device can create on their own get ids derived
-from the account: `UuidV5(scope_id, "<table>/<key parts joined by />")`,
-built only through `NaturalKey` (`ritual/<kind>`, `week/<date>`,
-`day/<date>`, `setting/<key>`, `habit_log/<habit>/<date>`,
-`project_canvas/<project>`, `record_phase/<record>/<phase>`,
-`task_dependency/<task>/<blocked by>`, `running_timer`). Unbound devices
-use random ids. Default rituals are seeded only for a bound scope.
 
 ## The web replica
 

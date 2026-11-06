@@ -44,9 +44,9 @@ once with `pnpm install && pnpm build`.
   realtime socket stays only for account preferences, which live on the
   server.
 - **Accounts.** On start the engine is bound to the signed-in account's
-  store scope (`scopeId` from `/api/v1/me`, else a sync token's `sub`).
-  A database holding another account's data waits for Keep and upload or
-  Start fresh, as on desktop. Signing out syncs what it can, asks before
+  store scope (`scopeId` from `/api/v1/me`, through `@skkil-time/sync`).
+  A database holding another account's data waits for Keep this data or
+  Use the account's data, as on desktop and mobile. Signing out syncs what it can, asks before
   dropping unsynced changes, and forgets the account's rows. Whoever signed
   in last can open the app offline or with expired tokens; syncing then
   waits for a new sign-in.

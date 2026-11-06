@@ -1,13 +1,12 @@
 # AGENTS.md
 
 skkil/time is a personal planner: tasks, nested projects, time-blocking, time
-tracking, habits, and a weekly/quarterly review. The desktop app is
-local-first (one SQLite file, account optional). The web app uses the same
-model through `apps/server` (Postgres, one account per user); the mobile app
-runs `time-core` on the phone over its own SQLite file. Desktop and mobile
-sync with the server through the separate `../store` project once signed in
-(`docs/decisions/0001-sync-with-store.md`); a signed-out desktop stays fully
-local.
+tracking, habits, and a weekly/quarterly review. Every app is local-first:
+desktop, web and mobile run the same Rust domain (`time-core`) over their own
+SQLite replica (natively, as WASM on OPFS, and through uniffi) and sync with
+`apps/server` (Postgres, one account per user) through the separate
+`../store` project once signed in (`docs/decisions/0001-sync-with-store.md`).
+A signed-out desktop stays fully local; web and mobile need an account.
 
 Product docs live at the repo root (`IMPROVEMENTS.md`, `OPEN-LOOPS.md`,
 `REEVALUATION-SUNSAMA.md`), the spec under `.jennifer/`, and the design memory
@@ -113,12 +112,12 @@ server is its own Gradle project:
 - `apps/core-wasm/`: `time-core-wasm`, the sync Engine for the browser
   (wasm-bindgen, SQLite on OPFS); `pnpm build` there writes the
   `@skkil-time/core-wasm` package to `pkg/` (needs `wasm-bindgen-cli` at the
-  crate's pin)
+  crate's pin; shrinks it with binaryen's `wasm-opt -Oz` when installed)
 - `apps/desktop/`: Tauri 2 desktop app (Tauri wrappers over time-core + a thin
   React shell)
 - `apps/server/`: Kotlin Spring Boot API (see its README)
 - `apps/web/`: Vite + React web app, offline-first on core-wasm
-- `apps/mobile/`: Expo React Native app
+- `apps/mobile/`: Expo React Native app over core-native
 - `apps/core-native/`: `time-core-native`, time-core behind a uniffi interface,
   and `@skkil-time/core-native`, the React Native Turbo Module that
   uniffi-bindgen-react-native generates from it
@@ -131,7 +130,7 @@ server is its own Gradle project:
   - `remote`: the `Backend` over HTTP (`satisfies Backend`)
   - `local`: the `Backend` over a local time-core engine
   - `sync`: sync tokens, the account's scope and push headers for store's
-    driver (web now, mobile next)
+    driver (web and mobile)
   - `auth`: provider-neutral OIDC sign-in
   - `tooling`: the ESLint, Prettier and TypeScript configs every package uses
 
@@ -204,8 +203,9 @@ cargo clippy --all-targets -- -D warnings
   (connection, migrations), `env`, `recurrence`, `settings`.
 - Ids are UUIDv7 strings (`types::Id`, TypeScript `string`). Migration 017
   rewrote every integer id and reference in one transaction, minting UUIDs in
-  the old id order; `running_timer` stays the one row with id 1. Never sort
-  by id for creation order: use `created_at` or `position` (migration 018).
+  the old id order. Never sort by id for creation order: use `created_at` or
+  `position`. Outcomes and priorities order by `position`, then `id`, as on
+  the server (migration 020).
 - Writes take `&dyn MutationEnv` (`env/`): `now()`, `today()` and
   `next_id()`. Hosts pass `LocalEnv`; tests pass `FixedClock` and
   `SequentialIds`. Writes never open their own transaction; the caller does.
@@ -213,8 +213,14 @@ cargo clippy --all-targets -- -D warnings
 - `mutations` is the registry of every synced write by its contract name
   (camelCase, args keyed like the TypeScript command): `apply`,
   `apply_in_transaction`, `query` for reads, and the `MUTATIONS`, `READS` and
-  `DEVICE_ONLY` lists. Its tests parse `bindings.ts`, so a new command must
-  be classified, and walk every mutation through `apply`.
+  `DEVICE_ONLY` lists. Arguments take `0`/`1` for booleans, as on the server
+  (`mutations/booleans.rs`). Its tests parse `bindings.ts`, so a new command
+  must be classified, walk every mutation through `apply` and replay
+  `mutation-vectors.json`.
+- `sync` is the one entry point every host uses: `sync::Engine` owns the
+  connection, registers `data::SYNCED_TABLES` with store-core and handles
+  sign-in, upload (`importLocal`), issues and `forget`; `data` dumps and
+  imports the synced rows.
 - `src/db/migrations/*.sql` (plus Rust code migrations in `db/migrate.rs`)
   are embedded and applied in order, versioned with `PRAGMA user_version`.
   Never edit a shipped migration; add a new one.
@@ -289,8 +295,9 @@ cargo clippy --all-targets -- -D warnings
   `available(platform)`. A local-first shell adds `sync` (status, Sync now,
   issues, sign in/out, account choice, server config), shown as
   Settings → Sync (`features/sync/`, view logic in `view.ts`); desktop fills
-  it in `apps/desktop/src/sync.ts` and reuses `onRemoteChange` and
-  `onConnectionChange`. Undo keeps the `TaskSnapshot` payload in memory.
+  it in `apps/desktop/src/sync.ts`, web in `apps/web/src/platform/web-sync.ts`,
+  and both reuse `onRemoteChange` and `onConnectionChange`. Its copy says
+  "this device", never a platform noun. Undo keeps the `TaskSnapshot` payload in memory.
 - `src/features/<domain>/api.ts` holds the queries and mutations for a domain;
   components live beside it.
 - A project page always opens on Tasks, with Notes and Focus beside it. List,
@@ -360,7 +367,7 @@ cargo clippy --all-targets -- -D warnings
   `features/mutations`
   (`MutationDispatcher.dispatch(caller, name, args, clock, idSource)`) and
   nothing else is; `MutationCoverageTest` checks names and parameters.
-  Arguments take `0`/`1` for booleans. `natural-keys.json` and
+  Arguments take `0`/`1` for booleans, as in time-core. `natural-keys.json` and
   `mutation-vectors.json` beside it are read by the Rust and Kotlin tests
   alike, so ids and rows can't drift; extend the vectors when a mutation
   changes.
@@ -405,7 +412,7 @@ cargo clippy --all-targets -- -D warnings
   `pg_try_advisory_xact_lock`, and fires each timed task once per date and
   time through `reminded_for` (as desktop does) to every `push_device` through
   the senders in `push/` (Expo or Web Push/VAPID). Web uses `public/sw.js` and
-  `Platform.notifications`; mobile `src/notifications.ts`.
+  `Platform.notifications`; mobile `src/core/notifications/`.
 - Account-wide preferences are one JSON object (`features/preferences`,
   `PATCH` merges, `null` removes a key).
 
@@ -428,7 +435,7 @@ cargo clippy --all-targets -- -D warnings
   (`link:../../../store/modules/client-ts`, built there); the Docker image
   builds it and the wasm from `--build-context store=…`.
 - `Platform.sync` on web (`platform/web-sync.ts`) binds the engine to the
-  account's scope (`/api/v1/me` `scopeId`, else a sync token's `sub`), asks
+  account's scope (`/api/v1/me` `scopeId`, through `@skkil-time/sync`), asks
   before touching another account's data, and maps the worker's
   `SyncState` to Settings → Sync. Signing out syncs, confirms before
   dropping unsynced changes and calls `forget`. Whoever signed in last can
@@ -449,7 +456,7 @@ cargo clippy --all-targets -- -D warnings
   updates, account preferences) and `notifications/`; `main.tsx` only
   starts the app.
 - Mobile (`apps/mobile/`) is Expo Router. It shares `domain`, `tokens`,
-  `contract`, `api` and `local`, not DOM components. `app/` holds routes
+  `contract`, `api`, `local` and `sync`, not DOM components. `app/` holds routes
   only; screens, components and hooks live in `src/features/<name>/`,
   services in `src/core/`, shared UI in `src/ui/` (see its README).
   `pnpm compile`, `pnpm test` and `npx expo export` check it.
@@ -464,10 +471,10 @@ cargo clippy --all-targets -- -D warnings
   deletion, preferences, push devices.
 - Mobile sync (`src/core/sync/`) runs `@skkil/store-client` (linked from
   `../store` at `STORE_VERSION`) with `expo/fetch` for the Pokes stream.
-  `controller.ts` binds the replica to the account (scope from `/me`
-  `scopeId`, else the `sub` of a token for a fresh client id), asks Keep this
-  data / Use the account's data when it holds another account's rows, and
-  pushes soon after every local write. `use-sync.ts` starts it while signed
+  `controller.ts` binds the replica to the account (scope, sync tokens and
+  push headers from `@skkil-time/sync`, signing out when the server refuses
+  the sign-in), asks Keep this data / Use the account's data when it holds
+  another account's rows, and pushes soon after every local write. `use-sync.ts` starts it while signed
   in, restarts it on foreground and reconnect and pauses it in the
   background; pulls refresh the queries. Signing out in Settings forgets the
   replica; an expired sign-in keeps it. Settings → Sync shows pending

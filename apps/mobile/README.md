@@ -57,7 +57,7 @@ build` run in `modules/client-ts`). Metro watches that folder
   or the network returns, and pushes shortly after each change. Pulled
   changes refresh the screens.
 - Settings → Sync shows changes waiting, the last sync, Sync now and the
-  changes the server refused. Signing out removes this phone's copy of the
+  changes the server refused. Signing out removes this device's copy of the
   account, after a warning when changes haven't synced.
 
 ## Code layout
