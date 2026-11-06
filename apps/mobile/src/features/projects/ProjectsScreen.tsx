@@ -85,14 +85,14 @@ export function ProjectsScreen() {
             >
               <Pressable
                 accessibilityRole="button"
-                style={[
+                style={StyleSheet.flatten([
                   styles.row,
                   { paddingLeft: spacing.md + depth * spacing.lg },
                   index < rows.length - 1 && {
                     borderBottomColor: theme.border,
                     borderBottomWidth: StyleSheet.hairlineWidth,
                   },
-                ]}
+                ])}
               >
                 <View
                   style={[

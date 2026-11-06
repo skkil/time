@@ -77,10 +77,10 @@ export function TodayScreen() {
               accessibilityRole="button"
               accessibilityLabel={name ? `Settings for ${name}` : 'Settings'}
               hitSlop={8}
-              style={[
+              style={StyleSheet.flatten([
                 styles.avatar,
                 { borderColor: theme.border, backgroundColor: theme.card },
-              ]}
+              ])}
             >
               {initial ? (
                 <Text

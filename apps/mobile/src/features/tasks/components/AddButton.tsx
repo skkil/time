@@ -15,10 +15,12 @@ export function AddButton({ projectId }: { projectId?: string | null }) {
         accessibilityRole="button"
         accessibilityLabel="Add task"
         hitSlop={8}
-        style={({ pressed }) => [
-          styles.button,
-          { backgroundColor: theme.primary, opacity: pressed ? 0.8 : 1 },
-        ]}
+        style={({ pressed }) =>
+          StyleSheet.flatten([
+            styles.button,
+            { backgroundColor: theme.primary, opacity: pressed ? 0.8 : 1 },
+          ])
+        }
       >
         <Ionicons name="add" size={22} color={theme['primary-foreground']} />
       </Pressable>
