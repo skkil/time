@@ -271,3 +271,8 @@ ci:
       build: pnpm tauri build
       depends_on:
         - desktop-tauri
+
+devices:
+  - os: android
+    dir: apps/mobile
+    run: ./scripts/run-android.sh
