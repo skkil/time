@@ -30,7 +30,7 @@ pub fn quarter_for(conn: &Connection, date: Date) -> Result<Option<Quarter>> {
                 (SELECT COUNT(*) FROM outcome o
                   WHERE o.priority_id = p.id AND o.status = 'achieved'
                     AND o.week_start >= ?2 AND o.week_start < ?3)
-           FROM priority p WHERE p.quarter_id = ?1 ORDER BY p.created_at, p.id",
+           FROM priority p WHERE p.quarter_id = ?1 ORDER BY p.position, p.id",
     )?;
     let priorities = stmt
         .query_map(
@@ -100,8 +100,10 @@ pub fn add_priority(
         return Err(Error::invalid("3 priorities max. Remove one first."));
     }
     conn.execute(
-        "INSERT INTO priority (id, quarter_id, title, created_at) VALUES (?1, ?2, ?3, ?4)",
-        params![env.next_id(), quarter_id, title, env.timestamp()],
+        "INSERT INTO priority (id, quarter_id, title, position)
+         VALUES (?1, ?2, ?3,
+                 (SELECT COALESCE(MAX(position), 0) + 1 FROM priority WHERE quarter_id = ?2))",
+        params![env.next_id(), quarter_id, title],
     )?;
     Ok(())
 }

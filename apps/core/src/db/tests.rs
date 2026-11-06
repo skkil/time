@@ -8,6 +8,8 @@ use super::*;
 use crate::types::Id;
 
 const BEFORE_UUIDS: usize = UUID_IDS_VERSION - 1;
+const BEFORE_SYNC_IDS: usize = 18;
+const BEFORE_REVIEW_POSITION: usize = 19;
 
 #[test]
 fn migrates_m0_data_forward() {
@@ -271,7 +273,7 @@ fn a_fresh_database_starts_on_uuids() {
 #[test]
 fn keyed_rows_get_ids_and_device_settings_move_out() {
     let mut conn = Connection::open_in_memory().unwrap();
-    migrate_to(&mut conn, latest_version() - 1).unwrap();
+    migrate_to(&mut conn, BEFORE_SYNC_IDS).unwrap();
     conn.execute_batch(
         "INSERT INTO week (start_date) VALUES ('2026-11-02');
          INSERT INTO day (date, felt) VALUES ('2026-11-03', 4);
@@ -319,4 +321,44 @@ fn keyed_rows_get_ids_and_device_settings_move_out() {
         device,
         BTreeSet::from(["[Text(\"capture_hotkey\"), Text(\"off\")]".to_owned()])
     );
+}
+
+#[test]
+fn outcomes_and_priorities_take_positions_in_creation_order() {
+    let mut conn = Connection::open_in_memory().unwrap();
+    migrate_to(&mut conn, BEFORE_REVIEW_POSITION).unwrap();
+    conn.execute_batch(
+        "INSERT INTO quarter (id, label, start_date) VALUES ('q', 'Q4', '2026-10-05');
+         INSERT INTO priority (id, quarter_id, title, created_at)
+         VALUES ('a', 'q', 'Later', 20), ('b', 'q', 'First', 10);
+         INSERT INTO week (id, start_date) VALUES ('w1', '2026-11-02'), ('w2', '2026-11-09');
+         INSERT INTO outcome (id, week_start, priority_id, title, created_at)
+         VALUES ('x', '2026-11-02', 'a', 'Second', 5), ('y', '2026-11-02', NULL, 'First', 1),
+                ('z', '2026-11-09', 'b', 'Only', 9);",
+    )
+    .unwrap();
+
+    migrate(&mut conn).unwrap();
+
+    let positions = |table: &str| -> Vec<(String, i64)> {
+        conn.prepare(&format!("SELECT id, position FROM {table} ORDER BY id"))
+            .unwrap()
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+            .unwrap()
+            .collect::<rusqlite::Result<_>>()
+            .unwrap()
+    };
+    let owned = |rows: &[(&str, i64)]| -> Vec<(String, i64)> {
+        rows.iter().map(|(id, n)| ((*id).to_owned(), *n)).collect()
+    };
+    assert_eq!(positions("priority"), owned(&[("a", 2), ("b", 1)]));
+    assert_eq!(positions("outcome"), owned(&[("x", 2), ("y", 1), ("z", 1)]));
+    let created_at: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('outcome') WHERE name = 'created_at'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(created_at, 0);
 }

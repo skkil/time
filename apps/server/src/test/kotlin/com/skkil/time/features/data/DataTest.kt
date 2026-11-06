@@ -192,6 +192,17 @@ class DataTest : TaskApiTest() {
     }
 
     @Test
+    fun `restores a backup from before outcomes kept a position`() {
+        seed()
+        val backup = export().deepCopy() as ObjectNode
+        backup["tables"]["outcome"].values().forEach { (it as ObjectNode).remove("position") }
+
+        restore(backup).andExpect { status { isNoContent() } }
+
+        assertEquals(1, count("outcome"))
+    }
+
+    @Test
     fun `refuses files that are not backups and leaves the data alone`() {
         seed()
         val backup = export()

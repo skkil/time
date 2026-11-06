@@ -92,7 +92,11 @@ val TABLES: List<Table> =
             long("position"),
         ),
         Table("quarter", true, listOf(id(), text("label"), date("start_date"))),
-        Table("priority", true, listOf(id(), ref("quarter_id", "quarter"), text("title"), text("note"))),
+        Table(
+            "priority",
+            true,
+            listOf(id(), ref("quarter_id", "quarter"), text("title"), text("note"), long("position")),
+        ),
         Table(
             "week",
             false,
@@ -116,6 +120,7 @@ val TABLES: List<Table> =
                 text("title"),
                 text("status"),
                 ref("carried_from", "outcome"),
+                long("position"),
             ),
         ),
         Table(
