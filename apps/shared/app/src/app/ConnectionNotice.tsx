@@ -24,7 +24,8 @@ const MESSAGES: Record<
 
 /** A local-first device keeps saving; only syncing pauses. */
 const LOCAL_FIRST: Partial<Record<ConnectionStatus, string>> = {
-  offline: 'You’re offline. Changes are kept here and sync when you’re back.',
+  offline:
+    'You’re offline. Your changes are kept on this device and sync when you’re back online.',
   signedOut: 'Sync paused. Sign in again to keep your devices in step.',
 };
 

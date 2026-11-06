@@ -78,7 +78,7 @@ export function SyncSettings() {
       ) : (
         <SettingRow
           label="Account"
-          description="Sign in to keep this computer, the web app and your phone in step."
+          description="Sign in to keep this device in step with your other devices."
         >
           <Button
             size="sm"

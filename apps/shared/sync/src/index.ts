@@ -6,4 +6,3 @@ export {
   syncTokens,
 } from '#account';
 export { SyncApiError, type SyncApiErrorKind, isUnauthorized } from '#errors';
-export { tokenSubject } from '#token';

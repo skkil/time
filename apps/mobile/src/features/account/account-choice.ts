@@ -6,7 +6,7 @@ import { sync } from '@/core/sync/sync';
 import { useSyncView } from '@/core/sync/use-sync';
 
 export const ACCOUNT_CHOICE = {
-  title: 'This phone has another account’s data',
+  title: 'This device has another account’s data',
   message:
     'Keep it to add it to the account you signed in with, or replace it with that account’s data.',
   keepLocal: 'Keep this data',
@@ -23,7 +23,7 @@ export const chooseAccountData = (choice: AccountChoice) =>
       ),
     );
 
-/** Asks once what to do when the signed-in account isn't the one this phone's data belongs to. */
+/** Asks once what to do when the signed-in account isn't the one this device's data belongs to. */
 export function useAccountChoice() {
   const { phase } = useSyncView();
   useEffect(() => {

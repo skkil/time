@@ -36,7 +36,7 @@ export function describeStatus(status: SyncStatus, now: number): StatusLine {
     case 'signedOut':
       return {
         label: 'Not syncing',
-        detail: 'Everything stays on this computer until you sign in.',
+        detail: 'Everything stays on this device until you sign in.',
         tone: 'calm',
       };
     case 'signingIn':
@@ -56,20 +56,21 @@ export function describeStatus(status: SyncStatus, now: number): StatusLine {
     case 'offline':
       return {
         label: 'Can’t reach the server',
-        detail: [waiting ?? 'Changes are kept here', 'retrying soon'].join(
-          ', ',
-        ),
+        detail: [
+          waiting ?? 'Your changes are kept on this device',
+          'retrying soon',
+        ].join(', '),
         tone: 'warn',
       };
     case 'needsSignIn':
       return {
         label: 'Sign in again to keep syncing',
-        detail: waiting ?? 'Your changes are kept on this computer.',
+        detail: waiting ?? 'Your changes are kept on this device.',
         tone: 'warn',
       };
     case 'needsChoice':
       return {
-        label: 'Choose what to do with this computer’s data',
+        label: 'Choose what to do with this device’s data',
         tone: 'warn',
       };
   }

@@ -17,6 +17,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
+  "dependencies": {
+    "@skkil-time/api": "workspace:*"
+  },
   "devDependencies": {
     "@skkil-time/tooling": "workspace:*",
     "eslint": "^10.14.0",

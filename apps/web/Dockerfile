@@ -2,7 +2,7 @@
 # Build with apps/ as the context and the pinned store checkout as a named context:
 #   docker build -f apps/web/Dockerfile --build-context store=../store apps
 FROM rust:1-slim-bookworm AS wasm
-RUN apt-get update && apt-get install -y --no-install-recommends clang \
+RUN apt-get update && apt-get install -y --no-install-recommends clang binaryen \
  && rm -rf /var/lib/apt/lists/* \
  && rustup target add wasm32-unknown-unknown
 WORKDIR /work/time/apps/core-wasm

@@ -542,3 +542,45 @@ fn a_failed_mutation_leaves_nothing_behind() {
     })
     .unwrap();
 }
+
+#[test]
+fn boolean_arguments_may_be_one_or_zero_as_on_the_server() {
+    let db = Db::in_memory().unwrap();
+    let env = fixed_env();
+    db.call(|conn| {
+        let project = apply(
+            conn,
+            &env,
+            "createProject",
+            &json!({"input": {"name": "Home", "parentId": null, "color": "blue"}}),
+        )?;
+        let id = &project["id"];
+        apply(
+            conn,
+            &env,
+            "setProjectArchived",
+            &json!({"id": id, "archived": 1}),
+        )?;
+        let settings = json!({
+            "groupId": null, "status": "active", "outcome": "", "weeklyMinutes": null,
+            "targetDate": null, "killCriteria": "", "reviewEveryWeeks": 1, "inOrder": 1
+        });
+        let updated = apply(
+            conn,
+            &env,
+            "updateProjectSettings",
+            &json!({"id": id, "settings": settings}),
+        )?;
+        assert_eq!(updated["inOrder"], json!(true));
+        assert_eq!(updated["archived"], json!(true));
+        let refused = apply(
+            conn,
+            &env,
+            "setProjectArchived",
+            &json!({"id": id, "archived": 2}),
+        );
+        assert!(matches!(refused, Err(Error::Invalid(_))));
+        Ok(())
+    })
+    .unwrap();
+}

@@ -32,8 +32,8 @@ export function ConnectionNotice() {
     >
       <Ionicons name="cloud-offline-outline" size={16} color="#fff" />
       <Text style={[type.small, styles.text]}>
-        Offline. Your changes are saved on this phone and sync when you’re back
-        online.
+        You’re offline. Your changes are kept on this device and sync when
+        you’re back online.
       </Text>
     </View>
   );

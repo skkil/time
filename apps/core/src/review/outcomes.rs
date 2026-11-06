@@ -15,7 +15,7 @@ pub(super) fn outcomes(conn: &Connection, start: Date) -> Result<Vec<Outcome>> {
                 (SELECT COALESCE(SUM(e.ended_at - e.started_at), 0)
                    FROM time_entry e JOIN task t ON t.id = e.task_id
                   WHERE t.outcome_id = o.id AND e.started_at >= ?2 AND e.started_at < ?3)
-           FROM outcome o WHERE o.week_start = ?1 ORDER BY o.created_at, o.id",
+           FROM outcome o WHERE o.week_start = ?1 ORDER BY o.position, o.id",
     )?;
     let rows = stmt.query_map(
         params![start, start.start(), start.add_days(7).start()],
@@ -80,9 +80,10 @@ fn insert_outcome(
     ensure_week(conn, env, start)?;
     let id = env.next_id();
     conn.execute(
-        "INSERT INTO outcome (id, week_start, title, priority_id, carried_from, created_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-        params![id, start, title, priority_id, carried_from, env.timestamp()],
+        "INSERT INTO outcome (id, week_start, title, priority_id, carried_from, position)
+         VALUES (?1, ?2, ?3, ?4, ?5,
+                 (SELECT COALESCE(MAX(position), 0) + 1 FROM outcome WHERE week_start = ?2))",
+        params![id, start, title, priority_id, carried_from],
     )?;
     Ok(id)
 }

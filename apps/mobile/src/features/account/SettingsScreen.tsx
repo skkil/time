@@ -90,7 +90,9 @@ export function SettingsScreen() {
     if (pending === 0) return void signOut().catch(signOutFailed);
     Alert.alert(
       'Sign out?',
-      `${pending === 1 ? '1 change hasn’t' : `${pending} changes haven’t`} synced yet. Signing out removes them from this phone.`,
+      pending === 1
+        ? '1 change hasn’t synced yet. Signing out removes it from this device.'
+        : `${pending} changes haven’t synced yet. Signing out removes them from this device.`,
       [
         { text: 'Stay signed in', style: 'cancel' },
         {

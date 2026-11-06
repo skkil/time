@@ -12,6 +12,7 @@
     "@skkil-time/core-native": "workspace:*",
     "@skkil-time/domain": "workspace:*",
     "@skkil-time/local": "workspace:*",
+    "@skkil-time/sync": "workspace:*",
     "@skkil-time/tokens": "workspace:*",
     "@ubjs/core": "0.31.0-6",
     "@tanstack/react-query": "^5.107.1",

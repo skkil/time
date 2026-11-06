@@ -42,9 +42,9 @@ class DataService(
         DataExport(FORMAT, VERSION, caller.now(), TABLES.associate { it.name to rows(caller.id, it) })
 
     /**
-     * Replaces all of the user's data with a backup. Every id is new, so links are remapped as rows go in. The
-     * replacement is one server write; then the scope starts over (a new epoch and a fresh baseline), so every device
-     * resets onto the restored rows.
+     * Replaces all of the user's data with a backup. Every id is new, so links are remapped as rows go in, and a column
+     * an older backup lacks takes its default. The replacement is one server write; then the scope starts over (a new
+     * epoch and a fresh baseline), so every device resets onto the restored rows.
      */
     fun restore(caller: Caller, text: String) {
         val backup = parse(text)
@@ -113,14 +113,14 @@ class DataService(
         val user = caller.id
         val created = mutableMapOf<String, UUID>()
         val links = mutableListOf<Triple<UUID, Column, String>>()
-        val columns = table.columns.filter { it.name != ID }
         val owner = if (table.ownedDirectly) listOf("user_id") else emptyList()
-        val sql =
-            """
-            INSERT INTO ${table.name} (${(listOf(ID) + owner + columns.map { quoted(it.name) }).joinToString()})
-            VALUES (${(listOf(ID) + owner + columns.map { it.name }).joinToString { ":$it" }})
-            """
         for (row in rows) {
+            val columns = table.columns.filter { it.name != ID && !row.path(it.name).isMissingNode }
+            val sql =
+                """
+                INSERT INTO ${table.name} (${(listOf(ID) + owner + columns.map { quoted(it.name) }).joinToString()})
+                VALUES (${(listOf(ID) + owner + columns.map { it.name }).joinToString { ":$it" }})
+                """
             val id =
                 when (table.name) {
                     RITUAL -> rituals.idFor(caller.scopeId, row.path("kind").asString())

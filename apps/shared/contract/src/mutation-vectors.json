@@ -416,7 +416,34 @@
           "row": {
             "quarter_id": "019a4b00-0000-7000-8000-000000000008",
             "title": "Health",
-            "note": ""
+            "note": "",
+            "position": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "createPriority",
+      "args": {
+        "quarterId": "019a4b00-0000-7000-8000-000000000008",
+        "title": "Craft"
+      },
+      "ids": ["019a4b00-0000-7000-8000-00000000000e"],
+      "expect": [
+        {
+          "table": "priority",
+          "id": "019a4b00-0000-7000-8000-00000000000e",
+          "row": {
+            "quarter_id": "019a4b00-0000-7000-8000-000000000008",
+            "title": "Craft",
+            "position": 2
+          }
+        },
+        {
+          "table": "priority",
+          "id": "019a4b00-0000-7000-8000-000000000009",
+          "row": {
+            "position": 1
           }
         }
       ]
@@ -437,7 +464,35 @@
             "week_start": "2026-11-02",
             "title": "Dry floor",
             "priority_id": "019a4b00-0000-7000-8000-000000000009",
-            "status": "open"
+            "status": "open",
+            "position": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "createOutcome",
+      "args": {
+        "date": "2026-11-05",
+        "title": "Fix the hinge",
+        "priorityId": null
+      },
+      "ids": ["019a4b00-0000-7000-8000-000000000063"],
+      "expect": [
+        {
+          "table": "outcome",
+          "id": "019a4b00-0000-7000-8000-000000000063",
+          "row": {
+            "week_start": "2026-11-02",
+            "title": "Fix the hinge",
+            "position": 2
+          }
+        },
+        {
+          "table": "outcome",
+          "id": "019a4b00-0000-7000-8000-000000000064",
+          "row": {
+            "position": 1
           }
         }
       ]
@@ -763,6 +818,18 @@
               ]
             },
             {
+              "table": "outcome",
+              "rows": [
+                {
+                  "id": "019a4b00-0000-7000-8000-0000000000cc",
+                  "week_start": "2026-11-02",
+                  "title": "Mulch",
+                  "status": "open",
+                  "position": 7
+                }
+              ]
+            },
+            {
               "table": "day",
               "rows": [
                 {
@@ -807,6 +874,14 @@
             "archived": false,
             "in_order": true,
             "position": 2
+          }
+        },
+        {
+          "table": "outcome",
+          "id": "019a4b00-0000-7000-8000-0000000000cc",
+          "row": {
+            "title": "Mulch",
+            "position": 7
           }
         },
         {

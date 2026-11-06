@@ -1,5 +1,6 @@
 #!/bin/sh
-# Builds the wasm module and its JS bindings into pkg/.
+# Builds the wasm module and its JS bindings into pkg/, then shrinks the
+# module with binaryen's wasm-opt -Oz when it is installed.
 set -eu
 
 cd "$(dirname "$0")/.."
@@ -12,4 +13,17 @@ fi
 
 cargo build --release --lib
 rm -rf pkg
-wasm-bindgen --target web --out-dir pkg target/wasm32-unknown-unknown/release/time_core_wasm.wasm
+wasm-bindgen --target web --out-dir pkg "${CARGO_TARGET_DIR:-target}/wasm32-unknown-unknown/release/time_core_wasm.wasm"
+
+module=pkg/time_core_wasm_bg.wasm
+size() { wc -c < "$1" | tr -d ' '; }
+before=$(size "$module")
+if command -v wasm-opt > /dev/null; then
+  wasm-opt -Oz --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext \
+    --enable-mutable-globals --enable-reference-types --enable-multivalue \
+    "$module" -o "$module.opt"
+  mv "$module.opt" "$module"
+  echo "time_core_wasm_bg.wasm: $before bytes, $(size "$module") after wasm-opt -Oz"
+else
+  echo "time_core_wasm_bg.wasm: $before bytes (install binaryen for wasm-opt -Oz to shrink it)"
+fi

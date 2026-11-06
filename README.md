@@ -5,13 +5,20 @@ review, on desktop, web and phone.
 
 ## Apps
 
+Every app keeps its own SQLite copy of the data and works offline; signing in
+syncs it with the server through [store](../store) (see
+[the decision record](docs/decisions/0001-sync-with-store.md)).
+
 | App | What it is |
 |---|---|
-| [`apps/desktop`](apps/desktop) | Tauri desktop app. Local-first: one SQLite file, no account |
-| [`apps/server`](apps/server) | Kotlin Spring Boot API on Postgres, for web and mobile |
-| [`apps/web`](apps/web) | Vite + React web app: the desktop UI over the API |
+| [`apps/desktop`](apps/desktop) | Tauri desktop app. Fully local until you sign in |
+| [`apps/web`](apps/web) | Vite + React web app: the desktop UI in the browser, on SQLite in OPFS |
 | [`apps/mobile`](apps/mobile) | Expo React Native app |
-| [`apps/shared`](apps/shared) | TypeScript packages every app shares |
+| [`apps/server`](apps/server) | Kotlin Spring Boot API on Postgres and the store write path |
+| [`apps/core`](apps/core) | `time-core`, the Rust domain every app runs |
+| [`apps/core-wasm`](apps/core-wasm) | `time-core` and store-core as WASM, for web |
+| [`apps/core-native`](apps/core-native) | `time-core` and store-core as a React Native Turbo Module, for mobile |
+| [`apps/shared`](apps/shared) | TypeScript packages the apps share |
 
 ## Run
 

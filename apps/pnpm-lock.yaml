@@ -308,6 +308,9 @@ importers:
       '@skkil-time/local':
         specifier: workspace:*
         version: link:../shared/local
+      '@skkil-time/sync':
+        specifier: workspace:*
+        version: link:../shared/sync
       '@skkil-time/tokens':
         specifier: workspace:*
         version: link:../shared/tokens
@@ -660,6 +663,10 @@ importers:
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
   shared/sync:
+    dependencies:
+      '@skkil-time/api':
+        specifier: workspace:*
+        version: link:../api
     devDependencies:
       '@skkil-time/tooling':
         specifier: workspace:*

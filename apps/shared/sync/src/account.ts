@@ -1,13 +1,12 @@
 import { SyncApiError, statusError } from '#errors';
-import { tokenSubject } from '#token';
+import type {
+  Me,
+  SyncGrant as ServerGrant,
+  SyncTokenRequest,
+} from '@skkil-time/api';
 
 /** The server's answer to `POST /api/v1/sync/token`, with `expiresAt` in epoch milliseconds. */
-export type SyncGrant = {
-  token: string;
-  expiresAt: number;
-  storeUrl: string;
-  pushUrl: string;
-};
+export type SyncGrant = ServerGrant;
 
 export type SyncAccountOptions = {
   /** The time server's base URL, without a trailing slash. */
@@ -15,15 +14,13 @@ export type SyncAccountOptions = {
   /** The signed-in account's access token, or null when signed out. */
   getAccessToken: () => Promise<string | null>;
   fetch?: typeof globalThis.fetch;
-  /** Makes a client id that no device uses yet. */
-  newClientId?: () => string;
 };
 
 /** The signed-in account as store's sync driver needs it. */
 export type SyncAccount = {
   /** A sync token for `clientId`, which the server claims for this account on first use. */
   grant(clientId: string): Promise<SyncGrant>;
-  /** The account's store scope: `scopeId` from `/api/v1/me`, else the `sub` of a token for a fresh client id. */
+  /** The account's store scope: `scopeId` from `/api/v1/me`. */
   scope(): Promise<string>;
   /** Headers for a push to the time server. */
   pushHeaders(): Promise<Record<string, string>>;
@@ -39,7 +36,6 @@ export function createSyncAccount({
   apiUrl,
   getAccessToken,
   fetch = globalThis.fetch.bind(globalThis),
-  newClientId = () => crypto.randomUUID(),
 }: SyncAccountOptions): SyncAccount {
   const base = apiUrl.replace(/\/+$/, '');
 
@@ -63,33 +59,20 @@ export function createSyncAccount({
   };
 
   const grant = async (clientId: string): Promise<SyncGrant> => {
+    const body: SyncTokenRequest = { clientId };
     const raw = (await call('/api/v1/sync/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clientId }),
-    })) as SyncGrant;
+      body: JSON.stringify(body),
+    })) as ServerGrant;
     return { ...raw, expiresAt: raw.expiresAt * 1000 };
-  };
-
-  const scopeFromMe = async () => {
-    const me = (await call('/api/v1/me').catch(() => null)) as {
-      scopeId?: string | null;
-    } | null;
-    return me?.scopeId ?? null;
   };
 
   return {
     grant,
     async scope() {
-      const known = await scopeFromMe();
-      if (known) return known;
-      const subject = tokenSubject((await grant(newClientId())).token);
-      if (!subject)
-        throw new SyncApiError(
-          'unavailable',
-          'The sync token names no account.',
-        );
-      return subject;
+      const me = (await call('/api/v1/me')) as Me;
+      return me.scopeId;
     },
     pushHeaders: authorization,
   };

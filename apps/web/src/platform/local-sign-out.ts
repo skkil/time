@@ -17,7 +17,9 @@ async function flush(engine: EngineClient) {
 }
 
 const unsynced = (count: number) =>
-  `${count === 1 ? '1 change hasn’t' : `${count} changes haven’t`} reached the server yet and will be lost. Sign out anyway?`;
+  count === 1
+    ? '1 change hasn’t synced yet. Signing out removes it from this device. Sign out anyway?'
+    : `${count} changes haven’t synced yet. Signing out removes them from this device. Sign out anyway?`;
 
 /**
  * Signing out of a browser leaves nothing behind: after a last sync, the engine forgets the account's rows
