@@ -36,6 +36,12 @@ pnpm build:ios        # macOS with Xcode: device and simulator xcframework
 pnpm check:ios        # on Linux: cargo check of the iOS targets only
 ```
 
+To run on an Android emulator or phone, add it once with `skkil device init`
+and start it with `skkil device up <name>` from the repo root. That runs
+`scripts/run-android.sh`: it builds the native core, installs a debug build
+for the device's ABI, forwards the API, issuer and store ports, and serves
+Metro on 8088 because the server's management port takes 8081.
+
 The database is `time.db` in the app's document directory. The engine has
 its own thread: commands are async; store's sync calls are synchronous by
 the driver's contract and touch one page at a time.

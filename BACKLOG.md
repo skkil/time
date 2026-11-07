@@ -136,8 +136,10 @@ Each item is one commit. Check it off when it lands.
 - [x] 9.7 Mobile: time-core + store-core through uniffi-bindgen-react-native
 - [x] 9.8 Live updates from store's Pokes; conformance suite in CI;
       `STORE_VERSION` pin checked by `skkil doctor`
-- [ ] 9.9 End-to-end: offline edits on several devices converge; rejections
-      reach every device; shared timer
+- [x] 9.9 End-to-end: offline edits on several devices converge; rejections
+      reach every device; shared timer (web and Android verified by hand and
+      Playwright; rejections and the timer by the conformance suite and the
+      time-core sync tests, not yet on devices)
 
 ## 7. Release
 
