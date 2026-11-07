@@ -1,3 +1,4 @@
+import { nextUp } from '@skkil-time/domain/next';
 import { PlusIcon, SlidersHorizontalIcon } from 'lucide-react';
 import { Suspense, lazy, useMemo, useState } from 'react';
 
@@ -12,7 +13,6 @@ import { ProjectHeader } from '@/features/projects/ProjectHeader';
 import { ProjectSettingsDialog } from '@/features/projects/ProjectSettingsDialog';
 import { ProjectTimeline } from '@/features/projects/ProjectTimeline';
 import { useProjectIndex, useSetProjectView } from '@/features/projects/api';
-import { nextUp } from '@/features/projects/context';
 import { GraphView } from '@/features/workflow/GraphView';
 import { ViewEditor } from '@/features/workflow/ViewEditor';
 import { Workspace } from '@/features/workflow/Workspace';
