@@ -1,22 +1,28 @@
 import type { Project, Task } from '@skkil-time/contract';
 import { formatDue, isOverdue } from '@skkil-time/domain/due';
-import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useCompleteTask } from '@/features/tasks/hooks';
 import { useSelection } from '@/features/tasks/selection';
+import { Check } from '@/ui/Check';
 import { useWide } from '@/ui/responsive';
-import { spacing, type, useProjectColor, useTheme } from '@/ui/theme';
+import { ink, spacing, type, useProjectColor, useTheme } from '@/ui/theme';
+
+export const openTask = (id: string) =>
+  router.push({ pathname: '/task/[id]', params: { id } });
 
 export function TaskRow({
   task,
   project,
-  last,
+  lit = false,
+  showDue = true,
 }: {
   task: Task;
   project?: Project;
-  last?: boolean;
+  lit?: boolean;
+  /** Off where the list already says the day, like Day's "Any time today". */
+  showDue?: boolean;
 }) {
   const theme = useTheme();
   const colorOf = useProjectColor();
@@ -24,75 +30,47 @@ export function TaskRow({
   const wide = useWide();
   const { selected, select } = useSelection();
   const done = task.completedAt !== null;
-  const ring =
-    task.priority < 4
-      ? theme[`p${task.priority}` as 'p1']
-      : theme['muted-foreground'];
-  const due = formatDue(task);
-  const overdue = isOverdue(task);
+  const open = wide && selected === task.id;
+  const due = showDue ? formatDue(task) : '';
+  const meta = due !== '' || project || task.recurrence;
 
   return (
-    <View
-      style={[
-        styles.row,
-        !last && {
-          borderBottomColor: theme.border,
-          borderBottomWidth: StyleSheet.hairlineWidth,
-        },
-      ]}
-    >
+    <View style={styles.row}>
+      <View style={styles.check}>
+        <Check
+          checked={done}
+          lit={lit || open}
+          label={done ? `Reopen ${task.title}` : `Complete ${task.title}`}
+          onToggle={() => complete.mutate({ id: task.id, completed: !done })}
+        />
+      </View>
       <Pressable
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: done }}
-        accessibilityLabel={
-          done ? `Reopen ${task.title}` : `Complete ${task.title}`
-        }
-        hitSlop={12}
-        onPress={() => {
-          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          complete.mutate({ id: task.id, completed: !done });
-        }}
-        style={[
-          styles.check,
-          { borderColor: ring, backgroundColor: done ? ring : 'transparent' },
-        ]}
-      />
-      <Pressable
-        style={[styles.body, selected === task.id && wide && { opacity: 0.7 }]}
+        style={styles.body}
         accessibilityRole="button"
-        accessibilityState={{ selected: wide && selected === task.id }}
-        onPress={() =>
-          wide
-            ? select(task.id)
-            : router.push({ pathname: '/task/[id]', params: { id: task.id } })
-        }
+        accessibilityState={{ selected: open }}
+        onPress={() => (wide ? select(task.id) : openTask(task.id))}
       >
         <Text
           numberOfLines={2}
           style={[
             type.body,
-            { color: done ? theme['muted-foreground'] : theme.foreground },
             done && styles.done,
+            !done && !open && !lit && { color: 'rgba(241, 241, 238, 0.9)' },
           ]}
         >
           {task.title}
         </Text>
-        {(due || project || task.recurrence) && (
+        {meta && (
           <View style={styles.meta}>
             {due !== '' && (
               <Text
-                style={[
-                  type.small,
-                  { color: overdue ? theme.p1 : theme['muted-foreground'] },
-                ]}
+                style={[type.small, isOverdue(task) && { color: theme.p1 }]}
               >
                 {due}
               </Text>
             )}
             {task.recurrence && (
-              <Text style={[type.small, { color: theme['muted-foreground'] }]}>
-                ↻ {task.recurrence}
-              </Text>
+              <Text style={type.small}>↻ {task.recurrence}</Text>
             )}
             {project && (
               <View style={styles.project}>
@@ -102,10 +80,7 @@ export function TaskRow({
                     { backgroundColor: colorOf(project.color) },
                   ]}
                 />
-                <Text
-                  style={[type.small, { color: theme['muted-foreground'] }]}
-                  numberOfLines={1}
-                >
+                <Text style={type.small} numberOfLines={1}>
                   {project.name}
                 </Text>
               </View>
@@ -121,25 +96,19 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm + 2,
     gap: spacing.md,
+    minHeight: 44,
   },
-  check: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    marginTop: 1,
-  },
-  body: { flex: 1, gap: 4 },
-  done: { textDecorationLine: 'line-through' },
-  meta: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  check: { paddingTop: 1 },
+  body: { flex: 1, gap: 2 },
+  done: { color: ink.secondary, textDecorationLine: 'line-through' },
+  meta: { flexDirection: 'row', flexWrap: 'wrap', columnGap: spacing.md },
   project: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
     flexShrink: 1,
   },
-  dot: { width: 8, height: 8, borderRadius: 4 },
+  dot: { width: 7, height: 7, borderRadius: 4 },
 });

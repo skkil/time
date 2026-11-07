@@ -8,7 +8,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: 'skkiltime',
   orientation: 'default',
   icon: './assets/icon.png',
-  userInterfaceStyle: 'automatic',
+  userInterfaceStyle: 'dark',
   ios: {
     bundleIdentifier: 'com.skkil.time',
     supportsTablet: true,
@@ -44,7 +44,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         image: './assets/splash-icon.png',
         imageWidth: 120,
-        backgroundColor: '#f5f5f2',
+        backgroundColor: '#0b1220',
         dark: { backgroundColor: '#0b1220' },
       },
     ],

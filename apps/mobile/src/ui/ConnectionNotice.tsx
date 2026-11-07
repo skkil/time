@@ -28,7 +28,7 @@ export function ConnectionNotice() {
     <View
       accessibilityRole="alert"
       pointerEvents="none"
-      style={[styles.notice, { bottom: insets.bottom + 72 }]}
+      style={[styles.notice, { bottom: insets.bottom + 80 }]}
     >
       <Ionicons name="cloud-offline-outline" size={16} color="#fff" />
       <Text style={[type.small, styles.text]}>

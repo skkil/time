@@ -1,21 +1,28 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import type { Task } from '@skkil-time/contract';
+import type { RunningTimer, Task } from '@skkil-time/contract';
 import { planDay } from '@skkil-time/domain/day';
 import {
   formatClockTime,
   formatDuration,
   formatStopwatch,
-  nowSeconds,
-  secondsWithin,
   shiftKey,
   todayKey,
 } from '@skkil-time/domain/time';
 import { focusedSeconds } from '@skkil-time/domain/timer';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { useMemo, useState } from 'react';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import {
+  useNow,
   useTimeEntries,
   useTimer,
   useTimerActions,
@@ -23,201 +30,241 @@ import {
 import { useProjects } from '@/features/projects/hooks';
 import { useTasks } from '@/features/tasks/hooks';
 import { Group } from '@/ui/Group';
-import { Screen } from '@/ui/Screen';
-import { Button, Empty, Loading } from '@/ui/States';
-import { radius, spacing, type, useTheme } from '@/ui/theme';
+import { Button, Loading } from '@/ui/States';
+import { Window } from '@/ui/Window';
+import { WindowHeader } from '@/ui/WindowHeader';
+import { font, ink, spacing, type, useProjectColor } from '@/ui/theme';
 
-function useNow(active: boolean) {
-  const [now, setNow] = useState(nowSeconds);
-  useEffect(() => {
-    if (!active) return;
-    const id = setInterval(() => setNow(nowSeconds()), 1000);
-    return () => clearInterval(id);
-  }, [active]);
-  return now;
-}
-
+/** Desktop's focus panel as a window: what you're on, the clock, Break and Stop. */
 export function FocusScreen() {
-  const theme = useTheme();
   const today = todayKey();
   const timer = useTimer();
   const tasks = useTasks();
   const projects = useProjects();
   const entries = useTimeEntries(today, shiftKey(today, 1));
-  const actions = useTimerActions();
-  const running = timer.data ?? null;
-  const now = useNow(running !== null && running.pausedAt === null);
-  const task = running?.taskId
-    ? tasks.data?.find((candidate) => candidate.id === running.taskId)
-    : undefined;
-  const candidates = useMemo(() => {
-    const plan = planDay(today, tasks.data ?? [], projects.data ?? [], []);
-    return [...plan.musts, ...plan.due, ...plan.earlier].slice(0, 8);
-  }, [today, tasks.data, projects.data]);
-  const titles = new Map(
-    (tasks.data ?? []).map((item) => [item.id, item.title]),
-  );
-  const tracked = (entries.data ?? []).reduce(
-    (sum, entry) => sum + secondsWithin(entry, today, shiftKey(today, 1)),
-    0,
+  const titles = useMemo(
+    () => new Map((tasks.data ?? []).map((task) => [task.id, task.title])),
+    [tasks.data],
   );
 
-  const begin = (item: Task | null) => {
+  return (
+    <Window>
+      <WindowHeader />
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        {timer.isPending ? (
+          <Loading />
+        ) : timer.data ? (
+          <Running
+            key={`${timer.data.startedAt}-${timer.data.taskId}`}
+            timer={timer.data}
+            title={
+              timer.data.taskId === null
+                ? undefined
+                : titles.get(timer.data.taskId)
+            }
+            project={
+              projects.data?.find(
+                (project) => project.id === timer.data?.projectId,
+              ) ?? undefined
+            }
+          />
+        ) : (
+          <Idle tasks={tasks.data ?? []} />
+        )}
+        {(entries.data ?? []).length > 0 && (
+          <Group title="Today">
+            {(entries.data ?? []).map((entry) => (
+              <View key={entry.id} style={styles.entry}>
+                <Text style={[type.small, styles.time]}>
+                  {formatClockTime(entry.startedAt)}
+                </Text>
+                <Text numberOfLines={1} style={[type.body, styles.fill]}>
+                  {(entry.taskId && titles.get(entry.taskId)) ||
+                    entry.description ||
+                    'Focus'}
+                </Text>
+                <Text style={type.small}>
+                  {formatDuration(entry.endedAt - entry.startedAt)}
+                </Text>
+              </View>
+            ))}
+          </Group>
+        )}
+      </ScrollView>
+    </Window>
+  );
+}
+
+function Running({
+  timer,
+  title,
+  project,
+}: {
+  timer: RunningTimer;
+  title?: string;
+  project?: { name: string; color: string };
+}) {
+  const colorOf = useProjectColor();
+  const actions = useTimerActions();
+  const now = useNow(timer.pausedAt === null);
+  const [description, setDescription] = useState(timer.description);
+  const paused = timer.pausedAt !== null;
+
+  const saveDescription = () => {
+    if (description.trim() !== timer.description)
+      actions.edit.mutate({
+        description: description.trim(),
+        projectId: timer.projectId,
+        taskId: timer.taskId,
+      });
+  };
+
+  return (
+    <View style={styles.running}>
+      <Text style={type.small}>{paused ? 'On a break' : 'Focusing'}</Text>
+      {title ? (
+        <Text style={type.title}>{title}</Text>
+      ) : (
+        <TextInput
+          value={description}
+          onChangeText={setDescription}
+          onEndEditing={saveDescription}
+          placeholder="What are you on?"
+          placeholderTextColor={ink.faint}
+          accessibilityLabel="What are you on?"
+          returnKeyType="done"
+          style={[type.title, styles.input]}
+        />
+      )}
+      <View style={styles.facts}>
+        {project && (
+          <View style={styles.project}>
+            <View
+              style={[styles.dot, { backgroundColor: colorOf(project.color) }]}
+            />
+            <Text style={type.small}>{project.name}</Text>
+          </View>
+        )}
+        <Text style={type.small}>
+          Started {formatClockTime(timer.startedAt)}
+        </Text>
+      </View>
+      <Text accessibilityRole="timer" style={styles.clock}>
+        {formatStopwatch(focusedSeconds(timer, now))}
+      </Text>
+      <View style={styles.controls}>
+        <Button
+          label="Stop"
+          icon={<Ionicons name="square" size={12} color={ink.onPrimary} />}
+          onPress={() => {
+            void Haptics.notificationAsync(
+              Haptics.NotificationFeedbackType.Success,
+            );
+            saveDescription();
+            actions.stop.mutate();
+            router.back();
+          }}
+        />
+        <Button
+          label={paused ? 'Resume' : 'Break'}
+          tone="secondary"
+          onPress={() =>
+            paused ? actions.resume.mutate() : actions.pause.mutate()
+          }
+        />
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            actions.discard.mutate();
+            router.back();
+          }}
+          style={styles.discard}
+        >
+          <Text style={type.small}>Discard</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function Idle({ tasks }: { tasks: Task[] }) {
+  const today = todayKey();
+  const projects = useProjects();
+  const { start } = useTimerActions();
+  const candidates = useMemo(() => {
+    const plan = planDay(today, tasks, projects.data ?? [], []);
+    return [...plan.musts, ...plan.due, ...plan.earlier].slice(0, 8);
+  }, [today, tasks, projects.data]);
+
+  const begin = (task: Task | null) => {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    actions.start.mutate({
-      taskId: item?.id ?? null,
-      projectId: item?.projectId ?? null,
+    start.mutate({
+      taskId: task?.id ?? null,
+      projectId: task?.projectId ?? null,
       description: '',
     });
   };
 
   return (
-    <Screen
-      title="Focus"
-      subtitle={tracked ? `${formatDuration(tracked)} today` : undefined}
-    >
-      {timer.isPending ? (
-        <Loading />
-      ) : running ? (
-        <View style={[styles.timer, { backgroundColor: theme.chrome }]}>
-          <Text style={[type.small, { color: theme['chrome-muted'] }]}>
-            {running.pausedAt ? 'On a break' : 'Focusing on'}
-          </Text>
-          <Text
-            style={[
-              type.heading,
-              styles.center,
-              { color: theme['chrome-foreground'] },
-            ]}
-            numberOfLines={2}
-          >
-            {task?.title ?? (running.description || 'Free focus')}
-          </Text>
-          <Text
-            accessibilityRole="timer"
-            style={[styles.clock, { color: theme['chrome-foreground'] }]}
-          >
-            {formatStopwatch(focusedSeconds(running, now))}
-          </Text>
-          <View style={styles.controls}>
-            <Button
-              label={running.pausedAt ? 'Resume' : 'Break'}
-              tone="secondary"
-              onPress={() =>
-                running.pausedAt
-                  ? actions.resume.mutate()
-                  : actions.pause.mutate()
-              }
-            />
-            <Button
-              label="Stop"
-              tone="primary"
-              onPress={() => actions.stop.mutate()}
-            />
-          </View>
-        </View>
-      ) : (
-        <>
-          <Button label="Start free focus" onPress={() => begin(null)} />
-          {candidates.length > 0 ? (
-            <Group title="Focus on">
-              {candidates.map((item, index) => (
-                <Pressable
-                  key={item.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Start focus on ${item.title}`}
-                  onPress={() => begin(item)}
-                  style={[
-                    styles.row,
-                    index < candidates.length - 1 && {
-                      borderBottomColor: theme.border,
-                      borderBottomWidth: StyleSheet.hairlineWidth,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="play-circle-outline"
-                    size={22}
-                    color={theme.primary}
-                  />
-                  <Text
-                    style={[
-                      type.body,
-                      styles.fill,
-                      { color: theme.foreground },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {item.title}
-                  </Text>
-                </Pressable>
-              ))}
-            </Group>
-          ) : (
-            <Empty
-              title="Nothing lined up"
-              detail="Tasks due today show up here."
-            />
-          )}
-        </>
-      )}
-      {(entries.data ?? []).length > 0 && (
-        <Group title="Today">
-          {(entries.data ?? []).map((entry, index, all) => (
-            <View
-              key={entry.id}
-              style={[
-                styles.row,
-                index < all.length - 1 && {
-                  borderBottomColor: theme.border,
-                  borderBottomWidth: StyleSheet.hairlineWidth,
-                },
-              ]}
+    <View style={styles.running}>
+      <Text style={type.title}>Ready when you are</Text>
+      <View style={styles.controls}>
+        <Button
+          label="Start focus"
+          icon={<Ionicons name="play" size={13} color={ink.onPrimary} />}
+          onPress={() => begin(null)}
+        />
+      </View>
+      {candidates.length > 0 && (
+        <Group title="Or focus on">
+          {candidates.map((task) => (
+            <Pressable
+              key={task.id}
+              accessibilityRole="button"
+              accessibilityLabel={`Start focus on ${task.title}`}
+              onPress={() => begin(task)}
+              style={styles.entry}
             >
-              <Text
-                style={[
-                  type.small,
-                  styles.time,
-                  { color: theme['muted-foreground'] },
-                ]}
-              >
-                {formatClockTime(entry.startedAt)}
+              <Ionicons name="play-outline" size={16} color={ink.secondary} />
+              <Text numberOfLines={1} style={[type.body, styles.fill]}>
+                {task.title}
               </Text>
-              <Text
-                style={[type.body, styles.fill, { color: theme.foreground }]}
-                numberOfLines={1}
-              >
-                {(entry.taskId && titles.get(entry.taskId)) ||
-                  entry.description ||
-                  'Focus'}
-              </Text>
-              <Text style={[type.small, { color: theme['muted-foreground'] }]}>
-                {formatDuration(entry.endedAt - entry.startedAt)}
-              </Text>
-            </View>
+            </Pressable>
           ))}
         </Group>
       )}
-    </Screen>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  timer: {
-    borderRadius: radius.lg,
-    padding: spacing.xl,
-    alignItems: 'center',
-    gap: spacing.md,
+  content: {
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xxl,
+    gap: spacing.xxl,
   },
-  center: { textAlign: 'center' },
-  clock: { fontSize: 56, fontWeight: '300', fontVariant: ['tabular-nums'] },
-  controls: { flexDirection: 'row', gap: spacing.md },
-  row: {
+  running: { gap: spacing.md },
+  input: { padding: 0 },
+  facts: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg },
+  project: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dot: { width: 7, height: 7, borderRadius: 4 },
+  clock: {
+    ...type.display,
+    fontFamily: font.extraLight,
+    fontSize: 64,
+    marginTop: spacing.lg,
+  },
+  controls: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  discard: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8 },
+  entry: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    padding: spacing.md,
+    minHeight: 44,
   },
+  time: { width: 44 },
   fill: { flex: 1 },
-  time: { width: 48, fontVariant: ['tabular-nums'] },
 });

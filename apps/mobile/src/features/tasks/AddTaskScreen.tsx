@@ -14,12 +14,15 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { useProjects, useSections } from '@/features/projects/hooks';
 import { useCreateTask } from '@/features/tasks/hooks';
 import { Button } from '@/ui/States';
-import { radius, spacing, type, useTheme } from '@/ui/theme';
+import { Window } from '@/ui/Window';
+import { WindowHeader } from '@/ui/WindowHeader';
+import { ink, spacing, type, useTheme } from '@/ui/theme';
 
 export function AddTaskScreen() {
   const theme = useTheme();
-  const params = useLocalSearchParams<{ projectId?: string }>();
+  const params = useLocalSearchParams<{ projectId?: string; today?: string }>();
   const startProject = params.projectId || null;
+  const startDate = params.today ? todayKey() : null;
   const projects = useProjects();
   const sections = useSections();
   const create = useCreateTask();
@@ -37,7 +40,7 @@ export function AddTaskScreen() {
     [text, projects.data, sections.data, startProject],
   );
   const task = taskFromParsed(
-    { ...EMPTY_TASK, projectId: startProject },
+    { ...EMPTY_TASK, projectId: startProject, dueDate: startDate },
     parsed,
   );
   const project = projects.data?.find(
@@ -65,58 +68,54 @@ export function AddTaskScreen() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: theme.background }]}>
-      <TextInput
-        autoFocus
-        multiline
-        value={text}
-        onChangeText={setText}
-        placeholder="What’s on your mind?"
-        placeholderTextColor={theme['muted-foreground']}
-        returnKeyType="done"
-        submitBehavior="submit"
-        onSubmitEditing={submit}
-        accessibilityLabel="Task"
-        style={[
-          styles.input,
-          type.heading,
-          {
-            color: theme.foreground,
-            borderColor: theme.border,
-            backgroundColor: theme.card,
-          },
-        ]}
-      />
-      <Text style={[type.small, { color: theme['muted-foreground'] }]}>
-        {understood.join(' · ')}
-      </Text>
-      <Text style={[type.small, { color: theme['muted-foreground'] }]}>
-        Try “Call dentist tomorrow 9am p1 #Health” or “Review every friday for
-        30m”.
-      </Text>
-      {create.isError && (
-        <Text
-          accessibilityRole="alert"
-          style={[type.small, { color: theme.destructive }]}
-        >
-          Couldn’t add the task. Try again.
+    <Window fit>
+      <WindowHeader title="Add task" />
+      <View style={styles.body}>
+        <TextInput
+          autoFocus
+          multiline
+          value={text}
+          onChangeText={setText}
+          placeholder="What’s on your mind?"
+          placeholderTextColor={ink.faint}
+          returnKeyType="done"
+          submitBehavior="submit"
+          onSubmitEditing={submit}
+          accessibilityLabel="Task"
+          style={[type.title, styles.input]}
+        />
+        <Text style={type.small}>{understood.join(' · ')}</Text>
+        <Text style={[type.small, { color: ink.faint }]}>
+          Try “Call dentist tomorrow 9am p1 #Health” or “Review every friday for
+          30m”.
         </Text>
-      )}
-      <Button
-        label="Add task"
-        disabled={!task.title.trim() || create.isPending}
-        onPress={submit}
-      />
-    </View>
+        {create.isError && (
+          <Text
+            accessibilityRole="alert"
+            style={[type.small, { color: theme.destructive }]}
+          >
+            Couldn’t add the task. Try again.
+          </Text>
+        )}
+        <View style={styles.actions}>
+          <Button
+            label="Add task"
+            disabled={!task.title.trim() || create.isPending}
+            onPress={submit}
+          />
+        </View>
+      </View>
+    </Window>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, padding: spacing.lg, gap: spacing.md },
-  input: {
-    minHeight: 72,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.lg,
-    padding: spacing.md,
+  body: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xl,
+    gap: spacing.md,
   },
+  input: { fontSize: 24, minHeight: 64, padding: 0 },
+  actions: { flexDirection: 'row', justifyContent: 'flex-end' },
 });

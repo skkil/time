@@ -1,5 +1,13 @@
+import {
+  HankenGrotesk_200ExtraLight,
+  HankenGrotesk_300Light,
+  HankenGrotesk_400Regular,
+  HankenGrotesk_500Medium,
+  HankenGrotesk_600SemiBold,
+  useFonts,
+} from '@expo-google-fonts/hanken-grotesk';
 import { QueryClientProvider, focusManager } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -14,7 +22,7 @@ import { useSync } from '@/core/sync/use-sync';
 import { useAccountChoice } from '@/features/account/account-choice';
 import { SelectionProvider } from '@/features/tasks/selection';
 import { ConnectionNotice } from '@/ui/ConnectionNotice';
-import { useTheme } from '@/ui/theme';
+import { ink } from '@/ui/theme';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -22,51 +30,61 @@ AppState.addEventListener('change', (status) =>
   focusManager.setFocused(status === 'active'),
 );
 
+const NAVIGATION_THEME = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: '#0b1220',
+    card: 'transparent',
+    text: ink.full,
+    border: 'transparent',
+  },
+};
+
+const WINDOW = {
+  presentation: 'transparentModal',
+  animation: 'fade',
+  contentStyle: { backgroundColor: 'transparent' },
+} as const;
+
 function Routes() {
-  const theme = useTheme();
   const { session, loading } = useSession();
+  const [fontsLoaded, fontError] = useFonts({
+    HankenGrotesk_200ExtraLight,
+    HankenGrotesk_300Light,
+    HankenGrotesk_400Regular,
+    HankenGrotesk_500Medium,
+    HankenGrotesk_600SemiBold,
+  });
+  const ready = !loading && (fontsLoaded || fontError !== null);
   useSync(session !== null);
   useAccountChoice();
   useReminders(session !== null);
   useEffect(() => {
-    if (!loading) void SplashScreen.hideAsync();
-  }, [loading]);
-  if (loading) return null;
+    if (ready) void SplashScreen.hideAsync();
+  }, [ready]);
+  if (!ready) return null;
 
   return (
-    <>
-      <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
-      <Stack
-        screenOptions={{
-          headerTintColor: theme.foreground,
-          headerStyle: { backgroundColor: theme.background },
-          headerShadowVisible: false,
-          contentStyle: { backgroundColor: theme.background },
-        }}
-      >
+    <ThemeProvider value={NAVIGATION_THEME}>
+      <StatusBar style="light" />
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={session !== null}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="task/[id]"
-            options={{ title: '', presentation: 'modal' }}
-          />
-          <Stack.Screen name="project/[id]" options={{ title: '' }} />
-          <Stack.Screen
-            name="add"
-            options={{
-              title: 'Add task',
-              presentation: 'formSheet',
-              sheetAllowedDetents: [0.5, 1],
-            }}
-          />
-          <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="project/[id]" />
+          <Stack.Screen name="settings" />
+          <Stack.Screen name="task/[id]" options={WINDOW} />
+          <Stack.Screen name="add" options={WINDOW} />
+          <Stack.Screen name="focus" options={WINDOW} />
+          <Stack.Screen name="habits" options={WINDOW} />
+          <Stack.Screen name="earlier" options={WINDOW} />
         </Stack.Protected>
         <Stack.Protected guard={session === null}>
-          <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+          <Stack.Screen name="sign-in" />
         </Stack.Protected>
       </Stack>
       {session && <ConnectionNotice />}
-    </>
+    </ThemeProvider>
   );
 }
 

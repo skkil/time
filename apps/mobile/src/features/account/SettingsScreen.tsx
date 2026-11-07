@@ -1,14 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { deleteAccount, signOut } from '@/core/auth/account';
 import { useSession } from '@/core/auth/session';
@@ -22,6 +15,7 @@ import { useSyncView } from '@/core/sync/use-sync';
 import { SyncSettings } from '@/features/account/components/SyncSettings';
 import { useDisplayName } from '@/features/account/profile';
 import { Group } from '@/ui/Group';
+import { Screen } from '@/ui/Screen';
 import { Button } from '@/ui/States';
 import { spacing, type, useTheme } from '@/ui/theme';
 
@@ -125,11 +119,8 @@ export function SettingsScreen() {
     );
 
   return (
-    <ScrollView
-      style={{ backgroundColor: theme.background }}
-      contentContainerStyle={styles.content}
-    >
-      <Group title="Account">
+    <Screen back title="Settings">
+      <Group title="Account" held>
         <View style={[styles.row, styles.label]}>
           <Text style={[type.body, { color: theme.foreground }]}>
             {name || session?.email || 'Signed in'}
@@ -148,20 +139,22 @@ export function SettingsScreen() {
         </View>
       </Group>
       <SyncSettings />
-      <Group title="Notifications">
+      <Group title="Notifications" held>
         <Reminders />
       </Group>
-      <Button label="Sign out" tone="secondary" onPress={confirmSignOut} />
-      <Button
-        label="Privacy and terms"
-        tone="secondary"
-        onPress={() => void WebBrowser.openBrowserAsync(LEGAL_URL)}
-      />
-      <Button
-        label="Delete account"
-        tone="destructive"
-        onPress={confirmDelete}
-      />
+      <View style={styles.buttons}>
+        <Button label="Sign out" tone="secondary" onPress={confirmSignOut} />
+        <Button
+          label="Privacy and terms"
+          tone="secondary"
+          onPress={() => void WebBrowser.openBrowserAsync(LEGAL_URL)}
+        />
+        <Button
+          label="Delete account"
+          tone="destructive"
+          onPress={confirmDelete}
+        />
+      </View>
       <Text
         style={[
           type.small,
@@ -171,12 +164,12 @@ export function SettingsScreen() {
       >
         skkil time {Constants.expoConfig?.version}
       </Text>
-    </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: spacing.lg, gap: spacing.md },
+  buttons: { gap: spacing.sm },
   row: { padding: spacing.md },
   setting: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   label: { flex: 1, gap: 2 },

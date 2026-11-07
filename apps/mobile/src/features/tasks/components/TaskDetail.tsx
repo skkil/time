@@ -3,7 +3,7 @@ import { PRIORITIES, formatDue } from '@skkil-time/domain/due';
 import { parseDatePhrase } from '@skkil-time/domain/quick-add/dates';
 import { todayKey } from '@skkil-time/domain/time';
 import { useQuery } from '@tanstack/react-query';
-import { Stack, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import {
   Alert,
@@ -25,7 +25,15 @@ import {
   useUpdateTask,
 } from '@/features/tasks/hooks';
 import { Button, Failed, Loading } from '@/ui/States';
-import { radius, spacing, type, useTheme } from '@/ui/theme';
+import { WindowHeader } from '@/ui/WindowHeader';
+import {
+  ink,
+  radius,
+  spacing,
+  type,
+  useProjectColor,
+  useTheme,
+} from '@/ui/theme';
 
 const inputOf = (task: Task): TaskInput => ({
   title: task.title,
@@ -43,7 +51,7 @@ const inputOf = (task: Task): TaskInput => ({
 
 type DetailProps = { id: Id; onClose: () => void; embedded?: boolean };
 
-/** A task's editor: a full screen on phones, the right-hand pane on tablets. */
+/** A task's editor: a glass window on phones, the right-hand pane on tablets. */
 export function TaskDetail({ id, onClose, embedded = false }: DetailProps) {
   const tasks = useTasks();
   const listed = tasks.data?.find((task) => task.id === id);
@@ -78,6 +86,7 @@ function TaskEditor({
   embedded: boolean;
 }) {
   const theme = useTheme();
+  const colorOf = useProjectColor();
   const projects = useProjects();
   const update = useUpdateTask();
   const complete = useCompleteTask();
@@ -129,172 +138,185 @@ function TaskEditor({
       ],
     );
 
-  const field = [
-    styles.field,
-    {
-      color: theme.foreground,
-      backgroundColor: theme.card,
-      borderColor: theme.border,
-    },
-  ];
-  const label = [
-    type.small,
-    styles.label,
-    { color: theme['muted-foreground'] },
-  ];
+  const focus = () =>
+    timer.start.mutate(
+      { taskId: task.id, projectId: task.projectId, description: '' },
+      {
+        onSuccess: () =>
+          embedded ? router.push('/focus') : router.replace('/focus'),
+      },
+    );
 
-  return (
-    <ScrollView
-      style={{ backgroundColor: theme.background }}
-      contentContainerStyle={styles.content}
-    >
-      {!embedded && (
-        <Stack.Screen options={{ title: project?.name ?? 'Inbox' }} />
-      )}
-      {embedded && (
-        <Text style={[type.small, { color: theme['muted-foreground'] }]}>
-          {project?.name ?? 'Inbox'}
-        </Text>
-      )}
-      <TextInput
-        value={title}
-        onChangeText={setTitle}
-        onEndEditing={() =>
-          title.trim() && title !== task.title && save({ title: title.trim() })
-        }
-        multiline
-        accessibilityLabel="Title"
+  const place = (
+    <View style={styles.place}>
+      <View
         style={[
-          type.title,
-          { color: done ? theme['muted-foreground'] : theme.foreground },
+          styles.dot,
+          {
+            backgroundColor: project ? colorOf(project.color) : ink.faint,
+          },
         ]}
       />
-      <View style={styles.actions}>
-        <Button
-          label={done ? 'Reopen' : 'Complete'}
-          tone={done ? 'secondary' : 'primary'}
-          onPress={() => complete.mutate({ id: task.id, completed: !done })}
+      <Text style={type.small}>{project?.name ?? 'Inbox'}</Text>
+    </View>
+  );
+
+  return (
+    <>
+      {embedded ? (
+        <View style={styles.embeddedHead}>{place}</View>
+      ) : (
+        <WindowHeader>{place}</WindowHeader>
+      )}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <TextInput
+          value={title}
+          onChangeText={setTitle}
+          onEndEditing={() =>
+            title.trim() &&
+            title !== task.title &&
+            save({ title: title.trim() })
+          }
+          multiline
+          accessibilityLabel="Title"
+          style={[type.title, styles.title, done && { color: ink.secondary }]}
         />
-        {!done && (
+        <View style={styles.actions}>
           <Button
-            label="Focus"
-            tone="secondary"
-            onPress={() =>
-              timer.start.mutate(
-                { taskId: task.id, projectId: task.projectId, description: '' },
-                { onSuccess: () => router.navigate('/focus') },
-              )
-            }
+            label={done ? 'Reopen' : 'Complete'}
+            tone={done ? 'secondary' : 'primary'}
+            onPress={() => complete.mutate({ id: task.id, completed: !done })}
           />
+          {!done && <Button label="Focus" tone="secondary" onPress={focus} />}
+        </View>
+
+        <View style={styles.property}>
+          <Text style={[type.small, styles.key]}>Date</Text>
+          <TextInput
+            value={due}
+            onChangeText={setDue}
+            onSubmitEditing={saveDue}
+            onEndEditing={saveDue}
+            placeholder={task.dueDate ? formatDue(task) : 'Try “tomorrow”'}
+            placeholderTextColor={task.dueDate ? ink.full : ink.faint}
+            returnKeyType="done"
+            accessibilityLabel="Due date"
+            style={[type.body, styles.value]}
+          />
+        </View>
+        {task.recurrence && (
+          <View style={styles.property}>
+            <Text style={[type.small, styles.key]}>Repeats</Text>
+            <Text style={[type.body, styles.value]}>{task.recurrence}</Text>
+          </View>
         )}
-      </View>
+        <View style={styles.property}>
+          <Text style={[type.small, styles.key]}>Priority</Text>
+          <View style={styles.priorities}>
+            {PRIORITIES.map((priority) => {
+              const selected = task.priority === priority;
+              return (
+                <Pressable
+                  key={priority}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={`Priority ${priority}`}
+                  onPress={() => save({ priority })}
+                  style={[styles.priority, selected && styles.chosen]}
+                >
+                  <Text
+                    style={[
+                      type.small,
+                      { color: selected ? ink.onPrimary : ink.full },
+                    ]}
+                  >
+                    P{priority}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
 
-      <Text style={label}>Due</Text>
-      <TextInput
-        value={due}
-        onChangeText={setDue}
-        onSubmitEditing={saveDue}
-        onEndEditing={saveDue}
-        placeholder={
-          task.dueDate ? formatDue(task) : 'No date — try “tomorrow”'
-        }
-        placeholderTextColor={theme['muted-foreground']}
-        returnKeyType="done"
-        accessibilityLabel="Due date"
-        style={field}
-      />
-      {task.recurrence && (
-        <Text style={[type.small, { color: theme['muted-foreground'] }]}>
-          Repeats {task.recurrence}
-        </Text>
-      )}
+        <TextInput
+          value={notes}
+          onChangeText={setNotes}
+          onEndEditing={() => notes !== task.notes && save({ notes })}
+          multiline
+          placeholder="Add notes"
+          placeholderTextColor={ink.faint}
+          accessibilityLabel="Notes"
+          style={[type.body, styles.notes]}
+        />
 
-      <Text style={label}>Priority</Text>
-      <View style={styles.priorities}>
-        {PRIORITIES.map((priority) => {
-          const selected = task.priority === priority;
-          const color =
-            priority < 4
-              ? theme[`p${priority}` as 'p1']
-              : theme['muted-foreground'];
-          return (
-            <Pressable
-              key={priority}
-              accessibilityRole="radio"
-              accessibilityState={{ selected }}
-              accessibilityLabel={`Priority ${priority}`}
-              onPress={() => save({ priority })}
-              style={[
-                styles.priority,
-                {
-                  borderColor: color,
-                  backgroundColor: selected ? color : 'transparent',
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  type.small,
-                  { color: selected ? '#ffffff' : color, fontWeight: '600' },
-                ]}
-              >
-                P{priority}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <Text style={label}>Notes</Text>
-      <TextInput
-        value={notes}
-        onChangeText={setNotes}
-        onEndEditing={() => notes !== task.notes && save({ notes })}
-        multiline
-        placeholder="Add notes"
-        placeholderTextColor={theme['muted-foreground']}
-        accessibilityLabel="Notes"
-        style={[field, styles.notes]}
-      />
-
-      {update.isError && (
-        <Text
-          accessibilityRole="alert"
-          style={[type.small, { color: theme.destructive }]}
+        {update.isError && (
+          <Text
+            accessibilityRole="alert"
+            style={[type.small, { color: theme.destructive }]}
+          >
+            Couldn’t save the change.
+          </Text>
+        )}
+        <Pressable
+          accessibilityRole="button"
+          onPress={confirmDelete}
+          style={styles.delete}
         >
-          Couldn’t save the change.
-        </Text>
-      )}
-      <Button label="Delete task" tone="destructive" onPress={confirmDelete} />
-    </ScrollView>
+          <Text style={[type.small, { color: theme.destructive }]}>
+            Delete task
+          </Text>
+        </Pressable>
+      </ScrollView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxl },
-  actions: {
-    flexDirection: 'row',
+  content: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xxl,
     gap: spacing.md,
-    marginVertical: spacing.md,
   },
-  label: {
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginTop: spacing.md,
+  embeddedHead: { paddingHorizontal: spacing.xl, paddingTop: spacing.xl },
+  place: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  title: { fontSize: 26, padding: 0 },
+  actions: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  property: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 44,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: ink.hairline,
   },
-  field: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    fontSize: 16,
-  },
-  notes: { minHeight: 120, textAlignVertical: 'top' },
+  key: { width: 84 },
+  value: { flex: 1, padding: 0 },
   priorities: { flexDirection: 'row', gap: spacing.sm },
   priority: {
-    borderWidth: 1.5,
+    minWidth: 40,
+    height: 30,
+    paddingHorizontal: spacing.sm,
     borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  chosen: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderColor: 'transparent',
+  },
+  notes: {
+    minHeight: 120,
+    textAlignVertical: 'top',
+    padding: 0,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: ink.hairline,
+  },
+  delete: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
 });

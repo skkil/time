@@ -1,7 +1,8 @@
 # mobile
 
-Expo SDK 58 app (Expo Router, React Native 0.88): Today, Inbox, projects,
-Quick Add, focus timer, habits and account settings. It works offline: every
+Expo SDK 58 app (Expo Router, React Native 0.88) with the same spaces as
+desktop and web: Day, Week and Projects on the time-of-day sky, with tasks,
+focus, habits and Quick Add in glass windows over them. It works offline: every
 command runs on the phone's own copy of the data, `time-core` over SQLite
 through [`apps/core-native`](../core-native), behind the same `Backend` port
 as desktop ([`apps/shared/local`](../shared/local)). Sync with the server goes
@@ -79,8 +80,10 @@ src/
 │   ├── notifications/  push registration and reminder taps
 │   └── config.ts       EXPO_PUBLIC_* settings
 ├── features/<name>/    one folder per feature: *Screen.tsx, components/, hooks.ts
-│                       (today, inbox, projects, tasks, focus, habits, account)
-├── ui/                 theme, Screen, Group, loading/empty/error states, notices
+│                       (shell, today = Day, week, projects, tasks, focus,
+│                       habits, account)
+├── ui/                 theme, Sky, Screen, Window, surfaces, Group, Check,
+│                       loading/empty/error states, notices
 └── types/
 ```
 

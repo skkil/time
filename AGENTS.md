@@ -455,7 +455,11 @@ cargo clippy --all-targets -- -D warnings
   `Platform`: files, device commands, sync, sign-out, connection, live
   updates, account preferences) and `notifications/`; `main.tsx` only
   starts the app.
-- Mobile (`apps/mobile/`) is Expo Router. It shares `domain`, `tokens`,
+- Mobile (`apps/mobile/`) is Expo Router. It mirrors desktop's semantics:
+  Day, Week and Projects behind a floating pill (`features/shell/`), each
+  page on the sky (`ui/Sky.tsx`, dark only, Hanken Grotesk), and the task,
+  Quick Add, focus, habits and earlier-days views as glass windows
+  (`ui/Window.tsx`, transparent-modal routes). It shares `domain`, `tokens`,
   `contract`, `api`, `local` and `sync`, not DOM components. `app/` holds routes
   only; screens, components and hooks live in `src/features/<name>/`,
   services in `src/core/`, shared UI in `src/ui/` (see its README).

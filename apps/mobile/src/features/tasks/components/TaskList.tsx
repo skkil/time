@@ -17,14 +17,13 @@ export function TaskList({
   if (tasks.length === 0) return null;
   return (
     <Group title={title} trailing={trailing}>
-      {tasks.map((task, index) => (
+      {tasks.map((task) => (
         <TaskRow
           key={task.id}
           task={task}
           project={
             task.projectId === null ? undefined : projects.get(task.projectId)
           }
-          last={index === tasks.length - 1}
         />
       ))}
     </Group>

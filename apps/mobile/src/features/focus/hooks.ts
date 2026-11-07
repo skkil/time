@@ -1,6 +1,7 @@
-import type { Id } from '@skkil-time/contract';
-import type { DateKey } from '@skkil-time/domain/time';
+import type { EntryDetails, Id } from '@skkil-time/contract';
+import { type DateKey, nowSeconds } from '@skkil-time/domain/time';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 
 import { keys } from '@/core/api/query-client';
 import { commands } from '@/core/local/backend';
@@ -29,4 +30,19 @@ export const useTimerActions = () => ({
   stop: useMutation({ mutationFn: () => commands.stopTimer() }),
   pause: useMutation({ mutationFn: () => commands.pauseTimer() }),
   resume: useMutation({ mutationFn: () => commands.resumeTimer() }),
+  edit: useMutation({
+    mutationFn: (details: EntryDetails) => commands.editTimer(details),
+  }),
+  discard: useMutation({ mutationFn: () => commands.discardTimer() }),
 });
+
+/** The current time in seconds, ticking every `every` ms while `active`. */
+export function useNow(active = true, every = 1000) {
+  const [now, setNow] = useState(nowSeconds);
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => setNow(nowSeconds()), every);
+    return () => clearInterval(id);
+  }, [active, every]);
+  return now;
+}

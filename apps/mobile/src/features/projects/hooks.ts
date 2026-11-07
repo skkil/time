@@ -1,3 +1,4 @@
+import type { Id } from '@skkil-time/contract';
 import { useQuery } from '@tanstack/react-query';
 
 import { keys } from '@/core/api/query-client';
@@ -8,3 +9,13 @@ export const useProjects = () =>
 
 export const useSections = () =>
   useQuery({ queryKey: keys.sections, queryFn: commands.listSections });
+
+export const useGroups = () =>
+  useQuery({ queryKey: ['groups'], queryFn: commands.listGroups });
+
+export const useCanvas = (projectId: Id | null) =>
+  useQuery({
+    queryKey: ['canvas', projectId],
+    queryFn: () => commands.getProjectCanvas(projectId!),
+    enabled: projectId !== null,
+  });

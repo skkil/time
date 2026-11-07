@@ -63,7 +63,7 @@ function Issues({ count }: { count: number }) {
   if (count === 0 || issues.length === 0) return null;
 
   return (
-    <Group title="Couldn’t sync">
+    <Group title="Couldn’t sync" held>
       {issues.map((issue, index) => (
         <View
           key={issue.id}
@@ -104,7 +104,7 @@ export function SyncSettings() {
 
   return (
     <>
-      <Group title="Sync">
+      <Group title="Sync" held>
         <View style={[styles.row, styles.line]}>
           <View style={styles.label}>
             <Text style={[type.body, { color: theme.foreground }]}>
