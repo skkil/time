@@ -11,12 +11,13 @@ import com.skkil.time.features.data.domain.LocalTable
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import tools.jackson.databind.JsonNode
+import tools.jackson.databind.node.ObjectNode
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 import java.util.UUID
 
 /** A row as uploaded, keyed by column name. */
-private typealias Row = Map<String, JsonNode?>
+private typealias Row = ObjectNode
 
 /**
  * `importLocal`: writes a device's uploaded rows into the caller's account, as `time_core::data::import` does on a
@@ -50,7 +51,7 @@ class LocalImportService(private val jdbc: JdbcClient) {
                 ?: invalid("A ${table.name} row has no id.")
         val values = linkedMapOf<String, Any?>()
         for (column in table.columns.drop(1)) {
-            if (!row.containsKey(column.name)) continue
+            if (!row.has(column.name)) continue
             val value = value(table, column, row[column.name])
             val target = column.references
             values[column.name] =

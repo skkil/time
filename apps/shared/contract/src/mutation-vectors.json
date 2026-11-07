@@ -849,7 +849,8 @@
                   "project_id": "019a4b00-0000-7000-8000-0000000000c9",
                   "created_at": 1793664000,
                   "someday": 1,
-                  "position": 1
+                  "position": 1,
+                  "deadline": null
                 }
               ]
             }
