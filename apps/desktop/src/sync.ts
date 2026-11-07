@@ -18,6 +18,7 @@ export const tauriSync: Sync = {
   syncNow: async () => void (await commands.syncNow()),
   issues: commands.syncIssues,
   dismissIssue: async (id) => void (await commands.dismissSyncIssue(id)),
+  retryIssue: async (id) => void (await commands.retrySyncIssue(id)),
   signIn: async () => void (await commands.signIn()),
   signOut: async () => void (await commands.signOut()),
   chooseAccountData: async (choice) =>

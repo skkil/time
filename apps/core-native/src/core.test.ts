@@ -48,6 +48,7 @@ function fake(overrides: Partial<TimeCoreLike> = {}): TimeCoreLike {
       },
     ]),
     dismissIssue: vi.fn(() => true),
+    retryIssue: vi.fn(async () => '{"id":"t1"}'),
     ...overrides,
   } as unknown as TimeCoreLike;
 }
@@ -125,5 +126,7 @@ describe('createNativeCore', () => {
     ]);
     expect(native.dismissIssue(9)).toBe(true);
     expect(core.dismissIssue).toHaveBeenCalledWith(9n);
+    await expect(native.retryIssue(9)).resolves.toEqual({ id: 't1' });
+    expect(core.retryIssue).toHaveBeenCalledWith(9n);
   });
 });

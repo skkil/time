@@ -147,6 +147,14 @@ impl TimeCore {
         self.engine.dismiss_issue(id as i64).map_err(to_js)
     }
 
+    /// Sends a refused change again and dismisses its issue; returns the
+    /// mutation's result as JSON text.
+    #[wasm_bindgen(js_name = retryIssue)]
+    pub fn retry_issue(&mut self, id: f64) -> JsResult<String> {
+        let result = self.engine.retry_issue(id as i64).map_err(to_js)?;
+        Ok(result.to_string())
+    }
+
     /// Every synced row as backup JSON text.
     pub fn dump(&self) -> JsResult<String> {
         backup::export(&self.engine).map_err(to_js)

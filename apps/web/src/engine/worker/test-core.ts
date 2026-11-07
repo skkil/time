@@ -33,6 +33,7 @@ export function fakeCore(scope: string | null = 'scope-1') {
       forget: vi.fn(),
       issues: vi.fn(() => []),
       dismissIssue: vi.fn(() => true),
+      retryIssue: vi.fn(() => '{}'),
       dump: vi.fn(() => '{"tables":[]}'),
       restore: vi.fn(() => 2),
       syncHabits: vi.fn(() => ({

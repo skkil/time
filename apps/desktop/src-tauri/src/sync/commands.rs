@@ -46,6 +46,15 @@ pub async fn dismiss_sync_issue(db: State<'_, Db>, sync: Sync<'_>, id: i32) -> R
     Ok(())
 }
 
+/// Sends a refused change again; it waits to push like a new change.
+#[tauri::command]
+#[specta::specta]
+pub async fn retry_sync_issue(db: State<'_, Db>, sync: Sync<'_>, id: i32) -> Result<()> {
+    db.mutate_with(|engine| engine.retry_issue(i64::from(id)))?;
+    sync.emit();
+    Ok(())
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn sign_in(sync: Sync<'_>) -> Result<()> {

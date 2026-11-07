@@ -39,6 +39,7 @@ function fakeCore(binding: Binding = { kind: 'uploading', rows: 0 }) {
     forget: vi.fn(async () => undefined),
     issues: vi.fn(() => []),
     dismissIssue: vi.fn(() => true),
+    retryIssue: vi.fn(async () => ({})),
   } satisfies NativeCore;
 }
 
@@ -181,6 +182,17 @@ describe('createSyncController', () => {
     await sync.start();
     expect(core.bindScope).toHaveBeenCalledTimes(2);
     expect(drivers).toHaveLength(3);
+  });
+
+  it('sends a refused change again and pushes it soon', async () => {
+    vi.useFakeTimers();
+    const { core, options, drivers, sync } = setup();
+    await sync.start();
+    await sync.retryIssue(4);
+    expect(core.retryIssue).toHaveBeenCalledWith(4);
+    expect(options.onChange).toHaveBeenCalledWith(['*']);
+    await vi.advanceTimersByTimeAsync(20);
+    expect(drivers[0].driver.syncNow).toHaveBeenCalledTimes(1);
   });
 
   it('forgets the replica on sign-out', async () => {

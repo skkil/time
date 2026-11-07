@@ -49,6 +49,11 @@ export function createEngineHost({
         runner.report();
         return dismissed;
       },
+      retryIssue(id) {
+        const result: unknown = JSON.parse(core.retryIssue(id));
+        wrote();
+        return result;
+      },
       bindScope(scope) {
         const signedIn = core.bindScope(scope);
         if (signedIn.kind !== 'synced') replaced();

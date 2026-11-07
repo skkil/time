@@ -46,6 +46,8 @@ export type Sync = {
   syncNow(): Promise<void>;
   issues(): Promise<SyncIssue[]>;
   dismissIssue(id: number): Promise<void>;
+  /** Sends a refused change again; it waits to sync like a new change. */
+  retryIssue(id: number): Promise<void>;
   signIn(): Promise<void>;
   signOut(): Promise<void>;
   chooseAccountData(choice: AccountChoice): Promise<void>;

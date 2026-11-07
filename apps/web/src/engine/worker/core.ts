@@ -18,6 +18,7 @@ export interface Core {
   forget(): void;
   issues(): EngineIssue[];
   dismissIssue(id: number): boolean;
+  retryIssue(id: number): string;
   dump(): string;
   restore(backup: string): number;
   syncHabits(): SyncReport;

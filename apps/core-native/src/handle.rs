@@ -116,4 +116,12 @@ impl TimeCore {
     pub fn dismiss_issue(&self, id: i64) -> Result<bool> {
         self.worker.run(move |engine| Ok(engine.dismiss_issue(id)?))
     }
+
+    /// Sends a refused change again and dismisses its issue; returns the
+    /// mutation's result as JSON.
+    pub async fn retry_issue(&self, id: i64) -> Result<String> {
+        self.worker
+            .call(move |engine| Ok(engine.retry_issue(id)?.to_string()))
+            .await
+    }
 }

@@ -223,6 +223,10 @@ interface NativeModuleInterface {
     name: Uint8Array,
     argsJson: Uint8Array,
   ): bigint;
+  ubrn_uniffi_time_core_native_fn_method_timecore_retry_issue(
+    uniffiSelf: bigint,
+    id: bigint,
+  ): bigint;
   ubrn_uniffi_time_core_native_fn_method_timecore_start_fresh(
     uniffiSelf: bigint,
     scopeId: Uint8Array,
@@ -244,6 +248,7 @@ interface NativeModuleInterface {
   ubrn_uniffi_time_core_native_checksum_method_timecore_pull_request(): number;
   ubrn_uniffi_time_core_native_checksum_method_timecore_push_request(): number;
   ubrn_uniffi_time_core_native_checksum_method_timecore_query(): number;
+  ubrn_uniffi_time_core_native_checksum_method_timecore_retry_issue(): number;
   ubrn_uniffi_time_core_native_checksum_method_timecore_start_fresh(): number;
   ubrn_uniffi_time_core_native_checksum_method_timecore_status(): number;
   ubrn_uniffi_internal_fn_method_timecore_ffi__bless_pointer(

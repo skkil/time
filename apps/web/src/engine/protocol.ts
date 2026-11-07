@@ -50,6 +50,8 @@ export interface EngineApi {
   status(): CoreStatus;
   issues(): EngineIssue[];
   dismissIssue(id: number): boolean;
+  /** Sends a refused change again; returns the change's result. */
+  retryIssue(id: number): unknown;
   bindScope(scope: string): SignIn;
   keepLocal(scope: string): number;
   startFresh(scope: string): void;

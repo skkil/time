@@ -123,6 +123,9 @@ export function createWebSync({
     dismissIssue: async (id) => {
       await engine.call('dismissIssue', id);
     },
+    retryIssue: async (id) => {
+      await engine.call('retryIssue', id);
+    },
     signIn: async () => signIn(),
     signOut,
     async chooseAccountData(picked: AccountChoice) {

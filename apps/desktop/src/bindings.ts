@@ -8,6 +8,8 @@ export const commands = {
 	syncNow: () => __TAURI_INVOKE<null>("sync_now"),
 	syncIssues: () => __TAURI_INVOKE<SyncIssueView[]>("sync_issues"),
 	dismissSyncIssue: (id: number) => __TAURI_INVOKE<null>("dismiss_sync_issue", { id }),
+	/**  Sends a refused change again; it waits to push like a new change. */
+	retrySyncIssue: (id: number) => __TAURI_INVOKE<null>("retry_sync_issue", { id }),
 	signIn: () => __TAURI_INVOKE<null>("sign_in"),
 	chooseAccountData: (choice: AccountChoice) => __TAURI_INVOKE<null>("choose_account_data", { choice }),
 	signOut: () => __TAURI_INVOKE<null>("sign_out"),

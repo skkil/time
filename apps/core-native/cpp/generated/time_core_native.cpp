@@ -121,6 +121,8 @@ RustBuffer uniffi_time_core_native_fn_method_timecore_push_request(
     /*handle*/ uint64_t ptr, uint32_t limit, RustCallStatus *uniffi_out_err);
 /*handle*/ uint64_t uniffi_time_core_native_fn_method_timecore_query(
     /*handle*/ uint64_t ptr, RustBuffer name, RustBuffer args_json);
+/*handle*/ uint64_t uniffi_time_core_native_fn_method_timecore_retry_issue(
+    /*handle*/ uint64_t ptr, int64_t id);
 /*handle*/ uint64_t uniffi_time_core_native_fn_method_timecore_start_fresh(
     /*handle*/ uint64_t ptr, RustBuffer scope_id);
 RustBuffer uniffi_time_core_native_fn_method_timecore_status(
@@ -257,6 +259,7 @@ uint16_t uniffi_time_core_native_checksum_method_timecore_mutate();
 uint16_t uniffi_time_core_native_checksum_method_timecore_pull_request();
 uint16_t uniffi_time_core_native_checksum_method_timecore_push_request();
 uint16_t uniffi_time_core_native_checksum_method_timecore_query();
+uint16_t uniffi_time_core_native_checksum_method_timecore_retry_issue();
 uint16_t uniffi_time_core_native_checksum_method_timecore_start_fresh();
 uint16_t uniffi_time_core_native_checksum_method_timecore_status();
 uint32_t ffi_time_core_native_uniffi_contract_version();
@@ -1815,6 +1818,19 @@ NativeTimeCoreNative::NativeTimeCoreNative(
             return this->cpp_uniffi_time_core_native_fn_method_timecore_query(
                 rt, thisVal, args, count);
           });
+  props["ubrn_uniffi_time_core_native_fn_method_timecore_retry_issue"] =
+      jsi::Function::createFromHostFunction(
+          rt,
+          jsi::PropNameID::forAscii(
+              rt,
+              "ubrn_uniffi_time_core_native_fn_method_timecore_retry_issue"),
+          2,
+          [this](jsi::Runtime &rt, const jsi::Value &thisVal,
+                 const jsi::Value *args, size_t count) -> jsi::Value {
+            return this
+                ->cpp_uniffi_time_core_native_fn_method_timecore_retry_issue(
+                    rt, thisVal, args, count);
+          });
   props["ubrn_uniffi_time_core_native_fn_method_timecore_start_fresh"] =
       jsi::Function::createFromHostFunction(
           rt,
@@ -2527,6 +2543,18 @@ NativeTimeCoreNative::NativeTimeCoreNative(
                 ->cpp_uniffi_time_core_native_checksum_method_timecore_query(
                     rt, thisVal, args, count);
           });
+  props["ubrn_uniffi_time_core_native_checksum_method_timecore_retry_issue"] =
+      jsi::Function::createFromHostFunction(
+          rt,
+          jsi::PropNameID::forAscii(rt, "ubrn_uniffi_time_core_native_checksum_"
+                                        "method_timecore_retry_issue"),
+          0,
+          [this](jsi::Runtime &rt, const jsi::Value &thisVal,
+                 const jsi::Value *args, size_t count) -> jsi::Value {
+            return this
+                ->cpp_uniffi_time_core_native_checksum_method_timecore_retry_issue(
+                    rt, thisVal, args, count);
+          });
   props["ubrn_uniffi_time_core_native_checksum_method_timecore_start_fresh"] =
       jsi::Function::createFromHostFunction(
           rt,
@@ -2956,6 +2984,18 @@ NativeTimeCoreNative::cpp_uniffi_time_core_native_fn_method_timecore_query(
                                                              args[1]),
       uniffi::time_core_native::Bridging<RustBuffer>::fromJs(rt, callInvoker,
                                                              args[2]));
+
+  return uniffi_jsi::Bridging</*handle*/ uint64_t>::toJs(rt, callInvoker,
+                                                         value);
+}
+jsi::Value NativeTimeCoreNative::
+    cpp_uniffi_time_core_native_fn_method_timecore_retry_issue(
+        jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
+        size_t count) {
+  auto value = uniffi_time_core_native_fn_method_timecore_retry_issue(
+      uniffi_jsi::Bridging</*handle*/ uint64_t>::fromJs(rt, callInvoker,
+                                                        args[0]),
+      uniffi_jsi::Bridging<int64_t>::fromJs(rt, callInvoker, args[1]));
 
   return uniffi_jsi::Bridging</*handle*/ uint64_t>::toJs(rt, callInvoker,
                                                          value);
@@ -3670,6 +3710,14 @@ jsi::Value NativeTimeCoreNative::
         jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
         size_t count) {
   auto value = uniffi_time_core_native_checksum_method_timecore_query();
+
+  return uniffi_jsi::Bridging<uint16_t>::toJs(rt, callInvoker, value);
+}
+jsi::Value NativeTimeCoreNative::
+    cpp_uniffi_time_core_native_checksum_method_timecore_retry_issue(
+        jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
+        size_t count) {
+  auto value = uniffi_time_core_native_checksum_method_timecore_retry_issue();
 
   return uniffi_jsi::Bridging<uint16_t>::toJs(rt, callInvoker, value);
 }

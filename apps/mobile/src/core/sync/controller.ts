@@ -44,6 +44,8 @@ export interface SyncController {
   choose(choice: AccountChoice): Promise<void>;
   issues(): Promise<SyncIssue[]>;
   dismissIssue(id: number): Promise<void>;
+  /** Sends a refused change again; it pushes like a new change. */
+  retryIssue(id: number): Promise<void>;
   /** Stops syncing and clears every synced row (explicit sign-out). */
   forget(): Promise<void>;
 }
@@ -153,6 +155,15 @@ export function createSyncController(
     await running?.stop();
   };
 
+  const wrote = () => {
+    void publish();
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(
+      () => void driver?.syncNow().catch(() => undefined),
+      options.pushDelayMs ?? 500,
+    );
+  };
+
   const start = () =>
     serially(async () => {
       if (driver || phase === 'needsChoice') return;
@@ -190,14 +201,7 @@ export function createSyncController(
       if (!driver) return start();
       await driver.syncNow();
     },
-    wrote() {
-      void publish();
-      clearTimeout(pushTimer);
-      pushTimer = setTimeout(
-        () => void driver?.syncNow().catch(() => undefined),
-        options.pushDelayMs ?? 500,
-      );
-    },
+    wrote,
     choose: (picked) =>
       serially(async () => {
         const scope = choice;
@@ -214,6 +218,11 @@ export function createSyncController(
     async dismissIssue(id) {
       (await options.core()).dismissIssue(id);
       await publish();
+    },
+    async retryIssue(id) {
+      await (await options.core()).retryIssue(id);
+      options.onChange(EVERY_TABLE);
+      wrote();
     },
     forget: () =>
       serially(async () => {

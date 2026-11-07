@@ -38,6 +38,7 @@ fn platform_builder() -> Builder<tauri::Wry> {
             sync::commands::sync_now,
             sync::commands::sync_issues,
             sync::commands::dismiss_sync_issue,
+            sync::commands::retry_sync_issue,
             sync::commands::sign_in,
             sync::commands::choose_account_data,
             sync::commands::sign_out,
@@ -46,11 +47,12 @@ fn platform_builder() -> Builder<tauri::Wry> {
         ])
 }
 
-const PLATFORM_COMMANDS: [&str; 9] = [
+const PLATFORM_COMMANDS: [&str; 10] = [
     "sync_status",
     "sync_now",
     "sync_issues",
     "dismiss_sync_issue",
+    "retry_sync_issue",
     "sign_in",
     "choose_account_data",
     "sign_out",

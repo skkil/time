@@ -33,7 +33,13 @@ impl Db {
     }
 
     pub fn mutate(&self, name: &str, args: &serde_json::Value) -> Result<serde_json::Value> {
-        let result = self.engine(|engine| engine.mutate(name, args))?;
+        self.mutate_with(|engine| engine.mutate(name, args))
+    }
+
+    /// Runs a write on the engine, then wakes the sync loop like
+    /// [`Db::mutate`].
+    pub fn mutate_with<T>(&self, write: impl FnOnce(&mut Engine) -> Result<T>) -> Result<T> {
+        let result = self.engine(write)?;
         if let Some(listener) = self.on_write.get() {
             listener();
         }

@@ -48,6 +48,8 @@ export interface NativeCore {
   forget(): Promise<void>;
   issues(): SyncIssue[];
   dismissIssue(id: number): boolean;
+  /** Sends a refused change again and dismisses its issue; resolves to the change's result. */
+  retryIssue(id: number): Promise<unknown>;
 }
 
 const toBinding = (outcome: SignInOutcome): Binding => {
@@ -112,5 +114,7 @@ export function createNativeCore(core: TimeCoreLike): NativeCore {
     forget: () => guardAsync(() => core.forget()),
     issues: () => guard(() => core.issues().map(toIssue)),
     dismissIssue: (id) => guard(() => core.dismissIssue(BigInt(id))),
+    retryIssue: (id) =>
+      guardAsync(async () => parse(await core.retryIssue(BigInt(id)))),
   };
 }

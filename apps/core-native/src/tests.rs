@@ -129,6 +129,7 @@ fn broken_responses_are_refused() {
     assert!(core.apply_pull_response(vec![0xff, 0xff, 0xff]).is_err());
     assert!(core.issues().unwrap().is_empty());
     assert!(!core.dismiss_issue(1).unwrap());
+    assert!(block_on(core.retry_issue(1)).is_err());
 }
 
 #[test]
