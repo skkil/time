@@ -1,6 +1,7 @@
 import { ArrowDownIcon, ArrowUpIcon } from 'lucide-react';
 
 import type { Ritual, RitualInput } from '@/backend';
+import { Disclosure } from '@/components/Disclosure';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -195,10 +196,7 @@ function RitualCard({
           ))}
         </ol>
         {available.length > 0 && (
-          <details>
-            <summary className="cursor-pointer text-xs text-muted-foreground">
-              Add a step
-            </summary>
+          <Disclosure summary="Add a step">
             <ul className="mt-2 flex flex-wrap gap-1.5">
               {available.map((step) => (
                 <li key={step}>
@@ -213,7 +211,7 @@ function RitualCard({
                 </li>
               ))}
             </ul>
-          </details>
+          </Disclosure>
         )}
       </>
     </section>

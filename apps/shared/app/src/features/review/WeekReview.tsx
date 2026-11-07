@@ -9,6 +9,7 @@ import type {
   Week,
   WeekNotes,
 } from '@/backend';
+import { Disclosure } from '@/components/Disclosure';
 import { FeltScale } from '@/components/FeltScale';
 import { type Step, StepIndicator } from '@/components/StepIndicator';
 import { Page, PageBody, PageHeader, SectionTitle } from '@/components/page';
@@ -429,10 +430,10 @@ function ReflectStep({ week }: { week: Week }) {
           }
           onBlur={commit}
         />
-        <details>
-          <summary className="cursor-pointer text-sm text-muted-foreground">
-            More reflection (optional)
-          </summary>
+        <Disclosure
+          summary="More reflection (optional)"
+          summaryClassName="text-sm"
+        >
           <div className="mt-3 grid gap-4">
             {OPTIONAL_PROMPTS.map((prompt) => (
               <div key={prompt.key} className="grid gap-1.5">
@@ -451,7 +452,7 @@ function ReflectStep({ week }: { week: Week }) {
               </div>
             ))}
           </div>
-        </details>
+        </Disclosure>
         <p className="text-xs text-muted-foreground" aria-live="polite">
           {save.isPending
             ? 'Saving…'
