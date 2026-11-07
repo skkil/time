@@ -25,6 +25,7 @@ pub struct FakeServer {
     epoch: u32,
     versions: Vec<Version>,
     clients: HashMap<Uuid, u64>,
+    refuse: Option<(String, String)>,
 }
 
 fn columns(db: &Connection, table: &str) -> Vec<String> {
@@ -81,6 +82,7 @@ impl FakeServer {
             epoch: 1,
             versions: Vec::new(),
             clients: HashMap::new(),
+            refuse: None,
         };
         let scope = server.scope;
         server.server_write(|db| {
@@ -113,6 +115,20 @@ impl FakeServer {
         self.log(Uuid::nil(), self.head() + 1, changes, None);
     }
 
+    /// Refuses the next pushed mutation called `name` with `reason`, as a
+    /// server with a bug or a stricter rule would.
+    pub fn refuse_once(&mut self, name: &str, reason: &str) {
+        self.refuse = Some((name.to_owned(), reason.to_owned()));
+    }
+
+    fn refusal(&mut self, name: &str) -> Option<String> {
+        let (refused, _) = self.refuse.as_ref()?;
+        if refused != name {
+            return None;
+        }
+        self.refuse.take().map(|(_, reason)| reason)
+    }
+
     pub fn push(&mut self, request: &PushRequest) -> PushResponse {
         let client = Uuid::parse_str(&request.client_id).unwrap();
         let mut results = Vec::new();
@@ -130,20 +146,21 @@ impl FakeServer {
             let args: Value = serde_json::from_slice(&mutation.args).unwrap();
             let mut ctx =
                 MutationContext::new(client, mutation.mutation_id, Hlc::from_i64(mutation.hlc));
+            let refusal = self.refusal(&mutation.name);
             let tx = self.db.transaction().unwrap();
             tx.execute("DELETE FROM change_log", []).unwrap();
             tx.execute_batch("SAVEPOINT mutation").unwrap();
-            let outcome = TimeMutator::for_scope(Some(self.scope)).apply(
-                &tx,
-                &mut ctx,
-                &mutation.name,
-                &args,
-            );
+            let outcome = match refusal {
+                Some(reason) => Err(reason),
+                None => TimeMutator::for_scope(Some(self.scope))
+                    .apply(&tx, &mut ctx, &mutation.name, &args)
+                    .map_err(|error| error.to_string()),
+            };
             let rejection = match outcome {
                 Ok(_) => None,
-                Err(error) => {
+                Err(reason) => {
                     tx.execute_batch("ROLLBACK TO mutation").unwrap();
-                    Some(error.to_string())
+                    Some(reason)
                 }
             };
             tx.execute_batch("RELEASE mutation").unwrap();

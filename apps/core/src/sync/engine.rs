@@ -186,6 +186,24 @@ impl Engine {
         Ok(store_core::dismiss_issue(&self.conn, id)?)
     }
 
+    /// Queues a refused change again: the issue's mutation, with the same
+    /// name and arguments, is applied here and waits to push like a new
+    /// one. The issue is dismissed once it is queued; if the mutation
+    /// fails here, the issue stays and the error is returned.
+    pub fn retry_issue(&mut self, id: i64) -> Result<Value> {
+        let issue = store_core::issues(&self.conn)?
+            .into_iter()
+            .find(|issue| issue.id == id)
+            .ok_or_else(|| Error::not_found("Refused change"))?;
+        let scope = self
+            .scope()?
+            .ok_or_else(|| Error::invalid("Sign in to send this change again."))?;
+        let mutator = TimeMutator::for_scope(Some(scope));
+        let outcome = store_core::mutate(&mut self.conn, &mutator, &issue.name, &issue.args)?;
+        store_core::dismiss_issue(&self.conn, id)?;
+        Ok(outcome.value)
+    }
+
     /// Binds this device to `scope`, the account that signed in. A device
     /// that never signed in uploads its rows; one that belongs to another
     /// account is left alone until the user chooses.

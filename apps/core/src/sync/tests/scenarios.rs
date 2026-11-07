@@ -257,3 +257,45 @@ fn an_interrupted_upload_finishes_on_the_next_open() {
     drop(engine);
     let _ = std::fs::remove_file(&path);
 }
+
+#[test]
+fn a_refused_upload_comes_back_when_tried_again() {
+    let mut server = FakeServer::new();
+    let mut desk = Device::new();
+    let home = desk.id("createProject", json!({ "input": project("Home") }));
+    desk.run(
+        "createTask",
+        json!({ "input": task("Fix the tap", Some(&home)) }),
+    );
+    desk.run("rateDay", json!({ "date": "2026-11-02", "felt": 5 }));
+
+    server.refuse_once("importLocal", "That id is already taken.");
+    desk.engine.sign_in(server.scope).unwrap();
+    desk.sync(&mut server);
+    assert!(desk.titles().is_empty(), "store undoes a refused upload");
+    let issues = desk.engine.issues().unwrap();
+    assert_eq!(issues.len(), 1);
+    assert_eq!(issues[0].name, "importLocal");
+    assert_eq!(issues[0].reason, "That id is already taken.");
+
+    desk.engine.retry_issue(issues[0].id).unwrap();
+    assert_eq!(desk.titles(), ["Fix the tap"]);
+    assert!(desk.engine.issues().unwrap().is_empty());
+    assert_eq!(desk.engine.status().unwrap().pending, 1);
+    desk.sync(&mut server);
+
+    assert_eq!(desk.engine.status().unwrap().pending, 0);
+    assert!(desk.engine.issues().unwrap().is_empty());
+    assert_eq!(desk.titles(), ["Fix the tap"]);
+    assert_eq!(desk.data(), comparable(server.data()));
+    let phone = Device::signed_in(&mut server);
+    assert_eq!(phone.titles(), ["Fix the tap"]);
+    assert_eq!(phone.data(), desk.data());
+}
+
+#[test]
+fn retrying_an_unknown_issue_fails() {
+    let mut server = FakeServer::new();
+    let mut desk = Device::signed_in(&mut server);
+    assert!(desk.engine.retry_issue(42).is_err());
+}
