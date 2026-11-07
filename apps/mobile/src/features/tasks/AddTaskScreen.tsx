@@ -8,7 +8,7 @@ import {
   todayKey,
 } from '@skkil-time/domain/time';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { useProjects, useSections } from '@/features/projects/hooks';
@@ -52,9 +52,16 @@ export function AddTaskScreen() {
     task.priority < 4 && `p${task.priority}`,
   ].filter(Boolean);
 
+  const submitting = useRef(false);
   const submit = () => {
-    if (!task.title.trim()) return;
-    create.mutate(task, { onSuccess: () => router.back() });
+    if (!task.title.trim() || submitting.current) return;
+    submitting.current = true;
+    create.mutate(task, {
+      onSuccess: () => router.back(),
+      onError: () => {
+        submitting.current = false;
+      },
+    });
   };
 
   return (
