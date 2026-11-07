@@ -1,30 +1,30 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { useTheme } from '@/ui/theme';
 
 export function AddButton({ projectId }: { projectId?: string | null }) {
   const theme = useTheme();
+  const router = useRouter();
   return (
-    <Link
-      href={{ pathname: '/add', params: projectId ? { projectId } : {} }}
-      asChild
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Add task"
+      hitSlop={8}
+      onPress={() =>
+        router.push({
+          pathname: '/add',
+          params: projectId ? { projectId } : {},
+        })
+      }
+      style={({ pressed }) => [
+        styles.button,
+        { backgroundColor: theme.primary, opacity: pressed ? 0.8 : 1 },
+      ]}
     >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Add task"
-        hitSlop={8}
-        style={({ pressed }) =>
-          StyleSheet.flatten([
-            styles.button,
-            { backgroundColor: theme.primary, opacity: pressed ? 0.8 : 1 },
-          ])
-        }
-      >
-        <Ionicons name="add" size={22} color={theme['primary-foreground']} />
-      </Pressable>
-    </Link>
+      <Ionicons name="add" size={22} color={theme['primary-foreground']} />
+    </Pressable>
   );
 }
 
