@@ -45,7 +45,9 @@ dev:
       run: docker compose up --build
       dir: infra
     - name: server
-      run: ./gradlew bootRun
+      run: >-
+        until [ "$(docker compose -f ../../infra/compose.yaml ps --format '{{.Health}}' postgres 2>/dev/null)" = healthy ];
+        do sleep 1; done; ./gradlew bootRun
       dir: apps/server
     - name: web
       run: pnpm dev
