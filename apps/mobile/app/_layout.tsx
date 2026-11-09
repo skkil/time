@@ -69,7 +69,7 @@ function Routes() {
     <ThemeProvider value={NAVIGATION_THEME}>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Protected guard={session !== null}>
+        <Stack.Protected guard={session !== null} redirectTo="/sign-in">
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="project/[id]" />
           <Stack.Screen name="settings" />
@@ -79,7 +79,7 @@ function Routes() {
           <Stack.Screen name="habits" options={WINDOW} />
           <Stack.Screen name="earlier" options={WINDOW} />
         </Stack.Protected>
-        <Stack.Protected guard={session === null}>
+        <Stack.Protected guard={session === null} redirectTo="/">
           <Stack.Screen name="sign-in" />
         </Stack.Protected>
       </Stack>
