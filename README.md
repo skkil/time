@@ -23,7 +23,7 @@ syncs it with the server through [store](../store) (see
 ## Run
 
 ```bash
-(cd apps && pnpm install)
+pnpm install
 skkil dev            # Postgres, mock sign-in, server, web and desktop
 ```
 

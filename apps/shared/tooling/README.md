@@ -1,10 +1,9 @@
 # @skkil-time/tooling
 
 The ESLint, Prettier and TypeScript configs every TypeScript package shares. The
-workspace itself is rooted at `apps/`:
+workspace itself is rooted at the repo root:
 
 ```bash
-cd apps
 pnpm install
 pnpm lint | compile | test | format:check   # across every package
 ```

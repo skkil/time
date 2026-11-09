@@ -103,9 +103,9 @@ in `.design/DESIGN.md`.
 
 ## Repository structure
 
-All code lives under `apps/`; the repo root holds only docs, `assets/` and
-`skkil.yml`. TypeScript apps share a pnpm workspace rooted at `apps/`, and the
-server is its own Gradle project:
+All code lives under `apps/`; the repo root holds docs, `assets/`,
+`skkil.yml` and the pnpm workspace. TypeScript apps share that workspace, and
+the server is its own Gradle project:
 
 - `apps/core/`: `time-core`, the platform-free Rust domain (types, migrations,
   rules, queries, the mutation registry) for desktop, WASM and mobile
@@ -134,9 +134,9 @@ server is its own Gradle project:
   - `auth`: provider-neutral OIDC sign-in
   - `tooling`: the ESLint, Prettier and TypeScript configs every package uses
 
-Run `pnpm install` once in `apps/`; `pnpm lint|compile|test|format:check` there
-runs every package. `apps/package.json`, `pnpm-workspace.yaml` and the lockfile
-are the only files at that level. Each package has its own `eslint.config.js`
+Run `pnpm install` once at the repo root; `pnpm lint|compile|test|format:check`
+there runs every package. The root `package.json`, `pnpm-workspace.yaml` and the
+lockfile are the only workspace files. Each package has its own `eslint.config.js`
 (`config({ ignores })` from `@skkil-time/tooling/eslint`), uses
 `@skkil-time/tooling/prettier`, extends `tooling/tsconfig.base.json`, and lists
 the tools its scripts run.

@@ -1,0 +1,11 @@
+packages:
+  - apps/core-wasm
+  - apps/desktop
+  - apps/web
+  - apps/mobile
+  - apps/core-native
+  - apps/shared/*
+
+overrides:
+  react: 19.3.0
+  react-dom: 19.3.0

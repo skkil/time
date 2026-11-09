@@ -1,0 +1,17 @@
+**/node_modules
+**/dist
+**/build
+**/.gradle
+**/.kotlin
+**/target
+**/.expo
+.git
+.claude
+docs
+assets
+.design
+.jennifer
+*.md
+apps/server
+apps/desktop/src-tauri
+apps/core-wasm/pkg

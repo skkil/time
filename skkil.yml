@@ -18,8 +18,8 @@ requires:
     check: command -v docker
     hint: install Docker for the local database and the server tests
   - name: workspace dependencies
-    check: test -d apps/node_modules
-    hint: cd apps && pnpm install
+    check: test -d node_modules
+    hint: pnpm install
   - name: store checkout at STORE_VERSION
     check: test "$(git -C "${STORE_DIR:-../store}" describe --tags --exact-match 2>/dev/null)" = "$(cat STORE_VERSION)"
     hint: git -C ../store fetch --tags && git -C ../store checkout "$(cat STORE_VERSION)" (first time, clone the store repo with --branch "$(cat STORE_VERSION)" into ../store, or set STORE_DIR)

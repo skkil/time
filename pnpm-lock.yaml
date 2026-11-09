@@ -170,7 +170,7 @@ importers:
 
   .: {}
 
-  core-native:
+  apps/core-native:
     dependencies:
       '@skkil-time/local':
         specifier: workspace:*
@@ -207,9 +207,9 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  core-wasm: {}
+  apps/core-wasm: {}
 
-  desktop:
+  apps/desktop:
     dependencies:
       '@skkil-time/app':
         specifier: workspace:*
@@ -282,7 +282,7 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  mobile:
+  apps/mobile:
     dependencies:
       '@expo-google-fonts/hanken-grotesk':
         specifier: ^0.4.3
@@ -415,7 +415,7 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  shared/api:
+  apps/shared/api:
     dependencies:
       openapi-fetch:
         specifier: ^0.17.0
@@ -440,7 +440,7 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  shared/app:
+  apps/shared/app:
     dependencies:
       '@dnd-kit/core':
         specifier: ^6.3.1
@@ -555,7 +555,7 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  shared/auth:
+  apps/shared/auth:
     dependencies:
       oidc-client-ts:
         specifier: ^3.5.0
@@ -577,7 +577,7 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  shared/contract:
+  apps/shared/contract:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2
@@ -593,7 +593,7 @@ importers:
         specifier: ^3.9.10
         version: 3.9.10
 
-  shared/domain:
+  apps/shared/domain:
     dependencies:
       '@skkil-time/contract':
         specifier: workspace:*
@@ -618,7 +618,7 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  shared/local:
+  apps/shared/local:
     dependencies:
       '@skkil-time/contract':
         specifier: workspace:*
@@ -640,7 +640,7 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  shared/remote:
+  apps/shared/remote:
     dependencies:
       '@skkil-time/api':
         specifier: workspace:*
@@ -665,7 +665,7 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  shared/sync:
+  apps/shared/sync:
     dependencies:
       '@skkil-time/api':
         specifier: workspace:*
@@ -687,7 +687,7 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  shared/tokens:
+  apps/shared/tokens:
     devDependencies:
       '@skkil-time/tooling':
         specifier: workspace:*
@@ -708,7 +708,7 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  shared/tooling:
+  apps/shared/tooling:
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -741,7 +741,7 @@ importers:
         specifier: ^8.72.1
         version: 8.72.1(eslint@10.14.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
 
-  web:
+  apps/web:
     dependencies:
       '@skkil-time/api':
         specifier: workspace:*

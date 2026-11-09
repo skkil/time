@@ -10,7 +10,7 @@ needs only a sign-in client (below) to sync.
 | Piece | Artifact | Runs as |
 |---|---|---|
 | API | `apps/server/Dockerfile` (`docker build --build-context store=../store apps/server`, store checked out at `STORE_VERSION`) | Container on the shared app host or ECS; port 8080 public, 8081 private |
-| Web | `apps/web/Dockerfile` (`docker build -f apps/web/Dockerfile apps`) | nginx container on port 8080, or the `dist/` folder on S3 + CloudFront |
+| Web | `apps/web/Dockerfile` (`docker build -f apps/web/Dockerfile --build-context store=../store .`) | nginx container on port 8080, or the `dist/` folder on S3 + CloudFront |
 | Database | Postgres 17 (RDS) | Flyway migrates on API start; one database `time` |
 | Sign-in | Any OIDC provider (Auth0 per the platform plan) | One API, one SPA app, two native apps (mobile, desktop) |
 | Mobile | EAS builds | App Store and Play Store |
@@ -144,7 +144,7 @@ services:
       AUTH_AUDIENCE: time-api
       CORS_ALLOWED_ORIGINS: https://{host}
   web:
-    build: { dir: apps, image: web/Dockerfile }
+    build: { dir: ., image: apps/web/Dockerfile }
     port: 8080
     health: { port: 8080, path: /healthz }
     env:
