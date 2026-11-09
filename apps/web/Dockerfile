@@ -2,9 +2,20 @@
 # Build with the repo root as the context and the pinned store checkout as a named context:
 #   docker build -f apps/web/Dockerfile --build-context store=../store .
 FROM rust:1-slim-bookworm AS wasm
-RUN apt-get update && apt-get install -y --no-install-recommends clang binaryen \
+RUN apt-get update && apt-get install -y --no-install-recommends clang curl ca-certificates \
  && rm -rf /var/lib/apt/lists/* \
  && rustup target add wasm32-unknown-unknown
+RUN version=133 arch=$(uname -m) \
+ && case "$arch" in \
+      x86_64) sum=2dc9c7813f5375db93d96ead4b78222fcc3e2677bbb832297af4797782a37489 ;; \
+      aarch64) sum=89c07ea56faf38d0fbecf36ca8ec0721756716185f265b568e133d427f299bf8 ;; \
+      *) echo "no binaryen build for $arch" >&2; exit 1 ;; \
+    esac \
+ && curl -fsSL -o /tmp/binaryen.tar.gz "https://github.com/WebAssembly/binaryen/releases/download/version_${version}/binaryen-version_${version}-${arch}-linux.tar.gz" \
+ && echo "$sum  /tmp/binaryen.tar.gz" | sha256sum -c - \
+ && tar xzf /tmp/binaryen.tar.gz -C /usr/local/bin --strip-components=2 "binaryen-version_${version}/bin/wasm-opt" \
+ && rm /tmp/binaryen.tar.gz \
+ && wasm-opt --version
 WORKDIR /work/time/apps/web/engine
 COPY apps/web/engine/Cargo.toml ./
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
