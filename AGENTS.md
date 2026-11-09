@@ -109,14 +109,14 @@ the server is its own Gradle project:
 
 - `apps/core/`: `time-core`, the platform-free Rust domain (types, migrations,
   rules, queries, the mutation registry) for desktop, WASM and mobile
-- `apps/core-wasm/`: `time-core-wasm`, the sync Engine for the browser
+- `apps/web/engine/`: `time-core-wasm`, the sync Engine for the browser
   (wasm-bindgen, SQLite on OPFS); `pnpm build` there writes the
   `@skkil-time/core-wasm` package to `pkg/` (needs `wasm-bindgen-cli` at the
   crate's pin; shrinks it with binaryen's `wasm-opt -Oz` when installed)
 - `apps/desktop/`: Tauri 2 desktop app (Tauri wrappers over time-core + a thin
   React shell)
 - `apps/server/`: Kotlin Spring Boot API (see its README)
-- `apps/web/`: Vite + React web app, offline-first on core-wasm
+- `apps/web/`: Vite + React web app, offline-first on its wasm engine (`engine/`)
 - `apps/mobile/`: Expo React Native app over core-native
 - `apps/core-native/`: `time-core-native`, time-core behind a uniffi interface,
   and `@skkil-time/core-native`, the React Native Turbo Module that
@@ -425,7 +425,7 @@ cargo clippy --all-targets -- -D warnings
 ## Web and mobile
 
 - Web (`apps/web/`) is `mount()` from `apps/shared/app` with
-  `createLocalBackend` over time-core in WASM (`apps/core-wasm`), a browser
+  `createLocalBackend` over time-core in WASM (`apps/web/engine`), a browser
   `Platform` and OIDC sign-in (`apps/shared/auth/web`). Config is `VITE_*` at
   build time or `config.js` at container start; the store URL comes with each
   sync token. Details in `apps/web/README.md`.

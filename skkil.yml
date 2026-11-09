@@ -24,8 +24,8 @@ requires:
     check: test "$(git -C "${STORE_DIR:-../store}" describe --tags --exact-match 2>/dev/null)" = "$(cat STORE_VERSION)"
     hint: git -C ../store fetch --tags && git -C ../store checkout "$(cat STORE_VERSION)" (first time, clone the store repo with --branch "$(cat STORE_VERSION)" into ../store, or set STORE_DIR)
   - name: wasm-bindgen-cli
-    check: wasm-bindgen --version | grep -q "$(sed -n 's/^wasm-bindgen = "=\(.*\)"$/\1/p' apps/core-wasm/Cargo.toml)"
-    hint: cargo install wasm-bindgen-cli --locked --version <the wasm-bindgen pin in apps/core-wasm/Cargo.toml>, and rustup target add wasm32-unknown-unknown
+    check: wasm-bindgen --version | grep -q "$(sed -n 's/^wasm-bindgen = "=\(.*\)"$/\1/p' apps/web/engine/Cargo.toml)"
+    hint: cargo install wasm-bindgen-cli --locked --version <the wasm-bindgen pin in apps/web/engine/Cargo.toml>, and rustup target add wasm32-unknown-unknown
   - name: store client build
     check: test -f "${STORE_DIR:-../store}/modules/client-ts/dist/index.js"
     hint: (cd "${STORE_DIR:-../store}/modules/client-ts" && pnpm install --frozen-lockfile && pnpm build); apps/web and apps/mobile link it by path
@@ -153,8 +153,8 @@ ci:
       lint: cargo clippy --all-targets --features specta -- -D warnings
       test: cargo test
       build: cargo build --target wasm32-unknown-unknown --no-default-features
-    - name: core-wasm
-      dir: apps/core-wasm
+    - name: web-engine
+      dir: apps/web/engine
       format: cargo fmt --check
       lint: cargo clippy --all-targets -- -D warnings
       test: cargo test
@@ -241,7 +241,7 @@ ci:
       test: pnpm test
       build: pnpm build
       depends_on:
-        - core-wasm
+        - web-engine
     - name: core-native
       dir: apps/core-native
       format: cargo fmt --check && pnpm format:check

@@ -15,8 +15,8 @@ syncs it with the server through [store](../store) (see
 | [`apps/web`](apps/web) | Vite + React web app: the desktop UI in the browser, on SQLite in OPFS |
 | [`apps/mobile`](apps/mobile) | Expo React Native app |
 | [`apps/server`](apps/server) | Kotlin Spring Boot API on Postgres and the store write path |
-| [`apps/core`](apps/core) | `time-core`, the Rust domain every app runs |
-| [`apps/core-wasm`](apps/core-wasm) | `time-core` and store-core as WASM, for web |
+| [`apps/shared/core`](apps/shared/core) | `time-core`, the Rust domain every app runs |
+| [`apps/web/engine`](apps/web/engine) | `time-core` and store-core as WASM, for web |
 | [`apps/core-native`](apps/core-native) | `time-core` and store-core as a React Native Turbo Module, for mobile |
 | [`apps/shared`](apps/shared) | TypeScript packages the apps share |
 

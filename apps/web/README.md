@@ -3,7 +3,7 @@
 The desktop UI in the browser, offline-first. It mounts
 [`apps/shared/app`](../shared/app) with the local backend from
 [`apps/shared/local`](../shared/local) over time-core compiled to WASM
-([`apps/core-wasm`](../core-wasm)), keeps the data in SQLite on the Origin
+([`apps/web/engine`](engine)), keeps the data in SQLite on the Origin
 Private File System, and syncs it through store's TypeScript driver
 (`@skkil/store-client`). Sign-in is OIDC through
 [`apps/shared/auth`](../shared/auth).

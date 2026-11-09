@@ -5,17 +5,17 @@ FROM rust:1-slim-bookworm AS wasm
 RUN apt-get update && apt-get install -y --no-install-recommends clang binaryen \
  && rm -rf /var/lib/apt/lists/* \
  && rustup target add wasm32-unknown-unknown
-WORKDIR /work/time/apps/core-wasm
-COPY apps/core-wasm/Cargo.toml ./
+WORKDIR /work/time/apps/web/engine
+COPY apps/web/engine/Cargo.toml ./
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo install wasm-bindgen-cli --locked --version "$(sed -n 's/^wasm-bindgen = "=\(.*\)"$/\1/p' Cargo.toml)"
 COPY --from=store modules/core/Cargo.toml modules/core/Cargo.lock /work/store/modules/core/
 COPY --from=store modules/core/crates /work/store/modules/core/crates
 COPY --from=store modules/core/tools /work/store/modules/core/tools
 COPY apps/shared/core /work/time/apps/shared/core
-COPY apps/core-wasm /work/time/apps/core-wasm
+COPY apps/web/engine /work/time/apps/web/engine
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/work/time/apps/core-wasm/target \
+    --mount=type=cache,target=/work/time/apps/web/engine/target \
     sh scripts/build.sh
 
 FROM node:22-alpine AS store-client
@@ -31,7 +31,7 @@ RUN corepack enable
 COPY --from=store-client /work/store/modules/client-ts /work/store/modules/client-ts
 WORKDIR /work/time
 COPY . .
-COPY --from=wasm /work/time/apps/core-wasm/pkg apps/core-wasm/pkg
+COPY --from=wasm /work/time/apps/web/engine/pkg apps/web/engine/pkg
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --filter @skkil-time/web...
 RUN VITE_API_URL=runtime VITE_AUTH_AUTHORITY=runtime VITE_AUTH_CLIENT_ID=runtime \

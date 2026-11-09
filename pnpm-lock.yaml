@@ -207,8 +207,6 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  apps/core-wasm: {}
-
   apps/desktop:
     dependencies:
       '@skkil-time/app':
@@ -757,7 +755,7 @@ importers:
         version: link:../shared/contract
       '@skkil-time/core-wasm':
         specifier: workspace:*
-        version: link:../core-wasm
+        version: link:engine
       '@skkil-time/local':
         specifier: workspace:*
         version: link:../shared/local
@@ -831,6 +829,8 @@ importers:
       vitest:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
+
+  apps/web/engine: {}
 
 packages:
 

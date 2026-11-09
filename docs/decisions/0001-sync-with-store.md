@@ -263,7 +263,7 @@ time-core), since SQLite devices may send either.
 
 ## The web replica
 
-The browser runs `time-core-wasm` (`apps/core-wasm`) in a dedicated Web
+The browser runs `time-core-wasm` (`apps/web/engine`) in a dedicated Web
 Worker per tab, with SQLite on OPFS through the sync-access-handle pool
 VFS (no cross-origin isolation needed, no WAL). The pool holds its files
 exclusively, so one worker per origin owns the database: whoever holds

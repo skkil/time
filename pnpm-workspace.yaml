@@ -1,5 +1,5 @@
 packages:
-  - apps/core-wasm
+  - apps/web/engine
   - apps/desktop
   - apps/web
   - apps/mobile

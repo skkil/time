@@ -1,3 +1,3 @@
 import { config } from '@skkil-time/tooling/eslint';
 
-export default config();
+export default config({ ignores: ['engine/**'] });
