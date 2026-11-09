@@ -351,7 +351,8 @@ cargo clippy --all-targets -- -D warnings
 
 - Kotlin 2.3, Spring Boot 4.1, Java 25, Postgres, Flyway, Spring `JdbcClient`
   with explicit SQL. `./gradlew spotlessApply test` (Testcontainers);
-  `docker compose up -d` for local Postgres and a mock OIDC issuer.
+  `docker compose -f infra/compose.yaml up -d` (from the repo root) for local
+  Postgres, a mock OIDC issuer and the store service.
 - `features/<domain>/` mirrors `apps/core/src/<domain>/`: the same
   rules, validation messages and JSON shapes. Every query filters by
   `user_id`, and every referenced id is checked against the caller.

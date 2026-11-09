@@ -31,7 +31,7 @@ services:
       - ./mock-login.html:/login/mock-login.html:ro
 
   store:
-    build: ${STORE_DIR:-../../../store}/modules/service
+    build: ${STORE_DIR:-../../store}/modules/service
     ports:
       - "8091:8080"
     environment:

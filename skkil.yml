@@ -43,7 +43,7 @@ dev:
   run:
     - name: services
       run: docker compose up --build
-      dir: apps/server
+      dir: infra
     - name: server
       run: ./gradlew bootRun
       dir: apps/server

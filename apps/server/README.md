@@ -22,8 +22,8 @@ is at the pinned tag.
 ## Run locally
 
 ```bash
-docker compose up -d --build   # Postgres on 5433, mock OIDC issuer on 8090, store service on 8091
-./gradlew bootRun              # API on 8080, health and metrics on 8081 (dev profile)
+docker compose -f ../../infra/compose.yaml up -d --build   # Postgres on 5433, mock OIDC issuer on 8090, store service on 8091
+./gradlew bootRun                                          # API on 8080, health and metrics on 8081 (dev profile)
 ```
 
 `bootRun` uses the `dev` profile, which signs sync tokens with a key made at
@@ -32,7 +32,7 @@ store container after restarting the server if pulls answer `unauthenticated`).
 
 Sign in from the web app or the desktop (client `time-desktop`, PKCE, loopback redirect on any
 `127.0.0.1` port) with any username. The mock issuer accepts it and stamps the `time-api` audience.
-Its login page (`mock-login.html`) also puts `name` (the username unless given) and `email`
+Its login page (`infra/mock-login.html`) also puts `name` (the username unless given) and `email`
 (`<username>@example.com` unless given) into the ID and access tokens. Client-credentials tokens
 are unchanged: `sub` is the client id.
 

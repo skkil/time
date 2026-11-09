@@ -37,10 +37,10 @@ Create, per environment:
    change all four in Settings → Sync. After sign-in the desktop reads its
    store scope from `GET /api/v1/me` (`scopeId`).
 
-Locally, `apps/server/compose.yaml` runs mock-oauth2-server as the issuer
+Locally, `infra/compose.yaml` runs mock-oauth2-server as the issuer
 (`http://localhost:8090/default`): it accepts any client and redirect, signs
 `time-desktop` tokens for the `time-api` audience, and shows a login form
-(`apps/server/mock-login.html`) where any subject signs in, with `name` and
+(`infra/mock-login.html`) where any subject signs in, with `name` and
 `email` claims filled from it.
 
 Allow the scopes `openid profile email offline_access`. Moving to the skkil auth
