@@ -12,7 +12,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 COPY --from=store modules/core/Cargo.toml modules/core/Cargo.lock /work/store/modules/core/
 COPY --from=store modules/core/crates /work/store/modules/core/crates
 COPY --from=store modules/core/tools /work/store/modules/core/tools
-COPY apps/core /work/time/apps/core
+COPY apps/shared/core /work/time/apps/shared/core
 COPY apps/core-wasm /work/time/apps/core-wasm
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/work/time/apps/core-wasm/target \

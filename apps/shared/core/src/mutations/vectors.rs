@@ -16,7 +16,7 @@ use crate::db::Db;
 use crate::env::MutationEnv;
 use crate::types::Id;
 
-const VECTORS: &str = include_str!("../../../shared/contract/src/mutation-vectors.json");
+const VECTORS: &str = include_str!("../../../contract/src/mutation-vectors.json");
 
 struct Step {
     now: DateTime<FixedOffset>,

@@ -1,7 +1,13 @@
 # shared
 
-TypeScript packages the apps share. They are source-only workspace packages
-(`workspace:*`): no build step, consumed directly by Vite, Metro and Vitest.
+Code the apps share: time-core in Rust, and TypeScript packages.
+
+`core` (`time-core`) is a Rust crate, not a workspace package: the platform-free
+domain (types, migrations, rules, queries, the mutation registry) that desktop's
+`src-tauri`, web's wasm engine and mobile's native module depend on by path.
+
+The TypeScript packages are source-only workspace packages (`workspace:*`): no
+build step, consumed directly by Vite, Metro and Vitest.
 
 | Package                             | Used by      | Holds                                                                                                                 |
 | ----------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------- |

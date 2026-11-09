@@ -148,7 +148,7 @@ assets:
 ci:
   tasks:
     - name: time-core
-      dir: apps/core
+      dir: apps/shared/core
       format: cargo fmt --check
       lint: cargo clippy --all-targets --features specta -- -D warnings
       test: cargo test

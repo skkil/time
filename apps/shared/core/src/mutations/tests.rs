@@ -8,8 +8,8 @@ use super::*;
 use crate::db::Db;
 use crate::env::{Env, FixedClock, IdSource, SequentialIds};
 
-const BINDINGS: &str = include_str!("../../../shared/contract/src/bindings.ts");
-const CLASSIFIED: &str = include_str!("../../../shared/contract/src/commands.json");
+const BINDINGS: &str = include_str!("../../../contract/src/bindings.ts");
+const CLASSIFIED: &str = include_str!("../../../contract/src/commands.json");
 
 fn classified(kind: &str) -> BTreeSet<String> {
     let json: Value = serde_json::from_str(CLASSIFIED).expect("commands.json parses");
