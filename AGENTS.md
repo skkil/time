@@ -219,7 +219,8 @@ cargo clippy --all-targets -- -D warnings
   `mutation-vectors.json`.
 - `sync` is the one entry point every host uses: `sync::Engine` owns the
   connection, registers `data::SYNCED_TABLES` with store-core and handles
-  sign-in, upload (`importLocal`), issues and `forget`; `data` dumps and
+  sign-in, upload (`importLocal`), issues (`retry_issue` re-queues a refused
+  mutation with its stored arguments) and `forget`; `data` dumps and
   imports the synced rows.
 - `src/db/migrations/*.sql` (plus Rust code migrations in `db/migrate.rs`)
   are embedded and applied in order, versioned with `PRAGMA user_version`.
@@ -293,8 +294,13 @@ cargo clippy --all-targets -- -D warnings
   signed-in account and `features` flags (capture hotkey, reminders,
   ActivityWatch, database-file backups). Settings sections declare
   `available(platform)`. A local-first shell adds `sync` (status, Sync now,
-  issues, sign in/out, account choice, server config), shown as
-  Settings → Sync (`features/sync/`, view logic in `view.ts`); desktop fills
+  issues with Try again and Dismiss, sign in/out, account choice, server
+  config), shown as Settings → Sync (`features/sync/`, view logic in
+  `view.ts`) and at the top of the account menu (Sign in to sync…, or the
+  account, both opening Settings → Sync). Dismissing a refused `importLocal`
+  asks first: it removes that data from the device. Sync and sign-in errors
+  show as plain copy from `@skkil-time/domain/sync-messages` on every
+  platform; the raw error stays in a tooltip and the Server section. Desktop fills
   it in `apps/desktop/src/sync.ts`, web in `apps/web/src/platform/web-sync.ts`,
   and both reuse `onRemoteChange` and `onConnectionChange`. Its copy says
   "this device", never a platform noun. Undo keeps the `TaskSnapshot` payload in memory.

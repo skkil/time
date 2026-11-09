@@ -120,7 +120,7 @@ local.
 natively, web over WASM, mobile over uniffi). It owns the connection,
 registers every table in `data::SYNCED_TABLES` by `id`, and exposes
 `mutate`, `query`, the typed and byte push/pull functions, `status_json`,
-`issues`, `dismiss_issue`, `sign_in`/`keep_local`/`start_fresh` (which
+`issues`, `dismiss_issue`, `retry_issue`, `sign_in`/`keep_local`/`start_fresh` (which
 wrap `bind_scope`) and `forget`. Device-only state lives outside the synced
 tables: `device_setting` (capture hotkey, sync server config, a staged
 upload) and store's own tables.
@@ -188,8 +188,30 @@ logs every row it writes.
 
 So on an account that already has data, uploaded values win for rows they
 share (the same day's note, a customised ritual, a setting, the running
-timer) and everything else is added. A rejected upload is still lost to
-the device, so these rules only refuse what can't be merged safely.
+timer) and everything else is added. These rules only refuse what can't be
+merged safely; a refused upload is not lost (see Refused changes).
+
+## Refused changes
+
+When the server rejects a mutation, store-core undoes it on the device and
+keeps an issue with the mutation's name, its full arguments and the
+server's reason. Settings → Sync lists them (mobile: Couldn't sync) with
+two actions:
+
+- **Try again**: `Engine::retry_issue(id)` runs store's `mutate` with the
+  stored name and arguments through `TimeMutator`, so the change is applied
+  locally again and queued as a new mutation (new id and clock; ids it
+  derives are drawn afresh, rows that carry their own ids, like
+  `importLocal`'s, keep them). The issue is dismissed once it is queued; if
+  the mutation fails locally, the issue stays and the error is returned.
+  If the server refuses it again, a new issue appears.
+- **Dismiss** drops the issue and with it the only copy of the change. For
+  `importLocal`, which carries every row the device had before its first
+  sign-in, the UI asks first.
+
+Every host exposes it: the desktop `retry_sync_issue` command,
+`retryIssue` in core-wasm (through the web worker) and core-native, and
+`Platform.sync.retryIssue`.
 
 ## Cross-language checks
 
@@ -217,8 +239,8 @@ time-core), since SQLite devices may send either.
   `TimeCore`, over the `Engine`: `open(path)`, `mutate`/`query` (JSON text),
   the `CoreHandle` byte functions (`pushRequest`, `applyPushResponse`,
   `pullRequest`, `applyPullResponse`, `status`), `bindScope` (the engine's
-  `sign_in`), `keepLocal`, `startFresh`, `forget`, `issues` and
-  `dismissIssue`. Errors keep the desktop `{kind, message}` shape.
+  `sign_in`), `keepLocal`, `startFresh`, `forget`, `issues`,
+  `dismissIssue` and `retryIssue`. Errors keep the desktop `{kind, message}` shape.
   uniffi-bindgen-react-native turns it into the Turbo Module
   `@skkil-time/core-native`; its generated bindings are committed, the
   static libraries are built (`cargo-ndk`, NDK 30; Xcode for iOS).
