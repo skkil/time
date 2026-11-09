@@ -5,7 +5,7 @@ import {
   formatMinutesOfDay,
   minutesIntoDay,
   todayKey,
-} from '@skkil-time/domain/time';
+} from '@skkil-time/rules/time';
 import { useMemo, useRef, useState } from 'react';
 import {
   Pressable,

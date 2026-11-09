@@ -1,4 +1,4 @@
-import { liveEntry } from '@skkil-time/domain/timer';
+import { liveEntry } from '@skkil-time/rules/timer';
 import { format } from 'date-fns';
 import { useMemo, useState } from 'react';
 

@@ -1,4 +1,4 @@
-import { focusedSeconds } from '@skkil-time/domain/timer';
+import { focusedSeconds } from '@skkil-time/rules/timer';
 import { InboxIcon, ListTodoIcon, PlayIcon, SquareIcon } from 'lucide-react';
 import { useRef } from 'react';
 

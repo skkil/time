@@ -1,4 +1,4 @@
-import { EMPTY_TASK } from '@skkil-time/domain/quick-add/task';
+import { EMPTY_TASK } from '@skkil-time/rules/quick-add/task';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
@@ -58,7 +58,7 @@ export function useTaskIndex() {
   }, [data]);
 }
 
-export { EMPTY_TASK } from '@skkil-time/domain/quick-add/task';
+export { EMPTY_TASK } from '@skkil-time/rules/quick-add/task';
 
 export const stepInput = (parent: Task, title: string): TaskInput => ({
   ...EMPTY_TASK,

@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { Task, TimeEntry } from '@skkil-time/contract';
-import { planDay } from '@skkil-time/domain/day';
+import { planDay } from '@skkil-time/rules/day';
 import {
   dayStart,
   formatDuration,
@@ -8,8 +8,8 @@ import {
   secondsWithin,
   shiftKey,
   todayKey,
-} from '@skkil-time/domain/time';
-import { liveEntry } from '@skkil-time/domain/timer';
+} from '@skkil-time/rules/time';
+import { liveEntry } from '@skkil-time/rules/timer';
 import { format } from 'date-fns';
 import { router } from 'expo-router';
 import { useMemo } from 'react';

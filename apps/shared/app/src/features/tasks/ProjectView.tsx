@@ -1,4 +1,4 @@
-import { nextUp } from '@skkil-time/domain/next';
+import { nextUp } from '@skkil-time/rules/next';
 import { PlusIcon, SlidersHorizontalIcon } from 'lucide-react';
 import { Suspense, lazy, useMemo, useState } from 'react';
 

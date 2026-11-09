@@ -10,7 +10,7 @@
     "@skkil-time/auth": "workspace:*",
     "@skkil-time/contract": "workspace:*",
     "@skkil-time/core-native": "workspace:*",
-    "@skkil-time/domain": "workspace:*",
+    "@skkil-time/rules": "workspace:*",
     "@skkil-time/local": "workspace:*",
     "@skkil-time/sync": "workspace:*",
     "@skkil-time/tokens": "workspace:*",

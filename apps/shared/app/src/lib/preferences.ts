@@ -1,4 +1,4 @@
-import type { WeekStart } from '@skkil-time/domain/time';
+import type { WeekStart } from '@skkil-time/rules/time';
 import { useSyncExternalStore } from 'react';
 
 import { installedPlatform } from '@/platform';

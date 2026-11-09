@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { Outcome } from '@skkil-time/contract';
-import { type DateKey, formatDuration } from '@skkil-time/domain/time';
+import { type DateKey, formatDuration } from '@skkil-time/rules/time';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 

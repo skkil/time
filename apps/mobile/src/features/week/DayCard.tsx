@@ -11,7 +11,7 @@ import {
   formatDuration,
   formatMinutesOfDay,
   fromDateKey,
-} from '@skkil-time/domain/time';
+} from '@skkil-time/rules/time';
 import { format } from 'date-fns';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 

@@ -177,7 +177,7 @@ mod tests {
     #[test]
     fn accepts_every_phrase_quick_add_claims() {
         let phrases: Vec<String> = serde_json::from_str(include_str!(
-            "../../../domain/src/quick-add/repeat-phrases.json"
+            "../../../rules/src/quick-add/repeat-phrases.json"
         ))
         .unwrap();
         for phrase in phrases {

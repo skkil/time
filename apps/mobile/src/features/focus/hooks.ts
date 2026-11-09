@@ -1,5 +1,5 @@
 import type { EntryDetails, Id } from '@skkil-time/contract';
-import { type DateKey, nowSeconds } from '@skkil-time/domain/time';
+import { type DateKey, nowSeconds } from '@skkil-time/rules/time';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 

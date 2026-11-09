@@ -2,7 +2,7 @@ import {
   SYNC_PROBLEM_COPY,
   describeSyncError,
   isUpload,
-} from '@skkil-time/domain/sync-messages';
+} from '@skkil-time/rules/sync-messages';
 
 import type { SyncIssue, SyncStatus } from '@/platform';
 

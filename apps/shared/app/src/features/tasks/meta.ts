@@ -1,4 +1,4 @@
-import type { DueTone } from '@skkil-time/domain/due';
+import type { DueTone } from '@skkil-time/rules/due';
 
 export {
   PRIORITIES,
@@ -8,7 +8,7 @@ export {
   formatDue,
   isOpen,
   isOverdue,
-} from '@skkil-time/domain/due';
+} from '@skkil-time/rules/due';
 
 export const priorityColor = (priority: number) =>
   priority === 1

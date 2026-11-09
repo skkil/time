@@ -1,12 +1,12 @@
-import { formatDate, formatDue } from '@skkil-time/domain/due';
-import { parseQuickAdd } from '@skkil-time/domain/quick-add/parse';
-import { EMPTY_TASK, taskFromParsed } from '@skkil-time/domain/quick-add/task';
+import { formatDate, formatDue } from '@skkil-time/rules/due';
+import { parseQuickAdd } from '@skkil-time/rules/quick-add/parse';
+import { EMPTY_TASK, taskFromParsed } from '@skkil-time/rules/quick-add/task';
 import {
   formatEstimate,
   minutesIntoDay,
   nowSeconds,
   todayKey,
-} from '@skkil-time/domain/time';
+} from '@skkil-time/rules/time';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';

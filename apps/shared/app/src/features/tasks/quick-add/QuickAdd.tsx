@@ -1,5 +1,5 @@
-import { parseQuickAdd } from '@skkil-time/domain/quick-add/parse';
-import { taskFromParsed } from '@skkil-time/domain/quick-add/task';
+import { parseQuickAdd } from '@skkil-time/rules/quick-add/parse';
+import { taskFromParsed } from '@skkil-time/rules/quick-add/task';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 

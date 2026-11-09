@@ -1,5 +1,5 @@
 import type { Id, OutcomeStatus } from '@skkil-time/contract';
-import { type DateKey, shiftKey } from '@skkil-time/domain/time';
+import { type DateKey, shiftKey } from '@skkil-time/rules/time';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { commands } from '@/core/local/backend';

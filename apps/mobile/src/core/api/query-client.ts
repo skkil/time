@@ -1,4 +1,4 @@
-import type { DateKey } from '@skkil-time/domain/time';
+import type { DateKey } from '@skkil-time/rules/time';
 import { QueryClient } from '@tanstack/react-query';
 
 export const queryClient: QueryClient = new QueryClient({

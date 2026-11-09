@@ -1,4 +1,4 @@
-import { parseDatePhrase } from '@skkil-time/domain/quick-add/dates';
+import { parseDatePhrase } from '@skkil-time/rules/quick-add/dates';
 import { format } from 'date-fns';
 import {
   CalendarIcon,

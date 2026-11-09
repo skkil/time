@@ -1,4 +1,4 @@
-import { describeSignInError } from '@skkil-time/domain/sync-messages';
+import { describeSignInError } from '@skkil-time/rules/sync-messages';
 import { RefreshCwIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';

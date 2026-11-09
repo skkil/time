@@ -2,7 +2,7 @@ import {
   DISMISS_UPLOAD,
   describeSyncError,
   isUpload,
-} from '@skkil-time/domain/sync-messages';
+} from '@skkil-time/rules/sync-messages';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';

@@ -67,7 +67,7 @@ val storeDir = gradle.extra["storeDir"] as String
 val sharedFixtures =
     files(
         rootProject.layout.projectDirectory.dir("../shared/contract/src"),
-        rootProject.layout.projectDirectory.file("../shared/domain/src/quick-add/repeat-phrases.json"),
+        rootProject.layout.projectDirectory.file("../shared/rules/src/quick-add/repeat-phrases.json"),
     )
 
 tasks.withType<Test> {

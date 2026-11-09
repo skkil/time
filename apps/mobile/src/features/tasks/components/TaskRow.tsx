@@ -1,5 +1,5 @@
 import type { Project, Task } from '@skkil-time/contract';
-import { formatDue, isOverdue } from '@skkil-time/domain/due';
+import { formatDue, isOverdue } from '@skkil-time/rules/due';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 

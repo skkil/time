@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { Habit, HabitDay } from '@skkil-time/contract';
-import { todayKey } from '@skkil-time/domain/time';
+import { todayKey } from '@skkil-time/rules/time';
 import * as Haptics from 'expo-haptics';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';

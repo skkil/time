@@ -1,13 +1,13 @@
 import type { Task } from '@skkil-time/contract';
-import { formatDate } from '@skkil-time/domain/due';
-import { nextUp } from '@skkil-time/domain/next';
+import { formatDate } from '@skkil-time/rules/due';
+import { nextUp } from '@skkil-time/rules/next';
 import {
   formatDuration,
   mondayOf,
   secondsWithin,
   shiftKey,
   todayKey,
-} from '@skkil-time/domain/time';
+} from '@skkil-time/rules/time';
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';

@@ -57,7 +57,7 @@ class RecurrenceTest {
     @Test
     fun `accepts every phrase Quick Add claims`() {
         val phrases: List<String> =
-            JsonMapper().readValue(File("../shared/domain/src/quick-add/repeat-phrases.json"))
+            JsonMapper().readValue(File("../shared/rules/src/quick-add/repeat-phrases.json"))
         for (phrase in phrases) assertNotNull(Recurrence.parse(phrase), phrase)
     }
 

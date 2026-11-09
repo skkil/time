@@ -1,4 +1,4 @@
-import { DISMISS_UPLOAD, isUpload } from '@skkil-time/domain/sync-messages';
+import { DISMISS_UPLOAD, isUpload } from '@skkil-time/rules/sync-messages';
 import { RotateCcwIcon, XIcon } from 'lucide-react';
 import { useState } from 'react';
 

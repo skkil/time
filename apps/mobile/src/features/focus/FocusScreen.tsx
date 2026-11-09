@@ -1,14 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { RunningTimer, Task } from '@skkil-time/contract';
-import { planDay } from '@skkil-time/domain/day';
+import { planDay } from '@skkil-time/rules/day';
 import {
   formatClockTime,
   formatDuration,
   formatStopwatch,
   shiftKey,
   todayKey,
-} from '@skkil-time/domain/time';
-import { focusedSeconds } from '@skkil-time/domain/timer';
+} from '@skkil-time/rules/time';
+import { focusedSeconds } from '@skkil-time/rules/timer';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';

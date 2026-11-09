@@ -2,11 +2,11 @@ import {
   type DateKey,
   weekOfMonday as weekOfMondayOn,
   weekStartOf as weekStartOn,
-} from '@skkil-time/domain/time';
+} from '@skkil-time/rules/time';
 
 import { getPreference } from '@/lib/preferences';
 
-export * from '@skkil-time/domain/time';
+export * from '@skkil-time/rules/time';
 
 export const weekStartOf = (
   key: DateKey,

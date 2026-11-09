@@ -1,4 +1,4 @@
-import { focusedSeconds } from '@skkil-time/domain/timer';
+import { focusedSeconds } from '@skkil-time/rules/timer';
 import { Link } from '@tanstack/react-router';
 import { SquareIcon } from 'lucide-react';
 

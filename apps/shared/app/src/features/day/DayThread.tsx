@@ -1,4 +1,4 @@
-import { LIVE_ENTRY_ID } from '@skkil-time/domain/timer';
+import { LIVE_ENTRY_ID } from '@skkil-time/rules/timer';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import type { Id, TimeEntry } from '@/backend';

@@ -168,8 +168,8 @@ ci:
       test: cargo test && git diff --exit-code -- ../../shared/contract/src/bindings.ts
       depends_on:
         - time-core
-    - name: shared-domain
-      dir: apps/shared/domain
+    - name: shared-rules
+      dir: apps/shared/rules
       format: pnpm format:check
       lint: pnpm lint
       test: pnpm test

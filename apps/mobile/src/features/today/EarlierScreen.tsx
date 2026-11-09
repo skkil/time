@@ -1,6 +1,6 @@
-import { planDay } from '@skkil-time/domain/day';
-import { formatDue } from '@skkil-time/domain/due';
-import { shiftKey, todayKey } from '@skkil-time/domain/time';
+import { planDay } from '@skkil-time/rules/day';
+import { formatDue } from '@skkil-time/rules/due';
+import { shiftKey, todayKey } from '@skkil-time/rules/time';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 

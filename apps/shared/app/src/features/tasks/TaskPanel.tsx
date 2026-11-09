@@ -1,4 +1,4 @@
-import { focusedSeconds } from '@skkil-time/domain/timer';
+import { focusedSeconds } from '@skkil-time/rules/timer';
 import { format } from 'date-fns';
 import {
   CheckIcon,

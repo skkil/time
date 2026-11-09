@@ -1,4 +1,4 @@
-import { isId } from '@skkil-time/domain/ids';
+import { isId } from '@skkil-time/rules/ids';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import {
   KeyboardIcon,

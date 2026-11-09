@@ -266,12 +266,12 @@ importers:
       '@skkil-time/core-native':
         specifier: workspace:*
         version: link:native
-      '@skkil-time/domain':
-        specifier: workspace:*
-        version: link:../shared/domain
       '@skkil-time/local':
         specifier: workspace:*
         version: link:../shared/local
+      '@skkil-time/rules':
+        specifier: workspace:*
+        version: link:../shared/rules
       '@skkil-time/sync':
         specifier: workspace:*
         version: link:../shared/sync
@@ -455,9 +455,9 @@ importers:
       '@skkil-time/contract':
         specifier: workspace:*
         version: link:../contract
-      '@skkil-time/domain':
+      '@skkil-time/rules':
         specifier: workspace:*
-        version: link:../domain
+        version: link:../rules
       '@skkil-time/tokens':
         specifier: workspace:*
         version: link:../tokens
@@ -591,31 +591,6 @@ importers:
         specifier: ^3.9.10
         version: 3.9.10
 
-  apps/shared/domain:
-    dependencies:
-      '@skkil-time/contract':
-        specifier: workspace:*
-        version: link:../contract
-      date-fns:
-        specifier: ^4.4.0
-        version: 4.4.0
-    devDependencies:
-      '@skkil-time/tooling':
-        specifier: workspace:*
-        version: link:../tooling
-      eslint:
-        specifier: ^10.14.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
-      prettier:
-        specifier: ^3.9.10
-        version: 3.9.10
-      typescript:
-        specifier: ~6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: ^5.0.5
-        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
-
   apps/shared/local:
     dependencies:
       '@skkil-time/contract':
@@ -646,6 +621,31 @@ importers:
       '@skkil-time/contract':
         specifier: workspace:*
         version: link:../contract
+    devDependencies:
+      '@skkil-time/tooling':
+        specifier: workspace:*
+        version: link:../tooling
+      eslint:
+        specifier: ^10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.5
+        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
+
+  apps/shared/rules:
+    dependencies:
+      '@skkil-time/contract':
+        specifier: workspace:*
+        version: link:../contract
+      date-fns:
+        specifier: ^4.4.0
+        version: 4.4.0
     devDependencies:
       '@skkil-time/tooling':
         specifier: workspace:*

@@ -1,4 +1,4 @@
-import { parseQuickAdd } from '@skkil-time/domain/quick-add/parse';
+import { parseQuickAdd } from '@skkil-time/rules/quick-add/parse';
 
 import type { ImportProject, ImportTask, TaskInput } from '@/backend';
 import { PROJECT_COLORS } from '@/features/projects/tree';

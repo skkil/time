@@ -1,5 +1,5 @@
 import type { Id, ManualStatus } from '@skkil-time/contract';
-import type { DateKey } from '@skkil-time/domain/time';
+import type { DateKey } from '@skkil-time/rules/time';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { keys } from '@/core/api/query-client';

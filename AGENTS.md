@@ -124,7 +124,7 @@ the server is its own Gradle project:
 - `apps/shared/*`: TypeScript packages; see `apps/shared/README.md`
   - `contract`: `bindings.ts` generated from Rust, the type contract for every app
   - `app`: the whole desktop/web UI, behind `Backend` and `Platform` ports
-  - `domain`: platform-free rules (dates, day plan, due dates, timer, Quick Add)
+  - `rules`: platform-free rules (dates, day plan, due dates, timer, Quick Add)
   - `tokens`: colours and the sky; `pnpm generate` writes `tokens.css`
   - `api`: the server's `openapi.json`, generated types, typed fetch client
   - `remote`: the `Backend` over HTTP (`satisfies Backend`)
@@ -142,7 +142,7 @@ lockfile are the only workspace files. Each package has its own `eslint.config.j
 the tools its scripts run.
 
 **Change once, reach every app.** UI goes in `apps/shared/app` (desktop and
-web), rules in `apps/shared/domain` (all three), colours in
+web), rules in `apps/shared/rules` (all three), colours in
 `apps/shared/tokens/src/colors.ts` (all three). Never copy logic into a shell
 app. A new backend command needs the time-core function plus its entry in
 `time_core::mutations` (a write) or its read list, the Tauri wrapper, a Kotlin
@@ -179,13 +179,13 @@ cargo clippy --all-targets -- -D warnings
 
 - Quick add follows Todoist's syntax: dates and times in plain words, `every …`
   repeats, `{deadline}`, `p1`–`p4`, `#Project`, `/Section`, `+type`, `for 1h`.
-  It lives in `apps/shared/domain/src/quick-add/` (the UI in
+  It lives in `apps/shared/rules/src/quick-add/` (the UI in
   `apps/shared/app/src/features/tasks/quick-add/`); each grammar is a rule
   table or pattern with tests beside it, and `parse.ts` runs them in order. Clicking a highlighted phrase keeps it as plain text.
 - Repeats are read, advanced and given their first date in
   `apps/core/src/recurrence/`: rules in `rule.rs`, matchable days in
   `pattern.rs`, `every!` and end dates in `mod.rs`. The frontend only claims the
-  phrase. `apps/shared/domain/src/quick-add/repeat-phrases.json` is read by the
+  phrase. `apps/shared/rules/src/quick-add/repeat-phrases.json` is read by the
   TypeScript, Rust and Kotlin (`apps/server/.../recurrence`) test suites, so a
   phrase a backend can't store fails the build.
 
@@ -299,7 +299,7 @@ cargo clippy --all-targets -- -D warnings
   `view.ts`) and at the top of the account menu (Sign in to sync…, or the
   account, both opening Settings → Sync). Dismissing a refused `importLocal`
   asks first: it removes that data from the device. Sync and sign-in errors
-  show as plain copy from `@skkil-time/domain/sync-messages` on every
+  show as plain copy from `@skkil-time/rules/sync-messages` on every
   platform; the raw error stays in a tooltip and the Server section. Desktop fills
   it in `apps/desktop/src/sync.ts`, web in `apps/web/src/platform/web-sync.ts`,
   and both reuse `onRemoteChange` and `onConnectionChange`. Its copy says
@@ -465,7 +465,7 @@ cargo clippy --all-targets -- -D warnings
   Day, Week and Projects behind a floating pill (`features/shell/`), each
   page on the sky (`ui/Sky.tsx`, dark only, Hanken Grotesk), and the task,
   Quick Add, focus, habits and earlier-days views as glass windows
-  (`ui/Window.tsx`, transparent-modal routes). It shares `domain`, `tokens`,
+  (`ui/Window.tsx`, transparent-modal routes). It shares `rules`, `tokens`,
   `contract`, `api`, `local` and `sync`, not DOM components. `app/` holds routes
   only; screens, components and hooks live in `src/features/<name>/`,
   services in `src/core/`, shared UI in `src/ui/` (see its README).

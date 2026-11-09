@@ -1,7 +1,7 @@
 import type { Id, Task, TaskInput } from '@skkil-time/contract';
-import { PRIORITIES, formatDue } from '@skkil-time/domain/due';
-import { parseDatePhrase } from '@skkil-time/domain/quick-add/dates';
-import { todayKey } from '@skkil-time/domain/time';
+import { PRIORITIES, formatDue } from '@skkil-time/rules/due';
+import { parseDatePhrase } from '@skkil-time/rules/quick-add/dates';
+import { todayKey } from '@skkil-time/rules/time';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';

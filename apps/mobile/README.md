@@ -7,7 +7,7 @@ command runs on the phone's own copy of the data, `time-core` over SQLite
 through [`apps/mobile/native`](native), behind the same `Backend` port
 as desktop ([`apps/shared/local`](../shared/local)). Sync with the server goes
 through store's TypeScript driver. Rules come from
-[`apps/shared/domain`](../shared/domain) and colours from
+[`apps/shared/rules`](../shared/rules) and colours from
 [`apps/shared/tokens`](../shared/tokens).
 
 ```bash

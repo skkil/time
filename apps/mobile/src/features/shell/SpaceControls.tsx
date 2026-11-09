@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { formatStopwatch } from '@skkil-time/domain/time';
-import { focusedSeconds } from '@skkil-time/domain/timer';
+import { formatStopwatch } from '@skkil-time/rules/time';
+import { focusedSeconds } from '@skkil-time/rules/timer';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 

@@ -8,7 +8,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { LIVE_ENTRY_ID, liveEntry } from '@skkil-time/domain/timer';
+import { LIVE_ENTRY_ID, liveEntry } from '@skkil-time/rules/timer';
 import {
   type ReactNode,
   type PointerEvent as ReactPointerEvent,
