@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@skkil-time/api": "workspace:*",
-    "@skkil-time/app": "workspace:*",
+    "@skkil-time/ui": "workspace:*",
     "@skkil-time/auth": "workspace:*",
     "@skkil-time/contract": "workspace:*",
     "@skkil-time/core-wasm": "workspace:*",
@@ -31,7 +31,7 @@
   "devDependencies": {
     "@babel/core": "^8.0.10",
     "@rolldown/plugin-babel": "^0.3.0",
-    "@skkil-time/tooling": "workspace:*",
+    "@skkil-time/config": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
     "@types/babel__core": "^7.20.5",
     "@types/node": "^26.6.6",
@@ -46,5 +46,5 @@
     "vite": "^8.0.16",
     "vitest": "^5.0.5"
   },
-  "prettier": "@skkil-time/tooling/prettier"
+  "prettier": "@skkil-time/config/prettier"
 }

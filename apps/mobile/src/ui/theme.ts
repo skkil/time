@@ -1,4 +1,4 @@
-import { type Token, projectColor, tokens } from '@skkil-time/tokens/colors';
+import { type Token, projectColor, tokens } from '@skkil-time/design/colors';
 import type { TextStyle } from 'react-native';
 
 export type Theme = Record<Token, string> & { scheme: 'dark' };

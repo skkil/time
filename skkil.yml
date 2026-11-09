@@ -174,14 +174,14 @@ ci:
       lint: pnpm lint
       test: pnpm test
       build: pnpm compile
-    - name: shared-tokens
-      dir: apps/shared/tokens
+    - name: shared-design
+      dir: apps/shared/design
       format: pnpm format:check
       lint: pnpm lint
       test: pnpm test
       build: pnpm compile
-    - name: shared-app
-      dir: apps/shared/app
+    - name: shared-ui
+      dir: apps/shared/ui
       format: pnpm format:check
       lint: pnpm lint
       test: pnpm test

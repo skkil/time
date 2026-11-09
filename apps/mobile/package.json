@@ -13,7 +13,7 @@
     "@skkil-time/rules": "workspace:*",
     "@skkil-time/local": "workspace:*",
     "@skkil-time/sync": "workspace:*",
-    "@skkil-time/tokens": "workspace:*",
+    "@skkil-time/design": "workspace:*",
     "@skkil/store-client": "link:../../../store/modules/client-ts",
     "@tanstack/react-query": "^5.107.1",
     "@ubjs/core": "0.31.0-6",
@@ -42,7 +42,7 @@
     "uniffi-bindgen-react-native": "0.31.0-6"
   },
   "devDependencies": {
-    "@skkil-time/tooling": "workspace:*",
+    "@skkil-time/config": "workspace:*",
     "@types/react": "~19.3.0",
     "eslint": "^10.14.0",
     "prettier": "^3.9.10",
@@ -61,5 +61,5 @@
     "format:check": "prettier --check ."
   },
   "private": true,
-  "prettier": "@skkil-time/tooling/prettier"
+  "prettier": "@skkil-time/config/prettier"
 }

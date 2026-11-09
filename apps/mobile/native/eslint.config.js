@@ -1,4 +1,4 @@
-import { config } from '@skkil-time/tooling/eslint';
+import { config } from '@skkil-time/config/eslint';
 
 export default config({
   ignores: ['src/native', 'cpp', 'android', 'ios', 'target'],

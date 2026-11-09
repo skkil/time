@@ -19,6 +19,6 @@ export default {
     own('prettier-plugin-tailwindcss'),
   ],
   tailwindStylesheet: fileURLToPath(
-    new URL('../app/src/styles/globals.css', import.meta.url),
+    new URL('../ui/src/styles/globals.css', import.meta.url),
   ),
 };

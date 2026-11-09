@@ -1,5 +1,5 @@
 {
-  "extends": "../../shared/tooling/tsconfig.base.json",
+  "extends": "../../shared/config/tsconfig.base.json",
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo"
   },

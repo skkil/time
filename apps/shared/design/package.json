@@ -1,5 +1,5 @@
 {
-  "name": "@skkil-time/tokens",
+  "name": "@skkil-time/design",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -20,12 +20,12 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@skkil-time/tooling": "workspace:*",
+    "@skkil-time/config": "workspace:*",
     "@types/node": "^26.6.6",
     "eslint": "^10.14.0",
     "prettier": "^3.9.10",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
   },
-  "prettier": "@skkil-time/tooling/prettier"
+  "prettier": "@skkil-time/config/prettier"
 }

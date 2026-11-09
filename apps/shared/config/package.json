@@ -1,5 +1,5 @@
 {
-  "name": "@skkil-time/tooling",
+  "name": "@skkil-time/config",
   "private": true,
   "type": "module",
   "exports": {

@@ -1,5 +1,5 @@
-import { SHADE, readabilityShade } from '@skkil-time/tokens/contrast';
-import { rgb, skyAt } from '@skkil-time/tokens/sky';
+import { SHADE, readabilityShade } from '@skkil-time/design/contrast';
+import { rgb, skyAt } from '@skkil-time/design/sky';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 

@@ -1,6 +1,6 @@
 import type { Id, Project } from '@/backend';
 
-export { PROJECT_COLORS, type ProjectColor } from '@skkil-time/tokens/colors';
+export { PROJECT_COLORS, type ProjectColor } from '@skkil-time/design/colors';
 
 export const MAX_PROJECT_DEPTH = 3;
 

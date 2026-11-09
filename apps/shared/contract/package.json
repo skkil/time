@@ -10,7 +10,7 @@
     "@tauri-apps/api": "^2"
   },
   "devDependencies": {
-    "@skkil-time/tooling": "workspace:*",
+    "@skkil-time/config": "workspace:*",
     "eslint": "^10.14.0",
     "prettier": "^3.9.10"
   },
@@ -19,5 +19,5 @@
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
-  "prettier": "@skkil-time/tooling/prettier"
+  "prettier": "@skkil-time/config/prettier"
 }

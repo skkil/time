@@ -25,12 +25,12 @@
     "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
-    "@skkil-time/tooling": "workspace:*",
+    "@skkil-time/config": "workspace:*",
     "eslint": "^10.14.0",
     "openapi-typescript": "^7.13.0",
     "prettier": "^3.9.10",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
   },
-  "prettier": "@skkil-time/tooling/prettier"
+  "prettier": "@skkil-time/config/prettier"
 }

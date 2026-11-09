@@ -9,7 +9,7 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig({
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('../shared/app/src', import.meta.url)),
+      '@': fileURLToPath(new URL('../shared/ui/src', import.meta.url)),
     },
     dedupe: ['react', 'react-dom'],
   },

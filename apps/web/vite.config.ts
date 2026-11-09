@@ -14,7 +14,7 @@ const storeClient = realpathSync(
 export default defineConfig({
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('../shared/app/src', import.meta.url)),
+      '@': fileURLToPath(new URL('../shared/ui/src', import.meta.url)),
       '~': fileURLToPath(new URL('./src', import.meta.url)),
     },
     dedupe: ['react', 'react-dom'],

@@ -172,12 +172,12 @@ importers:
 
   apps/desktop:
     dependencies:
-      '@skkil-time/app':
-        specifier: workspace:*
-        version: link:../shared/app
       '@skkil-time/contract':
         specifier: workspace:*
         version: link:../shared/contract
+      '@skkil-time/ui':
+        specifier: workspace:*
+        version: link:../shared/ui
       '@tauri-apps/api':
         specifier: ^2
         version: 2.12.4
@@ -197,9 +197,9 @@ importers:
       '@rolldown/plugin-babel':
         specifier: ^0.3.0
         version: 0.3.0(@babel/core@8.1.0)(@babel/runtime@7.29.13)(rolldown@1.2.16)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
-      '@skkil-time/tooling':
+      '@skkil-time/config':
         specifier: workspace:*
-        version: link:../shared/tooling
+        version: link:../shared/config
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.5(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
@@ -266,6 +266,9 @@ importers:
       '@skkil-time/core-native':
         specifier: workspace:*
         version: link:native
+      '@skkil-time/design':
+        specifier: workspace:*
+        version: link:../shared/design
       '@skkil-time/local':
         specifier: workspace:*
         version: link:../shared/local
@@ -275,9 +278,6 @@ importers:
       '@skkil-time/sync':
         specifier: workspace:*
         version: link:../shared/sync
-      '@skkil-time/tokens':
-        specifier: workspace:*
-        version: link:../shared/tokens
       '@skkil/store-client':
         specifier: link:../../../store/modules/client-ts
         version: link:../../../store/modules/client-ts
@@ -357,9 +357,9 @@ importers:
         specifier: 0.31.0-6
         version: 0.31.0-6
     devDependencies:
-      '@skkil-time/tooling':
+      '@skkil-time/config':
         specifier: workspace:*
-        version: link:../shared/tooling
+        version: link:../shared/config
       '@types/react':
         specifier: ~19.3.0
         version: 19.3.0
@@ -397,9 +397,9 @@ importers:
       '@babel/core':
         specifier: ^7.29.13
         version: 7.29.13(supports-color@10.2.2)
-      '@skkil-time/tooling':
+      '@skkil-time/config':
         specifier: workspace:*
-        version: link:../../shared/tooling
+        version: link:../../shared/config
       eslint:
         specifier: ^10.14.0
         version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
@@ -419,9 +419,9 @@ importers:
         specifier: ^0.17.0
         version: 0.17.0
     devDependencies:
-      '@skkil-time/tooling':
+      '@skkil-time/config':
         specifier: workspace:*
-        version: link:../tooling
+        version: link:../config
       eslint:
         specifier: ^10.14.0
         version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
@@ -438,7 +438,193 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  apps/shared/app:
+  apps/shared/auth:
+    dependencies:
+      oidc-client-ts:
+        specifier: ^3.5.0
+        version: 3.5.0
+    devDependencies:
+      '@skkil-time/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: ^10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.5
+        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
+
+  apps/shared/config:
+    devDependencies:
+      '@eslint/js':
+        specifier: ^10.0.1
+        version: 10.0.1(eslint@10.14.0(jiti@2.7.0)(supports-color@10.2.2))
+      '@trivago/prettier-plugin-sort-imports':
+        specifier: ^6.0.2
+        version: 6.0.2(prettier@3.9.10)(supports-color@10.2.2)
+      eslint:
+        specifier: ^10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      eslint-plugin-react-hooks:
+        specifier: ^7.1.1
+        version: 7.1.1(eslint@10.14.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)
+      eslint-plugin-react-refresh:
+        specifier: ^0.5.7
+        version: 0.5.7(eslint@10.14.0(jiti@2.7.0)(supports-color@10.2.2))
+      globals:
+        specifier: ^17.13.0
+        version: 17.14.0
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
+      prettier-plugin-tailwindcss:
+        specifier: ^0.8.1
+        version: 0.8.1(@trivago/prettier-plugin-sort-imports@6.0.2(prettier@3.9.10)(supports-color@10.2.2))(prettier@3.9.10)
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      typescript-eslint:
+        specifier: ^8.72.1
+        version: 8.72.1(eslint@10.14.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
+
+  apps/shared/contract:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2
+        version: 2.12.4
+    devDependencies:
+      '@skkil-time/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: ^10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
+
+  apps/shared/design:
+    devDependencies:
+      '@skkil-time/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: ^26.6.6
+        version: 26.6.6
+      eslint:
+        specifier: ^10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.5
+        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
+
+  apps/shared/local:
+    dependencies:
+      '@skkil-time/contract':
+        specifier: workspace:*
+        version: link:../contract
+    devDependencies:
+      '@skkil-time/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: ^10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.5
+        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
+
+  apps/shared/remote:
+    dependencies:
+      '@skkil-time/api':
+        specifier: workspace:*
+        version: link:../api
+      '@skkil-time/contract':
+        specifier: workspace:*
+        version: link:../contract
+    devDependencies:
+      '@skkil-time/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: ^10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.5
+        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
+
+  apps/shared/rules:
+    dependencies:
+      '@skkil-time/contract':
+        specifier: workspace:*
+        version: link:../contract
+      date-fns:
+        specifier: ^4.4.0
+        version: 4.4.0
+    devDependencies:
+      '@skkil-time/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: ^10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.5
+        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
+
+  apps/shared/sync:
+    dependencies:
+      '@skkil-time/api':
+        specifier: workspace:*
+        version: link:../api
+    devDependencies:
+      '@skkil-time/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: ^10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.5
+        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
+
+  apps/shared/ui:
     dependencies:
       '@dnd-kit/core':
         specifier: ^6.3.1
@@ -455,12 +641,12 @@ importers:
       '@skkil-time/contract':
         specifier: workspace:*
         version: link:../contract
+      '@skkil-time/design':
+        specifier: workspace:*
+        version: link:../design
       '@skkil-time/rules':
         specifier: workspace:*
         version: link:../rules
-      '@skkil-time/tokens':
-        specifier: workspace:*
-        version: link:../tokens
       '@tanstack/react-query':
         specifier: ^5.105.0
         version: 5.107.1(@types/react@19.3.0)(react@19.3.0)
@@ -522,9 +708,9 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
     devDependencies:
-      '@skkil-time/tooling':
+      '@skkil-time/config':
         specifier: workspace:*
-        version: link:../tooling
+        version: link:../config
       '@types/node':
         specifier: ^26.6.6
         version: 26.6.6
@@ -553,200 +739,11 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
-  apps/shared/auth:
-    dependencies:
-      oidc-client-ts:
-        specifier: ^3.5.0
-        version: 3.5.0
-    devDependencies:
-      '@skkil-time/tooling':
-        specifier: workspace:*
-        version: link:../tooling
-      eslint:
-        specifier: ^10.14.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
-      prettier:
-        specifier: ^3.9.10
-        version: 3.9.10
-      typescript:
-        specifier: ~6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: ^5.0.5
-        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
-
-  apps/shared/contract:
-    dependencies:
-      '@tauri-apps/api':
-        specifier: ^2
-        version: 2.12.4
-    devDependencies:
-      '@skkil-time/tooling':
-        specifier: workspace:*
-        version: link:../tooling
-      eslint:
-        specifier: ^10.14.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
-      prettier:
-        specifier: ^3.9.10
-        version: 3.9.10
-
-  apps/shared/local:
-    dependencies:
-      '@skkil-time/contract':
-        specifier: workspace:*
-        version: link:../contract
-    devDependencies:
-      '@skkil-time/tooling':
-        specifier: workspace:*
-        version: link:../tooling
-      eslint:
-        specifier: ^10.14.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
-      prettier:
-        specifier: ^3.9.10
-        version: 3.9.10
-      typescript:
-        specifier: ~6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: ^5.0.5
-        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
-
-  apps/shared/remote:
-    dependencies:
-      '@skkil-time/api':
-        specifier: workspace:*
-        version: link:../api
-      '@skkil-time/contract':
-        specifier: workspace:*
-        version: link:../contract
-    devDependencies:
-      '@skkil-time/tooling':
-        specifier: workspace:*
-        version: link:../tooling
-      eslint:
-        specifier: ^10.14.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
-      prettier:
-        specifier: ^3.9.10
-        version: 3.9.10
-      typescript:
-        specifier: ~6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: ^5.0.5
-        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
-
-  apps/shared/rules:
-    dependencies:
-      '@skkil-time/contract':
-        specifier: workspace:*
-        version: link:../contract
-      date-fns:
-        specifier: ^4.4.0
-        version: 4.4.0
-    devDependencies:
-      '@skkil-time/tooling':
-        specifier: workspace:*
-        version: link:../tooling
-      eslint:
-        specifier: ^10.14.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
-      prettier:
-        specifier: ^3.9.10
-        version: 3.9.10
-      typescript:
-        specifier: ~6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: ^5.0.5
-        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
-
-  apps/shared/sync:
-    dependencies:
-      '@skkil-time/api':
-        specifier: workspace:*
-        version: link:../api
-    devDependencies:
-      '@skkil-time/tooling':
-        specifier: workspace:*
-        version: link:../tooling
-      eslint:
-        specifier: ^10.14.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
-      prettier:
-        specifier: ^3.9.10
-        version: 3.9.10
-      typescript:
-        specifier: ~6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: ^5.0.5
-        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
-
-  apps/shared/tokens:
-    devDependencies:
-      '@skkil-time/tooling':
-        specifier: workspace:*
-        version: link:../tooling
-      '@types/node':
-        specifier: ^26.6.6
-        version: 26.6.6
-      eslint:
-        specifier: ^10.14.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
-      prettier:
-        specifier: ^3.9.10
-        version: 3.9.10
-      typescript:
-        specifier: ~6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: ^5.0.5
-        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
-
-  apps/shared/tooling:
-    devDependencies:
-      '@eslint/js':
-        specifier: ^10.0.1
-        version: 10.0.1(eslint@10.14.0(jiti@2.7.0)(supports-color@10.2.2))
-      '@trivago/prettier-plugin-sort-imports':
-        specifier: ^6.0.2
-        version: 6.0.2(prettier@3.9.10)(supports-color@10.2.2)
-      eslint:
-        specifier: ^10.14.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
-      eslint-plugin-react-hooks:
-        specifier: ^7.1.1
-        version: 7.1.1(eslint@10.14.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)
-      eslint-plugin-react-refresh:
-        specifier: ^0.5.7
-        version: 0.5.7(eslint@10.14.0(jiti@2.7.0)(supports-color@10.2.2))
-      globals:
-        specifier: ^17.13.0
-        version: 17.14.0
-      prettier:
-        specifier: ^3.9.10
-        version: 3.9.10
-      prettier-plugin-tailwindcss:
-        specifier: ^0.8.1
-        version: 0.8.1(@trivago/prettier-plugin-sort-imports@6.0.2(prettier@3.9.10)(supports-color@10.2.2))(prettier@3.9.10)
-      typescript:
-        specifier: ~6.0.3
-        version: 6.0.3
-      typescript-eslint:
-        specifier: ^8.72.1
-        version: 8.72.1(eslint@10.14.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)
-
   apps/web:
     dependencies:
       '@skkil-time/api':
         specifier: workspace:*
         version: link:../shared/api
-      '@skkil-time/app':
-        specifier: workspace:*
-        version: link:../shared/app
       '@skkil-time/auth':
         specifier: workspace:*
         version: link:../shared/auth
@@ -765,6 +762,9 @@ importers:
       '@skkil-time/sync':
         specifier: workspace:*
         version: link:../shared/sync
+      '@skkil-time/ui':
+        specifier: workspace:*
+        version: link:../shared/ui
       '@skkil/store-client':
         specifier: link:../../../store/modules/client-ts
         version: link:../../../store/modules/client-ts
@@ -787,9 +787,9 @@ importers:
       '@rolldown/plugin-babel':
         specifier: ^0.3.0
         version: 0.3.0(@babel/core@8.1.0)(@babel/runtime@7.29.13)(rolldown@1.2.16)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
-      '@skkil-time/tooling':
+      '@skkil-time/config':
         specifier: workspace:*
-        version: link:../shared/tooling
+        version: link:../shared/config
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.5(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
