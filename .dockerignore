@@ -7,10 +7,7 @@
 **/.expo
 .git
 .claude
-docs
 assets
-.design
-.jennifer
 *.md
 apps/server
 apps/desktop/src-tauri
