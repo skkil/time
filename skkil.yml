@@ -37,7 +37,7 @@ requires:
     hint: cargo install cargo-ndk && rustup target add aarch64-linux-android x86_64-linux-android aarch64-apple-ios aarch64-apple-ios-sim
   - name: Android NDK 30
     check: test -d "${ANDROID_NDK_HOME:-${ANDROID_HOME:-$HOME/Android/Sdk}/ndk/30.0.14904198}"
-    hint: sdkmanager "ndk;30.0.14904198" (or set ANDROID_NDK_HOME); builds apps/core-native for Android
+    hint: sdkmanager "ndk;30.0.14904198" (or set ANDROID_NDK_HOME); builds apps/mobile/native for Android
 
 dev:
   run:
@@ -242,8 +242,8 @@ ci:
       build: pnpm build
       depends_on:
         - web-engine
-    - name: core-native
-      dir: apps/core-native
+    - name: mobile-native
+      dir: apps/mobile/native
       format: cargo fmt --check && pnpm format:check
       lint: cargo clippy --all-targets -- -D warnings && pnpm lint
       test: cargo test && pnpm test && pnpm check:ios
@@ -257,7 +257,7 @@ ci:
       test: pnpm test
       build: pnpm compile && npx expo-doctor && npx expo export --platform android --platform ios --output-dir dist
       depends_on:
-        - core-native
+        - mobile-native
         - shared-local
     - name: mobile-android
       dir: apps/mobile

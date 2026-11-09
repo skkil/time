@@ -10,4 +10,13 @@ const storeClient = fs.realpathSync(
 
 config.watchFolders = [...(config.watchFolders ?? []), storeClient];
 
+const native = path.join(__dirname, 'native');
+const escape = (dir) => dir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+config.resolver.blockList = [
+  ...[].concat(config.resolver.blockList ?? []),
+  ...['target', 'android/build', 'android/.cxx'].map(
+    (dir) => new RegExp(`^${escape(path.join(native, dir))}(/.*)?$`),
+  ),
+];
+
 module.exports = config;

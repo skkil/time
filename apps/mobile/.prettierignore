@@ -4,3 +4,4 @@ build
 ios
 android
 expo-env.d.ts
+native/

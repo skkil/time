@@ -3,7 +3,7 @@ packages:
   - apps/desktop
   - apps/web
   - apps/mobile
-  - apps/core-native
+  - apps/mobile/native
   - apps/shared/*
 
 overrides:

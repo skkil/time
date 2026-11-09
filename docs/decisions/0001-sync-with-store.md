@@ -235,7 +235,7 @@ time-core), since SQLite devices may send either.
 
 ## Mobile
 
-- `apps/core-native` (crate `time-core-native`) exports one uniffi object,
+- `apps/mobile/native` (crate `time-core-native`) exports one uniffi object,
   `TimeCore`, over the `Engine`: `open(path)`, `mutate`/`query` (JSON text),
   the `CoreHandle` byte functions (`pushRequest`, `applyPushResponse`,
   `pullRequest`, `applyPullResponse`, `status`), `bindScope` (the engine's

@@ -170,43 +170,6 @@ importers:
 
   .: {}
 
-  apps/core-native:
-    dependencies:
-      '@skkil-time/local':
-        specifier: workspace:*
-        version: link:../shared/local
-      '@skkil/store-client':
-        specifier: link:../../../store/modules/client-ts
-        version: link:../../../store/modules/client-ts
-      '@ubjs/core':
-        specifier: 0.31.0-6
-        version: 0.31.0-6
-      react-native:
-        specifier: '*'
-        version: 0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.3.0)(react@19.3.0)(supports-color@10.2.2)
-      uniffi-bindgen-react-native:
-        specifier: 0.31.0-6
-        version: 0.31.0-6
-    devDependencies:
-      '@babel/core':
-        specifier: ^7.29.13
-        version: 7.29.13(supports-color@10.2.2)
-      '@skkil-time/tooling':
-        specifier: workspace:*
-        version: link:../shared/tooling
-      eslint:
-        specifier: ^10.14.0
-        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
-      prettier:
-        specifier: ^3.9.10
-        version: 3.9.10
-      typescript:
-        specifier: ~6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: ^5.0.5
-        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
-
   apps/desktop:
     dependencies:
       '@skkil-time/app':
@@ -302,7 +265,7 @@ importers:
         version: link:../shared/contract
       '@skkil-time/core-native':
         specifier: workspace:*
-        version: link:../core-native
+        version: link:native
       '@skkil-time/domain':
         specifier: workspace:*
         version: link:../shared/domain
@@ -400,6 +363,43 @@ importers:
       '@types/react':
         specifier: ~19.3.0
         version: 19.3.0
+      eslint:
+        specifier: ^10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.5
+        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
+
+  apps/mobile/native:
+    dependencies:
+      '@skkil-time/local':
+        specifier: workspace:*
+        version: link:../../shared/local
+      '@skkil/store-client':
+        specifier: link:../../../../store/modules/client-ts
+        version: link:../../../../store/modules/client-ts
+      '@ubjs/core':
+        specifier: 0.31.0-6
+        version: 0.31.0-6
+      react-native:
+        specifier: '*'
+        version: 0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.3.0)(react@19.3.0)(supports-color@10.2.2)
+      uniffi-bindgen-react-native:
+        specifier: 0.31.0-6
+        version: 0.31.0-6
+    devDependencies:
+      '@babel/core':
+        specifier: ^7.29.13
+        version: 7.29.13(supports-color@10.2.2)
+      '@skkil-time/tooling':
+        specifier: workspace:*
+        version: link:../../shared/tooling
       eslint:
         specifier: ^10.14.0
         version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)

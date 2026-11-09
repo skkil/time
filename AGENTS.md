@@ -117,8 +117,8 @@ the server is its own Gradle project:
   React shell)
 - `apps/server/`: Kotlin Spring Boot API (see its README)
 - `apps/web/`: Vite + React web app, offline-first on its wasm engine (`engine/`)
-- `apps/mobile/`: Expo React Native app over core-native
-- `apps/core-native/`: `time-core-native`, time-core behind a uniffi interface,
+- `apps/mobile/`: Expo React Native app over its native core (`native/`)
+- `apps/mobile/native/`: `time-core-native`, time-core behind a uniffi interface,
   and `@skkil-time/core-native`, the React Native Turbo Module that
   uniffi-bindgen-react-native generates from it
 - `apps/shared/*`: TypeScript packages; see `apps/shared/README.md`
@@ -489,7 +489,7 @@ cargo clippy --all-targets -- -D warnings
   background; pulls refresh the queries. Signing out in Settings forgets the
   replica; an expired sign-in keeps it. Settings → Sync shows pending
   changes, last sync, Sync now and refused changes.
-- `apps/core-native`: `pnpm build:android` (cargo-ndk, NDK 30, arm64-v8a and
+- `apps/mobile/native`: `pnpm build:android` (cargo-ndk, NDK 30, arm64-v8a and
   x86_64) builds the static libraries into `android/src/main/jniLibs` and
   regenerates the committed bindings (`src/native`, `cpp`, `android`, `ios`,
   `CoreNative.podspec`); `pnpm build:ios` needs macOS, `pnpm check:ios`

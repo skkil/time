@@ -5,7 +5,7 @@ export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
 metro_port="${METRO_PORT:-8088}"
 abi=$(adb shell getprop ro.product.cpu.abi | tr -d '\r')
 
-pnpm --dir ../core-native build:android
+pnpm --dir native build:android
 pnpm exec expo prebuild --platform android --no-install
 (cd android && ./gradlew installDebug -PreactNativeArchitectures="$abi" -PreactNativeDevServerPort="$metro_port")
 

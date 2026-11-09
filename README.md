@@ -17,7 +17,7 @@ syncs it with the server through [store](../store) (see
 | [`apps/server`](apps/server) | Kotlin Spring Boot API on Postgres and the store write path |
 | [`apps/shared/core`](apps/shared/core) | `time-core`, the Rust domain every app runs |
 | [`apps/web/engine`](apps/web/engine) | `time-core` and store-core as WASM, for web |
-| [`apps/core-native`](apps/core-native) | `time-core` and store-core as a React Native Turbo Module, for mobile |
+| [`apps/mobile/native`](apps/mobile/native) | `time-core` and store-core as a React Native Turbo Module, for mobile |
 | [`apps/shared`](apps/shared) | TypeScript packages the apps share |
 
 ## Run
