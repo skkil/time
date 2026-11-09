@@ -21,7 +21,7 @@ in `.design/DESIGN.md`.
   criteria, review cadence and `in_order`; archiving or deleting cascades to the
   subtree. There are no areas: ongoing work is a project without a target date.
   `NULL` project means Inbox.
-- **Group** — a named set of top-level projects in `apps/core/src/groups/` (table
+- **Group** — a named set of top-level projects in `apps/shared/core/src/groups/` (table
   `project_group`, migrations 009 and 012); deleting one only clears it from its
   projects. The drawer lists top-level projects under their group; its heading
   opens the group overview (`/projects/groups/$groupId`, a timeline of every
@@ -103,51 +103,81 @@ in `.design/DESIGN.md`.
 
 ## Repository structure
 
-All code lives under `apps/`; the repo root holds docs, `assets/`,
-`skkil.yml` and the pnpm workspace. TypeScript apps share that workspace, and
-the server is its own Gradle project:
+```
+/                    package.json, pnpm-workspace.yaml, pnpm-lock.yaml, skkil.yml
+├── infra/           compose.yaml (Postgres, mock OIDC, store service), mock-login.html
+├── apps/
+│   ├── shared/      core (Rust) + ui, design, rules, client, config (TypeScript)
+│   ├── desktop/     src/ + src-tauri/
+│   ├── web/         src/ + engine/
+│   ├── mobile/      src/ + native/
+│   └── server/
+└── docs/, assets/, STORE_VERSION
+```
 
-- `apps/core/`: `time-core`, the platform-free Rust domain (types, migrations,
-  rules, queries, the mutation registry) for desktop, WASM and mobile
+- `apps/<app>/` holds everything only that app uses: its UI, its Rust bridge
+  (`src-tauri`, `engine`, `native`), its Dockerfile, nginx config,
+  entrypoint and scripts. Deleting the folder deletes the app.
+- `apps/shared/` holds what several apps use: time-core and the TypeScript
+  packages.
+- `infra/` holds what sets up the environment around the apps or spans several
+  of them: today the local compose stack. TLS proxy, hosting and Terraform
+  code goes in `infra/deploy/`.
+- Each Rust crate keeps its own `Cargo.lock`. There is no root Cargo
+  workspace: time-core's default `native` feature (bundled SQLite) must stay
+  off for the wasm build, and one workspace would turn it back on through
+  feature unification.
+- Shared packages are named by role (`ui`, `design`, `rules`, `client`,
+  `config`); "core" means only the Rust domain.
+
+The pieces:
+
+- `apps/shared/core/`: `time-core`, the platform-free Rust domain (types,
+  migrations, rules, queries, the mutation registry) for desktop, WASM and
+  mobile
+- `apps/desktop/`: Tauri 2 desktop app (`src-tauri/`, Tauri wrappers over
+  time-core, + a thin React shell)
+- `apps/web/`: Vite + React web app, offline-first on its wasm engine
 - `apps/web/engine/`: `time-core-wasm`, the sync Engine for the browser
   (wasm-bindgen, SQLite on OPFS); `pnpm build` there writes the
   `@skkil-time/core-wasm` package to `pkg/` (needs `wasm-bindgen-cli` at the
   crate's pin; shrinks it with binaryen's `wasm-opt -Oz` when installed)
-- `apps/desktop/`: Tauri 2 desktop app (Tauri wrappers over time-core + a thin
-  React shell)
-- `apps/server/`: Kotlin Spring Boot API (see its README)
-- `apps/web/`: Vite + React web app, offline-first on its wasm engine (`engine/`)
-- `apps/mobile/`: Expo React Native app over its native core (`native/`)
-- `apps/mobile/native/`: `time-core-native`, time-core behind a uniffi interface,
-  and `@skkil-time/core-native`, the React Native Turbo Module that
+- `apps/mobile/`: Expo React Native app over its native core
+- `apps/mobile/native/`: `time-core-native`, time-core behind a uniffi
+  interface, and `@skkil-time/core-native`, the React Native Turbo Module that
   uniffi-bindgen-react-native generates from it
-- `apps/shared/*`: TypeScript packages; see `apps/shared/README.md`
-  - `contract`: `bindings.ts` generated from Rust, the type contract for every app
-  - `app`: the whole desktop/web UI, behind `Backend` and `Platform` ports
-  - `rules`: platform-free rules (dates, day plan, due dates, timer, Quick Add)
-  - `tokens`: colours and the sky; `pnpm generate` writes `tokens.css`
-  - `api`: the server's `openapi.json`, generated types, typed fetch client
-  - `remote`: the `Backend` over HTTP (`satisfies Backend`)
-  - `local`: the `Backend` over a local time-core engine
-  - `sync`: sync tokens, the account's scope and push headers for store's
-    driver (web and mobile)
-  - `auth`: provider-neutral OIDC sign-in
-  - `tooling`: the ESLint, Prettier and TypeScript configs every package uses
+- `apps/server/`: Kotlin Spring Boot API (see its README)
+- `apps/shared/*` TypeScript packages; see `apps/shared/README.md`
+  - `ui` (`@skkil-time/ui`): the whole desktop/web UI, behind `Backend` and
+    `Platform` ports
+  - `design` (`@skkil-time/design`): colours and the sky; `pnpm generate`
+    writes `tokens.css`
+  - `rules` (`@skkil-time/rules`): platform-free rules (dates, day plan, due
+    dates, timer, Quick Add)
+  - `client` (`@skkil-time/client`): talking to time-core and the server, by
+    subpath: `/types` (`bindings.ts` generated from Rust, `commands.json`,
+    `natural-keys.json`, `mutation-vectors.json`), `/server` (the server's
+    `openapi.json`, generated types, typed fetch client and the `Backend` over
+    HTTP; `/server/realtime`), `/local` (the `Backend` over a local time-core
+    engine), `/sync` (sync tokens, the account's scope and push headers for
+    store's driver) and `/sign-in` (provider-neutral OIDC; `/sign-in/web`)
+  - `config` (`@skkil-time/config`): the ESLint, Prettier and TypeScript
+    configs every package uses
 
 Run `pnpm install` once at the repo root; `pnpm lint|compile|test|format:check`
 there runs every package. The root `package.json`, `pnpm-workspace.yaml` and the
 lockfile are the only workspace files. Each package has its own `eslint.config.js`
-(`config({ ignores })` from `@skkil-time/tooling/eslint`), uses
-`@skkil-time/tooling/prettier`, extends `tooling/tsconfig.base.json`, and lists
+(`config({ ignores })` from `@skkil-time/config/eslint`), uses
+`@skkil-time/config/prettier`, extends `config/tsconfig.base.json`, and lists
 the tools its scripts run.
 
-**Change once, reach every app.** UI goes in `apps/shared/app` (desktop and
+**Change once, reach every app.** UI goes in `apps/shared/ui` (desktop and
 web), rules in `apps/shared/rules` (all three), colours in
-`apps/shared/tokens/src/colors.ts` (all three). Never copy logic into a shell
+`apps/shared/design/src/colors.ts` (all three). Never copy logic into a shell
 app. A new backend command needs the time-core function plus its entry in
 `time_core::mutations` (a write) or its read list, the Tauri wrapper, a Kotlin
-endpoint and a line in `apps/shared/remote`; `tsc` in `remote` fails until
-they all agree.
+endpoint and a line in `apps/shared/client/src/server`; `tsc` in `client` fails
+until they all agree.
 
 `skkil.yml` wires the repo into the org CLI (`skkil`): `skkil dev` (Postgres,
 mock sign-in, server, web, desktop), `skkil doctor`, `skkil ci` (format, lint,
@@ -180,16 +210,16 @@ cargo clippy --all-targets -- -D warnings
 - Quick add follows Todoist's syntax: dates and times in plain words, `every …`
   repeats, `{deadline}`, `p1`–`p4`, `#Project`, `/Section`, `+type`, `for 1h`.
   It lives in `apps/shared/rules/src/quick-add/` (the UI in
-  `apps/shared/app/src/features/tasks/quick-add/`); each grammar is a rule
+  `apps/shared/ui/src/features/tasks/quick-add/`); each grammar is a rule
   table or pattern with tests beside it, and `parse.ts` runs them in order. Clicking a highlighted phrase keeps it as plain text.
 - Repeats are read, advanced and given their first date in
-  `apps/core/src/recurrence/`: rules in `rule.rs`, matchable days in
+  `apps/shared/core/src/recurrence/`: rules in `rule.rs`, matchable days in
   `pattern.rs`, `every!` and end dates in `mod.rs`. The frontend only claims the
   phrase. `apps/shared/rules/src/quick-add/repeat-phrases.json` is read by the
   TypeScript, Rust and Kotlin (`apps/server/.../recurrence`) test suites, so a
   phrase a backend can't store fails the build.
 
-### Domain crate (`apps/core/`, `time-core`)
+### Domain crate (`apps/shared/core/`, `time-core`)
 
 - Platform-free Rust crate (lib `time_core`, no workspace; desktop depends on
   it by path). No Tauri, tokio or HTTP: it builds for
@@ -240,7 +270,7 @@ cargo clippy --all-targets -- -D warnings
   current data is kept as `time-before-restore.db`.
 - Import (Settings → Data) reads CSV files picked in Rust
   (`commands/import.rs`) and converts them in
-  `apps/shared/app/src/features/import/`: Todoist exports (TYPE/CONTENT/INDENT,
+  `apps/shared/ui/src/features/import/`: Todoist exports (TYPE/CONTENT/INDENT,
   priority 4 = p1) or any CSV with a Title column. Dates go through the Quick
   Add parser; anything it can't read is kept in the notes. Each file becomes a
   new project (`importProjects`, one transaction), and Undo deletes the
@@ -282,11 +312,11 @@ cargo clippy --all-targets -- -D warnings
 - `run()` sets `JSC_useJIT=0` on Linux: JavaScriptCore's JIT costs about 70 MB
   of web process memory in use and a planner doesn't need its speed.
 
-### Frontend (`apps/shared/app/src/`, mounted by `apps/desktop/src/main.tsx`)
+### Frontend (`apps/shared/ui/src/`, mounted by `apps/desktop/src/main.tsx`)
 
 - React 19 with React Compiler, TanStack Router (hash history) and TanStack
   Query, shadcn/ui (`src/components/ui`) on Tailwind v4, dnd-kit.
-- `apps/shared/contract/src/bindings.ts` is generated by tauri-specta on every
+- `apps/shared/client/src/types/bindings.ts` is generated by tauri-specta on every
   debug run and by `cargo test`. Do not edit it; change the Rust types instead.
   UI code imports types and `commands` from `@/backend`, never from Tauri.
 - Anything that differs between desktop and web goes through `platform()`
@@ -353,7 +383,7 @@ cargo clippy --all-targets -- -D warnings
   with explicit SQL. `./gradlew spotlessApply test` (Testcontainers);
   `docker compose -f infra/compose.yaml up -d` (from the repo root) for local
   Postgres, a mock OIDC issuer and the store service.
-- `features/<domain>/` mirrors `apps/core/src/<domain>/`: the same
+- `features/<domain>/` mirrors `apps/shared/core/src/<domain>/`: the same
   rules, validation messages and JSON shapes. Every query filters by
   `user_id`, and every referenced id is checked against the caller.
 - Package by feature, layered inside: `features/<domain>/{api,service,
@@ -370,7 +400,7 @@ cargo clippy --all-targets -- -D warnings
   `caller.now()`/`caller.today()` wherever desktop uses local time, never
   `Instant.now()` (a test enforces it).
 - Every `mutations` and `syncMutations` entry of
-  `apps/shared/contract/src/commands.json` is registered in
+  `apps/shared/client/src/types/commands.json` is registered in
   `features/mutations`
   (`MutationDispatcher.dispatch(caller, name, args, clock, idSource)`) and
   nothing else is; `MutationCoverageTest` checks names and parameters.
@@ -402,8 +432,8 @@ cargo clippy --all-targets -- -D warnings
 - Auth is an OAuth2 resource server only (`AUTH_ISSUER_URI`, `AUTH_AUDIENCE`);
   users are `user_identity (issuer, subject)` → `app_user`. Errors are RFC 9457
   problem details with a `kind` matching the desktop `Error`.
-- After an API change: `./gradlew openApi`, then `pnpm generate` in
-  `apps/shared/api`, then `pnpm exec tsc -b` in `apps/shared/remote`.
+- After an API change: `./gradlew openApi`, then `pnpm generate:api` and
+  `pnpm exec tsc -b` in `apps/shared/client`.
   `OpenApiDocumentTest` fails while the committed document is stale.
 - Instant updates: `ChangeTrackingFilter` (`features/changes/web/`) has
   `ChangeService` bump the user's `data_version` after every successful write
@@ -425,9 +455,9 @@ cargo clippy --all-targets -- -D warnings
 
 ## Web and mobile
 
-- Web (`apps/web/`) is `mount()` from `apps/shared/app` with
+- Web (`apps/web/`) is `mount()` from `apps/shared/ui` with
   `createLocalBackend` over time-core in WASM (`apps/web/engine`), a browser
-  `Platform` and OIDC sign-in (`apps/shared/auth/web`). Config is `VITE_*` at
+  `Platform` and OIDC sign-in (`apps/shared/client/src/sign-in/web.ts`). Config is `VITE_*` at
   build time or `config.js` at container start; the store URL comes with each
   sync token. Details in `apps/web/README.md`.
 - Each tab starts a dedicated worker (`src/engine/worker/`). The worker that
@@ -442,7 +472,7 @@ cargo clippy --all-targets -- -D warnings
   (`link:../../../store/modules/client-ts`, built there); the Docker image
   builds it and the wasm from `--build-context store=…`.
 - `Platform.sync` on web (`platform/web-sync.ts`) binds the engine to the
-  account's scope (`/api/v1/me` `scopeId`, through `@skkil-time/sync`), asks
+  account's scope (`/api/v1/me` `scopeId`, through `@skkil-time/client/sync`), asks
   before touching another account's data, and maps the worker's
   `SyncState` to Settings → Sync. Signing out syncs, confirms before
   dropping unsynced changes and calls `forget`. Whoever signed in last can
@@ -483,7 +513,7 @@ cargo clippy --all-targets -- -D warnings
 - Mobile sync (`src/core/sync/`) runs `@skkil/store-client` (linked from
   `../store` at `STORE_VERSION`) with `expo/fetch` for the Pokes stream.
   `controller.ts` binds the replica to the account (scope, sync tokens and
-  push headers from `@skkil-time/sync`, signing out when the server refuses
+  push headers from `@skkil-time/client/sync`, signing out when the server refuses
   the sign-in), asks Keep this data / Use the account's data when it holds
   another account's rows, and pushes soon after every local write. `use-sync.ts` starts it while signed
   in, restarts it on foreground and reconnect and pauses it in the

@@ -215,7 +215,7 @@ Every host exposes it: the desktop `retry_sync_issue` command,
 
 ## Cross-language checks
 
-Three files under `apps/shared/contract/src` keep the two registries in
+Three files under `apps/shared/client/src/types/src` keep the two registries in
 step; the Rust and Kotlin tests both read them:
 
 - `commands.json`: every command's category. `MutationCoverageTest` fails on
@@ -255,7 +255,7 @@ time-core), since SQLite devices may send either.
   the app where store and Push live, so the driver starts once the server
   is reachable; until then the phone keeps working locally.
 - The phone is bound on sign-in to the scope from `/me` `scopeId`, through
-  `@skkil-time/sync` as on web. Another account's rows ask Keep this data
+  `@skkil-time/client/sync` as on web. Another account's rows ask Keep this data
   (`keepLocal`) or Use the account's data (`startFresh`), as on desktop and
   web. The app always needs an account, so signing out on purpose
   calls `forget`; a sign-in that lapses on its own keeps the replica for

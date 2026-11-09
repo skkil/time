@@ -5,10 +5,10 @@ desktop and web: Day, Week and Projects on the time-of-day sky, with tasks,
 focus, habits and Quick Add in glass windows over them. It works offline: every
 command runs on the phone's own copy of the data, `time-core` over SQLite
 through [`apps/mobile/native`](native), behind the same `Backend` port
-as desktop ([`apps/shared/local`](../shared/local)). Sync with the server goes
+as desktop ([`apps/shared/client/src/local`](../shared/client/src/local)). Sync with the server goes
 through store's TypeScript driver. Rules come from
 [`apps/shared/rules`](../shared/rules) and colours from
-[`apps/shared/tokens`](../shared/tokens).
+[`apps/shared/design`](../shared/design).
 
 ```bash
 cp .env.example .env.local     # point at your server and OIDC provider

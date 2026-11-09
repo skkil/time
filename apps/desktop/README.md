@@ -2,7 +2,7 @@
 
 Tauri 2 desktop app. Data is stored in `<app data dir>/com.skkil.time/time.db`
 (`~/.local/share/com.skkil.time/time.db` on Linux). The UI lives in
-[`apps/shared/app`](../shared/app); this app only installs the Tauri backend
+[`apps/shared/ui`](../shared/ui); this app only installs the Tauri backend
 and platform. The domain (types, migrations, rules, queries and the mutation
 registry) is the [`time-core`](../core) crate; `src-tauri` keeps only Tauri
 concerns: thin commands, dialogs, backups, reminders, quick capture,

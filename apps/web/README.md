@@ -1,12 +1,12 @@
 # web
 
 The desktop UI in the browser, offline-first. It mounts
-[`apps/shared/app`](../shared/app) with the local backend from
-[`apps/shared/local`](../shared/local) over time-core compiled to WASM
+[`apps/shared/ui`](../shared/ui) with the local backend from
+[`apps/shared/client/src/local`](../shared/client/src/local) over time-core compiled to WASM
 ([`apps/web/engine`](engine)), keeps the data in SQLite on the Origin
 Private File System, and syncs it through store's TypeScript driver
 (`@skkil/store-client`). Sign-in is OIDC through
-[`apps/shared/auth`](../shared/auth).
+[`apps/shared/client/src/sign-in`](../shared/client/src/sign-in).
 
 ```bash
 pnpm --filter @skkil-time/core-wasm build   # once, and after Rust changes (needs wasm-bindgen-cli; wasm-opt from binaryen shrinks it when installed)
@@ -44,7 +44,7 @@ once with `pnpm install && pnpm build`.
   realtime socket stays only for account preferences, which live on the
   server.
 - **Accounts.** On start the engine is bound to the signed-in account's
-  store scope (`scopeId` from `/api/v1/me`, through `@skkil-time/sync`).
+  store scope (`scopeId` from `/api/v1/me`, through `@skkil-time/client/sync`).
   A database holding another account's data waits for Keep this data or
   Use the account's data, as on desktop and mobile. Signing out syncs what it can, asks before
   dropping unsynced changes, and forgets the account's rows. Whoever signed

@@ -15,10 +15,11 @@ syncs it with the server through [store](../store) (see
 | [`apps/web`](apps/web) | Vite + React web app: the desktop UI in the browser, on SQLite in OPFS |
 | [`apps/mobile`](apps/mobile) | Expo React Native app |
 | [`apps/server`](apps/server) | Kotlin Spring Boot API on Postgres and the store write path |
+| [`infra`](infra) | The local compose stack: Postgres, mock sign-in, store service |
 | [`apps/shared/core`](apps/shared/core) | `time-core`, the Rust domain every app runs |
 | [`apps/web/engine`](apps/web/engine) | `time-core` and store-core as WASM, for web |
 | [`apps/mobile/native`](apps/mobile/native) | `time-core` and store-core as a React Native Turbo Module, for mobile |
-| [`apps/shared`](apps/shared) | TypeScript packages the apps share |
+| [`apps/shared`](apps/shared) | TypeScript packages the apps share: ui, design, rules, client, config |
 
 ## Run
 

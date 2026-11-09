@@ -40,12 +40,12 @@ are unchanged: `sub` is the client id.
 
 ```bash
 ./gradlew spotlessApply test   # Testcontainers starts its own Postgres
-./gradlew openApi              # rewrite ../shared/api/openapi.json after API changes
+./gradlew openApi              # rewrite ../shared/client/src/server/openapi.json after API changes
 ```
 
 `OpenApiDocumentTest` fails when the committed OpenAPI document is stale. After
-`./gradlew openApi`, run `pnpm generate` in `apps/shared/api` and
-`pnpm exec tsc -b` in `apps/shared/remote`. That type check proves the Kotlin
+`./gradlew openApi`, run `pnpm generate:api` and `pnpm exec tsc -b` in
+`apps/shared/client`. That type check proves the Kotlin
 types still match the Rust contract the UI is built on.
 
 `./conformance/run.sh` builds store's conformance suite from the checkout and
@@ -100,7 +100,7 @@ named after it. Under `src/main/kotlin/com/skkil/time/`:
 
 `features/mutations/` holds the write-command registry: `MutationDispatcher` (what store's Push handler calls),
 `MutationRegistry` and one `MutationSet` per feature in `service/`. `MutationCoverageTest` keeps it equal to the
-`mutations` of `apps/shared/contract/src/commands.json`.
+`mutations` of `apps/shared/client/src/types/commands.json`.
 
 `features/sync/` makes the server a store product: `api/` (Push and sync tokens), `service/` (`ServerWrites`,
 `PushService`, `DispatchedMutation`, `SyncTokenService`, `BaselineService`), `domain/` (`BASELINE_TABLES`), `job/`
@@ -133,7 +133,7 @@ ordered by the old id, and gave the composite-key tables an `id` too). `app_user
   parameter names. It sets the caller's clock and id source for that operation only. A constraint the rules missed
   becomes a `conflict`. Booleans in the arguments may also be `1`/`0` (`SqliteBooleans`), at any depth, as in
   time-core. `MutationCoverageTest` keeps the registry equal to the `mutations` and `syncMutations` of `commands.json`, and
-  `MutationVectorsTest` replays `apps/shared/contract/src/mutation-vectors.json`, which `time-core` replays too.
+  `MutationVectorsTest` replays `apps/shared/client/src/types/mutation-vectors.json`, which `time-core` replays too.
 - **importLocal.** The one sync-only mutation: an unbound device's whole database on its first sign-in, or a web
   backup being restored (`features/data/service/LocalImportService`, tables in `LOCAL_TABLES`). It keeps the
   device's ids, re-keys natural-key rows for the scope, refuses another account's ids and references, and merges a
@@ -143,7 +143,7 @@ ordered by the old id, and gave the composite-key tables an `id` too). `app_user
   record phase, running timer, habit log, user preference, and the rituals) take `NaturalIds` (`common/id/`):
   `UuidV5(scopeId, "<table>/<key parts joined by />")`, such as `week/2026-11-02`, and draw no id. Two devices
   creating the same week offline make one row. `NaturalIdsTest` checks them against
-  `apps/shared/contract/src/natural-keys.json`, as the desktop does. The full list is the "Natural keys" section of
+  `apps/shared/client/src/types/natural-keys.json`, as the desktop does. The full list is the "Natural keys" section of
   `docs/decisions/0001-sync-with-store.md`; migration `V15` re-keyed existing rows (and would carry any foreign key
   to them along).
 - **Seeded rows.** Rows the app creates on its own take their natural-key id: the default rituals are
