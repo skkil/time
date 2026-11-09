@@ -32,6 +32,9 @@ store container after restarting the server if pulls answer `unauthenticated`).
 
 Sign in from the web app or the desktop (client `time-desktop`, PKCE, loopback redirect on any
 `127.0.0.1` port) with any username. The mock issuer accepts it and stamps the `time-api` audience.
+Its login page (`mock-login.html`) also puts `name` (the username unless given) and `email`
+(`<username>@example.com` unless given) into the ID and access tokens. Client-credentials tokens
+are unchanged: `sub` is the client id.
 
 ## Check
 

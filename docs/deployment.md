@@ -40,7 +40,8 @@ Create, per environment:
 Locally, `apps/server/compose.yaml` runs mock-oauth2-server as the issuer
 (`http://localhost:8090/default`): it accepts any client and redirect, signs
 `time-desktop` tokens for the `time-api` audience, and shows a login form
-where any subject signs in.
+(`apps/server/mock-login.html`) where any subject signs in, with `name` and
+`email` claims filled from it.
 
 Allow the scopes `openid profile email offline_access`. Moving to the skkil auth
 service later only changes `AUTH_ISSUER_URI` on the server and the authority
