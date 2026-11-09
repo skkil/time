@@ -100,7 +100,7 @@ mod tests {
             assert_eq!(seed_id(scope, text("name")).as_str(), text("id"));
             kinds.insert(text("kind").to_owned());
         }
-        assert_eq!(kinds.len(), 10, "every natural key of the decision record");
+        assert_eq!(kinds.len(), 10, "every natural key in natural-keys.json");
     }
 
     #[test]

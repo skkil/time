@@ -134,7 +134,7 @@ class NaturalIdsTest : TaskApiTest() {
     }
 
     private companion object {
-        /** Every natural key of the decision record's table. */
+        /** Every natural key in natural-keys.json. */
         val KINDS =
             setOf(
                 "setting",

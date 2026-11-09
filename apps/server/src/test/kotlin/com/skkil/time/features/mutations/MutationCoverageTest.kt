@@ -84,7 +84,7 @@ class MutationCoverageTest {
         val REGISTERED = setOf("mutations", "syncMutations")
         val UNREGISTERED = setOf("reads", "deviceOnly")
 
-        /** Sync-only mutations have no contract command; their arguments are fixed by the decision record. */
+        /** Sync-only mutations have no contract command; their arguments are fixed by the sync rules in AGENTS.md. */
         val SYNC_PARAMETERS = mapOf("importLocal" to listOf("data"))
         val COMMAND = Regex("""^\s+(\w+): \(([^)]*)\) => __TAURI_INVOKE""")
         val PARAM = Regex("""(\w+)\s*:""")
