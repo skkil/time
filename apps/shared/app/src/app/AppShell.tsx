@@ -2,6 +2,7 @@ import { isId } from '@skkil-time/domain/ids';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import {
   KeyboardIcon,
+  LogInIcon,
   LogOutIcon,
   PlusIcon,
   SearchIcon,
@@ -25,6 +26,8 @@ import { ProjectsNavToggle } from '@/features/projects/ProjectsNavToggle';
 import { RitualProvider } from '@/features/rituals/RitualProvider';
 import { useRitualRunner } from '@/features/rituals/runner-context';
 import { SettingsDialog } from '@/features/settings/SettingsDialog';
+import { useSyncStatus } from '@/features/sync/api';
+import { isSignedIn } from '@/features/sync/view';
 import { TaskDialogProvider } from '@/features/tasks/TaskDialog';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { TimerPill } from '@/features/time/TimerPill';
@@ -66,6 +69,11 @@ function Canvas() {
   const navigate = useNavigate();
   const [searching, setSearching] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsSection, setSettingsSection] = useState<string>();
+  const openSettings = (section?: string) => {
+    setSettingsSection(section);
+    setSettingsOpen(true);
+  };
   const [sheetOpen, setSheetOpen] = useState(false);
   const location = useRouterState({ select: (state) => state.location });
   const search = location.search as { view?: string; week?: string };
@@ -109,7 +117,7 @@ function Canvas() {
     { keys: 'Mod+K', run: () => setSearching(true) },
     { keys: 'Q', run: newTask, idle: true },
     { keys: 'Mod+N', run: newTask },
-    { keys: 'Mod+,', run: () => setSettingsOpen(true) },
+    { keys: 'Mod+,', run: () => openSettings() },
     { keys: 'Mod+Z', run: () => void undoLatest(), outsideFields: true },
     { keys: ['?', 'F1'], run: () => setSheetOpen(true), idle: true },
     ...SPACES.map((option) => ({
@@ -135,7 +143,8 @@ function Canvas() {
           )}
           <ProfileMenu
             onSearch={() => setSearching(true)}
-            onSettings={() => setSettingsOpen(true)}
+            onSettings={() => openSettings()}
+            onSync={() => openSettings('sync')}
             onShortcuts={() => setSheetOpen(true)}
             onAdd={() => newTask()}
           />
@@ -145,7 +154,11 @@ function Canvas() {
         <Outlet />
       </main>
       <SearchDialog open={searching} onOpenChange={setSearching} />
-      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <SettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        section={settingsSection}
+      />
       <ShortcutSheet open={sheetOpen} onOpenChange={setSheetOpen} />
       <ConnectionNotice />
     </div>
@@ -199,11 +212,13 @@ function SpaceToggle({
 function ProfileMenu({
   onSearch,
   onSettings,
+  onSync,
   onShortcuts,
   onAdd,
 }: {
   onSearch: () => void;
   onSettings: () => void;
+  onSync: () => void;
   onShortcuts: () => void;
   onAdd: () => void;
 }) {
@@ -223,17 +238,18 @@ function ProfileMenu({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={10} className="w-60">
-        {(name || email) && (
-          <DropdownMenuLabel className="grid gap-0.5 font-normal">
-            {name && <span className="truncate font-medium">{name}</span>}
-            {email && email !== name && (
-              <span className="truncate text-xs text-muted-foreground">
-                {email}
-              </span>
-            )}
-          </DropdownMenuLabel>
+        {platform().sync ? (
+          <SyncAccountEntry onSelect={onSync} />
+        ) : (
+          (name || email) && (
+            <>
+              <DropdownMenuLabel className="grid gap-0.5 font-normal">
+                <Identity name={name} email={email} />
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+            </>
+          )
         )}
-        {(name || email) && <DropdownMenuSeparator />}
         <DropdownMenuItem onSelect={onAdd}>
           <PlusIcon />
           Add a task
@@ -263,5 +279,47 @@ function ProfileMenu({
         )}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function Identity({ name, email }: { name: string; email: string | null }) {
+  return (
+    <>
+      {name && <span className="truncate font-medium">{name}</span>}
+      {email && email !== name && (
+        <span className="truncate text-xs text-muted-foreground">{email}</span>
+      )}
+    </>
+  );
+}
+
+/** Signed out: a way into sync. Signed in: who syncs, linking to Settings → Sync. */
+function SyncAccountEntry({ onSelect }: { onSelect: () => void }) {
+  const { data: status } = useSyncStatus();
+  if (!status) return null;
+  if (!isSignedIn(status))
+    return (
+      <>
+        <DropdownMenuItem onSelect={onSelect}>
+          <LogInIcon />
+          Sign in to sync…
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+      </>
+    );
+  const name = status.account?.name?.trim() ?? '';
+  const email = status.account?.email ?? null;
+  if (!name && !email) return null;
+  return (
+    <>
+      <DropdownMenuItem
+        onSelect={onSelect}
+        aria-label={`Sync settings for ${name || email}`}
+        className="grid gap-0.5"
+      >
+        <Identity name={name} email={email} />
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+    </>
   );
 }

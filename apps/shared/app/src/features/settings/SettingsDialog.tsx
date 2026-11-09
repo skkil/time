@@ -124,14 +124,23 @@ const sections: Section[] = [
 export function SettingsDialog({
   open,
   onOpenChange,
+  section,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** The section to show when the dialog opens; otherwise the last one shown. */
+  section?: string;
 }) {
   const visible = sections.filter(
-    (section) => section.available?.(platform()) ?? true,
+    (candidate) => candidate.available?.(platform()) ?? true,
   );
   const [activeId, setActiveId] = useState(visible[0].id);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open && visible.some((candidate) => candidate.id === section))
+      setActiveId(section!);
+  }
   const active = visible.find((section) => section.id === activeId)!;
   const Content = active.content;
 
