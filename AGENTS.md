@@ -1,528 +1,458 @@
 # AGENTS.md
 
 skkil/time is a personal planner: tasks, nested projects, time-blocking, time
-tracking, habits, and a weekly/quarterly review. Every app is local-first:
+tracking, habits, rituals and a weekly/quarterly review. It is local-first:
 desktop, web and mobile run the same Rust domain (`time-core`) over their own
 SQLite replica (natively, as WASM on OPFS, and through uniffi) and sync with
-`apps/server` (Postgres, one account per user) through the separate
-`../store` project once signed in (`docs/decisions/0001-sync-with-store.md`).
-A signed-out desktop stays fully local; web and mobile need an account.
-
-Product docs live at the repo root (`IMPROVEMENTS.md`, `OPEN-LOOPS.md`,
-`REEVALUATION-SUNSAMA.md`), the spec under `.jennifer/`, and the design memory
-in `.design/DESIGN.md`.
-
-## Domain model
-
-- **Project** — nested (max depth 3) with a colour, a list/board view, an
-  archived flag and settings: `group_id` (only top-level projects carry one and
-  sub-projects follow it), `status` (active/paused/done/dropped; inactive ones
-  leave Day and the drawer tree), weekly hours budget, target date, stop-if
-  criteria, review cadence and `in_order`; archiving or deleting cascades to the
-  subtree. There are no areas: ongoing work is a project without a target date.
-  `NULL` project means Inbox.
-- **Group** — a named set of top-level projects in `apps/shared/core/src/groups/` (table
-  `project_group`, migrations 009 and 012); deleting one only clears it from its
-  projects. The drawer lists top-level projects under their group; its heading
-  opens the group overview (`/projects/groups/$groupId`, a timeline of every
-  project's due dates, deadlines, milestones and target date, then one card per
-  project). Each project also has a Timeline layout of its dated tasks
-  (`projects/Timeline.tsx`).
-- **Canvas** — one free-form document per project (`project_canvas`, migration
-  013, `core/src/canvas/`), stored as HTML from the Tiptap editor in
-  `projects/ProjectCanvas.tsx`; autosaves and goes with the project. Shown as
-  the project's Notes tab, with its first lines in the side panel.
-- **Section** — ordered group inside a project (or the Inbox); deleting it
-  deletes its tasks.
-- **Task** — Todoist-shaped: title, description (`notes`), project, section,
-  parent (sub-tasks nest to any depth and inherit the parent's project/section;
-  completing, moving or deleting reaches every level), priority 1–4 (1 =
-  highest), due date + optional time, deadline, recurrence, duration
-  (`estimate_minutes`), sibling `position`, `rollover_count` (bumped when a due
-  task is pushed later), `someday`, `must_on` (≤3 musts per day) and a
-  `next_step` resume note. Tasks can wait on other tasks (`task_dependency`,
-  migration 010, `core/src/dependencies/`): `blocked_by` lists every link and
-  `waiting_on` the still-open ones, so "blocked" is derived, never stored;
-  loops, self-links and repeating or event blockers are refused. Completing a
-  repeating task moves its date forward instead of closing it.
-- **TimeBlock** — a planned span for a task on the schedule grid.
-- **TimeEntry** — tracked time with optional project/task; a linked task decides
-  the project. The running timer is one row in `running_timer` (migration 008),
-  so it survives a restart; stopping turns it into an entry, and finishing a
-  task stops a timer on it or anything nested under it. A break (migration 016)
-  logs the stretch so far as an entry and sets `paused_at`; `banked_seconds`
-  keeps the session total, and resuming starts a new stretch. `list_time_entries`
-  returns every entry overlapping the range, so totals clip with
-  `secondsWithin`. `list_task_entries` (with sub-tasks) and
-  `list_project_entries` (with sub-projects, following a linked task's current
-  project) return the whole history, shown as Focus in the task window and as a
-  project's Focus tab. `list_tasks` leaves out tasks closed over two weeks ago,
-  so `useTask` fetches those on demand.
-- **Habit / HabitLog** — Habitify-style habits: `build` (reach a daily goal),
-  `quit` (none at all) or `limit` (at most a goal), in times or minutes, with
-  repeat days, time of day, area and start date. A habit may have `tracking`
-  (websites, apps, or a project's tracked time). `sync_habits` writes measured
-  values as `auto` logs; a status the user sets by hand always wins. Daily
-  status is derived in `habits::status`, never stored. Websites and apps are
-  read from ActivityWatch (`SKKIL_ACTIVITYWATCH_URL`, default
-  `http://localhost:5600`).
-- **Ritual / RitualRun** — configurable routines in `core/src/rituals/`:
-  morning, evening, wind_down, session (after a timer stops) and weekly. Each
-  has one trigger (`first_open`, `at_time`, `end_of_day`, `after_timer_stop`,
-  `manual`), weekdays (Monday = bit 0) and ordered steps from a closed library.
-  `due_ritual(event)` decides what opens; a run fires once a day unless snoozed
-  (15 min, once). The frontend shows rituals in a full-window zen overlay
-  (`features/rituals`) over the same time-of-day sky as the app
-  (`features/zen/ZenBackdrop.tsx`, deepened); there are no image assets.
-- **Item type / Status / Milestone / Saved view** — per-project structure in
-  `core/src/workflow/`. A type is a task or an **event** (happens at a time;
-  never checked off; repeats expand into occurrences via `list_events`; may
-  count as tracked time). Statuses are named freely, each in one fixed category
-  (backlog, todo, active, done, dropped); a closed category and `completed_at`
-  stay in step both ways, and backlog items never count as overdue. Presets
-  (`workflow::presets`) set all four at once; Simple sets none, so a plain
-  project looks as before. Moving a task between projects maps its type by name
-  and its status by category.
-- **Record** — a third type kind (migration 011, `core/src/records/`): a
-  long-lived item with no checkbox whose status is its current **phase** (e.g.
-  one job application per company). Its sub-tasks carry `phase_id` (a status of
-  the same project); `record_phase` holds a note per phase, while the record's
-  own notes are shared by every phase. Moving it maps phases by name. The task
-  window pages phases in a vertical pager (`features/records/PhasePager.tsx`);
-  records stay off Day, Week and the review deck, but their phase tasks are
-  ordinary tasks.
-- **Day / Week / Quarter** — a day note and felt rating written by rituals;
-  weekly outcomes (≤3 open, linked to tasks via `task.outcome_id`, status
-  open/achieved/carried/dropped; carried copies the outcome into next week with
-  its open tasks, at most twice) and a guided weekly review (feel, outcomes,
-  clear the deck, one change, plan, quarter wrap-up; progress in `week.step`,
-  finished at `week.reviewed_at`); quarter priorities over 13 weeks. Habits
-  count "x of last 14 days" with planned rest days, no streaks. Specs:
-  `.jennifer/products/personal-time/spec-review-2026-11-01.md` and
-  `spec-simple-shell-2026-11-01.md`.
+`apps/server` (Kotlin, Postgres, one account per user) through the separate
+store project (`../store`, pinned by `STORE_VERSION`) once signed in. A
+signed-out desktop stays fully local; web and mobile need an account.
 
 ## Repository structure
 
 ```
-/                    package.json, pnpm-workspace.yaml, pnpm-lock.yaml, skkil.yml
+/                    package.json, pnpm-workspace.yaml, pnpm-lock.yaml, skkil.yml, STORE_VERSION
+├── assets/          icon.svg, the master for every app icon
 ├── infra/           compose.yaml (Postgres, mock OIDC, store service), mock-login.html
-├── apps/
-│   ├── shared/      core (Rust) + ui, design, rules, client, config (TypeScript)
-│   ├── desktop/     src/ + src-tauri/
-│   ├── web/         src/ + engine/
-│   ├── mobile/      src/ + native/
-│   └── server/
-└── docs/, assets/, STORE_VERSION
+└── apps/
+    ├── shared/      core (Rust) + ui, design, rules, client, config (TypeScript)
+    ├── desktop/     src/ (React shell) + src-tauri/ (Rust)
+    ├── web/         src/ + engine/ (time-core as WASM)
+    ├── mobile/      app/, src/ + native/ (time-core through uniffi)
+    └── server/      Kotlin Spring Boot API
 ```
 
-- `apps/<app>/` holds everything only that app uses: its UI, its Rust bridge
-  (`src-tauri`, `engine`, `native`), its Dockerfile, nginx config,
-  entrypoint and scripts. Deleting the folder deletes the app.
-- `apps/shared/` holds what several apps use: time-core and the TypeScript
-  packages.
-- `infra/` holds what sets up the environment around the apps or spans several
-  of them: today the local compose stack. TLS proxy, hosting and Terraform
-  code goes in `infra/deploy/`.
-- Each Rust crate keeps its own `Cargo.lock`. There is no root Cargo
-  workspace: time-core's default `native` feature (bundled SQLite) must stay
-  off for the wasm build, and one workspace would turn it back on through
-  feature unification.
-- Shared packages are named by role (`ui`, `design`, `rules`, `client`,
-  `config`); "core" means only the Rust domain.
+| Path | Name | What it is |
+|---|---|---|
+| `apps/shared/core` | crate `time-core` (lib `time_core`) | Platform-free domain: types, migrations, rules, queries, the mutation registry, the sync engine |
+| `apps/desktop/src-tauri` | crate `skkil-time` (lib `skkil_time_lib`) | Tauri 2 host: thin commands, backups, reminders, capture, ActivityWatch, MCP, sync |
+| `apps/desktop` | `@skkil-time/desktop` | Mounts `@skkil-time/ui` with the Tauri backend and platform |
+| `apps/web` | `@skkil-time/web` | Vite app: the same UI over the WASM engine in a worker |
+| `apps/web/engine` | crate `time-core-wasm`, package `@skkil-time/core-wasm` | wasm-bindgen wrapper over the sync engine; `pnpm build` writes `pkg/` |
+| `apps/mobile` | `@skkil-time/mobile` | Expo Router app (React Native) |
+| `apps/mobile/native` | crate `time-core-native`, package `@skkil-time/core-native` | uniffi object over the engine, turned into a Turbo Module by uniffi-bindgen-react-native |
+| `apps/server` | Gradle project | Kotlin 2.3, Spring Boot 4.1, Java 25, Postgres, Flyway |
+| `apps/shared/ui` | `@skkil-time/ui` | The whole desktop/web React UI, behind the `Backend` and `Platform` ports |
+| `apps/shared/design` | `@skkil-time/design` | Colours and the sky; `pnpm generate` writes `tokens.css` |
+| `apps/shared/rules` | `@skkil-time/rules` | Platform-free rules: dates, day plan, due dates, timer, Quick Add, sync messages |
+| `apps/shared/client` | `@skkil-time/client` | Talking to time-core and the server, by subpath (below) |
+| `apps/shared/config` | `@skkil-time/config` | Shared ESLint, Prettier and TypeScript configs |
 
-The pieces:
+`@skkil-time/client` subpaths: `/types` (`bindings.ts` generated from Rust,
+`commands.json`, `natural-keys.json`, `mutation-vectors.json`), `/server` (the
+server's `openapi.json`, generated `schema.ts`, typed fetch client and the
+`Backend` over HTTP; `/server/realtime` for the socket), `/local` (the
+`Backend` over a local engine), `/sync` (sync tokens, the account's scope and
+push headers for store's driver) and `/sign-in` (provider-neutral OIDC;
+`/sign-in/web` with `oidc-client-ts`). `pnpm generate` there rewrites
+`src/server/schema.ts` and `src/local/catalog.ts`; `pnpm check:generated`
+fails when either is stale.
 
-- `apps/shared/core/`: `time-core`, the platform-free Rust domain (types,
-  migrations, rules, queries, the mutation registry) for desktop, WASM and
-  mobile
-- `apps/desktop/`: Tauri 2 desktop app (`src-tauri/`, Tauri wrappers over
-  time-core, + a thin React shell)
-- `apps/web/`: Vite + React web app, offline-first on its wasm engine
-- `apps/web/engine/`: `time-core-wasm`, the sync Engine for the browser
-  (wasm-bindgen, SQLite on OPFS); `pnpm build` there writes the
-  `@skkil-time/core-wasm` package to `pkg/` (needs `wasm-bindgen-cli` at the
-  crate's pin; shrinks it with binaryen's `wasm-opt -Oz` when installed)
-- `apps/mobile/`: Expo React Native app over its native core
-- `apps/mobile/native/`: `time-core-native`, time-core behind a uniffi
-  interface, and `@skkil-time/core-native`, the React Native Turbo Module that
-  uniffi-bindgen-react-native generates from it
-- `apps/server/`: Kotlin Spring Boot API (see its README)
-- `apps/shared/*` TypeScript packages; see `apps/shared/README.md`
-  - `ui` (`@skkil-time/ui`): the whole desktop/web UI, behind `Backend` and
-    `Platform` ports
-  - `design` (`@skkil-time/design`): colours and the sky; `pnpm generate`
-    writes `tokens.css`
-  - `rules` (`@skkil-time/rules`): platform-free rules (dates, day plan, due
-    dates, timer, Quick Add)
-  - `client` (`@skkil-time/client`): talking to time-core and the server, by
-    subpath: `/types` (`bindings.ts` generated from Rust, `commands.json`,
-    `natural-keys.json`, `mutation-vectors.json`), `/server` (the server's
-    `openapi.json`, generated types, typed fetch client and the `Backend` over
-    HTTP; `/server/realtime`), `/local` (the `Backend` over a local time-core
-    engine), `/sync` (sync tokens, the account's scope and push headers for
-    store's driver) and `/sign-in` (provider-neutral OIDC; `/sign-in/web`)
-  - `config` (`@skkil-time/config`): the ESLint, Prettier and TypeScript
-    configs every package uses
+Layout rules:
 
-Run `pnpm install` once at the repo root; `pnpm lint|compile|test|format:check`
-there runs every package. The root `package.json`, `pnpm-workspace.yaml` and the
-lockfile are the only workspace files. Each package has its own `eslint.config.js`
-(`config({ ignores })` from `@skkil-time/config/eslint`), uses
-`@skkil-time/config/prettier`, extends `config/tsconfig.base.json`, and lists
-the tools its scripts run.
+- `apps/<app>/` holds everything only that app uses (its UI, Rust bridge,
+  Dockerfile, scripts). `apps/shared/` holds what several apps use. `infra/`
+  holds the environment around the apps.
+- Each Rust crate keeps its own `Cargo.lock`; there is no Cargo workspace,
+  because feature unification would turn time-core's default `native`
+  feature (bundled SQLite) back on for the wasm build.
+- Shared packages are named by role; "core" means only the Rust domain.
+- The pnpm workspace is rooted at the repo root. `pnpm install` once there;
+  `pnpm lint|compile|test|format|format:check` there runs every package. Each
+  package has its own `eslint.config.js` (`config({ ignores })` from
+  `@skkil-time/config/eslint`), uses `@skkil-time/config/prettier`, extends
+  `@skkil-time/config/tsconfig.base.json` and lists the tools its scripts run.
+- TypeScript packages are source-only (`workspace:*`, no build step). Inside a
+  package import siblings with `#name` subpath imports, not `../`. The `ui`
+  package uses `@/`, which each consuming app maps to `apps/shared/ui/src`
+  (enforced by ESLint).
 
 **Change once, reach every app.** UI goes in `apps/shared/ui` (desktop and
 web), rules in `apps/shared/rules` (all three), colours in
 `apps/shared/design/src/colors.ts` (all three). Never copy logic into a shell
 app. A new backend command needs the time-core function plus its entry in
-`time_core::mutations` (a write) or its read list, the Tauri wrapper, a Kotlin
-endpoint and a line in `apps/shared/client/src/server`; `tsc` in `client` fails
-until they all agree.
+`time_core::mutations` (a write) or its read list, its classification in
+`commands.json`, the Tauri wrapper, a Kotlin endpoint or mutation set and a
+line in `apps/shared/client/src/server`; `tsc` in `client` fails until they
+agree.
 
-`skkil.yml` wires the repo into the org CLI (`skkil`): `skkil dev` (Postgres,
-mock sign-in, server, web, desktop), `skkil doctor`, `skkil ci` (format, lint,
-test, build for every app), and `skkil assets generate`, which renders every app
-icon from `assets/icon.svg`. `icon.icns` is not covered by skkil; regenerate it
-with `pnpm tauri icon` from a 1024px render of the same master. Mobile's Android
-adaptive layers come from `apps/mobile/scripts/android-icons.sh`.
+## Commands
 
-Production setup is in `docs/deployment.md`; the open work list is
-`BACKLOG.md`.
+`skkil.yml` wires the repo into the org CLI (`skkil`):
 
-## Desktop app (`apps/desktop/`)
+- `skkil doctor` checks the toolchain: Node 22+, pnpm, Rust, JDK 25, Docker,
+  Go, `wasm-bindgen-cli` at the pin in `apps/web/engine/Cargo.toml`,
+  cargo-ndk, Android NDK 30, and the store checkout at `STORE_VERSION` with
+  its `modules/client-ts` built.
+- `skkil dev` runs `docker compose up --build` in `infra/` (Postgres on 5433,
+  mock OIDC on 8090, store service on 8091), the server (`./gradlew bootRun`
+  once Postgres is healthy), web (`pnpm dev`) and desktop (`pnpm tauri dev`).
+- `skkil ci` runs format, lint, test and build for every task: `time-core`,
+  `web-engine`, `desktop-tauri` (also fails if `bindings.ts` changed),
+  `shared-rules`, `shared-design`, `shared-ui`, `shared-client`, `server`,
+  `store-conformance`, `web`, `mobile-native`, `mobile`, `mobile-android`,
+  `desktop`.
+- `skkil assets generate` renders every app icon from `assets/icon.svg`.
+  `icon.icns` is not covered; regenerate it with `pnpm tauri icon` from a
+  1024px render. Android adaptive layers come from
+  `apps/mobile/scripts/android-icons.sh`.
+- `skkil device init` / `skkil device up <name>` runs the mobile app on an
+  Android device through `apps/mobile/scripts/run-android.sh`.
+
+Per app:
 
 ```bash
-cd apps/desktop
-pnpm tauri dev     # run the app with hot reload
-pnpm tauri build   # release bundle under src-tauri/target/release/bundle
-pnpm compile       # tsc -b
-pnpm lint          # ESLint
-pnpm format        # Prettier
-pnpm test          # Vitest
-
-cd src-tauri      # and ../../core for time-core
-cargo test
-cargo clippy --all-targets -- -D warnings
+cd apps/shared/core && cargo test && cargo clippy --all-targets --features specta -- -D warnings
+cd apps/desktop && pnpm tauri dev | pnpm tauri build | pnpm compile | pnpm lint | pnpm test
+cd apps/desktop/src-tauri && cargo test && cargo clippy --all-targets -- -D warnings
+cd apps/web/engine && pnpm build          # needs wasm-bindgen-cli; wasm-opt -Oz when installed
+cd apps/web && pnpm dev | pnpm test | pnpm build
+cd apps/mobile/native && pnpm build:android | pnpm build:ios | pnpm check:ios
+cd apps/mobile && pnpm start | pnpm android | pnpm compile | pnpm test
+cd apps/server && ./gradlew spotlessApply test | ./gradlew bootRun | ./gradlew openApi
 ```
 
-### Todoist parity
+## Domain model
 
-- Quick add follows Todoist's syntax: dates and times in plain words, `every …`
-  repeats, `{deadline}`, `p1`–`p4`, `#Project`, `/Section`, `+type`, `for 1h`.
-  It lives in `apps/shared/rules/src/quick-add/` (the UI in
-  `apps/shared/ui/src/features/tasks/quick-add/`); each grammar is a rule
-  table or pattern with tests beside it, and `parse.ts` runs them in order. Clicking a highlighted phrase keeps it as plain text.
-- Repeats are read, advanced and given their first date in
-  `apps/shared/core/src/recurrence/`: rules in `rule.rs`, matchable days in
-  `pattern.rs`, `every!` and end dates in `mod.rs`. The frontend only claims the
-  phrase. `apps/shared/rules/src/quick-add/repeat-phrases.json` is read by the
-  TypeScript, Rust and Kotlin (`apps/server/.../recurrence`) test suites, so a
-  phrase a backend can't store fails the build.
+- **Project**: nested (max depth 3), with colour, list/board view, archived
+  flag and settings: `group_id` (top-level only; sub-projects follow it),
+  `status` (active/paused/done/dropped; inactive ones leave Day and the
+  drawer), weekly hours budget, target date, stop-if criteria, review cadence
+  and `in_order`. Archiving or deleting cascades to the subtree. No areas:
+  ongoing work is a project without a target date. `NULL` project is Inbox.
+- **Group**: a named set of top-level projects (`core/src/groups/`, table
+  `project_group`); deleting one only clears it from its projects. Its
+  overview (`/projects/groups/$groupId`) is a timeline of every project's
+  dates, then one card per project.
+- **Canvas**: one Tiptap HTML document per project (`project_canvas`,
+  `core/src/canvas/`), the project's Notes tab.
+- **Section**: ordered group inside a project or the Inbox; deleting it
+  deletes its tasks.
+- **Task**: Todoist-shaped: title, `notes`, project, section, parent
+  (sub-tasks nest to any depth, inherit project/section; complete, move and
+  delete reach every level), priority 1–4 (1 = highest), due date and
+  optional time, deadline, recurrence, `estimate_minutes`, sibling
+  `position`, `rollover_count`, `someday`, `must_on` (at most 3 musts a day)
+  and a `next_step` note. Dependencies (`task_dependency`,
+  `core/src/dependencies/`): `blocked_by` lists every link, `waiting_on` the
+  open ones; "blocked" is derived, never stored; loops, self-links and
+  repeating or event blockers are refused. Completing a repeating task moves
+  its date forward.
+- **TimeBlock**: a planned span for a task on the schedule grid.
+- **TimeEntry**: tracked time with optional project/task; a linked task
+  decides the project. The running timer is one row in `running_timer`, so it
+  survives restarts and syncs to every device; stopping makes an entry, and
+  finishing a task stops a timer on it or anything under it. A break logs the
+  stretch so far and sets `paused_at`; `banked_seconds` keeps the session
+  total. `list_time_entries` returns entries overlapping the range (clip with
+  `secondsWithin`); `list_task_entries` and `list_project_entries` return the
+  whole history, including sub-tasks or sub-projects. `list_tasks` leaves out
+  tasks closed over two weeks ago; `useTask` fetches those on demand.
+- **Habit / HabitLog**: `build` (reach a goal), `quit` (none) or `limit` (at
+  most a goal), in times or minutes, with repeat days, time of day, area and
+  start date. Optional `tracking` (websites, apps, or a project's tracked
+  time): `sync_habits` writes measured values as `auto` logs, and a status set
+  by hand always wins. Daily status is derived in `habits::status`. Websites
+  and apps come from ActivityWatch (`SKKIL_ACTIVITYWATCH_URL`, default
+  `http://localhost:5600`). Progress is "x of last 14 days" with planned rest
+  days, no streaks.
+- **Ritual / RitualRun**: routines in `core/src/rituals/`: morning, evening,
+  wind_down, session (after a timer stops) and weekly. One trigger
+  (`first_open`, `at_time`, `end_of_day`, `after_timer_stop`, `manual`),
+  weekdays (Monday = bit 0) and ordered steps from a closed library.
+  `due_ritual(event)` decides what opens; a run fires once a day unless
+  snoozed (15 min, once). Shown in a full-window overlay (`features/rituals`)
+  over the time-of-day sky (`features/zen/ZenBackdrop.tsx`); no image assets.
+- **Item type / Status / Milestone / Saved view**: per-project structure in
+  `core/src/workflow/`. A type is a task or an **event** (happens at a time,
+  never checked off; repeats expand via `list_events`; may count as tracked
+  time). Statuses are named freely, each in a fixed category (backlog, todo,
+  active, done, dropped); a closed category and `completed_at` stay in step,
+  and backlog items are never overdue. Presets (`workflow::presets`) set all
+  four; Simple sets none. Moving a task maps its type by name and its status
+  by category.
+- **Record**: a third type kind (`core/src/records/`): a long-lived item with
+  no checkbox whose status is its current **phase** (e.g. one job
+  application). Its sub-tasks carry `phase_id`; `record_phase` holds a note
+  per phase. Moving it maps phases by name. The task window pages phases
+  (`features/records/PhasePager.tsx`); records stay off Day, Week and the
+  review deck.
+- **Day / Week / Quarter**: a day note and felt rating written by rituals;
+  weekly outcomes (at most 3 open, linked through `task.outcome_id`; status
+  open/achieved/carried/dropped; carrying copies the outcome and its open
+  tasks into next week, at most twice); a guided weekly review (feel,
+  outcomes, clear the deck, one change, plan, quarter wrap-up; progress in
+  `week.step`, done at `week.reviewed_at`); quarter priorities over 13 weeks.
 
-### Domain crate (`apps/shared/core/`, `time-core`)
+## time-core (`apps/shared/core/`)
 
-- Platform-free Rust crate (lib `time_core`, no workspace; desktop depends on
-  it by path). No Tauri, tokio or HTTP: it builds for
-  `wasm32-unknown-unknown` with `--no-default-features` (rusqlite then uses
-  `sqlite-wasm-rs`); the default `native` feature bundles SQLite, and the
-  `specta` feature derives the TypeScript types (desktop turns it on).
-- One folder per feature (`src/<feature>/`): `model.rs` (types),
-  `queries.rs` (reads), `rules.rs` (validation), `service.rs` (writes) and
-  `tests.rs`, split further where a feature is large (`workflow`, `review`).
-  Shared pieces: `types` (`Id`, `Date`, `Timestamp`), `error`, `db`
-  (connection, migrations), `env`, `recurrence`, `settings`.
-- Ids are UUIDv7 strings (`types::Id`, TypeScript `string`). Migration 017
-  rewrote every integer id and reference in one transaction, minting UUIDs in
-  the old id order. Never sort by id for creation order: use `created_at` or
-  `position`. Outcomes and priorities order by `position`, then `id`, as on
-  the server (migration 020).
-- Writes take `&dyn MutationEnv` (`env/`): `now()`, `today()` and
-  `next_id()`. Hosts pass `LocalEnv`; tests pass `FixedClock` and
-  `SequentialIds`. Writes never open their own transaction; the caller does.
-  Seeded defaults get a name-based id from `env::seed_id(scope, kind)`.
-- `mutations` is the registry of every synced write by its contract name
+- No Tauri, tokio or HTTP. Builds for `wasm32-unknown-unknown` with
+  `--no-default-features` (rusqlite then uses `sqlite-wasm-rs`); the default
+  `native` feature bundles SQLite; `specta` derives the TypeScript types.
+- One folder per feature (`src/<feature>/`): `model.rs`, `queries.rs`,
+  `rules.rs`, `service.rs`, `tests.rs`, split further where large
+  (`workflow`, `review`). Shared: `types` (`Id`, `Date`, `Timestamp`),
+  `error`, `db`, `env`, `recurrence`, `settings`, `device_settings`.
+- Ids are UUIDv7 strings. Never sort by id for creation order: use
+  `created_at` or `position`. Lists order by `position`, then `id`, as on the
+  server.
+- Writes take `&dyn MutationEnv` (`env/`: `now()`, `today()`, `next_id()`).
+  Hosts pass `LocalEnv`; tests pass `FixedClock` and `SequentialIds`. Writes
+  never open their own transaction; the caller does. Natural-key ids are
+  built only through `env::NaturalKey`.
+- `mutations` is the registry of every synced write by contract name
   (camelCase, args keyed like the TypeScript command): `apply`,
-  `apply_in_transaction`, `query` for reads, and the `MUTATIONS`, `READS` and
-  `DEVICE_ONLY` lists. Arguments take `0`/`1` for booleans, as on the server
-  (`mutations/booleans.rs`). Its tests parse `bindings.ts`, so a new command
-  must be classified, walk every mutation through `apply` and replay
+  `apply_in_transaction`, `query`, and the `MUTATIONS`, `READS` and
+  `DEVICE_ONLY` lists in `catalog.rs`. Booleans may be `0`/`1`
+  (`booleans.rs`). Its tests parse `bindings.ts` (every command must be
+  classified), walk every mutation through `apply` and replay
   `mutation-vectors.json`.
-- `sync` is the one entry point every host uses: `sync::Engine` owns the
-  connection, registers `data::SYNCED_TABLES` with store-core and handles
-  sign-in, upload (`importLocal`), issues (`retry_issue` re-queues a refused
-  mutation with its stored arguments) and `forget`; `data` dumps and
-  imports the synced rows.
-- `src/db/migrations/*.sql` (plus Rust code migrations in `db/migrate.rs`)
-  are embedded and applied in order, versioned with `PRAGMA user_version`.
-  Never edit a shipped migration; add a new one.
+- `sync::Engine` is the one entry point every host uses (below); `data`
+  dumps and imports the synced rows (`data/tables.rs`: `SYNCED_TABLES`,
+  `NATURAL_KEYS`).
+- `src/db/migrations/*.sql` plus Rust code migrations in `db/migrate.rs` are
+  embedded and versioned with `PRAGMA user_version`. Never edit a shipped
+  migration; add a new one.
+- Repeats live in `src/recurrence/` (`rule.rs`, `pattern.rs`, `mod.rs` for
+  `every!` and end dates). `apps/shared/rules/src/quick-add/repeat-phrases.json`
+  is read by the TypeScript, Rust and Kotlin
+  (`features/recurrence`) tests, so a phrase a backend can't store fails the
+  build.
 
-### Backend (`apps/desktop/src-tauri/`)
+## Sync
 
-- One crate (`skkil-time`, lib `skkil_time_lib`) holding only Tauri concerns.
-  `src/commands/<feature>.rs` are thin `#[tauri::command]` wrappers: writes go
-  through `time_core::mutations` (`commands::mutate`), reads call time-core.
-- The database is `<app data dir>/com.skkil.time/time.db`, opened by
-  `src/db.rs`, which keeps a one-time `time-before-uuid.db` copy before
-  migration 017 runs. Use a scratch `XDG_DATA_HOME` when testing so the real
-  database is never touched.
-- Settings → Data exports with `VACUUM INTO` and restores through SQLite's backup
-  API after staging, validating and migrating the file (`src/backup.rs`); the
-  current data is kept as `time-before-restore.db`.
-- Import (Settings → Data) reads CSV files picked in Rust
-  (`commands/import.rs`) and converts them in
-  `apps/shared/ui/src/features/import/`: Todoist exports (TYPE/CONTENT/INDENT,
-  priority 4 = p1) or any CSV with a Title column. Dates go through the Quick
-  Add parser; anything it can't read is kept in the notes. Each file becomes a
-  new project (`importProjects`, one transaction), and Undo deletes the
-  imported projects.
-- `skkil-time --mcp` (`src/mcp.rs`, checked in `main.rs` before Tauri starts)
-  is a stdio MCP server for Claude and other agents. It opens the same
-  database (or `SKKIL_TIME_DB`) and writes through the mutation registry: add,
-  edit and archive projects and sections, today, list/add/update/move/complete
-  tasks, and focus start/stop/break/history.
-  Both processes share the file through WAL and a 5 s busy timeout; the app
-  polls `external_changes` (`PRAGMA data_version`) every 10 s and on focus and
-  refetches everything when another process wrote. MCP changes have no Undo.
-- Quick capture (`src/capture.rs`): Ctrl/⌘+Alt+N is a global shortcut
-  (off with the `capture_hotkey` setting), and a second launch with
-  `--quick-add` is forwarded by the single-instance plugin; both emit
-  `quick-add`, which opens Quick Add. Wayland blocks global shortcuts, so
-  there the user binds the command in their compositor.
-- Reminders run on a backend thread (`src/reminders.rs`, every 20 s). A
-  timed task fires once per date and time through `task.reminded_for`; only
-  Linux reports the click, which emits `open-task`.
-- ActivityWatch is read in `src/activitywatch.rs`; `sync_habits` measures
-  website and app habits with `habits::measure_activity` and records them
-  with the `recordHabitMeasurements` mutation.
-- Sync (`src/sync/`): every write goes through `time_core::sync::Engine`
-  (`db::Db::mutate`), which captures it once the device is bound to an
-  account. Sign-in is OIDC with PKCE in the system browser and a loopback
-  redirect (`sync/auth/`), with tokens in the OS keychain (`keyring`) and
-  refreshed. `SyncService` runs a worker thread that pushes then pulls with
-  `skkil-store-http` on start, after writes (1.5 s debounce), on pokes, on
-  window focus and every 60 s, backing off on failures (`sync/schedule.rs`,
-  pure and tested); the account's scope comes from `scopeId` in
-  `GET /api/v1/me` and sync tokens from `POST /api/v1/sync/token`. The first
-  sign-in uploads the device's rows as one `importLocal` mutation (rules in
-  the decision record's "First sign-in"). It emits `sync-status` and `remote-change`. Server URL, issuer, client id and
-  audience are device settings defaulting to `SKKIL_SERVER_URL`,
-  `SKKIL_AUTH_AUTHORITY`, `SKKIL_AUTH_CLIENT_ID` and `SKKIL_AUTH_AUDIENCE` at
-  build time. Its commands are a second specta builder exported to
-  `apps/desktop/src/bindings.ts`, outside the shared contract.
-- `run()` sets `JSC_useJIT=0` on Linux: JavaScriptCore's JIT costs about 70 MB
-  of web process memory in use and a planner doesn't need its speed.
+The protocol is store's (`docs/protocol.md` in the store repo). How time maps
+onto it:
 
-### Frontend (`apps/shared/ui/src/`, mounted by `apps/desktop/src/main.tsx`)
+- **Engine.** `time_core::sync::Engine` owns the connection, registers
+  `SYNCED_TABLES` with store-core and exposes `mutate`, `query`, push/pull,
+  status, `issues`, `dismiss_issue`, `retry_issue`, `sign_in`/`keep_local`/
+  `start_fresh` and `forget`. Desktop calls it natively, web through
+  `time-core-wasm` in a worker, mobile through `time-core-native`.
+  Device-only state lives in `device_setting` (capture hotkey, sync server
+  config, a staged upload) and never syncs.
+- **Mutations.** A mutation is a write command: `name` is its contract name,
+  `args` its parameters keyed by contract names. time-core and the server
+  keep one registry each with the same rules; the server's result is
+  authoritative and replaces the device's optimistic result on the next
+  pull. Reads and device-only commands (file pickers, hotkey, local file
+  backups, ActivityWatch) are never mutations. A mutation's clock is its
+  HLC, so "now" and "today" are when the user acted, in their time zone.
+- **Ids.** Device ids come from `MutationContext::next_id()`, derived from
+  the client and mutation so the server reproduces them; server-made ids are
+  UUIDv7.
+- **Natural keys.** A row identified by something other than its id never
+  takes a random or derived id once the device is bound: its id is
+  `UuidV5(scope_id, "<table>/<key parts joined by />")`, with lowercase
+  uuids and `yyyy-MM-dd` dates, and it draws no id from `next_id()`. Names:
+  `setting/<key>`, `project_canvas/<projectId>`, `week/<monday>`,
+  `day/<date>`, `task_dependency/<taskId>/<blockedById>`,
+  `record_phase/<taskId>/<statusId>`, `running_timer`,
+  `habit_log/<habitId>/<date>`, `ritual/<kind>`, `user_preference`. The
+  server builds them in `common/id/NaturalIds.kt`; both sides test against
+  `natural-keys.json`. `quarter` keeps an ordinary id (its start can change),
+  so a second offline create is a conflict.
+- **Ordering.** Positions are dense integers; moves are intents ("index N
+  among siblings") the server replays, and renumbered rows reach devices
+  through the log.
+- **Signed out.** A never-bound device writes straight to SQLite with no
+  capture. Once bound, every write is captured, even while signed out.
+- **First sign-in.** The device reads its scope from `scopeId` in
+  `GET /api/v1/me`. `sign_in(scope)` returns `Synced`, `Uploading` or
+  `OtherAccount` (nothing happens until the user picks `keep_local`, which
+  re-ids every row, or `start_fresh`). Uploading dumps every synced row into
+  `device_setting.sync_upload`, forgets, binds the scope, seeds the default
+  rituals with scope ids, and sends one `importLocal` mutation; a crash
+  before the staged copy is removed re-runs the upload. `importLocal` is a
+  `syncMutations` entry implemented by `time_core::data::import` and the
+  server's `LocalImportService` with the same rules: natural-key rows take
+  the account's key id; an id another account owns is refused; a row whose
+  natural key (the tables above plus a group's name, a quarter's start and
+  imported `external_id`s) matches an account row merges into it; anything
+  else keeps the device's id; every reference must name a row of the
+  account. Uploaded values win for shared rows.
+- **Refused changes.** A mutation the server rejects is undone on the device
+  and kept as an issue with its name, arguments and reason. Settings → Sync
+  offers Try again (`retry_issue` re-queues it as a new mutation) and
+  Dismiss (drops the only copy; for `importLocal` the UI asks first).
+- **Cross-language checks.** `commands.json` (every command's category),
+  `natural-keys.json` and `mutation-vectors.json` (an ordered run of
+  mutations with fixed clocks, ids and expected rows) in
+  `apps/shared/client/src/types/` are read by both the Rust and Kotlin
+  tests. Extend the vectors when a mutation changes.
+- **Undo.** `captureTasks` is a read returning a `TaskSnapshot` the UI keeps
+  in memory; `restoreTasks(snapshot)` is a mutation. Nothing is stored on the
+  server.
+
+## Desktop (`apps/desktop/`)
+
+- `src-tauri/src/commands/<feature>.rs` are thin `#[tauri::command]`
+  wrappers: writes go through `time_core::mutations` (`commands::mutate`),
+  reads call time-core. tauri-specta writes
+  `apps/shared/client/src/types/bindings.ts` on every debug run and on
+  `cargo test`; never edit it. Sync commands are a second builder exported
+  to `apps/desktop/src/bindings.ts`, outside the shared contract.
+- The database is `<app data dir>/com.skkil.time/time.db` (`src/db.rs`,
+  which keeps a one-time `time-before-uuid.db` before migration 017). Use a
+  scratch `XDG_DATA_HOME` when testing.
+- Settings → Data exports with `VACUUM INTO` and restores through SQLite's
+  backup API after staging, validating and migrating (`src/backup.rs`),
+  keeping `time-before-restore.db`. CSV import is picked in Rust
+  (`commands/import.rs`) and converted in `ui/src/features/import/`: Todoist
+  exports or any CSV with a Title column, one new project per file, Undo
+  deletes them.
+- `skkil-time --mcp` (`src/mcp.rs`) is a stdio MCP server on the same
+  database (or `SKKIL_TIME_DB`), writing through the registry: projects,
+  sections, today, tasks and focus. Both processes share the file through
+  WAL and a 5 s busy timeout; the app polls `PRAGMA data_version` every 10 s
+  and on focus. MCP changes have no Undo.
+- Quick capture (`src/capture.rs`): Ctrl/⌘+Alt+N (setting
+  `capture_hotkey`), or a second launch with `--quick-add`. Wayland blocks
+  global shortcuts, so users bind the command in their compositor.
+- Reminders (`src/reminders.rs`) check every 20 s and fire each timed task
+  once per date and time through `task.reminded_for`.
+- ActivityWatch (`src/activitywatch.rs`) feeds `habits::measure_activity`
+  and the `recordHabitMeasurements` mutation.
+- Sync (`src/sync/`): OIDC with PKCE in the system browser and a loopback
+  redirect (`sync/auth/`), tokens in the OS keychain. `SyncService` pushes
+  then pulls with `skkil-store-http` on start, after writes (1.5 s
+  debounce), on pokes, on focus and every 60 s, backing off on failure
+  (`sync/schedule.rs`). Server URL, issuer, client id and audience default
+  to `SKKIL_SERVER_URL`, `SKKIL_AUTH_AUTHORITY`, `SKKIL_AUTH_CLIENT_ID` and
+  `SKKIL_AUTH_AUDIENCE` at build time and can be changed in Settings → Sync.
+- `run()` sets `JSC_useJIT=0` on Linux to save about 70 MB.
+
+## Shared UI (`apps/shared/ui/src/`)
 
 - React 19 with React Compiler, TanStack Router (hash history) and TanStack
-  Query, shadcn/ui (`src/components/ui`) on Tailwind v4, dnd-kit.
-- `apps/shared/client/src/types/bindings.ts` is generated by tauri-specta on every
-  debug run and by `cargo test`. Do not edit it; change the Rust types instead.
-  UI code imports types and `commands` from `@/backend`, never from Tauri.
-- Anything that differs between desktop and web goes through `platform()`
-  (`src/platform/index.ts`): opening URLs, window focus, zoom, Tauri events, the
-  signed-in account and `features` flags (capture hotkey, reminders,
-  ActivityWatch, database-file backups). Settings sections declare
-  `available(platform)`. A local-first shell adds `sync` (status, Sync now,
-  issues with Try again and Dismiss, sign in/out, account choice, server
-  config), shown as Settings → Sync (`features/sync/`, view logic in
-  `view.ts`) and at the top of the account menu (Sign in to sync…, or the
-  account, both opening Settings → Sync). Dismissing a refused `importLocal`
-  asks first: it removes that data from the device. Sync and sign-in errors
-  show as plain copy from `@skkil-time/rules/sync-messages` on every
-  platform; the raw error stays in a tooltip and the Server section. Desktop fills
-  it in `apps/desktop/src/sync.ts`, web in `apps/web/src/platform/web-sync.ts`,
-  and both reuse `onRemoteChange` and `onConnectionChange`. Its copy says
-  "this device", never a platform noun. Undo keeps the `TaskSnapshot` payload in memory.
-- `src/features/<domain>/api.ts` holds the queries and mutations for a domain;
+  Query, shadcn/ui (`components/ui`) on Tailwind v4, dnd-kit.
+- UI code imports types and `commands` from `@/backend`, never from Tauri.
+  `src/features/<domain>/api.ts` holds a domain's queries and mutations;
   components live beside it.
-- A project page always opens on Tasks, with Notes and Focus beside it. List,
-  Board, saved views, Graph and Timeline are layouts of Tasks, and the last
-  layout is remembered per project. `projects/ProjectContext.tsx` is the side
-  panel (after the next task, this week, notes), fed by pure helpers in
-  `projects/context.ts` (Next: work due by today by priority, then the earliest
-  dated, then the highest-priority undated task; After that: upcoming dates only,
-  one row per task). The sidebar is hidden by default (Mod+B); the project
-  name is the switcher.
-- Destructive and scheduling mutations offer Undo through `offerUndo`
-  (`src/lib/undo.ts`, also Mod+Z outside text fields). Task changes restore a
-  backend snapshot (`core/src/undo/`, `capture_tasks`/`restore_tasks`) kept in
-  memory, so a task returns with its steps, blocks, links and history.
-- Keyboard shortcuts go through `useShortcuts` (`src/lib/shortcuts.ts`);
-  per-device UI preferences through `src/lib/preferences.ts`. New settings are a
-  section in `features/settings/SettingsDialog.tsx` built from `SettingRow`.
-- Any task or project on screen links to its own view: `TaskLink`/`TaskJump` in
-  `features/tasks/TaskLink.tsx`, `ProjectLink`/`ProjectJump` in
-  `features/projects/ProjectLink.tsx`. Use the Jump icon where the name is
-  already a picker or toggle. `useOnNavigate` closes the task window and any
-  ritual when a link changes the route; a ritual keeps its progress.
-- Imports use `@/` instead of parent-relative `../` (enforced by ESLint).
-- Routes: `/?view=day|week&week=` (`week` is a Monday date key), `/projects`,
+- Anything that differs per host goes through `platform()`
+  (`platform/index.ts`): URLs, window focus, zoom, events, the account,
+  `features` flags (capture hotkey, reminders, ActivityWatch, file backups)
+  and, on local-first hosts, `sync` (Settings → Sync, `features/sync/`, view
+  logic in `view.ts`). Desktop fills it in `apps/desktop/src/sync.ts`, web in
+  `apps/web/src/platform/web-sync.ts`. Settings sections declare
+  `available(platform)`. Sync errors show plain copy from
+  `@skkil-time/rules/sync-messages`; copy says "this device", never a
+  platform noun.
+- Undo: destructive and scheduling mutations call `offerUndo`
+  (`lib/undo.ts`, also Mod+Z outside text fields); task changes restore a
+  backend snapshot (`core/src/undo/`).
+- Shortcuts go through `useShortcuts` (`lib/shortcuts.ts`), per-device
+  preferences through `lib/preferences.ts` (`SHARED_KEYS` follow the
+  account). New settings are a section in
+  `features/settings/SettingsDialog.tsx` built from `SettingRow`.
+- Any task or project on screen links to its view: `TaskLink`/`TaskJump`
+  (`features/tasks/TaskLink.tsx`), `ProjectLink`/`ProjectJump`
+  (`features/projects/ProjectLink.tsx`). `useOnNavigate` closes the task
+  window and any ritual when a link changes the route.
+- A project page opens on Tasks, with Notes and Focus beside it; List,
+  Board, saved views, Graph and Timeline are layouts of Tasks, remembered per
+  project. `projects/ProjectContext.tsx` is the side panel, fed by
+  `projects/context.ts`. The sidebar is hidden by default (Mod+B).
+- Quick Add follows Todoist's syntax (plain-word dates, `every …`,
+  `{deadline}`, `p1`–`p4`, `#Project`, `/Section`, `+type`, `for 1h`). The
+  parser is `apps/shared/rules/src/quick-add/` (one rule table per grammar,
+  run in order by `parse.ts`); the UI is `features/tasks/quick-add/`.
+- Routes: `/?view=day|week&week=` (a Monday date key), `/projects`,
   `/projects/someday`, `/projects/$projectId`, `/projects/groups/$groupId`,
-  `/review/$week` (the first, guided review of a week). There is no Reports
-  page: Week is the record. A past week swaps the task rail for its reflection,
-  and a reviewed week is edited in `ReviewDialog`, never by reopening the guided
-  review. All old `/reports/*`, `/time`, `/habits`, `/review`, `/inbox`,
-  `/today`, `/upcoming`, `/someday`, `/planner` routes redirect.
-- The Week grid fits 07:00–23:00 to the window. With sleep hours set (the
-  `sleep` preference), Week fits all 24 hours and Day keeps them scrollable,
-  with sleep shrunk to a strip. Positions come from a `TimeScale`
-  (`planner/time-scale.ts`, a context in `planner/scale.ts`), so read it with
-  `useTimeScale` and never multiply minutes by a constant. Each day column holds
-  planned blocks and events on the left and tracked time entries in a lane on
-  the right.
-- `syncIdle` (`src/lib/idle.ts`) sets `html[data-idle]` while the window is
-  hidden or unfocused, which pauses every CSS animation. Keep new looping
-  animations in CSS so they inherit this.
-- Habit auto-sync runs from the app shell (start, window focus at most every 5
-  min) and when the Habits window opens.
+  `/review/$week` (the first, guided review). There is no Reports page: Week
+  is the record; a reviewed week is edited in `ReviewDialog`. Old routes
+  redirect.
+- The Week grid fits 07:00–23:00, or all 24 hours with the `sleep`
+  preference. Positions come from a `TimeScale` (`planner/time-scale.ts`);
+  read it with `useTimeScale`, never multiply minutes by a constant. Each day
+  column holds plans and events on the left and tracked time on the right.
+- `syncIdle` (`lib/idle.ts`) sets `html[data-idle]` while the window is
+  hidden or unfocused, pausing CSS animations. Keep looping animations in
+  CSS.
+
+## Web (`apps/web/`)
+
+- `mount()` from `@skkil-time/ui` with `createLocalBackend` over the WASM
+  engine, a browser `Platform` and OIDC from `@skkil-time/client/sign-in/web`.
+  Config is `VITE_*` at build time or `config.js` at container start; the
+  store URL comes with each sync token.
+- `src/` is `app/` (bootstrap, local and remote starts), `auth/`, `engine/`
+  (page-to-worker RPC and the worker), `platform/` and `notifications/`.
+- Each tab starts a dedicated worker. The one holding the Web Lock
+  `skkil-time-engine` opens SQLite on OPFS (SAH-pool VFS, no COOP/COEP) and
+  runs `@skkil/store-client`'s `SyncRunner`; others relay over the
+  BroadcastChannel of the same name and take over in lock order (reads
+  retried, writes fail with "try again").
+- Pulls and other tabs' writes reach the UI as `onRemoteChange` topic
+  `sync`; the realtime socket is only for account preferences. Signing out
+  syncs, asks before dropping unsynced changes and calls `forget`.
+- `public/sw.js` caches the app shell for offline starts. Browsers without
+  OPFS fall back to the remote backend (`app/start-remote.tsx`).
+- `@skkil/store-client` is linked by path
+  (`link:../../../store/modules/client-ts`), as on mobile.
+
+## Mobile (`apps/mobile/`)
+
+- Expo Router: `app/` holds routes only; screens and hooks live in
+  `src/features/<name>/`, services in `src/core/`, shared UI in `src/ui/`.
+  Day, Week and Projects sit behind a floating pill (`features/shell/`) on
+  the sky (`ui/Sky.tsx`, dark only), with tasks, Quick Add, focus and habits
+  as glass windows (`ui/Window.tsx`). It shares `rules`, `design` and
+  `client`, not DOM components. Screens pass `aside={<TaskAside />}` to
+  `Screen` for a side task view at 768pt or wider.
+- `src/core/local/backend.ts` is `createLocalBackend` over
+  `@skkil-time/core-native` on `<documents>/time.db`. The engine runs on one
+  Rust thread: commands are async, store's `CoreHandle` calls synchronous.
+  The server API is used only for sync tokens, `/me`, account deletion,
+  preferences and push devices.
+- `src/core/sync/` runs `@skkil/store-client` with `expo/fetch` for Pokes;
+  `controller.ts` binds the replica to the account, `use-sync.ts` runs it in
+  the foreground. Signing out forgets the replica; an expired sign-in keeps
+  it.
+- `native/`: `pnpm build:android` (cargo-ndk, NDK 30, arm64-v8a and x86_64)
+  builds the static libraries and regenerates the committed bindings
+  (`src/native`, `cpp`, `android`, `ios`, `CoreNative.podspec`). Build them
+  before `expo prebuild` or `expo run:*`.
 
 ## Server (`apps/server/`)
 
-- Kotlin 2.3, Spring Boot 4.1, Java 25, Postgres, Flyway, Spring `JdbcClient`
-  with explicit SQL. `./gradlew spotlessApply test` (Testcontainers);
-  `docker compose -f infra/compose.yaml up -d` (from the repo root) for local
-  Postgres, a mock OIDC issuer and the store service.
-- `features/<domain>/` mirrors `apps/shared/core/src/<domain>/`: the same
-  rules, validation messages and JSON shapes. Every query filters by
-  `user_id`, and every referenced id is checked against the caller.
-- Package by feature, layered inside: `features/<domain>/{api,service,
-  repository,domain}` (only the layers a feature needs), one top-level class
-  per file named after it. Shared code lives in `config/`, `security/` and
-  `common/{error,web,persistence,text,clock,id}`; see the server README's
-  "Code layout".
-- Synced ids are UUIDs (UUIDv7 from `IdGenerator`; `app_user.id` stays bigint
-  and `app_user.scope_id` is the store scope). New rows take
-  `caller.nextId()`, and create methods accept an explicit `id`; an id that
-  already exists anywhere is a `conflict`.
-- Controllers take a `Caller` (user id + time zone from `X-Time-Zone`, plus the
-  `MutationClock` and `IdGenerator` of the operation); use
-  `caller.now()`/`caller.today()` wherever desktop uses local time, never
-  `Instant.now()` (a test enforces it).
-- Every `mutations` and `syncMutations` entry of
-  `apps/shared/client/src/types/commands.json` is registered in
-  `features/mutations`
-  (`MutationDispatcher.dispatch(caller, name, args, clock, idSource)`) and
-  nothing else is; `MutationCoverageTest` checks names and parameters.
-  Arguments take `0`/`1` for booleans, as in time-core. `natural-keys.json` and
-  `mutation-vectors.json` beside it are read by the Rust and Kotlin tests
-  alike, so ids and rows can't drift; extend the vectors when a mutation
-  changes.
-- The server is a store product (`features/sync`, store pinned by the root
-  `STORE_VERSION`, adapter-jvm through a Gradle composite build from
-  `STORE_DIR`, default `../store`). Store's SQL is copied as `V9`, `V10`,
-  `V14` and `V16` (a test compares them with the checkout) and every user
-  table keyed by a uuid is `store_register`ed, so a write outside the write
-  path fails. `BaselineJob` (`features/sync/job/`) logs each account's
-  unlogged rows once (`store_capture_existing` over `BASELINE_TABLES`,
-  parents first, one advisory lock per account) and records it in
-  `sync_baseline`; new accounts are recorded at creation, and a restore bumps
-  the scope's epoch and baselines again. A migration that rewrites synced
-  rows under `store.bypass` must clear those accounts' `sync_baseline` rows.
-  Push (`/skkil.store.v1.PushService/Push`, API bearer) runs mutations
-  through the dispatcher at the HLC with derived ids; a `DomainException`
-  rejects. REST writes are server writes through `ServerWriteAspect`
-  (one transaction per endpoint, no version when nothing synced changed);
-  jobs and account setup use `ServerWrites.run(scope)`. Endpoints that open
-  the write path themselves carry `@OwnWritePath`. Sync tokens come from
-  `POST /api/v1/sync/token`; seeded rows take `UuidV5(scopeId,
-  "<table>/<key>")` (rituals: `ritual/<kind>`) on every side. Undo is
-  `captureTasks` (a read returning the snapshot) and `restoreTasks(snapshot)`
-  (a mutation); nothing is stored on the server.
-- Auth is an OAuth2 resource server only (`AUTH_ISSUER_URI`, `AUTH_AUDIENCE`);
-  users are `user_identity (issuer, subject)` → `app_user`. Errors are RFC 9457
-  problem details with a `kind` matching the desktop `Error`.
+- `JdbcClient` with explicit SQL; Flyway migrations in
+  `src/main/resources/db/migration` are immutable once shipped (Flyway
+  checksums them). `features/<domain>/` follows time-core's rules,
+  validation messages and JSON shapes. Every query filters by `user_id` and
+  every referenced id is checked against the caller.
+- Package by feature, layered inside (`api`, `service`, `repository`,
+  `domain`, only as needed), one top-level class per file. Shared code is in
+  `config/`, `security/` and `common/{error,web,persistence,text,clock,id}`.
+- Controllers take a `Caller` (user, time zone from `X-Time-Zone`, the
+  operation's `MutationClock` and `IdGenerator`). Use
+  `caller.now()`/`caller.today()`, never `Instant.now()` (a test enforces
+  it). New rows take `caller.nextId()`; an id that exists anywhere is a
+  `conflict`.
+- `features/mutations` registers exactly the `mutations` and
+  `syncMutations` of `commands.json` (`MutationCoverageTest`);
+  `MutationVectorsTest` and `NaturalIdsTest` replay the shared JSON files.
+- `features/sync` makes the server a store product: adapter-jvm comes in as
+  a Gradle composite build from `STORE_DIR` (default `../store`); store's SQL
+  is copied byte for byte as `V9`, `V10`, `V14`, `V16`; every uuid-keyed user
+  table is registered, so a write outside the write path fails. REST writes
+  run through `ServerWriteAspect` (one server write per endpoint); endpoints
+  that open the write path themselves carry `@OwnWritePath`; jobs use
+  `ServerWrites.run(scope)`. Push runs mutations through
+  `MutationDispatcher` at their HLC; a `DomainException` rejects one.
+  `BaselineJob` logs each account's pre-existing rows once
+  (`sync_baseline`); a migration that rewrites synced rows under
+  `store.bypass` must clear those accounts' `sync_baseline` rows.
+- Auth is an OAuth2 resource server only (`AUTH_ISSUER_URI`,
+  `AUTH_AUDIENCE`); users are `user_identity (issuer, subject)` →
+  `app_user`. Errors are RFC 9457 problem details with a `kind` matching
+  time-core's `Error`.
 - After an API change: `./gradlew openApi`, then `pnpm generate:api` and
-  `pnpm exec tsc -b` in `apps/shared/client`.
-  `OpenApiDocumentTest` fails while the committed document is stale.
-- Instant updates: `ChangeTrackingFilter` (`features/changes/web/`) has
-  `ChangeService` bump the user's `data_version` after every successful write
-  and publish a `ChangeEvent` (topic = first path segment) on Postgres
-  `LISTEN/NOTIFY` (`features/realtime/service/RealtimeBus.kt`); each instance
-  forwards it to that user's websockets at `/api/v1/realtime`
-  (`features/realtime/websocket/`), opened with a one-time ticket from
-  `POST /api/v1/realtime/tickets`. Events carry no data, only "refetch".
-  A Push with an applied mutation does the same (topic `sync`), so REST
-  clients refresh on device writes.
-- Reminders on web and mobile are push (`features/notifications`):
-  `job/ReminderJob.kt` runs every 20 s, one sender across instances via
-  `pg_try_advisory_xact_lock`, and fires each timed task once per date and
-  time through `reminded_for` (as desktop does) to every `push_device` through
-  the senders in `push/` (Expo or Web Push/VAPID). Web uses `public/sw.js` and
-  `Platform.notifications`; mobile `src/core/notifications/`.
-- Account-wide preferences are one JSON object (`features/preferences`,
-  `PATCH` merges, `null` removes a key).
-
-## Web and mobile
-
-- Web (`apps/web/`) is `mount()` from `apps/shared/ui` with
-  `createLocalBackend` over time-core in WASM (`apps/web/engine`), a browser
-  `Platform` and OIDC sign-in (`apps/shared/client/src/sign-in/web.ts`). Config is `VITE_*` at
-  build time or `config.js` at container start; the store URL comes with each
-  sync token. Details in `apps/web/README.md`.
-- Each tab starts a dedicated worker (`src/engine/worker/`). The worker that
-  holds the Web Lock `skkil-time-engine` opens the database on OPFS (SAH-pool
-  VFS, no COOP/COEP needed) and runs `@skkil/store-client`'s driver
-  (`SyncRunner`, `noopLock`); the others relay calls over the
-  BroadcastChannel of the same name, and a closed owner hands over to the
-  next worker (reads retried, writes fail with "try again"). The page talks
-  to its worker through `src/engine/client.ts` (`EngineClient.call(method,
-  …args)`, errors as `{ kind, message }`).
-- `@skkil/store-client` is linked by path from the store checkout
-  (`link:../../../store/modules/client-ts`, built there); the Docker image
-  builds it and the wasm from `--build-context store=…`.
-- `Platform.sync` on web (`platform/web-sync.ts`) binds the engine to the
-  account's scope (`/api/v1/me` `scopeId`, through `@skkil-time/client/sync`), asks
-  before touching another account's data, and maps the worker's
-  `SyncState` to Settings → Sync. Signing out syncs, confirms before
-  dropping unsynced changes and calls `forget`. Whoever signed in last can
-  open the app offline (`WebAuth.lastSession`).
-- Pulled changes and other tabs' writes reach the app as `onRemoteChange`
-  topic `sync`; the realtime socket stays only for account preferences.
-  `mount` sets TanStack Query's `networkMode: 'always'` on platforms with
-  `sync`, so nothing pauses offline.
-- `public/sw.js` keeps the app shell for offline starts (the build's
-  `shell-files.json`, `index.html`, `config.js`). Browsers without OPFS fall
-  back to the remote backend (`app/start-remote.tsx`).
-- `Platform.onRemoteChange` and `Platform.preferences` are optional ports.
-  `SHARED_KEYS` in `lib/preferences.ts` decides which preferences follow the
-  account; the rest stay on the device.
-- Web's `src/` is `app/` (bootstrap, local and remote starts, config),
-  `auth/`, `engine/` (worker RPC and the worker), `platform/` (the browser
-  `Platform`: files, device commands, sync, sign-out, connection, live
-  updates, account preferences) and `notifications/`; `main.tsx` only
-  starts the app.
-- Mobile (`apps/mobile/`) is Expo Router. It mirrors desktop's semantics:
-  Day, Week and Projects behind a floating pill (`features/shell/`), each
-  page on the sky (`ui/Sky.tsx`, dark only, Hanken Grotesk), and the task,
-  Quick Add, focus, habits and earlier-days views as glass windows
-  (`ui/Window.tsx`, transparent-modal routes). It shares `rules`, `tokens`,
-  `contract`, `api`, `local` and `sync`, not DOM components. `app/` holds routes
-  only; screens, components and hooks live in `src/features/<name>/`,
-  services in `src/core/`, shared UI in `src/ui/` (see its README).
-  `pnpm compile`, `pnpm test` and `npx expo export` check it.
-  Screens pass `aside={<TaskAside />}` to `Screen` to show the task beside
-  the list on screens 768pt or wider (`ui/responsive.ts`).
-- Mobile works offline: `commands` (`src/core/local/backend.ts`) is
-  `createLocalBackend` over `@skkil-time/core-native`, opened on
-  `<documents>/time.db` (`src/core/local/replica.ts`). The engine runs on its
-  own Rust thread: commands and account steps are async, store's
-  `CoreHandle` calls are synchronous (the driver's contract). The `api`
-  client is only for what the server alone does: sync tokens, `/me`, account
-  deletion, preferences, push devices.
-- Mobile sync (`src/core/sync/`) runs `@skkil/store-client` (linked from
-  `../store` at `STORE_VERSION`) with `expo/fetch` for the Pokes stream.
-  `controller.ts` binds the replica to the account (scope, sync tokens and
-  push headers from `@skkil-time/client/sync`, signing out when the server refuses
-  the sign-in), asks Keep this data / Use the account's data when it holds
-  another account's rows, and pushes soon after every local write. `use-sync.ts` starts it while signed
-  in, restarts it on foreground and reconnect and pauses it in the
-  background; pulls refresh the queries. Signing out in Settings forgets the
-  replica; an expired sign-in keeps it. Settings → Sync shows pending
-  changes, last sync, Sync now and refused changes.
-- `apps/mobile/native`: `pnpm build:android` (cargo-ndk, NDK 30, arm64-v8a and
-  x86_64) builds the static libraries into `android/src/main/jniLibs` and
-  regenerates the committed bindings (`src/native`, `cpp`, `android`, `ios`,
-  `CoreNative.podspec`); `pnpm build:ios` needs macOS, `pnpm check:ios`
-  type-checks the iOS targets on Linux. Build the libraries before
-  `expo prebuild` / `expo run:*`.
+  `pnpm exec tsc -b` in `apps/shared/client`. `OpenApiDocumentTest` fails
+  while the committed document is stale.
+- Every write bumps the user's `data_version` and publishes a change event
+  over Postgres `LISTEN/NOTIFY` to the user's websockets at
+  `/api/v1/realtime`; events only say "refetch".
+- Web and mobile reminders are push (`features/notifications`,
+  `ReminderJob` every 20 s, Expo or Web Push). Account-wide preferences are
+  one JSON object (`features/preferences`, `PATCH` merges).

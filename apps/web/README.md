@@ -75,8 +75,8 @@ sync token, so the web app needs no setting for it; the store service must
 allow the web origin (`STORE_ALLOWED_ORIGINS`), as must the server
 (`CORS_ALLOWED_ORIGINS`).
 
-In the container (`docker build -f web/Dockerfile --build-context
-store=../store .` from `apps/`), `API_URL`, `AUTH_AUTHORITY`,
+In the container (`docker build -f apps/web/Dockerfile --build-context
+store=../store .` from the repo root), `API_URL`, `AUTH_AUTHORITY`,
 `AUTH_CLIENT_ID` and `AUTH_AUDIENCE` are written to `config.js` at start,
 so one image serves every environment. The image builds the WASM engine
 and store's client from the store checkout.

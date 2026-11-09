@@ -6,8 +6,8 @@ import java.util.UUID
 /**
  * Ids of rows identified by something other than their id: `UuidV5(scope, "<table>/<key parts joined by />")`, with
  * uuids in lowercase canonical form and dates as `yyyy-MM-dd`. Two devices that create the same row offline name it
- * the same, so an upsert by natural key never makes a second row. The names are listed in
- * `docs/decisions/0001-sync-with-store.md` ("Natural keys"), which the desktop follows exactly.
+ * the same, so an upsert by natural key never makes a second row. Devices build the same names in time-core, and
+ * `natural-keys.json` in `apps/shared/client/src/types` holds the vectors both sides test against.
  */
 object NaturalIds {
     fun setting(scope: UUID, key: String): UUID = of(scope, "setting", key)

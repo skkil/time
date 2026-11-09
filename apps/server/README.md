@@ -138,14 +138,13 @@ ordered by the old id, and gave the composite-key tables an `id` too). `app_user
   backup being restored (`features/data/service/LocalImportService`, tables in `LOCAL_TABLES`). It keeps the
   device's ids, re-keys natural-key rows for the scope, refuses another account's ids and references, and merges a
   row into the account's row with the same natural key (a group's name, a quarter's start, an external id). The
-  decision record's "First sign-in" spells out the rules.
+  root `AGENTS.md` ("First sign-in" under "Sync") sums up the rules.
 - **Natural keys.** Rows identified by a natural key (upserts of setting, project canvas, week, day, task dependency,
   record phase, running timer, habit log, user preference, and the rituals) take `NaturalIds` (`common/id/`):
   `UuidV5(scopeId, "<table>/<key parts joined by />")`, such as `week/2026-11-02`, and draw no id. Two devices
   creating the same week offline make one row. `NaturalIdsTest` checks them against
-  `apps/shared/client/src/types/natural-keys.json`, as the desktop does. The full list is the "Natural keys" section of
-  `docs/decisions/0001-sync-with-store.md`; migration `V15` re-keyed existing rows (and would carry any foreign key
-  to them along).
+  `apps/shared/client/src/types/natural-keys.json`, as the desktop does. The full list is "Natural keys" under "Sync"
+  in the root `AGENTS.md`; migration `V15` re-keyed existing rows (and would carry any foreign key to them along).
 - **Seeded rows.** Rows the app creates on its own take their natural-key id: the default rituals are
   `ritual/<kind>` (`morning`, `evening`, `wind_down`, `session`, `weekly`). The server seeds them once, as a server
   write, when the account is created (and again after Delete all data or a restore); a device seeding before its
@@ -155,7 +154,7 @@ ordered by the old id, and gave the composite-key tables an `id` too). `app_user
 
 ## Sync through store
 
-Contract: store's `docs/protocol.md`; mapping: `docs/decisions/0001-sync-with-store.md`.
+The contract is `docs/protocol.md` in the store repo; how time maps onto it is "Sync" in the root `AGENTS.md`.
 
 - **SQL.** `V9__store_v1.sql`, `V10__store_v2.sql`, `V14__store_v3.sql` and `V16__store_v4.sql` are store's migrations byte for byte under
   a header naming the tag each was copied at (`StoreMigrationsTest` compares them with the checkout and checks no tag

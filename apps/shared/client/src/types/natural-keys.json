@@ -1,5 +1,5 @@
 {
-  "$comment": "Natural-key ids (docs/decisions/0001-sync-with-store.md, \"Natural keys\"): UuidV5(scope, name), name = the table, then each key part, joined by /. Read by the Rust (time-core env) and Kotlin (NaturalIdsTest) tests, so devices and the server name these rows alike. Ids come from Python uuid.uuid5.",
+  "$comment": "Natural-key ids for rows identified by something other than their id (see Natural keys in AGENTS.md): UuidV5(scope, name), name = the table, then each key part, joined by /. Read by the Rust (time-core env) and Kotlin (NaturalIdsTest) tests, so devices and the server name these rows alike. Ids come from Python uuid.uuid5.",
   "vectors": [
     {
       "kind": "setting",
