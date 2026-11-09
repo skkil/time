@@ -1,11 +1,12 @@
-import { RefreshCwIcon, XIcon } from 'lucide-react';
+import { describeSignInError } from '@skkil-time/domain/sync-messages';
+import { RefreshCwIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { SettingRow } from '@/features/settings/SettingRow';
 import { AccountChoiceDialog } from '@/features/sync/AccountChoiceDialog';
+import { SyncIssues } from '@/features/sync/SyncIssues';
 import { SyncServerSettings } from '@/features/sync/SyncServerSettings';
 import {
-  useDismissIssue,
   useSignIn,
   useSignOut,
   useSyncIssues,
@@ -14,9 +15,7 @@ import {
 } from '@/features/sync/api';
 import {
   accountLabel,
-  ago,
   canSyncNow,
-  describeIssue,
   describeStatus,
   isSignedIn,
 } from '@/features/sync/view';
@@ -24,19 +23,12 @@ import { useNow } from '@/hooks/use-now';
 import { cn } from '@/lib/utils';
 import { platform } from '@/platform';
 
-const TONES = {
-  calm: 'text-muted-foreground',
-  busy: 'text-muted-foreground',
-  warn: 'text-amber-700 dark:text-amber-400',
-};
-
 export function SyncSettings() {
   const { data: status } = useSyncStatus();
   const { data: issues = [] } = useSyncIssues();
   const syncNow = useSyncNow();
   const signIn = useSignIn();
   const signOut = useSignOut();
-  const dismiss = useDismissIssue();
   const now = useNow(30_000) * 1000;
   if (!status) return null;
 
@@ -90,11 +82,15 @@ export function SyncSettings() {
         </SettingRow>
       )}
       {signIn.isError && (
-        <p className="border-b py-3 text-xs text-destructive">
+        <p className="border-b py-3 text-xs text-amber-700 dark:text-amber-400">
           {signInError(signIn.error)}
         </p>
       )}
-      <SettingRow label={line.label} description={line.detail}>
+      <SettingRow
+        label={line.label}
+        description={line.detail}
+        hint={status.error ?? undefined}
+      >
         {signedIn && (
           <Button
             variant="outline"
@@ -109,44 +105,10 @@ export function SyncSettings() {
           </Button>
         )}
       </SettingRow>
-      {status.error && line.tone === 'warn' && (
-        <p className={cn('border-b py-2 text-xs', TONES.warn)}>
-          {status.error}
-        </p>
+      <SyncIssues issues={issues} now={now} />
+      {platform().sync?.config && (
+        <SyncServerSettings disabled={signedIn} error={status.error} />
       )}
-      {issues.length > 0 && (
-        <section className="border-b py-3">
-          <h3 className="text-sm font-medium">Couldn’t apply</h3>
-          <p className="text-xs text-muted-foreground">
-            The server refused these changes, so they were undone here.
-          </p>
-          <ul className="mt-2 grid gap-1.5">
-            {issues.map((issue) => (
-              <li
-                key={issue.id}
-                className="flex items-start justify-between gap-3 rounded-md bg-muted/50 px-3 py-2"
-              >
-                <div className="grid gap-0.5">
-                  <span className="text-sm">{describeIssue(issue)}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {issue.reason} · {ago(issue.createdAt, now)}
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label="Dismiss"
-                  disabled={dismiss.isPending}
-                  onClick={() => dismiss.mutate(issue.id)}
-                >
-                  <XIcon />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      {platform().sync?.config && <SyncServerSettings disabled={signedIn} />}
       <AccountChoiceDialog
         open={status.phase === 'needsChoice'}
         account={account}
@@ -157,6 +119,6 @@ export function SyncSettings() {
 
 function signInError(error: unknown) {
   if (error && typeof error === 'object' && 'message' in error)
-    return String(error.message);
+    return describeSignInError(String(error.message));
   return 'Couldn’t sign in. Try again.';
 }

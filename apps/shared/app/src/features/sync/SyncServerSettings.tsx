@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { Disclosure } from '@/components/Disclosure';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSaveSyncConfig, useSyncConfig } from '@/features/sync/api';
@@ -12,8 +13,14 @@ const FIELDS: { key: keyof SyncConfig; label: string }[] = [
   { key: 'audience', label: 'Audience' },
 ];
 
-/** Where this computer syncs; only for self-hosted servers. */
-export function SyncServerSettings({ disabled }: { disabled: boolean }) {
+/** Where this computer syncs, only for self-hosted servers, and the last error in full. */
+export function SyncServerSettings({
+  disabled,
+  error,
+}: {
+  disabled: boolean;
+  error: string | null;
+}) {
   const { data: saved } = useSyncConfig();
   const save = useSaveSyncConfig();
   const [draft, setDraft] = useState<SyncConfig | null>(null);
@@ -21,11 +28,13 @@ export function SyncServerSettings({ disabled }: { disabled: boolean }) {
   if (!config) return null;
 
   return (
-    <details className="py-3 text-sm">
-      <summary className="cursor-pointer text-xs text-muted-foreground">
-        Server
-      </summary>
+    <Disclosure summary="Server" className="py-3 text-sm">
       <div className="mt-3 grid gap-2">
+        {error && (
+          <p className="text-xs break-words text-muted-foreground">
+            Last error: <code className="font-mono">{error}</code>
+          </p>
+        )}
         {FIELDS.map(({ key, label }) => (
           <label key={key} className="grid gap-1 text-xs text-muted-foreground">
             {label}
@@ -56,6 +65,6 @@ export function SyncServerSettings({ disabled }: { disabled: boolean }) {
           </Button>
         </div>
       </div>
-    </details>
+    </Disclosure>
   );
 }

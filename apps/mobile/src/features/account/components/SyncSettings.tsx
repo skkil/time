@@ -1,6 +1,11 @@
+import {
+  DISMISS_UPLOAD,
+  describeSyncError,
+  isUpload,
+} from '@skkil-time/domain/sync-messages';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { sync } from '@/core/sync/sync';
 import { useSyncView } from '@/core/sync/use-sync';
@@ -60,7 +65,23 @@ function Issues({ count }: { count: number }) {
     mutationFn: (id: number) => sync.dismissIssue(id),
     onSettled: () => client.invalidateQueries({ queryKey: ['sync-issues'] }),
   });
+  const retry = useMutation({
+    mutationFn: (id: number) => sync.retryIssue(id),
+    onSettled: () => client.invalidateQueries({ queryKey: ['sync-issues'] }),
+  });
   if (count === 0 || issues.length === 0) return null;
+
+  const confirmDismiss = (issue: (typeof issues)[number]) => {
+    if (!isUpload(issue)) return dismiss.mutate(issue.id);
+    Alert.alert(DISMISS_UPLOAD.title, DISMISS_UPLOAD.message, [
+      { text: DISMISS_UPLOAD.cancel, style: 'cancel' },
+      {
+        text: DISMISS_UPLOAD.confirm,
+        style: 'destructive',
+        onPress: () => dismiss.mutate(issue.id),
+      },
+    ]);
+  };
 
   return (
     <Group title="Couldn’t sync" held>
@@ -85,9 +106,14 @@ function Issues({ count }: { count: number }) {
             </Text>
           </View>
           <TextButton
+            label="Try again"
+            disabled={retry.isPending}
+            onPress={() => retry.mutate(issue.id)}
+          />
+          <TextButton
             label="Dismiss"
             disabled={dismiss.isPending}
-            onPress={() => dismiss.mutate(issue.id)}
+            onPress={() => confirmDismiss(issue)}
           />
         </View>
       ))}
@@ -115,7 +141,7 @@ export function SyncSettings() {
             </Text>
             {syncNow.isError && view.error && (
               <Text style={[type.small, { color: theme.destructive }]}>
-                {view.error}
+                {describeSyncError(view.error)?.title}
               </Text>
             )}
           </View>

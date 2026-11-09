@@ -6,10 +6,13 @@ export function SettingRow({
   label,
   description,
   device = false,
+  hint,
   children,
 }: {
   label: string;
   description?: string;
+  /** Extra detail shown as a tooltip on the label. */
+  hint?: string;
   /** Kept on this device even when other settings follow the account. */
   device?: boolean;
   children: ReactNode;
@@ -17,7 +20,7 @@ export function SettingRow({
   const shared = platform().preferences !== undefined;
   return (
     <div className="flex flex-col items-start gap-3 border-b py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-      <div className="grid gap-0.5">
+      <div className="grid gap-0.5" title={hint}>
         <span className="flex items-center gap-2 text-sm font-medium">
           {label}
           {device && shared && (

@@ -60,6 +60,14 @@ export const useSignIn = () => useRefreshingMutation(() => sync().signIn());
 export const useSignOut = () => useRefreshingMutation(() => sync().signOut());
 export const useDismissIssue = () =>
   useRefreshingMutation((id: number) => sync().dismissIssue(id));
+/** Sends a refused change again; its rows come back, so every query refetches. */
+export function useRetryIssue() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => sync().retryIssue(id),
+    onSettled: () => client.invalidateQueries(),
+  });
+}
 export const useChooseAccountData = () =>
   useRefreshingMutation((choice: AccountChoice) =>
     sync().chooseAccountData(choice),

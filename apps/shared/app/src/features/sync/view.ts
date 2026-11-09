@@ -1,3 +1,9 @@
+import {
+  SYNC_PROBLEM_COPY,
+  describeSyncError,
+  isUpload,
+} from '@skkil-time/domain/sync-messages';
+
 import type { SyncIssue, SyncStatus } from '@/platform';
 
 const MINUTE = 60_000;
@@ -53,15 +59,15 @@ export function describeStatus(status: SyncStatus, now: number): StatusLine {
         detail: waiting,
         tone: 'calm',
       };
-    case 'offline':
+    case 'offline': {
+      const problem =
+        describeSyncError(status.error) ?? SYNC_PROBLEM_COPY.offline;
       return {
-        label: 'Can’t reach the server',
-        detail: [
-          waiting ?? 'Your changes are kept on this device',
-          'retrying soon',
-        ].join(', '),
+        label: problem.title,
+        detail: waiting ? `${waiting}, retrying soon` : problem.detail,
         tone: 'warn',
       };
+    }
     case 'needsSignIn':
       return {
         label: 'Sign in again to keep syncing',
@@ -89,6 +95,7 @@ export function changeName(name: string) {
 }
 
 export function describeIssue(issue: SyncIssue) {
+  if (isUpload(issue)) return 'Your data from before you signed in';
   const title = changeName(issue.name);
   return issue.subject ? `${title}: ${issue.subject}` : title;
 }

@@ -66,10 +66,29 @@ describe('describeStatus', () => {
       NOW,
     );
     expect(offline.tone).toBe('warn');
+    expect(offline.label).toBe('Can’t reach the server');
     expect(offline.detail).toBe('2 changes waiting to sync, retrying soon');
     expect(describeStatus(status({ phase: 'needsSignIn' }), NOW).label).toBe(
       'Sign in again to keep syncing',
     );
+  });
+
+  it('names why sync stopped without the technical detail', () => {
+    const refused = describeStatus(
+      status({
+        phase: 'offline',
+        error: 'transport: io: Connection refused (os error 111)',
+      }),
+      NOW,
+    );
+    expect(refused.label).toBe('Can’t reach the server');
+    expect(refused.detail).not.toMatch(/os error/);
+    expect(
+      describeStatus(
+        status({ phase: 'offline', error: 'HTTP 503 unavailable' }),
+        NOW,
+      ).label,
+    ).toBe('The server ran into a problem');
   });
 
   it('reassures a desktop that never signed in', () => {
@@ -125,5 +144,14 @@ describe('issues', () => {
         createdAt: 0,
       }),
     ).toBe('Delete all data');
+    expect(
+      describeIssue({
+        id: 3,
+        name: 'importLocal',
+        subject: null,
+        reason: 'x',
+        createdAt: 0,
+      }),
+    ).toBe('Your data from before you signed in');
   });
 });
