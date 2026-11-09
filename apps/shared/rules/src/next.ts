@@ -1,5 +1,5 @@
 import type { DateKey } from '#time';
-import type { Task } from '@skkil-time/contract';
+import type { Task } from '@skkil-time/client/types';
 
 const isActionable = (task: Task) =>
   task.completedAt === null &&

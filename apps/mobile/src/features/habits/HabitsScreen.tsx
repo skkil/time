@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import type { Habit, HabitDay } from '@skkil-time/contract';
+import type { Habit, HabitDay } from '@skkil-time/client/types';
 import { todayKey } from '@skkil-time/rules/time';
 import * as Haptics from 'expo-haptics';
 import { useMemo } from 'react';

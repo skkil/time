@@ -1,4 +1,4 @@
-import type { Id, Project, TimeEntry } from '@skkil-time/contract';
+import type { Id, Project, TimeEntry } from '@skkil-time/client/types';
 import {
   dayStart,
   formatClockTime,

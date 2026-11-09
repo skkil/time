@@ -1,4 +1,4 @@
-import type { Id } from '@skkil-time/contract';
+import type { Id } from '@skkil-time/client/types';
 import { useQuery } from '@tanstack/react-query';
 
 import { keys } from '@/core/api/query-client';

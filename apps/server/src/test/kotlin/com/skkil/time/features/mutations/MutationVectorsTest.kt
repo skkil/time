@@ -15,13 +15,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * Replays `apps/shared/contract/src/mutation-vectors.json`, which the desktop's `time-core` replays too: the same
+ * Replays `apps/shared/client/src/types/mutation-vectors.json`, which the desktop's `time-core` replays too: the same
  * mutations with the same clock and ids must leave the same rows on both sides.
  */
 class MutationVectorsTest : TaskApiTest() {
     @Autowired lateinit var mutations: MutationDispatcher
 
-    private val vectors by lazy { mapper.readTree(File("../shared/contract/src/mutation-vectors.json")) }
+    private val vectors by lazy { mapper.readTree(File("../shared/client/src/types/mutation-vectors.json")) }
 
     private fun row(table: String, id: UUID): Map<String, Any?>? =
         jdbc

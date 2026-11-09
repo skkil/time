@@ -1,4 +1,4 @@
-import { unwrap } from '@skkil-time/api';
+import { unwrap } from '@skkil-time/client/server';
 
 import { api, auth } from '@/core/api/client';
 import { queryClient } from '@/core/api/query-client';

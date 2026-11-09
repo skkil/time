@@ -1,4 +1,4 @@
-import type { Session } from '@skkil-time/auth';
+import type { Session } from '@skkil-time/client/sign-in';
 import { type ReactNode, createContext, use, useEffect, useState } from 'react';
 
 import { auth } from '@/core/api/client';

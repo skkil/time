@@ -1,4 +1,4 @@
-import { type Api, unwrap } from '@skkil-time/api';
+import { type Api, unwrap } from '@skkil-time/client/server';
 
 import type { SharedPreferences } from '@/platform';
 

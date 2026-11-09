@@ -1,4 +1,4 @@
-import type { DeviceCommands } from '@skkil-time/local';
+import type { DeviceCommands } from '@skkil-time/client/local';
 import type { EngineClient } from '~/engine/client';
 import { browserFiles } from '~/platform/files';
 

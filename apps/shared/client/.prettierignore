@@ -1,0 +1,4 @@
+dist
+build
+src/types/bindings.ts
+src/server/openapi.json

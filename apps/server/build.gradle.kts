@@ -62,11 +62,11 @@ spotless {
     }
 }
 
-val openApiFile = rootProject.layout.projectDirectory.file("../shared/api/openapi.json")
+val openApiFile = rootProject.layout.projectDirectory.file("../shared/client/src/server/openapi.json")
 val storeDir = gradle.extra["storeDir"] as String
 val sharedFixtures =
     files(
-        rootProject.layout.projectDirectory.dir("../shared/contract/src"),
+        rootProject.layout.projectDirectory.dir("../shared/client/src/types"),
         rootProject.layout.projectDirectory.file("../shared/rules/src/quick-add/repeat-phrases.json"),
     )
 
@@ -82,7 +82,7 @@ tasks.withType<Test> {
 }
 
 tasks.register<Test>("openApi") {
-    description = "Writes the OpenAPI document to apps/shared/api/openapi.json."
+    description = "Writes the OpenAPI document to apps/shared/client/src/server/openapi.json."
     group = "documentation"
     testClassesDirs = sourceSets.test.get().output.classesDirs
     classpath = sourceSets.test.get().runtimeClasspath

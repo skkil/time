@@ -1,4 +1,4 @@
-import type { DeviceCommands } from '@skkil-time/local';
+import type { DeviceCommands } from '@skkil-time/client/local';
 
 /**
  * Commands that touch only the device. A phone has no database file to

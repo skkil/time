@@ -1,5 +1,5 @@
 import initWasm, { TimeCore } from '@skkil-time/core-wasm';
-import { createSyncAccount } from '@skkil-time/sync';
+import { createSyncAccount } from '@skkil-time/client/sync';
 import { createEngineHost } from '~/engine/worker/engine-host';
 import type { OpenOptions } from '~/engine/worker/router';
 import { SyncRunner } from '~/engine/worker/sync-runner';

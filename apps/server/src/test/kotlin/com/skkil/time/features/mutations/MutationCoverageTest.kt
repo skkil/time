@@ -24,12 +24,12 @@ import kotlin.test.assertTrue
  * a new one is classified here first.
  */
 class MutationCoverageTest {
-    private val classified = JsonMapper.builder().build().readTree(File("../shared/contract/src/commands.json"))
+    private val classified = JsonMapper.builder().build().readTree(File("../shared/client/src/types/commands.json"))
 
     private fun names(kind: String): Set<String> = classified[kind].values().map { it.asString() }.toSet()
 
     private val parameters: Map<String, List<String>> =
-        File("../shared/contract/src/bindings.ts")
+        File("../shared/client/src/types/bindings.ts")
             .readLines()
             .mapNotNull { COMMAND.find(it) }
             .associate { match ->

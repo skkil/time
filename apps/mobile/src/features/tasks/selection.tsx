@@ -1,4 +1,4 @@
-import type { Id } from '@skkil-time/contract';
+import type { Id } from '@skkil-time/client/types';
 import { type ReactNode, createContext, use, useMemo, useState } from 'react';
 
 type Selection = {

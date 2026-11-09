@@ -1,5 +1,5 @@
 //! Every contract command, by name, in exactly one of three lists, as
-//! `apps/shared/contract/src/commands.json` classifies it, plus the
+//! `apps/shared/client/src/types/commands.json` classifies it, plus the
 //! mutations only sync sends.
 
 /// Write commands. Each is applied by [`super::apply`] and syncs through

@@ -46,7 +46,7 @@ class NaturalIdsTest : TaskApiTest() {
 
     @Test
     fun `match the shared vectors the desktop checks too`() {
-        val vectors = mapper.readTree(File("../shared/contract/src/natural-keys.json"))["vectors"].values()
+        val vectors = mapper.readTree(File("../shared/client/src/types/natural-keys.json"))["vectors"].values()
         val kinds = mutableSetOf<String>()
         for (vector in vectors) {
             val kind = vector["kind"].asString()

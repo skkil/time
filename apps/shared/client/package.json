@@ -1,0 +1,45 @@
+{
+  "name": "@skkil-time/client",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Everything an app needs to talk to time-core and the server: the generated types, the server API and HTTP Backend, the local Backend, sync glue and sign-in",
+  "exports": {
+    "./types": "./src/types/bindings.ts",
+    "./server": "./src/server/index.ts",
+    "./server/schema": "./src/server/schema.ts",
+    "./server/realtime": "./src/server/realtime.ts",
+    "./local": "./src/local/index.ts",
+    "./sync": "./src/sync/index.ts",
+    "./sign-in": "./src/sign-in/index.ts",
+    "./sign-in/web": "./src/sign-in/web.ts"
+  },
+  "imports": {
+    "#*": "./src/*.ts"
+  },
+  "scripts": {
+    "generate": "pnpm generate:api && pnpm generate:catalog",
+    "generate:api": "openapi-typescript src/server/openapi.json --output src/server/schema.ts --root-types --root-types-no-schema-prefix && prettier --write src/server/schema.ts",
+    "generate:catalog": "node scripts/generate-catalog.mjs && prettier --write src/local/catalog.ts",
+    "check:generated": "pnpm generate && git diff --exit-code -- src/server/schema.ts src/local/catalog.ts",
+    "lint": "eslint .",
+    "compile": "tsc -b",
+    "test": "vitest run",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "oidc-client-ts": "^3.5.0",
+    "openapi-fetch": "^0.17.0"
+  },
+  "devDependencies": {
+    "@skkil-time/config": "workspace:*",
+    "eslint": "^10.14.0",
+    "openapi-typescript": "^7.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.5"
+  },
+  "prettier": "@skkil-time/config/prettier"
+}

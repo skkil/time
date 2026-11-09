@@ -1,4 +1,4 @@
-import type { Engine } from '@skkil-time/local';
+import type { Engine } from '@skkil-time/client/local';
 
 /**
  * An engine usable before the replica has opened: every call waits for

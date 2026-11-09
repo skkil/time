@@ -1,5 +1,5 @@
 import { type DateKey, dateKeyOf, dayStart, shiftKey } from '#time';
-import type { Project, Task, TimeBlock } from '@skkil-time/contract';
+import type { Project, Task, TimeBlock } from '@skkil-time/client/types';
 
 export type DayPlan = {
   blocks: TimeBlock[];

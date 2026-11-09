@@ -1,4 +1,4 @@
-import { createApi } from '@skkil-time/api';
+import { createApi } from '@skkil-time/client/server';
 
 import { createNativeAuth } from '@/core/auth/native-auth';
 import { config } from '@/core/config';

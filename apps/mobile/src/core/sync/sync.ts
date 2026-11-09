@@ -2,7 +2,7 @@ import {
   type SyncAccount,
   createSyncAccount,
   isUnauthorized,
-} from '@skkil-time/sync';
+} from '@skkil-time/client/sync';
 import { createSyncDriver } from '@skkil/store-client';
 import { fetch as streamingFetch } from 'expo/fetch';
 

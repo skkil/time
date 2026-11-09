@@ -3,7 +3,7 @@ import {
   type AuthConfig,
   DEFAULT_SCOPE,
   type Session,
-} from '@skkil-time/auth';
+} from '@skkil-time/client/sign-in';
 import {
   AuthRequest,
   type DiscoveryDocument,

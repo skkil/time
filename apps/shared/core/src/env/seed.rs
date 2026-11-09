@@ -64,7 +64,8 @@ mod tests {
     #[test]
     fn match_the_shared_vectors_the_server_checks_too() {
         let file: serde_json::Value =
-            serde_json::from_str(include_str!("../../../contract/src/natural-keys.json")).unwrap();
+            serde_json::from_str(include_str!("../../../client/src/types/natural-keys.json"))
+                .unwrap();
         let mut kinds = std::collections::BTreeSet::new();
         for vector in file["vectors"].as_array().unwrap() {
             let text = |field: &str| vector[field].as_str().unwrap();

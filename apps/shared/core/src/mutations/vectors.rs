@@ -1,4 +1,4 @@
-//! Replays `apps/shared/contract/src/mutation-vectors.json`, which the
+//! Replays `apps/shared/client/src/types/mutation-vectors.json`, which the
 //! server's `MutationVectorsTest` replays too: the same mutations with the
 //! same clock and ids must leave the same rows on both sides.
 
@@ -16,7 +16,7 @@ use crate::db::Db;
 use crate::env::MutationEnv;
 use crate::types::Id;
 
-const VECTORS: &str = include_str!("../../../contract/src/mutation-vectors.json");
+const VECTORS: &str = include_str!("../../../client/src/types/mutation-vectors.json");
 
 struct Step {
     now: DateTime<FixedOffset>,

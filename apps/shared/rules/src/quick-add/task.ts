@@ -1,5 +1,5 @@
 import type { Parsed } from '#quick-add/types';
-import type { TaskInput } from '@skkil-time/contract';
+import type { TaskInput } from '@skkil-time/client/types';
 
 /** Applies what Quick Add understood on top of the task the user started from. */
 export const taskFromParsed = (

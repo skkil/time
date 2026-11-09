@@ -1,5 +1,5 @@
 import { nextUp } from '#next';
-import type { Id, Task } from '@skkil-time/contract';
+import type { Id, Task } from '@skkil-time/client/types';
 import { describe, expect, it } from 'vitest';
 
 const TODAY = '2026-11-07';

@@ -1,8 +1,8 @@
-import { createApi, unwrap } from '@skkil-time/api';
-import type { Session } from '@skkil-time/auth';
-import type { WebAuth } from '@skkil-time/auth/web';
-import { createLocalBackend } from '@skkil-time/local';
-import { createSyncAccount } from '@skkil-time/sync';
+import { createLocalBackend } from '@skkil-time/client/local';
+import { createApi, unwrap } from '@skkil-time/client/server';
+import type { Session } from '@skkil-time/client/sign-in';
+import type { WebAuth } from '@skkil-time/client/sign-in/web';
+import { createSyncAccount } from '@skkil-time/client/sync';
 import { config } from '~/app/config';
 import { type StartedEngine, localEngine } from '~/engine/start';
 import { setUpWebPush } from '~/notifications/web-push';

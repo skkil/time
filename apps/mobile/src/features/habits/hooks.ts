@@ -1,4 +1,4 @@
-import type { Id, ManualStatus } from '@skkil-time/contract';
+import type { Id, ManualStatus } from '@skkil-time/client/types';
 import type { DateKey } from '@skkil-time/rules/time';
 import { useMutation, useQuery } from '@tanstack/react-query';
 

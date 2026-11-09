@@ -1,5 +1,5 @@
 import { focusedSeconds, liveEntry } from '#timer';
-import type { RunningTimer } from '@skkil-time/contract';
+import type { RunningTimer } from '@skkil-time/client/types';
 import { describe, expect, it } from 'vitest';
 
 const timer = (patch: Partial<RunningTimer> = {}): RunningTimer => ({

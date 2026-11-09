@@ -1,4 +1,4 @@
-import { createLocalBackend } from '@skkil-time/local';
+import { createLocalBackend } from '@skkil-time/client/local';
 
 import { deferredEngine } from '@/core/local/deferred-engine';
 import { deviceCommands } from '@/core/local/device-commands';

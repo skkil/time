@@ -1,4 +1,4 @@
-import type { Id } from '@skkil-time/contract';
+import type { Id } from '@skkil-time/client/types';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 

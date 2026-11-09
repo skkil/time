@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import type { RunningTimer, Task } from '@skkil-time/contract';
+import type { RunningTimer, Task } from '@skkil-time/client/types';
 import { planDay } from '@skkil-time/rules/day';
 import {
   formatClockTime,

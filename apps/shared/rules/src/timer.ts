@@ -1,4 +1,4 @@
-import type { RunningTimer, TimeEntry } from '@skkil-time/contract';
+import type { RunningTimer, TimeEntry } from '@skkil-time/client/types';
 
 /** The id of the entry that stands in for a running timer. */
 export const LIVE_ENTRY_ID = 'live';

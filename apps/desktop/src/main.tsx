@@ -1,4 +1,4 @@
-import { commands } from '@skkil-time/contract';
+import { commands } from '@skkil-time/client/types';
 
 import { mount } from '@/mount';
 

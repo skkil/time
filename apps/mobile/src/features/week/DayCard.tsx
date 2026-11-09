@@ -4,7 +4,7 @@ import type {
   Project,
   Task,
   TimeBlock,
-} from '@skkil-time/contract';
+} from '@skkil-time/client/types';
 import {
   type DateKey,
   formatClockTime,

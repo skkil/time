@@ -21,7 +21,7 @@ use commands::{
 #[cfg(any(debug_assertions, test))]
 const BINDINGS_PATH: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../../shared/contract/src/bindings.ts"
+    "/../../shared/client/src/types/bindings.ts"
 );
 #[cfg(any(debug_assertions, test))]
 const PLATFORM_BINDINGS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../src/bindings.ts");

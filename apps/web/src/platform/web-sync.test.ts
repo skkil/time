@@ -1,4 +1,4 @@
-import { type SyncAccount, SyncApiError } from '@skkil-time/sync';
+import { type SyncAccount, SyncApiError } from '@skkil-time/client/sync';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EngineClient } from '~/engine/client';
 import type { EngineEvent, SyncState } from '~/engine/protocol';

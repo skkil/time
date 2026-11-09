@@ -1,4 +1,4 @@
-import type { RealtimeStatus } from '@skkil-time/api/realtime';
+import type { RealtimeStatus } from '@skkil-time/client/server/realtime';
 
 import type { ConnectionStatus } from '@/platform';
 

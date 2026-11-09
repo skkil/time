@@ -1,4 +1,4 @@
-import type { Session } from '@skkil-time/auth';
+import type { Session } from '@skkil-time/client/sign-in';
 import { onOpenTask } from '~/notifications/web-push';
 
 import type {

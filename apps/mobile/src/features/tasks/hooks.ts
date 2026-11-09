@@ -1,4 +1,4 @@
-import type { Id, TaskInput } from '@skkil-time/contract';
+import type { Id, TaskInput } from '@skkil-time/client/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { keys } from '@/core/api/query-client';

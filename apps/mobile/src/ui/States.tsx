@@ -1,4 +1,4 @@
-import { isApiError } from '@skkil-time/api';
+import { isApiError } from '@skkil-time/client/server';
 import type { ReactNode } from 'react';
 import {
   ActivityIndicator,

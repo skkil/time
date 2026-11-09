@@ -1,6 +1,6 @@
-import type { Api } from '@skkil-time/api';
-import { connectRealtime } from '@skkil-time/api/realtime';
-import type { RealtimeStatus } from '@skkil-time/api/realtime';
+import type { Api } from '@skkil-time/client/server';
+import { connectRealtime } from '@skkil-time/client/server/realtime';
+import type { RealtimeStatus } from '@skkil-time/client/server/realtime';
 
 import type { RemoteChange } from '@/platform';
 

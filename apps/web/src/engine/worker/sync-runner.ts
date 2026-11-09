@@ -3,7 +3,7 @@ import {
   type SyncGrant,
   isUnauthorized,
   syncTokens,
-} from '@skkil-time/sync';
+} from '@skkil-time/client/sync';
 import {
   type SyncDriver,
   type SyncDriverOptions,

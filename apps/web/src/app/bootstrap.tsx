@@ -1,4 +1,4 @@
-import { createWebAuth } from '@skkil-time/auth/web';
+import { createWebAuth } from '@skkil-time/client/sign-in/web';
 import { createRoot } from 'react-dom/client';
 import { config } from '~/app/config';
 import { startLocal } from '~/app/start-local';

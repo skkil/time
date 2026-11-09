@@ -1,5 +1,5 @@
 import { type DateKey, formatMinutesOfDay, fromDateKey, todayKey } from '#time';
-import type { Task } from '@skkil-time/contract';
+import type { Task } from '@skkil-time/client/types';
 import { differenceInCalendarDays, format } from 'date-fns';
 
 export const PRIORITIES = [1, 2, 3, 4] as const;

@@ -14,14 +14,9 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@skkil-time/api": "workspace:*",
+    "@skkil-time/client": "workspace:*",
     "@skkil-time/ui": "workspace:*",
-    "@skkil-time/auth": "workspace:*",
-    "@skkil-time/contract": "workspace:*",
     "@skkil-time/core-wasm": "workspace:*",
-    "@skkil-time/local": "workspace:*",
-    "@skkil-time/remote": "workspace:*",
-    "@skkil-time/sync": "workspace:*",
     "@skkil/store-client": "link:../../../store/modules/client-ts",
     "lucide-react": "^1.70.0",
     "react": "^19.1.0",

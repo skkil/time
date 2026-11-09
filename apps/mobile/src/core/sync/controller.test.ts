@@ -1,5 +1,5 @@
+import type { SyncGrant } from '@skkil-time/client/sync';
 import type { Binding, NativeCore, SyncState } from '@skkil-time/core-native';
-import type { SyncGrant } from '@skkil-time/sync';
 import type {
   SyncDriver,
   SyncDriverOptions,

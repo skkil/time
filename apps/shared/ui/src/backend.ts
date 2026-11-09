@@ -1,6 +1,6 @@
-import type { commands as contract } from '@skkil-time/contract';
+import type { commands as contract } from '@skkil-time/client/types';
 
-export type * from '@skkil-time/contract';
+export type * from '@skkil-time/client/types';
 
 export type Backend = typeof contract;
 

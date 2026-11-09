@@ -1,4 +1,4 @@
-import type { Id, Task, TaskInput } from '@skkil-time/contract';
+import type { Id, Task, TaskInput } from '@skkil-time/client/types';
 import { PRIORITIES, formatDue } from '@skkil-time/rules/due';
 import { parseDatePhrase } from '@skkil-time/rules/quick-add/dates';
 import { todayKey } from '@skkil-time/rules/time';

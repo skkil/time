@@ -1,4 +1,4 @@
-import type { Engine } from '@skkil-time/local';
+import type { Engine } from '@skkil-time/client/local';
 import { type EngineClient, connectEngine } from '~/engine/client';
 import type { HostApi } from '~/engine/protocol';
 

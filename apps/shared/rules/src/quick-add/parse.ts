@@ -1,5 +1,5 @@
 import { shiftKey } from '#time';
-import type { Id } from '@skkil-time/contract';
+import type { Id } from '@skkil-time/client/types';
 
 import { DATE_PATTERN, parseDatePhrase } from './dates';
 import { DURATION_PATTERN, parseDuration } from './durations';

@@ -1,5 +1,5 @@
+import { type SyncAccount, syncTokens } from '@skkil-time/client/sync';
 import type { NativeCore, SyncIssue } from '@skkil-time/core-native';
-import { type SyncAccount, syncTokens } from '@skkil-time/sync';
 import type { SyncDriver, SyncDriverOptions } from '@skkil/store-client';
 
 /** What the Sync settings and the offline notice show. */

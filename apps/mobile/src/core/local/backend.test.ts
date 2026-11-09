@@ -1,4 +1,4 @@
-import { type Engine, createLocalBackend } from '@skkil-time/local';
+import { type Engine, createLocalBackend } from '@skkil-time/client/local';
 import { describe, expect, it, vi } from 'vitest';
 
 import { deferredEngine } from '@/core/local/deferred-engine';

@@ -1,7 +1,7 @@
-import { createApi, unwrap } from '@skkil-time/api';
-import type { Session } from '@skkil-time/auth';
-import type { WebAuth } from '@skkil-time/auth/web';
-import { createRemoteBackend } from '@skkil-time/remote';
+import { createApi, unwrap } from '@skkil-time/client/server';
+import { createRemoteBackend } from '@skkil-time/client/server';
+import type { Session } from '@skkil-time/client/sign-in';
+import type { WebAuth } from '@skkil-time/client/sign-in/web';
 import { toast } from 'sonner';
 import { config } from '~/app/config';
 import { setUpWebPush } from '~/notifications/web-push';

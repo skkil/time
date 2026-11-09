@@ -1,4 +1,4 @@
-import type { SyncReport } from '@skkil-time/contract';
+import type { SyncReport } from '@skkil-time/client/types';
 
 export type Arguments = Record<string, unknown>;
 

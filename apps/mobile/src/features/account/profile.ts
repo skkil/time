@@ -1,4 +1,4 @@
-import { unwrap } from '@skkil-time/api';
+import { unwrap } from '@skkil-time/client/server';
 import { useQuery } from '@tanstack/react-query';
 
 import { api } from '@/core/api/client';

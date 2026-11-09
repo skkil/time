@@ -1,4 +1,4 @@
-import type { Task } from '@skkil-time/contract';
+import type { Task } from '@skkil-time/client/types';
 import { formatDate } from '@skkil-time/rules/due';
 import { nextUp } from '@skkil-time/rules/next';
 import {

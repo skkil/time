@@ -8,7 +8,7 @@ import java.io.File
 import kotlin.test.assertEquals
 
 /**
- * Keeps apps/shared/api/openapi.json in step with the server. `./gradlew openApi` rewrites it;
+ * Keeps apps/shared/client/src/server/openapi.json in step with the server. `./gradlew openApi` rewrites it;
  * every other test run fails when the committed file is stale.
  */
 class OpenApiDocumentTest : ApiTest() {

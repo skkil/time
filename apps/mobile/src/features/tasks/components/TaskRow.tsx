@@ -1,4 +1,4 @@
-import type { Project, Task } from '@skkil-time/contract';
+import type { Project, Task } from '@skkil-time/client/types';
 import { formatDue, isOverdue } from '@skkil-time/rules/due';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';

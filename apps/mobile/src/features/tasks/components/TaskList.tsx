@@ -1,4 +1,4 @@
-import type { Id, Project, Task } from '@skkil-time/contract';
+import type { Id, Project, Task } from '@skkil-time/client/types';
 
 import { TaskRow } from '@/features/tasks/components/TaskRow';
 import { Group } from '@/ui/Group';

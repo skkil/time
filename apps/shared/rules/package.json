@@ -18,7 +18,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@skkil-time/contract": "workspace:*",
+    "@skkil-time/client": "workspace:*",
     "date-fns": "^4.4.0"
   },
   "devDependencies": {

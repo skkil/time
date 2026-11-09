@@ -1,4 +1,4 @@
-import type { ImportFile } from '@skkil-time/contract';
+import type { ImportFile } from '@skkil-time/client/types';
 
 const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
 

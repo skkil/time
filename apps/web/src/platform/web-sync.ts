@@ -1,5 +1,5 @@
-import type { Session } from '@skkil-time/auth';
-import { type SyncAccount, isUnauthorized } from '@skkil-time/sync';
+import type { Session } from '@skkil-time/client/sign-in';
+import { type SyncAccount, isUnauthorized } from '@skkil-time/client/sync';
 import type { EngineClient } from '~/engine/client';
 import type { SyncState } from '~/engine/protocol';
 

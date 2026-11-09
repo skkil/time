@@ -1,4 +1,4 @@
-import type { SyncReport } from '@skkil-time/contract';
+import type { SyncReport } from '@skkil-time/client/types';
 import type { CoreHandle, PullApplied } from '@skkil/store-client';
 import type { CoreStatus, EngineIssue, SignIn } from '~/engine/protocol';
 

@@ -1,4 +1,4 @@
-import type { Engine } from '@skkil-time/local';
+import type { Engine } from '@skkil-time/client/local';
 import type { CoreHandle } from '@skkil/store-client';
 
 import { guard, guardAsync } from './errors';
