@@ -6,4 +6,5 @@ data class DeviceInput(
     val p256dh: String? = null,
     val auth: String? = null,
     val label: String? = null,
+    val scheduling: String? = null,
 )

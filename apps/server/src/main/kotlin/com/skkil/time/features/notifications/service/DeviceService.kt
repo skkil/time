@@ -45,16 +45,20 @@ class DeviceService(private val jdbc: JdbcClient, private val clock: MutationClo
             } else {
                 null to null
             }
+        val scheduling = input.scheduling ?: REMOTE
+        ensure(scheduling == REMOTE || (scheduling == LOCAL && input.kind == EXPO)) {
+            "Only phones can schedule reminders themselves."
+        }
         val now = clock.now().epochSecond
         val id =
             jdbc
                 .sql(
                     """
-                    INSERT INTO push_device (user_id, kind, token, p256dh, auth, label, created_at, last_seen_at)
-                    VALUES (:user, :kind, :token, :p256dh, :auth, :label, :now, :now)
+                    INSERT INTO push_device (user_id, kind, token, p256dh, auth, label, scheduling, created_at, last_seen_at)
+                    VALUES (:user, :kind, :token, :p256dh, :auth, :label, :scheduling, :now, :now)
                     ON CONFLICT (kind, token) DO UPDATE SET
                       user_id = excluded.user_id, p256dh = excluded.p256dh, auth = excluded.auth,
-                      label = excluded.label, last_seen_at = excluded.last_seen_at
+                      label = excluded.label, scheduling = excluded.scheduling, last_seen_at = excluded.last_seen_at
                     RETURNING id
                     """,
                 ).param("user", user)
@@ -63,6 +67,7 @@ class DeviceService(private val jdbc: JdbcClient, private val clock: MutationClo
                 .param("p256dh", keys.first)
                 .param("auth", keys.second)
                 .param("label", optionalText(input.label ?: "", "Device label", MAX_LABEL))
+                .param("scheduling", scheduling)
                 .param("now", now)
                 .query(Long::class.java)
                 .single()
@@ -81,7 +86,9 @@ class DeviceService(private val jdbc: JdbcClient, private val clock: MutationClo
 
     fun targets(users: Collection<Long>): Map<Long, List<PushTarget>> =
         jdbc
-            .sql("SELECT id, user_id, kind, token, p256dh, auth FROM push_device WHERE user_id IN (:users)")
+            .sql(
+                "SELECT id, user_id, kind, token, p256dh, auth FROM push_device WHERE user_id IN (:users) AND scheduling = 'remote'",
+            )
             .param("users", users)
             .query { rs, _ ->
                 rs.getLong("user_id") to
@@ -104,5 +111,7 @@ class DeviceService(private val jdbc: JdbcClient, private val clock: MutationClo
         const val MAX_TOKEN = 2048
         const val MAX_KEY = 256
         const val MAX_LABEL = 200
+        const val REMOTE = "remote"
+        const val LOCAL = "local"
     }
 }

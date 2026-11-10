@@ -142,6 +142,30 @@ class NotificationTest : TaskApiTest() {
     }
 
     @Test
+    fun `leaves phones that schedule their own reminders alone`() {
+        val now = Instant.now()
+        val phone =
+            postJson(
+                "/api/v1/notifications/devices",
+                DeviceInput(EXPO, "ExponentPushToken[local]", label = "Phone", scheduling = "local"),
+            )["id"].asLong()
+        val id = timed("Call", localNow(now))
+        job.run(now)
+        assertTrue(sent(expo).none { it.target.id == phone })
+        assertTrue(id !in pushedTasks())
+
+        val tablet = register()
+        job.run(now)
+        assertEquals(listOf(tablet), sent(expo).filter { it.push.taskId == id }.map { it.target.id })
+    }
+
+    @Test
+    fun `only phones schedule reminders themselves`() {
+        post("/api/v1/notifications/devices", DeviceInput(WEB, "https://push", "k", "a", scheduling = "local"))
+            .andExpect { status { isEqualTo(422) } }
+    }
+
+    @Test
     fun `forgets devices the push service dropped`() {
         val now = Instant.now()
         val gone = register()

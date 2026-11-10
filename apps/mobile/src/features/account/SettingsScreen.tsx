@@ -1,3 +1,4 @@
+import type { NotificationPrefs } from '@skkil-time/client/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
@@ -9,8 +10,9 @@ import { commands } from '@/core/local/backend';
 import {
   disableReminders,
   enableReminders,
-  remindersAllowed,
+  remindersOn,
 } from '@/core/notifications/reminders';
+import { reschedule } from '@/core/notifications/schedule';
 import { useSyncView } from '@/core/sync/use-sync';
 import { SyncSettings } from '@/features/account/components/SyncSettings';
 import { useDisplayName } from '@/features/account/profile';
@@ -20,14 +22,67 @@ import { Button } from '@/ui/States';
 import { spacing, type, useTheme } from '@/ui/theme';
 
 const REMINDERS_KEY = ['reminders'];
+const PREFS_KEY = ['reminders', 'kinds'];
+
+const KINDS = [
+  {
+    key: 'tasks',
+    label: 'Tasks with a time',
+    hint: 'When a task reaches its time.',
+  },
+  {
+    key: 'blocks',
+    label: 'Focus blocks',
+    hint: 'When a planned focus block starts.',
+  },
+  {
+    key: 'events',
+    label: 'Events',
+    hint: '10 minutes before an event starts.',
+  },
+] as const;
+
+function SettingSwitch({
+  label,
+  hint,
+  value,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  value: boolean;
+  disabled: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  const theme = useTheme();
+  return (
+    <View style={[styles.row, styles.setting]}>
+      <View style={styles.label}>
+        <Text style={[type.body, { color: theme.foreground }]}>{label}</Text>
+        <Text style={[type.small, { color: theme['muted-foreground'] }]}>
+          {hint}
+        </Text>
+      </View>
+      <Switch
+        accessibilityLabel={label}
+        value={value}
+        disabled={disabled}
+        onValueChange={onChange}
+      />
+    </View>
+  );
+}
 
 function Reminders() {
-  const theme = useTheme();
   const client = useQueryClient();
   const { data: on } = useQuery({
     queryKey: REMINDERS_KEY,
-    queryFn: async () =>
-      (await commands.getRemindersEnabled()) && (await remindersAllowed()),
+    queryFn: remindersOn,
+  });
+  const { data: prefs } = useQuery({
+    queryKey: PREFS_KEY,
+    queryFn: commands.getNotificationPrefs,
   });
   const toggle = useMutation({
     mutationFn: async (next: boolean) => {
@@ -39,32 +94,49 @@ function Reminders() {
         return false;
       }
       if (!next) await disableReminders();
-      await commands.setRemindersEnabled(next);
       return next;
     },
-    onSuccess: (next) => client.setQueryData(REMINDERS_KEY, next),
+    onSuccess: (next) => {
+      client.setQueryData(REMINDERS_KEY, next);
+      void client.invalidateQueries({ queryKey: PREFS_KEY });
+    },
     onError: () =>
       Alert.alert(
         'Couldn’t change reminders',
         'Nothing was changed. Try again.',
       ),
   });
+  const choose = useMutation({
+    mutationFn: async (next: NotificationPrefs) => {
+      await commands.setNotificationPrefs(next);
+      await reschedule();
+      return next;
+    },
+    onSuccess: (next) => client.setQueryData(PREFS_KEY, next),
+  });
 
   return (
-    <View style={[styles.row, styles.setting]}>
-      <View style={styles.label}>
-        <Text style={[type.body, { color: theme.foreground }]}>Reminders</Text>
-        <Text style={[type.small, { color: theme['muted-foreground'] }]}>
-          Notifies you when a task reaches its time.
-        </Text>
-      </View>
-      <Switch
-        accessibilityLabel="Reminders"
+    <>
+      <SettingSwitch
+        label="Reminders"
+        hint="Notifies this phone about timed tasks, focus blocks and events, even offline."
         value={on ?? false}
         disabled={toggle.isPending}
-        onValueChange={(next) => toggle.mutate(next)}
+        onChange={(next) => toggle.mutate(next)}
       />
-    </View>
+      {on &&
+        prefs &&
+        KINDS.map((kind) => (
+          <SettingSwitch
+            key={kind.key}
+            label={kind.label}
+            hint={kind.hint}
+            value={prefs[kind.key]}
+            disabled={choose.isPending}
+            onChange={(next) => choose.mutate({ ...prefs, [kind.key]: next })}
+          />
+        ))}
+    </>
   );
 }
 

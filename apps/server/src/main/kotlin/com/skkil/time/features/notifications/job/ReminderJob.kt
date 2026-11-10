@@ -89,7 +89,7 @@ class ReminderJob(
             .sql(
                 """
                 SELECT DISTINCT u.time_zone FROM app_user u
-                WHERE EXISTS (SELECT 1 FROM push_device d WHERE d.user_id = u.id)
+                WHERE EXISTS (SELECT 1 FROM push_device d WHERE d.user_id = u.id AND d.scheduling = 'remote')
                 """,
             ).query { rs, _ -> rs.getString("time_zone") }
             .list()
@@ -112,7 +112,7 @@ class ReminderJob(
                   AND NOT t.someday
                   AND COALESCE(it.kind, 'task') = 'task'
                   AND t.reminded_for IS DISTINCT FROM to_char(t.due_date, 'YYYY-MM-DD') || ' ' || t.due_time
-                  AND EXISTS (SELECT 1 FROM push_device d WHERE d.user_id = t.user_id)
+                  AND EXISTS (SELECT 1 FROM push_device d WHERE d.user_id = t.user_id AND d.scheduling = 'remote')
                   AND NOT EXISTS (
                     SELECT 1 FROM setting s
                     WHERE s.user_id = t.user_id AND s.key = 'reminders_enabled' AND s.value = 'off'

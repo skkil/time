@@ -2597,6 +2597,7 @@ export interface components {
       p256dh: string | null;
       auth: string | null;
       label: string | null;
+      scheduling: string | null;
     };
     DeviceId: {
       /** Format: int64 */

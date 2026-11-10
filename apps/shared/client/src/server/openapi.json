@@ -5872,9 +5872,12 @@
           },
           "label" : {
             "type" : [ "string", "null" ]
+          },
+          "scheduling" : {
+            "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "auth", "kind", "label", "p256dh", "token" ]
+        "required" : [ "auth", "kind", "label", "p256dh", "scheduling", "token" ]
       },
       "DeviceId" : {
         "type" : "object",
