@@ -1,6 +1,6 @@
 # Planning overhaul: moving overdue work, a simpler project page, the plan in view, Google Calendar
 
-Status: A, B, C, D and F built; E in progress (see Build status) · Written 2026-11-10 · Owner of decisions: the user
+Status: A–D, E1 and F built; E2 not started (see Build status) · Written 2026-11-10 · Owner of decisions: the user
 
 **Bottom line.** Six workstreams:
 - **A.** Overdue work moves to a new day, week or Someday without guilt, and
@@ -36,6 +36,7 @@ Built and on `main`, with core, desktop, server and TypeScript tests green:
 | C2 mobile scheduling | `f66cec0` | local schedule, actions, per-device switches, `scheduling = 'local'` |
 | D1 tray and menu bar | `7c936df`, `3b8b19c` | `todayGlance` read; tray menu; keep-in-tray switch |
 | D2 widgets | `07ec496`…`91886af` | Today (small, medium) and Quick add, Android and iOS |
+| E1 Google Calendar (read-only) | `4199ce1`…`cbf62eb`, `b2278ee` | server OAuth and sync job, synced `calendar_source`/`calendar_event`, Day, Week, Settings → Calendars, mobile Day and Week |
 | F weekly checkout | `b0b0977`…`cca8845`, `a85f393` | `review_day` setting, `weekToClose`, offer on Day and Week |
 
 Deviations from the plan, decided while building:
@@ -67,13 +68,25 @@ Deviations from the plan, decided while building:
   writes, synced changes and foreground. Android was verified on an emulator; the
   iOS target has never been compiled (needs a Mac, `ios.appleTeamId` and the App
   Group registered).
+- **E1.** Migrations `024_calendar.sql` and `V23__calendar.sql`. Event ids are
+  `calendar_event/<sourceId>/<eventId>` without the original start: with
+  `singleEvents=true` an instance id already carries it, and keying by start
+  would change ids when an event moves. Calendar rows stay out of backups,
+  `importLocal` and `deleteAllData`; a core trigger refuses device writes to
+  `calendar_event`. The sync job is a virtual-thread loop, not `@Scheduled`.
+  The `dev` profile defaults to `CALENDAR_PROVIDER=fake`. Not built: connecting
+  from mobile (connect on desktop or web), the empty-Week connect offer,
+  multi-day all-day bars, and calendar events in reminders and widgets.
+  **Release gate:** Google verification of the sensitive read scopes; until
+  then only test users can connect.
 - **F.** `dueRitual` returns `{ ritual, week }` instead of a `weekly` flag.
   Rituals never open by themselves, so the morning offer is a line on Day and
   Week ("Close week N? · Close it · Not now"), not a step in the morning ritual.
   Mobile shows a note instead of the review steps. Custom weekly weekdays were
   not carried into `review_day`.
 
-Still open: mobile has no undo; the morning ritual "Fresh start" question
+Still open: E2 (mirroring focus blocks to Google) is not started and waits on
+Google verification; mobile has no undo; the morning ritual "Fresh start" question
 (open question 2) is undecided, so it is not built.
 
 ## 0. Why (evidence)
