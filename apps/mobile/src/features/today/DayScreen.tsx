@@ -27,6 +27,7 @@ import { SpaceControls } from '@/features/shell/SpaceControls';
 import { TaskAside } from '@/features/tasks/components/TaskAside';
 import { useTasks } from '@/features/tasks/hooks';
 import { AnyTime } from '@/features/today/AnyTime';
+import { CloseWeek } from '@/features/today/CloseWeek';
 import { DayThread, type Moment } from '@/features/today/DayThread';
 import { useBlocks, useEvents } from '@/features/week/hooks';
 import { Screen } from '@/ui/Screen';
@@ -176,6 +177,7 @@ export function DayScreen() {
                   </Text>
                 </Pressable>
               )}
+              <CloseWeek />
             </View>
             <DayThread
               moments={moments}
