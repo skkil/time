@@ -1,6 +1,6 @@
 # Planning overhaul: moving overdue work, a simpler project page, the plan in view, Google Calendar
 
-Status: A, B, C, D1 and F built; D2 and E in progress (see Build status) · Written 2026-11-10 · Owner of decisions: the user
+Status: A, B, C, D and F built; E in progress (see Build status) · Written 2026-11-10 · Owner of decisions: the user
 
 **Bottom line.** Six workstreams:
 - **A.** Overdue work moves to a new day, week or Someday without guilt, and
@@ -35,6 +35,7 @@ Built and on `main`, with core, desktop, server and TypeScript tests green:
 | C1/C3 shared reminders | `90d2dbd`, `a830206`, `d11de86` | `listReminders` in core and server; desktop uses it, catches up after a restart; server pushes blocks and events too |
 | C2 mobile scheduling | `f66cec0` | local schedule, actions, per-device switches, `scheduling = 'local'` |
 | D1 tray and menu bar | `7c936df`, `3b8b19c` | `todayGlance` read; tray menu; keep-in-tray switch |
+| D2 widgets | `07ec496`…`91886af` | Today (small, medium) and Quick add, Android and iOS |
 | F weekly checkout | `b0b0977`…`cca8845`, `a85f393` | `review_day` setting, `weekToClose`, offer on Day and Week |
 
 Deviations from the plan, decided while building:
@@ -59,6 +60,13 @@ Deviations from the plan, decided while building:
   have no tray host; on macOS and Windows it starts on. The setting is a
   desktop platform command, outside the shared contract. Live tray behaviour is
   untested: no tray host on the dev machine and no Mac.
+- **D2.** No Android widget library: the providers live in a local Expo module
+  (`apps/mobile/modules/widgets`) that reads `glance.json`, so no JS runs in the
+  widget. iOS uses `@bacons/apple-targets` for a SwiftUI WidgetKit target. The
+  app publishes a timeline snapshot (one entry per change until midnight) after
+  writes, synced changes and foreground. Android was verified on an emulator; the
+  iOS target has never been compiled (needs a Mac, `ios.appleTeamId` and the App
+  Group registered).
 - **F.** `dueRitual` returns `{ ritual, week }` instead of a `weekly` flag.
   Rituals never open by themselves, so the morning offer is a line on Day and
   Week ("Close week N? · Close it · Not now"), not a step in the morning ritual.
