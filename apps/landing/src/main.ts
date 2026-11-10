@@ -22,29 +22,21 @@ for (const slot of document.querySelectorAll('[data-logo]'))
 for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-app]'))
   link.href = appUrl;
 
-const scrub = document.querySelector<HTMLInputElement>('#hour')!;
-const scrubLabel = document.querySelector<HTMLOutputElement>('#hour-label')!;
 const clock = document.querySelector<HTMLElement>('#clock-time')!;
 const phase = document.querySelector<HTMLElement>('#clock-phase')!;
 const sections = [...document.querySelectorAll<HTMLElement>('[data-hour]')];
 
-const localHour = () => {
-  const now = new Date();
-  return now.getHours() + now.getMinutes() / 60;
-};
-
-let heroHour = localHour();
-let moved = false;
-let shown = heroHour;
-let target = heroHour;
+let shown = 0;
+let target = 0;
 
 const anchors = (): Anchor[] => {
   const middle = innerHeight / 2;
   return sections.map((section) => {
     const box = section.getBoundingClientRect();
-    const hour =
-      section.dataset.hour === 'now' ? heroHour : Number(section.dataset.hour);
-    return { at: box.top + box.height / 2 - middle, hour };
+    return {
+      at: box.top + box.height / 2 - middle,
+      hour: Number(section.dataset.hour),
+    };
   });
 };
 
@@ -75,29 +67,9 @@ const settle = () => {
   requestAnimationFrame(follow);
 };
 
-const syncScrub = () => {
-  scrub.value = String(Math.round(heroHour * 4) / 4);
-  scrubLabel.textContent = clockLabel(heroHour);
-};
-
-scrub.addEventListener('input', () => {
-  moved = true;
-  heroHour = Number(scrub.value);
-  scrubLabel.textContent = clockLabel(heroHour);
-  settle();
-});
-
-setInterval(() => {
-  if (moved) return;
-  heroHour = localHour();
-  syncScrub();
-  settle();
-}, 60_000);
-
 addEventListener('scroll', settle, { passive: true });
 addEventListener('resize', settle);
 
-syncScrub();
 retarget();
 show(target);
 
