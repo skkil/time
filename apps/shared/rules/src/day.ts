@@ -1,3 +1,4 @@
+import { dueEnd, inWindow } from '#due';
 import { type DateKey, dateKeyOf, dayStart, shiftKey } from '#time';
 import type { Project, Task, TimeBlock } from '@skkil-time/client/types';
 
@@ -5,6 +6,7 @@ export type DayPlan = {
   blocks: TimeBlock[];
   musts: Task[];
   due: Task[];
+  thisWeek: Task[];
   earlier: Task[];
   doneToday: Task[];
   nextActions: { project: Project; task: Task }[];
@@ -16,15 +18,17 @@ export const isOpenWork = (task: Task) =>
 
 export function earlierTasks(tasks: Task[], date: DateKey) {
   return tasks
-    .filter(
-      (task) =>
+    .filter((task) => {
+      const end = dueEnd(task);
+      return (
         isOpenWork(task) &&
         task.statusCategory !== 'backlog' &&
-        task.dueDate !== null &&
-        task.dueDate < date &&
-        task.mustOn !== date,
-    )
-    .sort((a, b) => a.dueDate!.localeCompare(b.dueDate!));
+        end !== null &&
+        end < date &&
+        task.mustOn !== date
+      );
+    })
+    .sort((a, b) => dueEnd(a)!.localeCompare(dueEnd(b)!));
 }
 
 export function nextActions(projects: Project[], tasks: Task[]) {
@@ -46,7 +50,7 @@ export function nextActions(projects: Project[], tasks: Task[]) {
     });
 }
 
-/** What a day holds: blocked time, musts, work due, leftovers, what got done and what could come next. */
+/** What a day holds: blocked time, musts, work due, this week's open window, leftovers, what got done and what could come next. */
 export function planDay(
   date: DateKey,
   tasks: Task[],
@@ -74,20 +78,32 @@ export function planDay(
     (task) =>
       isOpenWork(task) &&
       task.dueDate === date &&
+      task.dueUntil === null &&
       task.mustOn !== date &&
       !blocked.has(task.id),
   );
-  const earlier = earlierTasks(all, date);
+  const thisWeek = all.filter(
+    (task) =>
+      isOpenWork(task) &&
+      inWindow(task, date) &&
+      task.mustOn !== date &&
+      !blocked.has(task.id),
+  );
+  const earlier = earlierTasks(all, date).filter(
+    (task) => !blocked.has(task.id),
+  );
   const shown = new Set([
     ...blocked,
     ...musts.map((task) => task.id),
     ...due.map((task) => task.id),
+    ...thisWeek.map((task) => task.id),
     ...earlier.map((task) => task.id),
   ]);
   return {
     blocks,
     musts,
     due,
+    thisWeek,
     earlier,
     doneToday: all.filter(
       (task) =>
