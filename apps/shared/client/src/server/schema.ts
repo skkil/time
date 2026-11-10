@@ -2598,6 +2598,7 @@ export interface components {
       auth: string | null;
       label: string | null;
       scheduling: string | null;
+      kinds: string[] | null;
     };
     DeviceId: {
       /** Format: int64 */

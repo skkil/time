@@ -1,4 +1,9 @@
 import { type Api, unwrap } from '@skkil-time/client/server';
+import {
+  onPrefsChange,
+  readPrefs,
+  reminderKinds,
+} from '~/platform/notification-prefs';
 
 import type { Id } from '@/backend';
 import type { Notifications } from '@/platform';
@@ -88,6 +93,8 @@ export async function setUpWebPush(api: Api): Promise<Notifications | null> {
           p256dh: keys?.p256dh ?? null,
           auth: keys?.auth ?? null,
           label: browserLabel(),
+          scheduling: 'remote',
+          kinds: reminderKinds(readPrefs()),
         },
       }),
     );
@@ -96,6 +103,12 @@ export async function setUpWebPush(api: Api): Promise<Notifications | null> {
   const existing =
     Notification.permission === 'granted' ? await subscription() : null;
   if (existing) void register(existing).catch(() => undefined);
+  onPrefsChange(() => {
+    if (Notification.permission !== 'granted') return;
+    void subscription()
+      .then((current) => current && register(current))
+      .catch(() => undefined);
+  });
 
   return {
     async isEnabled() {

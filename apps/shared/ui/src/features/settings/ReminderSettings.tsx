@@ -66,7 +66,7 @@ export function ReminderSettings() {
           Couldn’t change reminders. Try again.
         </p>
       )}
-      {!notifications && <ReminderKinds disabled={enabled === false} />}
+      <ReminderKinds disabled={enabled === false} />
     </div>
   );
 }

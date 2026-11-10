@@ -48,6 +48,7 @@ const register = (token: string) =>
         auth: null,
         label: Device.deviceName ?? Device.modelName ?? Platform.OS,
         scheduling: 'local',
+        kinds: null,
       },
     }),
   );

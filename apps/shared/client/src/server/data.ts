@@ -35,6 +35,7 @@ const writeNotificationPrefs = (prefs: NotificationPrefs) => {
   } catch {
     return null;
   }
+  globalThis.dispatchEvent?.(new Event(PREFS_KEY));
   return null;
 };
 

@@ -160,6 +160,34 @@ class NotificationTest : TaskApiTest() {
     }
 
     @Test
+    fun `pushes focus blocks once to devices that want them`() {
+        val now = Instant.now()
+        val start = now.epochSecond / 60 * 60
+        val all = register()
+        val tasksOnly =
+            postJson(
+                "/api/v1/notifications/devices",
+                DeviceInput(EXPO, "ExponentPushToken[tasks]", label = "Tablet", kinds = listOf("task")),
+            )["id"].asLong()
+        val write = create(input("Write")).id()
+        postJson("/api/v1/tasks/$write/blocks", BlockSpan(start, start + 3600))
+
+        job.run(now)
+        job.run(now.plusSeconds(20))
+
+        val pushes = sent(expo).filter { it.push.taskId == write }
+        assertEquals(listOf(all), pushes.map { it.target.id })
+        assertTrue(pushes.single().push.body.startsWith("Focus block at "))
+        assertTrue(sent(expo).none { it.target.id == tasksOnly })
+    }
+
+    @Test
+    fun `refuses unknown reminder kinds`() {
+        post("/api/v1/notifications/devices", DeviceInput(EXPO, "ExponentPushToken[x]", kinds = listOf("habit")))
+            .andExpect { status { isEqualTo(422) } }
+    }
+
+    @Test
     fun `only phones schedule reminders themselves`() {
         post("/api/v1/notifications/devices", DeviceInput(WEB, "https://push", "k", "a", scheduling = "local"))
             .andExpect { status { isEqualTo(422) } }

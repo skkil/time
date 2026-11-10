@@ -2,10 +2,15 @@ package com.skkil.time.features.notifications.job
 
 import com.skkil.time.common.clock.MutationClock
 import com.skkil.time.common.persistence.uuid
+import com.skkil.time.common.web.Caller
+import com.skkil.time.features.notifications.domain.NotificationPrefs
 import com.skkil.time.features.notifications.domain.Push
 import com.skkil.time.features.notifications.domain.PushMessage
+import com.skkil.time.features.notifications.domain.Reminder
+import com.skkil.time.features.notifications.domain.ReminderKind
 import com.skkil.time.features.notifications.push.PushSender
 import com.skkil.time.features.notifications.service.DeviceService
+import com.skkil.time.features.notifications.service.ReminderService
 import com.skkil.time.features.sync.service.ServerWrites
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.simple.JdbcClient
@@ -17,6 +22,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -35,6 +41,7 @@ class ReminderJob(
     private val jdbc: JdbcClient,
     private val devices: DeviceService,
     private val senders: List<PushSender>,
+    private val reminders: ReminderService,
     private val clock: MutationClock,
     private val writes: ServerWrites,
     transactions: PlatformTransactionManager,
@@ -55,20 +62,18 @@ class ReminderJob(
                     .param("key", REMINDER_LOCK_KEY)
                     .query(Boolean::class.java)
                     .single()
-            if (locked) fire(now) else null
+            if (locked) fire(now) + fireTimed(now) else null
         }
 
     private fun fire(now: Instant): Int {
         val due = zones().flatMap { due(it, now) }.take(MAX_PER_RUN)
         if (due.isEmpty()) return 0
         val targets = devices.targets(due.map { it.user }.toSet())
-        val messages = due.flatMap { task -> targets[task.user].orEmpty().map { PushMessage(it, task.push) } }
-        val gone =
-            senders.flatMap { sender ->
-                val mine = messages.filter { it.target.kind == sender.kind }
-                if (mine.isEmpty()) emptySet() else sender.send(mine)
+        val messages =
+            due.flatMap { task ->
+                targets[task.user].orEmpty().filter { TASK in it.kinds }.map { PushMessage(it, task.push) }
             }
-        devices.forget(gone)
+        send(messages)
         due.groupBy { it.scope }.forEach { (scope, tasks) ->
             writes.run(scope) {
                 tasks.forEach { task ->
@@ -82,6 +87,77 @@ class ReminderJob(
             }
         }
         return due.size
+    }
+
+    private fun send(messages: List<PushMessage>) {
+        if (messages.isEmpty()) return
+        val gone =
+            senders.flatMap { sender ->
+                val mine = messages.filter { it.target.kind == sender.kind }
+                if (mine.isEmpty()) emptySet() else sender.send(mine)
+            }
+        devices.forget(gone)
+    }
+
+    /**
+     * Focus blocks as they start and events ahead of time, by `ReminderService`'s rules, each sent once
+     * (remembered in `reminder_sent`) to the devices that asked for its kind.
+     */
+    private fun fireTimed(now: Instant): Int {
+        val since = now.epochSecond - GRACE_MINUTES * 60
+        jdbc.sql("DELETE FROM reminder_sent WHERE sent_at < :old").param("old", since - SENT_KEPT_SECONDS).update()
+        val owners =
+            jdbc
+                .sql(
+                    """
+                    SELECT u.id, u.scope_id, u.time_zone FROM app_user u
+                    WHERE EXISTS (
+                      SELECT 1 FROM push_device d WHERE d.user_id = u.id AND d.scheduling = 'remote'
+                        AND (d.kinds LIKE '%block%' OR d.kinds LIKE '%event%')
+                    )
+                    """,
+                ).query { rs, _ ->
+                    Caller(
+                        rs.getLong("id"),
+                        rs.uuid("scope_id"),
+                        runCatching { ZoneId.of(rs.getString("time_zone")) }.getOrDefault(UTC),
+                        MutationClock.fixed(now),
+                    )
+                }.list()
+        if (owners.isEmpty()) return 0
+        val targets = devices.targets(owners.map { it.id }.toSet())
+        val prefs = NotificationPrefs(on = true, tasks = false, blocks = true, events = true)
+        val messages =
+            owners.flatMap { owner ->
+                reminders
+                    .upcoming(owner, since, now.epochSecond, prefs)
+                    .filter { claim(owner.id, it.key, now.epochSecond) }
+                    .flatMap { reminder ->
+                        val push = Push(reminder.title, body(reminder, owner.zone), reminder.taskId)
+                        targets[owner.id].orEmpty().filter {
+                            reminder.kind.wire in it.kinds
+                        }.map { PushMessage(it, push) }
+                    }
+            }
+        send(messages)
+        return messages.size
+    }
+
+    private fun claim(user: Long, key: String, now: Long): Boolean =
+        jdbc
+            .sql("INSERT INTO reminder_sent (user_id, key, sent_at) VALUES (:user, :key, :now) ON CONFLICT DO NOTHING")
+            .param("user", user)
+            .param("key", key)
+            .param("now", now)
+            .update() == 1
+
+    private fun body(reminder: Reminder, zone: ZoneId): String {
+        val at = LocalDateTime.ofInstant(Instant.ofEpochSecond(reminder.startsAt), zone).format(CLOCK)
+        return when {
+            reminder.kind == ReminderKind.BLOCK -> "Focus block at $at"
+            reminder.location.isEmpty() -> "Starts at $at"
+            else -> "Starts at $at · ${reminder.location}"
+        }
     }
 
     private fun zones(): List<String> =
@@ -153,6 +229,9 @@ class ReminderJob(
     private companion object {
         const val GRACE_MINUTES = 10L
         const val MAX_PER_RUN = 500
+        const val SENT_KEPT_SECONDS = 3L * 24 * 60 * 60
+        val TASK = ReminderKind.TASK.wire
+        val CLOCK: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
         val UTC: ZoneId = ZoneId.of("UTC")
         val log = LoggerFactory.getLogger(ReminderJob::class.java)
     }

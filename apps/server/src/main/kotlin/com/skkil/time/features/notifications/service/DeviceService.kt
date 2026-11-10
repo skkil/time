@@ -10,6 +10,7 @@ import com.skkil.time.features.notifications.domain.DeviceId
 import com.skkil.time.features.notifications.domain.DeviceInput
 import com.skkil.time.features.notifications.domain.EXPO
 import com.skkil.time.features.notifications.domain.PushTarget
+import com.skkil.time.features.notifications.domain.ReminderKind
 import com.skkil.time.features.notifications.domain.WEB
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
@@ -49,16 +50,19 @@ class DeviceService(private val jdbc: JdbcClient, private val clock: MutationClo
         ensure(scheduling == REMOTE || (scheduling == LOCAL && input.kind == EXPO)) {
             "Only phones can schedule reminders themselves."
         }
+        val kinds = input.kinds ?: ALL_KINDS
+        ensure(kinds.all { it in ALL_KINDS }) { "Reminder kinds must be task, block or event." }
         val now = clock.now().epochSecond
         val id =
             jdbc
                 .sql(
                     """
-                    INSERT INTO push_device (user_id, kind, token, p256dh, auth, label, scheduling, created_at, last_seen_at)
-                    VALUES (:user, :kind, :token, :p256dh, :auth, :label, :scheduling, :now, :now)
+                    INSERT INTO push_device (user_id, kind, token, p256dh, auth, label, scheduling, kinds, created_at, last_seen_at)
+                    VALUES (:user, :kind, :token, :p256dh, :auth, :label, :scheduling, :kinds, :now, :now)
                     ON CONFLICT (kind, token) DO UPDATE SET
                       user_id = excluded.user_id, p256dh = excluded.p256dh, auth = excluded.auth,
-                      label = excluded.label, scheduling = excluded.scheduling, last_seen_at = excluded.last_seen_at
+                      label = excluded.label, scheduling = excluded.scheduling, kinds = excluded.kinds,
+                      last_seen_at = excluded.last_seen_at
                     RETURNING id
                     """,
                 ).param("user", user)
@@ -68,6 +72,7 @@ class DeviceService(private val jdbc: JdbcClient, private val clock: MutationClo
                 .param("auth", keys.second)
                 .param("label", optionalText(input.label ?: "", "Device label", MAX_LABEL))
                 .param("scheduling", scheduling)
+                .param("kinds", kinds.distinct().joinToString(","))
                 .param("now", now)
                 .query(Long::class.java)
                 .single()
@@ -87,7 +92,7 @@ class DeviceService(private val jdbc: JdbcClient, private val clock: MutationClo
     fun targets(users: Collection<Long>): Map<Long, List<PushTarget>> =
         jdbc
             .sql(
-                "SELECT id, user_id, kind, token, p256dh, auth FROM push_device WHERE user_id IN (:users) AND scheduling = 'remote'",
+                "SELECT id, user_id, kind, token, p256dh, auth, kinds FROM push_device WHERE user_id IN (:users) AND scheduling = 'remote'",
             )
             .param("users", users)
             .query { rs, _ ->
@@ -98,6 +103,7 @@ class DeviceService(private val jdbc: JdbcClient, private val clock: MutationClo
                         rs.getString("token"),
                         rs.getString("p256dh"),
                         rs.getString("auth"),
+                        rs.getString("kinds").split(",").filter { it.isNotEmpty() }.toSet(),
                     )
             }.list()
             .groupBy({ it.first }, { it.second })
@@ -113,5 +119,6 @@ class DeviceService(private val jdbc: JdbcClient, private val clock: MutationClo
         const val MAX_LABEL = 200
         const val REMOTE = "remote"
         const val LOCAL = "local"
+        val ALL_KINDS = ReminderKind.entries.map { it.wire }
     }
 }

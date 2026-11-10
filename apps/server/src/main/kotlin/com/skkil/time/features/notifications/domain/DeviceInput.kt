@@ -7,4 +7,5 @@ data class DeviceInput(
     val auth: String? = null,
     val label: String? = null,
     val scheduling: String? = null,
+    val kinds: List<String>? = null,
 )

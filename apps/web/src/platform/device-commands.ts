@@ -1,35 +1,9 @@
 import type { DeviceCommands } from '@skkil-time/client/local';
-import type { NotificationPrefs } from '@skkil-time/client/types';
 import type { EngineClient } from '~/engine/client';
 import { browserFiles } from '~/platform/files';
+import { readPrefs, writePrefs } from '~/platform/notification-prefs';
 
 const JSON_TYPE = 'application/json';
-const PREFS_KEY = 'skkil-time:notification-prefs';
-const DEFAULT_PREFS: NotificationPrefs = {
-  on: true,
-  tasks: true,
-  blocks: true,
-  events: true,
-};
-
-const readPrefs = (): NotificationPrefs => {
-  try {
-    const saved = localStorage.getItem(PREFS_KEY);
-    return saved ? { ...DEFAULT_PREFS, ...JSON.parse(saved) } : DEFAULT_PREFS;
-  } catch {
-    return DEFAULT_PREFS;
-  }
-};
-
-const writePrefs = (prefs: NotificationPrefs) => {
-  try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
-  } catch {
-    return null;
-  }
-  return null;
-};
-
 const today = () => new Date().toLocaleDateString('sv');
 
 /** The commands a browser answers itself: backups as JSON files, CSV imports from a file input, and no desktop extras. */
