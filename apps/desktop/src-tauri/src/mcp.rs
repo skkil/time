@@ -27,7 +27,8 @@ const DEFAULT_LIMIT: usize = 50;
 const INSTRUCTIONS: &str = "skkil time is the user's local planner. Tasks belong to a project or \
 the Inbox. Priority 1 is the highest and 4 is normal. Dates are YYYY-MM-DD (or today/tomorrow), \
 times are HH:MM in the user's local time. Repeats use Todoist wording such as \"every day\" or \
-\"every monday\". Start with `today` to see what the user is working on.";
+\"every monday\". Start with `today` to see what the user is working on. Never add a sub-task \
+to a finished task unless the user says so: the app hides it until the parent is reopened.";
 
 fn database_path() -> Result<PathBuf, String> {
     if let Some(path) = std::env::var_os(DB_ENV) {
@@ -423,6 +424,16 @@ fn mutate<T: DeserializeOwned>(writer: &mut Writer, name: &str, args: Value) -> 
     mutations::result(writer.0.mutate(name, &args)?)
 }
 
+fn check_parent_open(parent: &tasks::Task, agreed: bool) -> AppResult<()> {
+    if parent.completed_at.is_none() || agreed {
+        return Ok(());
+    }
+    Err(AppError::invalid(format!(
+        "“{}” is finished, so a sub-task under it stays hidden. Ask the user first, then retry with under_finished_parent: true, or add it elsewhere.",
+        parent.title
+    )))
+}
+
 fn parse_id(text: &str) -> AppResult<Id> {
     Id::parse(text.trim())
 }
@@ -461,6 +472,10 @@ struct AddTask {
         description = "Make it a sub-task of this task id; it joins that task's project and section."
     )]
     parent_id: Option<String>,
+    #[schemars(
+        description = "Set only after the user has agreed to add a sub-task to a finished task; such sub-tasks stay hidden until the parent is reopened."
+    )]
+    under_finished_parent: Option<bool>,
     #[schemars(description = "1 (highest) to 4 (normal, the default).")]
     priority: Option<i32>,
     #[schemars(description = "YYYY-MM-DD, today or tomorrow.")]
@@ -777,6 +792,9 @@ impl Planner {
                 .as_deref()
                 .map(|id| tasks::get(conn, &parse_id(id)?))
                 .transpose()?;
+            if let Some(parent) = &parent {
+                check_parent_open(parent, input.under_finished_parent.unwrap_or(false))?;
+            }
             let project_id = match (&parent, input.project.as_deref()) {
                 (Some(parent), _) => parent.project_id.clone(),
                 (None, Some(text)) => resolve_project(conn, text)?,
@@ -1161,6 +1179,30 @@ mod tests {
                 .unwrap_err()
                 .to_string();
             assert!(missing.contains("Sections: Drafts."));
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn asks_before_adding_under_a_finished_task() {
+        let db = Db::new(Engine::in_memory().unwrap());
+        db.engine(|engine| {
+            let conn = &mut Writer(engine);
+            let parent: tasks::Task = mutate(
+                conn,
+                "createTask",
+                json!({ "input": { "title": "Apply", "notes": "", "projectId": null, "sectionId": null, "parentId": null, "priority": 4, "dueDate": null, "dueTime": null, "deadline": null, "recurrence": null, "estimateMinutes": null } }),
+            )?;
+            assert!(check_parent_open(&parent, false).is_ok());
+            let parent: tasks::Task = mutate(
+                conn,
+                "setTaskCompleted",
+                json!({ "id": parent.id, "completed": true }),
+            )?;
+            let refused = check_parent_open(&parent, false).unwrap_err().to_string();
+            assert!(refused.contains("Ask the user first"));
+            assert!(check_parent_open(&parent, true).is_ok());
             Ok(())
         })
         .unwrap();
