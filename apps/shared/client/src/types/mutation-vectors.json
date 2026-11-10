@@ -653,6 +653,23 @@
       ]
     },
     {
+      "name": "setReviewDay",
+      "args": {
+        "day": 4
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "setting",
+          "id": "eea3f194-faf9-5306-9844-b2c9ee0e6450",
+          "row": {
+            "key": "review_day",
+            "value": "4"
+          }
+        }
+      ]
+    },
+    {
       "name": "createItemStatus",
       "args": {
         "projectId": "019a4b00-0000-7000-8000-000000000001",

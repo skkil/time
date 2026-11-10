@@ -36,6 +36,12 @@ pub fn query(conn: &Connection, name: &str, args: &Value) -> Result<Value> {
         "listRituals" => out(rituals::list(conn)?),
         "getPlanningTime" => out(rituals::planning_time(conn)?),
         "dueRitual" => out(rituals::due(conn, Moment::now(), a.get("event")?)?),
+        "getReviewDay" => out(rituals::review_day(conn)?),
+        "weekToClose" => out(rituals::week_to_close(
+            conn,
+            Moment::now(),
+            &a.text("kind")?,
+        )?),
         "listRitualRuns" => out(rituals::runs(conn, a.get("from")?, a.get("to")?)?),
         "getWorkflow" => out(workflow::list(conn)?),
         "listPresets" => out(workflow::presets()),

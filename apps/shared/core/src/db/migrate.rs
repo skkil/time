@@ -1,6 +1,6 @@
 use rusqlite::Connection;
 
-use super::{sync_ids, uuid_ids};
+use super::{sync_ids, uuid_ids, weekly_checkout};
 use crate::error::{Error, Result};
 
 enum Migration {
@@ -31,6 +31,7 @@ const MIGRATIONS: &[Migration] = &[
     Migration::Sql(include_str!("migrations/020_review_position.sql")),
     Migration::Sql(include_str!("migrations/021_due_window.sql")),
     Migration::Sql(include_str!("migrations/022_block_logging.sql")),
+    Migration::Code(weekly_checkout::migrate),
 ];
 
 /// The schema version that switched every id to a UUID.

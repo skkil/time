@@ -102,7 +102,10 @@ export const commands = {
 	updateRitual: (kind: string, input: RitualInput) => __TAURI_INVOKE<Ritual>("update_ritual", { kind, input }),
 	getPlanningTime: () => __TAURI_INVOKE<string | null>("get_planning_time"),
 	choosePlanningTime: (time: string) => __TAURI_INVOKE<Ritual[]>("choose_planning_time", { time }),
-	dueRitual: (event: RitualEvent) => __TAURI_INVOKE<Ritual | null>("due_ritual", { event }),
+	dueRitual: (event: RitualEvent) => __TAURI_INVOKE<DueRitual | null>("due_ritual", { event }),
+	getReviewDay: () => __TAURI_INVOKE<number>("get_review_day"),
+	setReviewDay: (day: number) => __TAURI_INVOKE<null>("set_review_day", { day }),
+	weekToClose: (kind: string) => __TAURI_INVOKE<Date | null>("week_to_close", { kind }),
 	listRitualRuns: (from: Date, to: Date) => __TAURI_INVOKE<RitualRun[]>("list_ritual_runs", { from, to }),
 	startRitual: (kind: string, taskId: Id | null) => __TAURI_INVOKE<RitualRun>("start_ritual", { kind, taskId }),
 	reachRitualStep: (id: Id, step: number) => __TAURI_INVOKE<RitualRun>("reach_ritual_step", { id, step }),
@@ -176,6 +179,16 @@ export type Day = {
 };
 
 export type DayStatus = "done" | "failed" | "skipped" | "pending" | "missed" | "off";
+
+/**
+ *  A ritual that should open, and the Monday of the week it goes on to close,
+ *  if any: the evening on the review day, or the next morning's offer. A
+ *  `weekly` ritual with a week is that weekly part on its own, after a snooze.
+ */
+export type DueRitual = {
+	ritual: Ritual,
+	week: Date | null,
+};
 
 export type EntryDetails = {
 	description: string,

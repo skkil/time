@@ -23,8 +23,20 @@ fn moment(day: &str, minute: i32) -> Moment {
     Moment::at(clock(day, minute).clock.0)
 }
 
-fn kind(ritual: Option<Ritual>) -> Option<String> {
-    ritual.map(|ritual| ritual.kind)
+fn kind(due: Option<DueRitual>) -> Option<String> {
+    due.map(|due| due.ritual.kind)
+}
+
+fn week(due: Option<DueRitual>) -> Option<String> {
+    due.and_then(|due| due.week).map(|week| week.to_string())
+}
+
+fn review(conn: &rusqlite::Connection, monday: &str) -> crate::error::Result<()> {
+    conn.execute(
+        "INSERT INTO week (id, start_date, reviewed_at) VALUES (?1, ?2, 1)",
+        params![RandomIds.next_id(), monday],
+    )?;
+    Ok(())
 }
 
 #[test]
@@ -157,6 +169,12 @@ fn weekly_waits_for_its_day_and_an_unreviewed_week() {
     db.call(|conn| {
         let monday = moment("2026-11-02", 9 * 60);
         let tuesday = moment("2026-11-03", 9 * 60);
+        assert_eq!(get(conn, "weekly")?.trigger, "manual");
+        assert_eq!(kind(due(conn, monday, RitualEvent::Open)?), None);
+        conn.execute(
+            "UPDATE ritual SET trigger = 'first_open' WHERE kind = 'weekly'",
+            [],
+        )?;
         assert_eq!(
             kind(due(conn, monday, RitualEvent::Open)?).as_deref(),
             Some("weekly")
@@ -195,6 +213,125 @@ fn validates_steps_and_triggers() {
         assert_eq!(evening.steps, ["one_line_note", "feel"]);
         let weekly = update(conn, "weekly", &input("first_open", &["feel"]))?;
         assert_eq!(weekly.steps, ["weekly_review"]);
+        Ok(())
+    })
+    .unwrap();
+}
+
+#[test]
+fn the_review_day_checkout_goes_on_to_close_the_week() {
+    let db = db();
+    db.call(|conn| {
+        set_planning_time(conn, &crate::testing::env(), "evening")?;
+        assert_eq!(review_day(conn)?, 6);
+        let sunday = moment("2026-11-08", 19 * 60);
+        let saturday = moment("2026-11-07", 19 * 60);
+        let due_sunday = due(conn, sunday, RitualEvent::Tick)?;
+        assert_eq!(kind(due_sunday.clone()).as_deref(), Some("evening"));
+        assert_eq!(week(due_sunday).as_deref(), Some("2026-11-02"));
+        let due_saturday = due(conn, saturday, RitualEvent::Tick)?;
+        assert_eq!(kind(due_saturday.clone()).as_deref(), Some("evening"));
+        assert_eq!(week(due_saturday), None);
+
+        set_review_day(conn, &crate::testing::env(), 4)?;
+        assert_eq!(review_day(conn)?, 4);
+        let friday = moment("2026-11-06", 19 * 60);
+        assert_eq!(
+            week(due(conn, friday, RitualEvent::Tick)?).as_deref(),
+            Some("2026-11-02")
+        );
+        assert_eq!(week(due(conn, sunday, RitualEvent::Tick)?), None);
+        assert!(set_review_day(conn, &crate::testing::env(), 7).is_err());
+        assert!(set_review_day(conn, &crate::testing::env(), -1).is_err());
+
+        review(conn, "2026-11-02")?;
+        assert_eq!(week(due(conn, friday, RitualEvent::Tick)?), None);
+        assert_eq!(week_to_close(conn, friday, "evening")?, None);
+        Ok(())
+    })
+    .unwrap();
+}
+
+#[test]
+fn later_tonight_snoozes_only_the_weekly_part_once() {
+    let db = db();
+    db.call(|conn| {
+        set_planning_time(conn, &crate::testing::env(), "evening")?;
+        let seven = clock("2026-11-08", 19 * 60);
+        let evening = start(conn, &seven, "evening", None)?;
+        finish(conn, &seven, &evening.id)?;
+        let at = moment("2026-11-08", 19 * 60);
+        assert_eq!(kind(due(conn, at, RitualEvent::Tick)?), None);
+
+        let weekly = start(conn, &seven, "weekly", None)?;
+        snooze(conn, &seven, &weekly.id)?;
+        assert!(snooze(conn, &seven, &weekly.id).is_err());
+        assert_eq!(kind(due(conn, at, RitualEvent::Tick)?), None);
+        let later = moment("2026-11-08", 19 * 60 + 16);
+        let resumed = due(conn, later, RitualEvent::Tick)?;
+        assert_eq!(kind(resumed.clone()).as_deref(), Some("weekly"));
+        assert_eq!(week(resumed).as_deref(), Some("2026-11-02"));
+        assert_eq!(
+            kind(due(conn, later, RitualEvent::TimerStopped { minutes: 5 })?),
+            None
+        );
+        assert_eq!(
+            start(conn, &clock("2026-11-08", 19 * 60 + 16), "weekly", None)?.id,
+            weekly.id
+        );
+
+        skip(conn, &weekly.id)?;
+        assert_eq!(kind(due(conn, later, RitualEvent::Tick)?), None);
+        assert_eq!(week_to_close(conn, later, "evening")?, None);
+        Ok(())
+    })
+    .unwrap();
+}
+
+#[test]
+fn the_next_morning_offers_an_unclosed_week_once() {
+    let db = db();
+    db.call(|conn| {
+        set_planning_time(conn, &crate::testing::env(), "morning")?;
+        let monday = moment("2026-11-09", 8 * 60);
+        assert_eq!(week_to_close(conn, monday, "evening")?, None);
+        let offered = due(conn, monday, RitualEvent::Open)?;
+        assert_eq!(kind(offered.clone()).as_deref(), Some("morning"));
+        assert_eq!(week(offered).as_deref(), Some("2026-11-02"));
+        assert_eq!(
+            week_to_close(conn, moment("2026-11-10", 8 * 60), "morning")?,
+            None
+        );
+
+        let weekly = start(conn, &clock("2026-11-09", 8 * 60), "weekly", None)?;
+        assert_eq!(week_to_close(conn, monday, "morning")?, None);
+        skip(conn, &weekly.id)?;
+        assert_eq!(week_to_close(conn, monday, "morning")?, None);
+        assert_eq!(week_to_close(conn, monday, "weekly")?, None);
+        Ok(())
+    })
+    .unwrap();
+}
+
+#[test]
+fn finishing_the_weekly_part_marks_the_week_reviewed() {
+    let db = db();
+    db.call(|conn| {
+        let env = clock("2026-11-08", 19 * 60);
+        let at = moment("2026-11-08", 19 * 60);
+        assert_eq!(
+            week_to_close(conn, at, "evening")?
+                .map(|w| w.to_string())
+                .as_deref(),
+            Some("2026-11-02")
+        );
+        crate::review::finish_week(conn, &env, date("2026-11-02"))?;
+        assert!(
+            crate::review::week(conn, date("2026-11-02"))?
+                .reviewed_at
+                .is_some()
+        );
+        assert_eq!(week_to_close(conn, at, "evening")?, None);
         Ok(())
     })
     .unwrap();

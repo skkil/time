@@ -239,6 +239,7 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
 
         "updateRitual" => out(rituals::update(conn, &a.text("kind")?, &a.get("input")?)?),
         "choosePlanningTime" => out(rituals::set_planning_time(conn, env, &a.text("time")?)?),
+        "setReviewDay" => out(rituals::set_review_day(conn, env, a.get("day")?)?),
         "startRitual" => out(rituals::start(
             conn,
             env,

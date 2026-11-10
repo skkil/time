@@ -3,6 +3,7 @@ package com.skkil.time.features.rituals
 import com.skkil.time.common.error.DomainException
 import com.skkil.time.common.web.Caller
 import com.skkil.time.features.rituals.api.PlanningChoice
+import com.skkil.time.features.rituals.api.ReviewDay
 import com.skkil.time.features.rituals.api.RitualStep
 import com.skkil.time.features.rituals.api.RitualTask
 import com.skkil.time.features.rituals.domain.Moment
@@ -32,7 +33,26 @@ class RitualTest : TaskApiTest() {
         return Moment(date, minute, date.atStartOfDay(ZoneOffset.UTC).toEpochSecond() + minute * 60L)
     }
 
-    private fun due(at: Moment, event: RitualEvent): String? = asServer { rituals.due(caller(), at, event) }?.kind
+    private fun due(at: Moment, event: RitualEvent): String? =
+        asServer {
+            rituals.due(caller(), at, event)
+        }?.ritual?.kind
+
+    private fun week(at: Moment, event: RitualEvent = RitualEvent.Tick): String? =
+        asServer { rituals.due(caller(), at, event) }?.week?.toString()
+
+    private fun weekToClose(at: Moment, kind: String): LocalDate? = asServer { rituals.weekToClose(userId(), at, kind) }
+
+    private fun review(monday: String) =
+        asServer {
+            jdbc
+                .sql(
+                    "INSERT INTO week (id, user_id, start_date, reviewed_at) VALUES (gen_random_uuid(), :user, CAST(:start AS DATE), 1)",
+                )
+                .param("user", userId())
+                .param("start", monday)
+                .update()
+        }
 
     private fun disable(vararg kinds: String) {
         kinds.forEach { kind ->
@@ -130,6 +150,14 @@ class RitualTest : TaskApiTest() {
     fun `weekly waits for its day and an unreviewed week`() {
         val monday = moment("2026-11-02", 9 * 60)
         val tuesday = moment("2026-11-03", 9 * 60)
+        assertEquals("manual", ritual("weekly")["trigger"].asString())
+        assertNull(due(monday, RitualEvent.Open))
+        asServer {
+            jdbc
+                .sql("UPDATE ritual SET trigger = 'first_open' WHERE user_id = :user AND kind = 'weekly'")
+                .param("user", userId())
+                .update()
+        }
         assertEquals("weekly", due(monday, RitualEvent.Open))
         assertNull(due(tuesday, RitualEvent.Open))
         asServer {
@@ -141,6 +169,71 @@ class RitualTest : TaskApiTest() {
                 .update()
         }
         assertNull(due(monday, RitualEvent.Open))
+    }
+
+    @Test
+    fun `the review day checkout goes on to close the week`() {
+        asServer { rituals.setPlanningTime(caller(), "evening") }
+        assertEquals(6, getJson("/api/v1/review-day")["day"].asInt())
+        val sunday = moment("2026-11-08", 19 * 60)
+        val saturday = moment("2026-11-07", 19 * 60)
+        assertEquals("evening", due(sunday, RitualEvent.Tick))
+        assertEquals("2026-11-02", week(sunday))
+        assertEquals("evening", due(saturday, RitualEvent.Tick))
+        assertNull(week(saturday))
+
+        put("/api/v1/review-day", ReviewDay(4)).andExpect { status { isNoContent() } }
+        assertEquals(4, getJson("/api/v1/review-day")["day"].asInt())
+        val friday = moment("2026-11-06", 19 * 60)
+        assertEquals("2026-11-02", week(friday))
+        assertNull(week(sunday))
+        put("/api/v1/review-day", ReviewDay(7)).andExpect {
+            status { isEqualTo(422) }
+            jsonPath("$.detail") { value("Pick a day of the week.") }
+        }
+
+        review("2026-11-02")
+        assertNull(week(friday))
+        assertNull(weekToClose(friday, "evening"))
+    }
+
+    @Test
+    fun `later tonight snoozes only the weekly part once`() {
+        asServer { rituals.setPlanningTime(caller(), "evening") }
+        val at = moment("2026-11-08", 19 * 60)
+        val evening = asServer { rituals.start(caller(), "evening", at, null) }
+        asServer { rituals.finish(userId(), evening.id, at.stamp) }
+        assertNull(due(at, RitualEvent.Tick))
+
+        val weekly = asServer { rituals.start(caller(), "weekly", at, null) }
+        asServer { rituals.snooze(userId(), weekly.id, at.stamp) }
+        assertThrows<DomainException> { asServer { rituals.snooze(userId(), weekly.id, at.stamp) } }
+        assertNull(due(at, RitualEvent.Tick))
+        val later = moment("2026-11-08", 19 * 60 + 16)
+        assertEquals("weekly", due(later, RitualEvent.Tick))
+        assertEquals("2026-11-02", week(later))
+        assertNull(due(later, RitualEvent.TimerStopped(5)))
+        assertEquals(weekly.id, asServer { rituals.start(caller(), "weekly", later, null) }.id)
+
+        asServer { rituals.skip(userId(), weekly.id) }
+        assertNull(due(later, RitualEvent.Tick))
+        assertNull(weekToClose(later, "evening"))
+    }
+
+    @Test
+    fun `the next morning offers an unclosed week once`() {
+        asServer { rituals.setPlanningTime(caller(), "morning") }
+        val monday = moment("2026-11-09", 8 * 60)
+        assertNull(weekToClose(monday, "evening"))
+        assertEquals("morning", due(monday, RitualEvent.Open))
+        assertEquals("2026-11-02", week(monday, RitualEvent.Open))
+        assertNull(weekToClose(moment("2026-11-10", 8 * 60), "morning"))
+
+        val weekly = asServer { rituals.start(caller(), "weekly", monday, null) }
+        assertNull(weekToClose(monday, "morning"))
+        asServer { rituals.skip(userId(), weekly.id) }
+        assertNull(weekToClose(monday, "morning"))
+        assertNull(weekToClose(monday, "weekly"))
     }
 
     @Test
@@ -171,7 +264,10 @@ class RitualTest : TaskApiTest() {
     fun `runs over http`() {
         disable("weekly", "morning", "evening", "wind_down")
         post("/api/v1/rituals/due", RitualEvent.Open).andExpect { status { isNoContent() } }
-        assertEquals("session", postJson("/api/v1/rituals/due", RitualEvent.TimerStopped(25))["kind"].asString())
+        val due = postJson("/api/v1/rituals/due", RitualEvent.TimerStopped(25))
+        assertEquals("session", due["ritual"]["kind"].asString())
+        assertTrue(due["week"].isNull)
+        assertTrue(getJson("/api/v1/rituals/session/week-to-close")["week"].isNull)
 
         val task = create(input("Write")).id()
         val run = postJson("/api/v1/rituals/session/runs", RitualTask(task))

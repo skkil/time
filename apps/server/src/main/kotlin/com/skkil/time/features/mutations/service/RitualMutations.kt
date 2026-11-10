@@ -20,6 +20,9 @@ class RitualMutations(
             mutation("choosePlanningTime", "time") { caller, args ->
                 rituals.setPlanningTime(caller, args.get<String>("time"))
             },
+            mutation("setReviewDay", "day") { caller, args ->
+                rituals.setReviewDay(caller, args.get<Int>("day"))
+            },
             mutation("startRitual", "kind", "taskId") { caller, args ->
                 rituals.start(caller, args.get<String>("kind"), Moment.now(caller), args.get<UUID?>("taskId"))
             },

@@ -10,6 +10,7 @@ use crate::types::Id;
 const BEFORE_UUIDS: usize = UUID_IDS_VERSION - 1;
 const BEFORE_SYNC_IDS: usize = 18;
 const BEFORE_REVIEW_POSITION: usize = 19;
+const BEFORE_WEEKLY_CHECKOUT: usize = 22;
 
 #[test]
 fn migrates_m0_data_forward() {
@@ -361,4 +362,26 @@ fn outcomes_and_priorities_take_positions_in_creation_order() {
         )
         .unwrap();
     assert_eq!(created_at, 0);
+}
+
+#[test]
+fn the_weekly_ritual_stops_opening_by_itself_unless_it_was_changed() {
+    let trigger_after = |before: &str| -> String {
+        let mut conn = Connection::open_in_memory().unwrap();
+        migrate_to(&mut conn, BEFORE_WEEKLY_CHECKOUT).unwrap();
+        conn.execute(
+            "UPDATE ritual SET trigger = ?1 WHERE kind = 'weekly'",
+            [before],
+        )
+        .unwrap();
+        migrate(&mut conn).unwrap();
+        conn.query_row(
+            "SELECT trigger FROM ritual WHERE kind = 'weekly'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap()
+    };
+    assert_eq!(trigger_after("first_open"), "manual");
+    assert_eq!(trigger_after("at_time"), "at_time");
 }

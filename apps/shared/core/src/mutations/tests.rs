@@ -430,6 +430,7 @@ fn walk_every_mutation(conn: &Connection) -> Vec<(String, Value)> {
         }}),
     );
     s.run("choosePlanningTime", json!({"time": "morning"}));
+    s.run("setReviewDay", json!({"day": 4}));
     let morning = s.id("startRitual", json!({"kind": "morning", "taskId": null}));
     s.run("reachRitualStep", json!({"id": morning, "step": 1}));
     s.run("snoozeRitual", json!({"id": morning}));

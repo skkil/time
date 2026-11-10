@@ -1,6 +1,7 @@
 mod migrate;
 mod sync_ids;
 mod uuid_ids;
+mod weekly_checkout;
 
 #[cfg(test)]
 mod tests;

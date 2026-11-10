@@ -95,6 +95,9 @@ export const parameters = {
   getPlanningTime: [] as const,
   choosePlanningTime: ['time'] as const,
   dueRitual: ['event'] as const,
+  getReviewDay: [] as const,
+  setReviewDay: ['day'] as const,
+  weekToClose: ['kind'] as const,
   listRitualRuns: ['from', 'to'] as const,
   startRitual: ['kind', 'taskId'] as const,
   reachRitualStep: ['id', 'step'] as const,
@@ -214,6 +217,7 @@ export const mutations = [
   'setProjectView',
   'setRecordPhaseNotes',
   'setRemindersEnabled',
+  'setReviewDay',
   'setSectionCollapsed',
   'setTaskCompleted',
   'setTaskEventDetails',
@@ -256,6 +260,7 @@ export const reads = [
   'getProjectCanvas',
   'getQuarter',
   'getRemindersEnabled',
+  'getReviewDay',
   'getTask',
   'getTimer',
   'getWeek',
@@ -282,6 +287,7 @@ export const reads = [
   'readPreset',
   'saveProjectPreset',
   'todayGlance',
+  'weekToClose',
 ] as const;
 
 export const deviceOnly = [

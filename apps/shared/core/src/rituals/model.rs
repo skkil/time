@@ -28,6 +28,8 @@ pub const STEPS: [&str; 12] = [
 pub const SNOOZE_SECONDS: i64 = 15 * 60;
 pub const END_OF_DAY_EARLIEST_BEFORE: i32 = 120;
 pub const PLANNING_SETTING: &str = "planning_time";
+pub const REVIEW_DAY_SETTING: &str = "review_day";
+pub const DEFAULT_REVIEW_DAY: i32 = 6;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "specta", derive(specta::Type))]
@@ -66,6 +68,17 @@ pub struct RitualRun {
     pub skipped: bool,
     pub step: i32,
     pub snoozed_until: Option<Timestamp>,
+}
+
+/// A ritual that should open, and the Monday of the week it goes on to close,
+/// if any: the evening on the review day, or the next morning's offer. A
+/// `weekly` ritual with a week is that weekly part on its own, after a snooze.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
+#[serde(rename_all = "camelCase")]
+pub struct DueRitual {
+    pub ritual: Ritual,
+    pub week: Option<Date>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]

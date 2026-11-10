@@ -51,7 +51,7 @@ class RitualDefaults(private val jdbc: JdbcClient) {
                 Template("evening", false, "end_of_day", 1050, 127, "what_moved,leftovers,habit_check,one_line_note"),
                 Template("wind_down", false, "at_time", 1335, 127, "brain_dump,habit_check,device_away"),
                 Template("session", true, "after_timer_stop", 0, 127, "did_it_move,next_step_note,breathing_pause"),
-                Template("weekly", true, "first_open", 0, 1, "weekly_review"),
+                Template("weekly", true, "manual", 0, 1, "weekly_review"),
             )
     }
 }

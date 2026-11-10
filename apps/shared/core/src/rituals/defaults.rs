@@ -52,7 +52,7 @@ pub const DEFAULTS: [RitualDefault; 5] = [
     RitualDefault {
         kind: "weekly",
         enabled: true,
-        trigger: "first_open",
+        trigger: "manual",
         at_minute: 0,
         weekdays: 1,
         steps: "weekly_review",

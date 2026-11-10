@@ -8,6 +8,7 @@ import com.skkil.time.common.persistence.uuid
 import com.skkil.time.common.persistence.uuidOrNull
 import com.skkil.time.common.web.Caller
 import com.skkil.time.features.review.domain.monday
+import com.skkil.time.features.rituals.domain.DueRitual
 import com.skkil.time.features.rituals.domain.Moment
 import com.skkil.time.features.rituals.domain.Ritual
 import com.skkil.time.features.rituals.domain.RitualEvent
@@ -95,6 +96,31 @@ class RitualService(
     }
 
     @Transactional(readOnly = true)
+    fun reviewDay(user: Long): Int =
+        settings.read(user, REVIEW_DAY_SETTING)?.toIntOrNull()?.takeIf { it in 0..6 } ?: DEFAULT_REVIEW_DAY
+
+    fun setReviewDay(caller: Caller, day: Int) {
+        ensure(day in 0..6) { "Pick a day of the week." }
+        settings.write(caller, REVIEW_DAY_SETTING, day.toString())
+    }
+
+    /** The Monday of the week the [kind] ritual goes on to close: the evening on the review day, or the morning after. */
+    @Transactional(readOnly = true)
+    fun weekToClose(user: Long, at: Moment, kind: String): LocalDate? {
+        val closing =
+            when (kind) {
+                "evening" -> at.date
+                "morning" -> at.date.minusDays(1)
+                else -> return null
+            }
+        if (closing.dayOfWeek.value - 1 != reviewDay(user)) return null
+        val week = closing.monday()
+        if (weekReviewed(user, week)) return null
+        val answered = latestRun(user, "weekly", at.date)?.let { it.skipped || kind == "morning" } ?: false
+        return if (answered) null else week
+    }
+
+    @Transactional(readOnly = true)
     fun runs(user: Long, from: LocalDate, to: LocalDate): List<RitualRun> =
         jdbc
             .sql("$SELECT_RUN WHERE user_id = :user AND date >= :from AND date < :to ORDER BY started_at, id")
@@ -104,9 +130,13 @@ class RitualService(
             .query(runMapper)
             .list()
 
+    /** The first ritual that should open for [event]: a snoozed weekly checkout first, then each ritual in order. */
     @Transactional(readOnly = true)
-    fun due(caller: Caller, at: Moment, event: RitualEvent): Ritual? =
-        list(caller.id).firstOrNull { isDue(caller, it, at, event) }
+    fun due(caller: Caller, at: Moment, event: RitualEvent): DueRitual? {
+        if (event !is RitualEvent.TimerStopped) snoozedWeek(caller.id, at)?.let { return it }
+        val ritual = list(caller.id).firstOrNull { isDue(caller, it, at, event) } ?: return null
+        return DueRitual(ritual, weekToClose(caller.id, at, ritual.kind))
+    }
 
     fun start(caller: Caller, kind: String, at: Moment, taskId: UUID?, id: UUID? = null): RitualRun {
         get(caller.id, kind)
@@ -159,8 +189,15 @@ class RitualService(
         return updateRun(user, id, "snoozed_until = :value", at + SNOOZE_SECONDS)
     }
 
+    private fun snoozedWeek(user: Long, at: Moment): DueRitual? {
+        val run = latestRun(user, "weekly", at.date) ?: return null
+        if (run.finishedAt != null || run.skipped || run.snoozedUntil?.let { it <= at.stamp } != true) return null
+        val week = HOSTS.firstNotNullOfOrNull { weekToClose(user, at, it) } ?: return null
+        return DueRitual(get(user, "weekly"), week)
+    }
+
     private fun isDue(caller: Caller, ritual: Ritual, at: Moment, event: RitualEvent): Boolean {
-        if (!ritual.enabled || !onWeekday(ritual, at.date)) return false
+        if (!ritual.enabled || ritual.trigger == "manual" || !onWeekday(ritual, at.date)) return false
         if (ritual.trigger == "after_timer_stop") {
             return event is RitualEvent.TimerStopped && event.minutes >= ritual.minMinutes
         }
@@ -169,7 +206,7 @@ class RitualService(
             val snoozeOver = previous.snoozedUntil?.let { it <= at.stamp } ?: false
             return previous.finishedAt == null && !previous.skipped && snoozeOver
         }
-        if (ritual.kind == "weekly" && lastWeekReviewed(caller.id, at.date)) return false
+        if (ritual.kind == "weekly" && weekReviewed(caller.id, at.date.monday().minusWeeks(1))) return false
         return when (ritual.trigger) {
             "first_open" -> {
                 true
@@ -206,11 +243,11 @@ class RitualService(
             .optional()
             .orElse(null)
 
-    private fun lastWeekReviewed(user: Long, date: LocalDate): Boolean =
+    private fun weekReviewed(user: Long, monday: LocalDate): Boolean =
         jdbc
             .sql("SELECT reviewed_at IS NOT NULL FROM week WHERE user_id = :user AND start_date = :start")
             .param("user", user)
-            .param("start", date.monday().minusWeeks(1))
+            .param("start", monday)
             .query(Boolean::class.java)
             .optional()
             .orElse(false)
@@ -252,6 +289,7 @@ class RitualService(
 
     private companion object {
         val KINDS = listOf("weekly", "morning", "evening", "wind_down", "session")
+        val HOSTS = listOf("evening", "morning")
         val TRIGGERS = setOf("first_open", "at_time", "end_of_day", "after_timer_stop", "manual")
         val STEPS =
             setOf(
@@ -271,6 +309,8 @@ class RitualService(
         const val SNOOZE_SECONDS = 15 * 60L
         const val END_OF_DAY_EARLIEST_BEFORE = 120
         const val PLANNING_SETTING = "planning_time"
+        const val REVIEW_DAY_SETTING = "review_day"
+        const val DEFAULT_REVIEW_DAY = 6
         const val SELECT = "SELECT kind, enabled, trigger, at_minute, weekdays, min_minutes, steps FROM ritual"
         const val SELECT_RUN =
             "SELECT id, kind, date, task_id, started_at, finished_at, skipped, step, snoozed_until FROM ritual_run"

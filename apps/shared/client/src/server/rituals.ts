@@ -11,6 +11,9 @@ export const rituals: Commands<
   | 'updateRitual'
   | 'getPlanningTime'
   | 'choosePlanningTime'
+  | 'getReviewDay'
+  | 'setReviewDay'
+  | 'weekToClose'
   | 'dueRitual'
   | 'listRitualRuns'
   | 'startRitual'
@@ -26,6 +29,14 @@ export const rituals: Commands<
     unwrap(api.GET('/api/v1/planning-time')).then(({ time }) => time),
   choosePlanningTime: (time) =>
     unwrap(api.PUT('/api/v1/planning-time', { body: { time } })),
+  getReviewDay: () =>
+    unwrap(api.GET('/api/v1/review-day')).then(({ day }) => day),
+  setReviewDay: (day) =>
+    unwrap(api.PUT('/api/v1/review-day', { body: { day } })),
+  weekToClose: (kind) =>
+    unwrap(api.GET('/api/v1/rituals/{kind}/week-to-close', byKind(kind))).then(
+      ({ week }) => week,
+    ),
   dueRitual: (event) =>
     unwrap(api.POST('/api/v1/rituals/due', { body: event })),
   listRitualRuns: (from, to) =>

@@ -12,5 +12,5 @@ mod tests;
 pub use defaults::{DEFAULTS, RitualDefault, reset_rituals, ritual_id};
 pub use model::*;
 pub use queries::{get, list, runs};
-pub use schedule::due;
+pub use schedule::{due, review_day, week_to_close};
 pub use service::*;

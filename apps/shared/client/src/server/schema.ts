@@ -404,6 +404,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/review-day': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['reviewDay'];
+    put: operations['setReviewDay'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/quarters/{id}': {
     parameters: {
       query?: never;
@@ -1620,6 +1636,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/rituals/{kind}/week-to-close': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['weekToClose'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/ritual-runs': {
     parameters: {
       query?: never;
@@ -2174,6 +2206,10 @@ export interface components {
       /** Format: int64 */
       snoozedUntil: number | null;
     };
+    ReviewDay: {
+      /** Format: int32 */
+      day: number;
+    };
     QuarterInput: {
       label: string;
       /** Format: date */
@@ -2539,6 +2575,11 @@ export interface components {
        */
       kind: 'timerStopped';
     };
+    DueRitual: {
+      ritual: components['schemas']['Ritual'];
+      /** Format: date */
+      week: string | null;
+    };
     Ticket: {
       ticket: string;
       /** Format: int64 */
@@ -2726,6 +2767,10 @@ export interface components {
       statusId: string;
       notes: string;
     };
+    WeekToClose: {
+      /** Format: date */
+      week: string | null;
+    };
     Priority: {
       /** Format: uuid */
       id: string;
@@ -2893,6 +2938,7 @@ export type RitualInput = components['schemas']['RitualInput'];
 export type Ritual = components['schemas']['Ritual'];
 export type RitualStep = components['schemas']['RitualStep'];
 export type RitualRun = components['schemas']['RitualRun'];
+export type ReviewDay = components['schemas']['ReviewDay'];
 export type QuarterInput = components['schemas']['QuarterInput'];
 export type ProjectInput = components['schemas']['ProjectInput'];
 export type Project = components['schemas']['Project'];
@@ -2945,6 +2991,7 @@ export type RitualEvent = components['schemas']['RitualEvent'];
 export type RitualOpen = components['schemas']['RitualOpen'];
 export type RitualTick = components['schemas']['RitualTick'];
 export type RitualTimerStopped = components['schemas']['RitualTimerStopped'];
+export type DueRitual = components['schemas']['DueRitual'];
 export type Ticket = components['schemas']['Ticket'];
 export type PriorityTitle = components['schemas']['PriorityTitle'];
 export type PresetText = components['schemas']['PresetText'];
@@ -2967,6 +3014,7 @@ export type Week = components['schemas']['Week'];
 export type TypeTime = components['schemas']['TypeTime'];
 export type TrackedEntry = components['schemas']['TrackedEntry'];
 export type RecordPhase = components['schemas']['RecordPhase'];
+export type WeekToClose = components['schemas']['WeekToClose'];
 export type Priority = components['schemas']['Priority'];
 export type Quarter = components['schemas']['Quarter'];
 export type PlanningTime = components['schemas']['PlanningTime'];
@@ -3812,6 +3860,48 @@ export interface operations {
         content: {
           '*/*': components['schemas']['RitualRun'];
         };
+      };
+    };
+  };
+  reviewDay: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ReviewDay'];
+        };
+      };
+    };
+  };
+  setReviewDay: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ReviewDay'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -5163,7 +5253,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          '*/*': components['schemas']['Ritual'];
+          '*/*': components['schemas']['DueRitual'];
         };
       };
     };
@@ -5999,6 +6089,28 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['Ritual'][];
+        };
+      };
+    };
+  };
+  weekToClose: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        kind: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['WeekToClose'];
         };
       };
     };

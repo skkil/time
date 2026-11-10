@@ -2,7 +2,7 @@ use crate::db::Db;
 use serde_json::json;
 use tauri::State;
 use time_core::Result;
-use time_core::rituals::{self, Moment, Ritual, RitualEvent, RitualInput, RitualRun};
+use time_core::rituals::{self, DueRitual, Moment, Ritual, RitualEvent, RitualInput, RitualRun};
 use time_core::types::{Date, Id};
 
 use super::mutate;
@@ -33,8 +33,26 @@ pub async fn choose_planning_time(db: State<'_, Db>, time: String) -> Result<Vec
 
 #[tauri::command]
 #[specta::specta]
-pub async fn due_ritual(db: State<'_, Db>, event: RitualEvent) -> Result<Option<Ritual>> {
+pub async fn due_ritual(db: State<'_, Db>, event: RitualEvent) -> Result<Option<DueRitual>> {
     db.call(|conn| rituals::due(conn, Moment::now(), event))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_review_day(db: State<'_, Db>) -> Result<i32> {
+    db.call(|conn| rituals::review_day(conn))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_review_day(db: State<'_, Db>, day: i32) -> Result<()> {
+    mutate(&db, "setReviewDay", json!({ "day": day }))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn week_to_close(db: State<'_, Db>, kind: String) -> Result<Option<Date>> {
+    db.call(|conn| rituals::week_to_close(conn, Moment::now(), &kind))
 }
 
 #[tauri::command]

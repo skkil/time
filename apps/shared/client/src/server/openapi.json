@@ -1031,6 +1031,43 @@
         }
       }
     },
+    "/api/v1/review-day" : {
+      "get" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "reviewDay",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReviewDay"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "setReviewDay",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ReviewDay"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/quarters/{id}" : {
       "put" : {
         "tags" : [ "review-controller" ],
@@ -2651,7 +2688,7 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/Ritual"
+                  "$ref" : "#/components/schemas/DueRitual"
                 }
               }
             }
@@ -3649,6 +3686,32 @@
                   "items" : {
                     "$ref" : "#/components/schemas/Ritual"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/rituals/{kind}/week-to-close" : {
+      "get" : {
+        "tags" : [ "ritual-controller" ],
+        "operationId" : "weekToClose",
+        "parameters" : [ {
+          "name" : "kind",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WeekToClose"
                 }
               }
             }
@@ -4811,6 +4874,16 @@
         },
         "required" : [ "date", "finishedAt", "id", "kind", "skipped", "snoozedUntil", "startedAt", "step", "taskId" ]
       },
+      "ReviewDay" : {
+        "type" : "object",
+        "properties" : {
+          "day" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "day" ]
+      },
       "QuarterInput" : {
         "type" : "object",
         "properties" : {
@@ -5738,6 +5811,19 @@
         } ],
         "required" : [ "minutes" ]
       },
+      "DueRitual" : {
+        "type" : "object",
+        "properties" : {
+          "ritual" : {
+            "$ref" : "#/components/schemas/Ritual"
+          },
+          "week" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          }
+        },
+        "required" : [ "ritual", "week" ]
+      },
       "Ticket" : {
         "type" : "object",
         "properties" : {
@@ -6227,6 +6313,16 @@
           }
         },
         "required" : [ "notes", "statusId" ]
+      },
+      "WeekToClose" : {
+        "type" : "object",
+        "properties" : {
+          "week" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          }
+        },
+        "required" : [ "week" ]
       },
       "Priority" : {
         "type" : "object",

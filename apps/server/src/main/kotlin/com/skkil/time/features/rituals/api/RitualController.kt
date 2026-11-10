@@ -1,6 +1,7 @@
 package com.skkil.time.features.rituals.api
 
 import com.skkil.time.common.web.Caller
+import com.skkil.time.features.rituals.domain.DueRitual
 import com.skkil.time.features.rituals.domain.Moment
 import com.skkil.time.features.rituals.domain.Ritual
 import com.skkil.time.features.rituals.domain.RitualEvent
@@ -8,6 +9,7 @@ import com.skkil.time.features.rituals.domain.RitualInput
 import com.skkil.time.features.rituals.domain.RitualRun
 import com.skkil.time.features.rituals.service.RitualService
 import org.springframework.format.annotation.DateTimeFormat
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.util.UUID
@@ -42,12 +45,28 @@ class RitualController(private val rituals: RitualService) {
         @RequestBody body: PlanningChoice,
     ): List<Ritual> = rituals.setPlanningTime(caller, body.time)
 
+    @GetMapping("/review-day")
+    fun reviewDay(caller: Caller): ReviewDay = ReviewDay(rituals.reviewDay(caller.id))
+
+    @PutMapping("/review-day")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun setReviewDay(
+        caller: Caller,
+        @RequestBody body: ReviewDay,
+    ) = rituals.setReviewDay(caller, body.day)
+
+    @GetMapping("/rituals/{kind}/week-to-close")
+    fun weekToClose(
+        caller: Caller,
+        @PathVariable kind: String,
+    ): WeekToClose = WeekToClose(rituals.weekToClose(caller.id, Moment.now(caller), kind))
+
     /** The ritual that should open for [event] right now in the caller's zone, or 204 when none is due. */
     @PostMapping("/rituals/due")
     fun due(
         caller: Caller,
         @RequestBody event: RitualEvent,
-    ): ResponseEntity<Ritual> =
+    ): ResponseEntity<DueRitual> =
         rituals.due(caller, Moment.now(caller), event)?.let { ResponseEntity.ok(it) }
             ?: ResponseEntity.noContent().build()
 

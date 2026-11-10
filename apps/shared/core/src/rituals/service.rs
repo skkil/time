@@ -3,7 +3,8 @@ use std::collections::HashSet;
 use rusqlite::{Connection, params};
 
 use super::model::{
-    Moment, PLANNING_SETTING, Ritual, RitualInput, RitualRun, SNOOZE_SECONDS, STEPS, TRIGGERS,
+    Moment, PLANNING_SETTING, REVIEW_DAY_SETTING, Ritual, RitualInput, RitualRun, SNOOZE_SECONDS,
+    STEPS, TRIGGERS,
 };
 use super::queries::{get, latest_run, list, run};
 use crate::env::MutationEnv;
@@ -83,6 +84,14 @@ pub fn set_planning_time(
         params![time],
     )?;
     list(conn)
+}
+
+/// Sets the weekday (Monday = 0) whose evening checkout closes the week.
+pub fn set_review_day(conn: &Connection, env: &dyn MutationEnv, day: i32) -> Result<()> {
+    if !(0..7).contains(&day) {
+        return Err(Error::invalid("Pick a day of the week."));
+    }
+    settings::write(conn, env, REVIEW_DAY_SETTING, &day.to_string())
 }
 
 /// Starts a run, or picks up today's unfinished one (sessions always start
