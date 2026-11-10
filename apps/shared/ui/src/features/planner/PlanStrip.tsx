@@ -2,6 +2,7 @@ import { CheckIcon, PlusIcon, XIcon } from 'lucide-react';
 import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
 
 import type { Id, Outcome } from '@/backend';
+import { CloseLastWeek } from '@/features/day/CloseLastWeek';
 import { HabitsSheet } from '@/features/habits/HabitsSheet';
 import { useHabitDays, useHabits } from '@/features/habits/api';
 import { dayLookup } from '@/features/habits/api';
@@ -15,16 +16,11 @@ import {
   useSetOutcomeStatus,
   useUpdateOutcome,
   useWeek,
-  useWeeks,
 } from '@/features/review/api';
-import { useRitualRunner } from '@/features/rituals/runner-context';
 import { useTimeEntries } from '@/features/time/api';
 import {
   type DateKey,
   formatDuration,
-  fromDateKey,
-  isoWeekNumber,
-  mondayOf,
   reviewWeekOf,
   shiftKey,
   todayKey,
@@ -40,7 +36,7 @@ const MAX_OUTCOMES = 3;
 export function WeekPlan({ start }: { start: DateKey }) {
   return (
     <div className="grid gap-6 border-b border-white/10 p-4 pb-5">
-      <ReviewNudge start={start} />
+      {start === weekStartOf(todayKey()) && <CloseLastWeek />}
       <RailBlock title="Outcomes">
         <OutcomesList week={reviewWeekOf(start)} />
       </RailBlock>
@@ -67,38 +63,6 @@ function RailBlock({
       </div>
       {children}
     </section>
-  );
-}
-
-function ReviewNudge({ start }: { start: DateKey }) {
-  const runner = useRitualRunner();
-  const thisMonday = mondayOf(todayKey());
-  const lastMonday = shiftKey(thisMonday, -7);
-  const { data: summaries } = useWeeks(lastMonday, thisMonday);
-  const weekday = fromDateKey(todayKey()).getDay();
-  const last = summaries?.[0];
-  if (
-    start !== weekStartOf(todayKey()) ||
-    weekday === 0 ||
-    weekday > 3 ||
-    !last ||
-    last.reviewedAt !== null ||
-    (last.trackedSeconds === 0 &&
-      last.outcomesTotal === 0 &&
-      last.tasksCompleted === 0)
-  )
-    return null;
-  return (
-    <p className="text-sm text-foreground/75">
-      Week {isoWeekNumber(lastMonday)} isn’t reviewed ·{' '}
-      <button
-        type="button"
-        onClick={() => runner.open('weekly')}
-        className="text-foreground/80 underline-offset-4 hover:text-foreground hover:underline"
-      >
-        Review (about 10 min)
-      </button>
-    </p>
   );
 }
 
