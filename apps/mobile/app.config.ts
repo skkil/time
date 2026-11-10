@@ -13,6 +13,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: 'com.skkil.time',
     supportsTablet: true,
     config: { usesNonExemptEncryption: false },
+    entitlements: {
+      'com.apple.security.application-groups': ['group.com.skkil.time'],
+    },
     privacyManifests: {
       NSPrivacyTracking: false,
       NSPrivacyCollectedDataTypes: [],
@@ -39,6 +42,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-secure-store',
     'expo-web-browser',
     'expo-notifications',
+    '@bacons/apple-targets',
     [
       'expo-splash-screen',
       {
