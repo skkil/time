@@ -1,6 +1,6 @@
 import { listen } from '@tauri-apps/api/event';
 
-import type { ConnectionStatus, Sync, SyncStatus } from '@/platform';
+import type { Calendars, ConnectionStatus, Sync, SyncStatus } from '@/platform';
 
 import { type RemoteChange, type SyncView, commands } from './bindings';
 
@@ -25,6 +25,13 @@ export const tauriSync: Sync = {
     void (await commands.chooseAccountData(choice)),
   config: commands.getSyncConfig,
   saveConfig: async (config) => void (await commands.setSyncConfig(config)),
+};
+
+/** Calendars belong to the account; a signed-out desktop has none. */
+export const tauriCalendars: Calendars = {
+  status: commands.calendarStatus,
+  connect: async () => void (await commands.connectCalendar()),
+  disconnect: async (id) => void (await commands.disconnectCalendar(id)),
 };
 
 /** Pulled changes refetch like another device's write on web. */

@@ -6,6 +6,7 @@ use std::sync::Arc;
 use tauri::State;
 use time_core::{Error, Result};
 
+use super::calendars::CalendarStatusView;
 use super::config::SyncConfig;
 use super::schedule::Trigger;
 use super::service::SyncService;
@@ -75,6 +76,36 @@ pub async fn choose_account_data(sync: Sync<'_>, choice: AccountChoice) -> Resul
 #[specta::specta]
 pub async fn sign_out(sync: Sync<'_>) -> Result<()> {
     sync.sign_out().map_err(invalid)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn calendar_status(sync: Sync<'_>) -> Result<CalendarStatusView> {
+    let sync = Arc::clone(&sync);
+    blocking(move || sync.calendar_status()).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn connect_calendar(sync: Sync<'_>) -> Result<()> {
+    let sync = Arc::clone(&sync);
+    blocking(move || sync.connect_calendar()).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn disconnect_calendar(sync: Sync<'_>, id: String) -> Result<()> {
+    let sync = Arc::clone(&sync);
+    blocking(move || sync.disconnect_calendar(&id)).await
+}
+
+async fn blocking<T: Send + 'static>(
+    run: impl FnOnce() -> std::result::Result<T, String> + Send + 'static,
+) -> Result<T> {
+    tauri::async_runtime::spawn_blocking(run)
+        .await
+        .map_err(|error| Error::invalid(error.to_string()))?
+        .map_err(invalid)
 }
 
 #[tauri::command]

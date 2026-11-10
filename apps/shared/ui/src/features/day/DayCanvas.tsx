@@ -1,3 +1,4 @@
+import { coversDay, eventSpanOn } from '@skkil-time/rules/calendar';
 import { dayTarget } from '@skkil-time/rules/move';
 import { liveEntry } from '@skkil-time/rules/timer';
 import { format } from 'date-fns';
@@ -12,6 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { CalendarDayChip } from '@/features/calendar/CalendarDayChip';
+import { useCalendarEvents } from '@/features/calendar/api';
 import { useRitualRuns } from '@/features/rituals/api';
 import { TaskPanel } from '@/features/tasks/TaskPanel';
 import { useTaskIndex } from '@/features/tasks/api';
@@ -54,6 +57,7 @@ export function DayCanvas({
   const today = todayKey();
   const plan = useDayPlan(today);
   const { data: events = [] } = useEvents(today, shiftKey(today, 1));
+  const { data: external = [] } = useCalendarEvents(today, shiftKey(today, 1));
   const { data: timer } = useTimer();
   const { data: runs = [] } = useRitualRuns(today, shiftKey(today, 1));
   const { data: logged = [] } = useTimeEntries(today, shiftKey(today, 1));
@@ -98,6 +102,25 @@ export function DayCanvas({
       kind: 'event' as const,
       done: false,
     }));
+    const outside = external.flatMap((event) =>
+      eventSpanOn(event, today)
+        ? [
+            {
+              key: `calendar-${event.id}`,
+              taskId: event.id,
+              title: event.title,
+              priority: 4,
+              projectId: null,
+              start: event.startAt,
+              end: event.endAt,
+              showEnd: true,
+              kind: 'calendar' as const,
+              done: false,
+              calendar: event,
+            },
+          ]
+        : [],
+    );
     const finishedHere = plan.doneToday.filter(
       (task) => task.dueDate === today,
     );
@@ -118,8 +141,19 @@ export function DayCanvas({
           done: task.completedAt !== null,
         };
       });
-    return [...timed, ...anchors, ...due].sort((a, b) => a.start - b.start);
-  }, [plan.blocks, plan.musts, plan.due, plan.doneToday, events, today]);
+    return [...timed, ...anchors, ...outside, ...due].sort(
+      (a, b) => a.start - b.start,
+    );
+  }, [
+    plan.blocks,
+    plan.musts,
+    plan.due,
+    plan.doneToday,
+    events,
+    external,
+    today,
+  ]);
+  const allDay = external.filter((event) => coversDay(event, today));
 
   const blocked = new Set(plan.blocks.map((block) => block.taskId));
   const anyTime = [...plan.musts, ...plan.due, ...plan.thisWeek].filter(
@@ -148,6 +182,13 @@ export function DayCanvas({
       <div className="flex flex-col gap-4 pb-5 lg:flex-row lg:items-start lg:justify-between lg:gap-6 lg:pb-8">
         <div className="grid min-w-0 gap-5 max-lg:contents">
           <TodayLine tracked={tracked} />
+          {allDay.length > 0 && (
+            <div className="flex max-w-full flex-wrap gap-1.5 max-lg:order-1">
+              {allDay.map((event) => (
+                <CalendarDayChip key={event.id} event={event} />
+              ))}
+            </div>
+          )}
           <div className="grid min-w-0 justify-items-start gap-2 max-lg:order-1">
             <AnyTimeList
               tasks={anyTime}

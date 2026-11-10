@@ -7,7 +7,12 @@ import type { Id } from '@/backend';
 import type { Platform } from '@/platform';
 
 import { commands } from './bindings';
-import { onConnectionChange, onRemoteChange, tauriSync } from './sync';
+import {
+  onConnectionChange,
+  onRemoteChange,
+  tauriCalendars,
+  tauriSync,
+} from './sync';
 
 function subscribe<T>(event: string, listener: (payload: T) => void) {
   const stop = listen<T>(event, ({ payload }) => listener(payload));
@@ -30,6 +35,7 @@ export const tauriPlatform: Platform = {
     subscribe<null>('open-earlier', () => listener()),
   account: null,
   sync: tauriSync,
+  calendars: tauriCalendars,
   tray: {
     keepOnClose: commands.getKeepInTray,
     setKeepOnClose: async (keep) => void (await commands.setKeepInTray(keep)),

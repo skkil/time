@@ -40,11 +40,11 @@ struct Me {
     scope_id: Uuid,
 }
 
-fn endpoint(server_url: &str, path: &str) -> String {
+pub(super) fn endpoint(server_url: &str, path: &str) -> String {
     format!("{}{path}", server_url.trim_end_matches('/'))
 }
 
-fn status_error(status: u16, body: String) -> ApiError {
+pub(super) fn status_error(status: u16, body: String) -> ApiError {
     match status {
         401 | 403 => ApiError::Unauthorized,
         409 => ApiError::Conflict,

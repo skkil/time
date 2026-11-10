@@ -1,6 +1,8 @@
 import type { Id } from '@/backend';
+import type { Calendars } from '@/platform/calendars';
 import type { Sync } from '@/platform/sync';
 
+export type * from '@/platform/calendars';
 export type * from '@/platform/sync';
 
 type Unsubscribe = () => void;
@@ -58,6 +60,8 @@ export interface Platform {
   notifications?: Notifications;
   /** Sign-in and background sync for a local-first device. */
   sync?: Sync;
+  /** Calendars connected to the account, such as Google Calendar. */
+  calendars?: Calendars;
   /** Whether closing the window leaves the app running in the tray. */
   tray?: Tray;
   features: {

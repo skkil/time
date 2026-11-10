@@ -9,6 +9,12 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import {
+  busyOn,
+  coversDay,
+  eventSpanOn,
+  freeStart,
+} from '@skkil-time/rules/calendar';
 import { dayTarget } from '@skkil-time/rules/move';
 import { LIVE_ENTRY_ID, liveEntry } from '@skkil-time/rules/timer';
 import {
@@ -23,6 +29,7 @@ import {
 } from 'react';
 
 import type {
+  CalendarEvent,
   EventOccurrence,
   Id,
   Task,
@@ -34,6 +41,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { CalendarDayChip } from '@/features/calendar/CalendarDayChip';
+import { CalendarEventCard } from '@/features/calendar/CalendarEventCard';
+import { useCalendarEvents } from '@/features/calendar/api';
 import { useProjectIndex } from '@/features/projects/api';
 import { projectColorVar } from '@/features/projects/tree';
 import { useMoveTasks, useTaskIndex, useTasks } from '@/features/tasks/api';
@@ -118,6 +128,7 @@ export function ScheduleView({
   const today = todayKey();
   const { data: blocks = [] } = useBlocks(week);
   const { data: events = [] } = useEvents(week, shiftKey(week, 7));
+  const { data: external = [] } = useCalendarEvents(week, shiftKey(week, 7));
   const { data: entries = [] } = useTimeEntries(week, shiftKey(week, 7));
   const { data: tasks = [] } = useTasks();
   const { data: timer } = useTimer();
@@ -316,9 +327,13 @@ export function ScheduleView({
   };
 
   const planTask = (task: Task, target: BlockSlot) => {
+    const minutes = task.estimateMinutes ?? DEFAULT_BLOCK_MINUTES;
     const span =
       target.end === null
-        ? placeSpan(target.start, task.estimateMinutes ?? DEFAULT_BLOCK_MINUTES)
+        ? placeSpan(
+            freeStart(target.start, minutes, busyOn(external, target.day)),
+            minutes,
+          )
         : { start: target.start, end: target.end };
     createBlock.mutate({
       taskId: task.id,
@@ -380,6 +395,7 @@ export function ScheduleView({
                     key={day}
                     day={day}
                     today={today}
+                    allDay={external.filter((event) => coversDay(event, day))}
                     due={dueByDay.get(day) ?? []}
                     tracked={trackedByDay.get(day) ?? 0}
                   />
@@ -413,6 +429,7 @@ export function ScheduleView({
                       now={now}
                       blocks={blocks}
                       events={events}
+                      external={external}
                       timed={timedByDay.get(day) ?? []}
                       entries={
                         runningEntry ? [...entries, runningEntry] : entries
@@ -476,11 +493,13 @@ type HeaderDrop = { kind: 'header'; day: DateKey };
 function DayHeader({
   day,
   today,
+  allDay,
   due,
   tracked,
 }: {
   day: DateKey;
   today: DateKey;
+  allDay: CalendarEvent[];
   due: Task[];
   tracked: number;
 }) {
@@ -526,6 +545,9 @@ function DayHeader({
         )}
       </div>
       <div className="mt-1.5 grid min-h-6 grid-cols-[minmax(0,1fr)] gap-1">
+        {allDay.map((event) => (
+          <CalendarDayChip key={event.id} event={event} />
+        ))}
         {visible.map((task) => (
           <DraggableTask
             key={task.id}
@@ -557,6 +579,7 @@ type DayColumnProps = {
   now: number;
   blocks: TimeBlock[];
   events: EventOccurrence[];
+  external: CalendarEvent[];
   timed: Task[];
   entries: TimeEntry[];
   runningTaskId: Id | null;
@@ -600,6 +623,7 @@ function DayColumn({
   now,
   blocks,
   events,
+  external,
   timed,
   entries,
   runningTaskId,
@@ -646,6 +670,10 @@ function DayColumn({
           ),
         };
       });
+    const outside = external.flatMap((event) => {
+      const span = eventSpanOn(event, day);
+      return span ? [{ event, id: `calendar-${event.id}`, ...span }] : [];
+    });
     const due = timed.map((task, i) => {
       const start = task.dueTime ?? 0;
       return {
@@ -661,18 +689,25 @@ function DayColumn({
     const lanes = layoutLanes([
       ...own.map(({ block, start, end }) => ({ id: block.id, start, end })),
       ...anchors.map(({ id, start, end }) => ({ id, start, end })),
+      ...outside.map(({ id, start, end }) => ({ id, start, end })),
       ...due.map(({ id, start, end }) => ({ id, start, end })),
     ]);
     const lane = (id: string) => lanes.get(id) ?? { lane: 0, lanes: 1 };
     return {
       blocks: own.map((item) => ({ ...item, ...lane(item.block.id) })),
       events: anchors.map((item) => ({ ...item, ...lane(item.id) })),
+      external: outside.map((item) => ({ ...item, ...lane(item.id) })),
       due: due.map((item) => ({ ...item, ...lane(item.id) })),
     };
-  }, [blocks, events, timed, day]);
+  }, [blocks, events, external, timed, day]);
 
   const actual = useMemo(() => {
-    const planned = [...placed.blocks, ...placed.events, ...placed.due];
+    const planned = [
+      ...placed.blocks,
+      ...placed.events,
+      ...placed.external,
+      ...placed.due,
+    ];
     return entries.flatMap((entry) => {
       const span = clipToDay(day, entry.startedAt, entry.endedAt);
       if (!span) return [];
@@ -704,6 +739,16 @@ function DayColumn({
           {placed.events.map(({ event, start, end, lane, lanes }) => (
             <EventCard
               key={`${event.taskId}-${event.startAt}`}
+              event={event}
+              start={start}
+              end={end}
+              lane={lane}
+              lanes={lanes}
+            />
+          ))}
+          {placed.external.map(({ event, start, end, lane, lanes }) => (
+            <CalendarEventCard
+              key={event.id}
               event={event}
               start={start}
               end={end}

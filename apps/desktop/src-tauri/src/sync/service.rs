@@ -16,6 +16,7 @@ use super::auth::loopback::Loopback;
 use super::auth::oidc::Oidc;
 use super::auth::pkce::{Pkce, random_token};
 use super::auth::tokens::TokenStore;
+use super::calendars::{self, CalendarStatusView};
 use super::config::SyncConfig;
 use super::credentials::SessionCredentials;
 use super::cycle::{self, CycleError};
@@ -228,6 +229,46 @@ impl SyncService {
             .take();
         self.session.sign_out()?;
         self.set_phase(SyncPhase::SignedOut, None);
+        Ok(())
+    }
+
+    /// The account's connected calendars, or a signed-out view.
+    pub fn calendar_status(&self) -> Outcome<CalendarStatusView> {
+        if !self.session.signed_in() {
+            return Ok(CalendarStatusView::signed_out());
+        }
+        let config = self.config()?;
+        let access = self
+            .session
+            .access_token(&config)
+            .map_err(|error| error.to_string())?;
+        calendars::status(&config.server_url, &access).map_err(|error| error.to_string())
+    }
+
+    /// Opens the provider's consent page in the system browser.
+    pub fn connect_calendar(&self) -> Outcome<()> {
+        let config = self.config()?;
+        let access = self
+            .session
+            .access_token(&config)
+            .map_err(|error| error.to_string())?;
+        let url =
+            calendars::connect(&config.server_url, &access).map_err(|error| error.to_string())?;
+        self.app
+            .opener()
+            .open_url(url, None::<&str>)
+            .map_err(|error| format!("Couldn't open the browser: {error}"))
+    }
+
+    pub fn disconnect_calendar(&self, id: &str) -> Outcome<()> {
+        let config = self.config()?;
+        let access = self
+            .session
+            .access_token(&config)
+            .map_err(|error| error.to_string())?;
+        calendars::disconnect(&config.server_url, &access, id)
+            .map_err(|error| error.to_string())?;
+        self.trigger(Trigger::Now);
         Ok(())
     }
 

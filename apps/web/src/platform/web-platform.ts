@@ -2,6 +2,7 @@ import type { Session } from '@skkil-time/client/sign-in';
 import { onOpenTask } from '~/notifications/web-push';
 
 import type {
+  Calendars,
   ConnectionStatus,
   Notifications,
   Platform,
@@ -19,6 +20,7 @@ export type WebServices = {
   signOut(): Promise<void>;
   deleteAccount(): Promise<void>;
   preferences: SharedPreferences;
+  calendars: Calendars;
   notifications: Notifications | null;
   onRemoteChange: (listener: (change: RemoteChange) => void) => () => void;
   onConnectionChange: (
@@ -33,6 +35,7 @@ export function webPlatform({
   signOut,
   deleteAccount,
   preferences,
+  calendars,
   notifications,
   onRemoteChange,
   onConnectionChange,
@@ -42,6 +45,7 @@ export function webPlatform({
     onRemoteChange,
     onConnectionChange,
     preferences,
+    calendars,
     sync,
     kind: 'web',
     openUrl: (url) => void window.open(url, '_blank', 'noopener,noreferrer'),

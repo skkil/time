@@ -4,6 +4,7 @@
 
 pub mod api;
 pub mod auth;
+pub mod calendars;
 pub mod commands;
 pub mod config;
 mod credentials;

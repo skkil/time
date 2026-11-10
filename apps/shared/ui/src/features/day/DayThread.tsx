@@ -1,7 +1,12 @@
 import { LIVE_ENTRY_ID } from '@skkil-time/rules/timer';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-import type { Id, TimeEntry } from '@/backend';
+import type { CalendarEvent, Id, TimeEntry } from '@/backend';
+import { Popover, PopoverTrigger } from '@/components/ui/popover';
+import {
+  CalendarEventDetails,
+  GoogleMark,
+} from '@/features/calendar/CalendarEventDetails';
 import { createTimeScale } from '@/features/planner/time-scale';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { ProjectLink } from '@/features/projects/ProjectLink';
@@ -24,7 +29,7 @@ import { cn } from '@/lib/utils';
 
 export type Moment = {
   key: string;
-  kind: 'block' | 'event' | 'due';
+  kind: 'block' | 'event' | 'due' | 'calendar';
   taskId: Id;
   title: string;
   priority: number;
@@ -33,6 +38,7 @@ export type Moment = {
   end: number;
   showEnd: boolean;
   done: boolean;
+  calendar?: CalendarEvent;
 };
 
 const WINDOW_HOURS = 6;
@@ -213,7 +219,14 @@ export function DayThread({
               >
                 <div className="flex items-start gap-4">
                   <span className="relative mt-1 grid size-[15px] shrink-0 place-items-center">
-                    {moment.kind === 'event' ? (
+                    {moment.calendar ? (
+                      <GoogleMark
+                        className={cn(
+                          'size-[13px] transition-opacity duration-500',
+                          past && 'opacity-40',
+                        )}
+                      />
+                    ) : moment.kind === 'event' ? (
                       <span
                         aria-label="Event"
                         className={cn(
@@ -247,28 +260,52 @@ export function DayThread({
                       </>
                     )}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => onPick(moment.taskId)}
-                    aria-current={open ? 'true' : undefined}
-                    className="group min-w-0 text-left outline-none"
-                  >
-                    <span
-                      className={cn(
-                        'block truncate text-[15px] transition-colors duration-500',
-                        moment.done && 'text-foreground/75 line-through',
-                        !moment.done &&
-                          (open
-                            ? 'text-foreground'
-                            : past
-                              ? 'text-foreground/75'
-                              : 'text-foreground/80 group-hover:text-foreground'),
-                        'group-focus-visible:underline',
-                      )}
+                  {moment.calendar ? (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          data-calendar-event=""
+                          className="group min-w-0 text-left outline-none"
+                        >
+                          <span
+                            className={cn(
+                              'block truncate text-[15px] transition-colors duration-500 group-focus-visible:underline',
+                              past
+                                ? 'text-foreground/75'
+                                : 'text-foreground/80 group-hover:text-foreground',
+                            )}
+                          >
+                            {moment.title}
+                          </span>
+                        </button>
+                      </PopoverTrigger>
+                      <CalendarEventDetails event={moment.calendar} />
+                    </Popover>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onPick(moment.taskId)}
+                      aria-current={open ? 'true' : undefined}
+                      className="group min-w-0 text-left outline-none"
                     >
-                      {moment.title}
-                    </span>
-                  </button>
+                      <span
+                        className={cn(
+                          'block truncate text-[15px] transition-colors duration-500',
+                          moment.done && 'text-foreground/75 line-through',
+                          !moment.done &&
+                            (open
+                              ? 'text-foreground'
+                              : past
+                                ? 'text-foreground/75'
+                                : 'text-foreground/80 group-hover:text-foreground'),
+                          'group-focus-visible:underline',
+                        )}
+                      >
+                        {moment.title}
+                      </span>
+                    </button>
+                  )}
                 </div>
                 <p className="flex items-center gap-2 pl-[31px] text-xs text-foreground/75">
                   {moment.showEnd
@@ -282,6 +319,18 @@ export function DayThread({
                       <ProjectDot color={project.color} />
                       <span className="truncate">{project.name}</span>
                     </ProjectLink>
+                  )}
+                  {moment.calendar && (
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span
+                        aria-hidden
+                        className="size-2 shrink-0 rounded-full"
+                        style={{ background: moment.calendar.color }}
+                      />
+                      <span className="truncate">
+                        {moment.calendar.sourceName}
+                      </span>
+                    </span>
                   )}
                 </p>
               </li>

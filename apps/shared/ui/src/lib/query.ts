@@ -79,6 +79,11 @@ export const keys = {
   presets: ['presets'] as const,
   events: (from: string, to: string) => ['events', from, to] as const,
   allEvents: ['events'] as const,
+  calendarEvents: (from: string, to: string) =>
+    ['calendar', 'events', from, to] as const,
+  calendarSources: ['calendar', 'sources'] as const,
+  allCalendar: ['calendar'] as const,
+  calendarStatus: ['calendar-status'] as const,
   typeTime: (from: string, to: string) => ['typeTime', from, to] as const,
   planningTime: ['rituals', 'planningTime'] as const,
   reviewDay: ['rituals', 'reviewDay'] as const,

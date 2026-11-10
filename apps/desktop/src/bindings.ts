@@ -15,6 +15,9 @@ export const commands = {
 	signOut: () => __TAURI_INVOKE<null>("sign_out"),
 	getSyncConfig: () => __TAURI_INVOKE<SyncConfig>("get_sync_config"),
 	setSyncConfig: (config: SyncConfig) => __TAURI_INVOKE<null>("set_sync_config", { config }),
+	calendarStatus: () => __TAURI_INVOKE<CalendarStatusView>("calendar_status"),
+	connectCalendar: () => __TAURI_INVOKE<null>("connect_calendar"),
+	disconnectCalendar: (id: string) => __TAURI_INVOKE<null>("disconnect_calendar", { id }),
 	getKeepInTray: () => __TAURI_INVOKE<boolean>("get_keep_in_tray"),
 	setKeepInTray: (keep: boolean) => __TAURI_INVOKE<null>("set_keep_in_tray", { keep }),
 };
@@ -30,6 +33,21 @@ export type AccountChoice = "keepLocal" | "startFresh";
 export type AccountView = {
 	name: string | null,
 	email: string | null,
+};
+
+export type CalendarAccountView = {
+	id: string,
+	provider: string,
+	email: string | null,
+	status: string,
+	/**  Unix seconds of the last read. */
+	syncedAt: number | null,
+};
+
+export type CalendarStatusView = {
+	signedIn: boolean,
+	available: boolean,
+	accounts: CalendarAccountView[],
 };
 
 export type Error = { kind: "database"; message: string } | { kind: "invalid"; message: string } | { kind: "notFound"; message: string };

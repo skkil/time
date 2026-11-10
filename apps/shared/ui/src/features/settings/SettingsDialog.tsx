@@ -1,5 +1,6 @@
 import {
   BellIcon,
+  CalendarDaysIcon,
   CalendarRangeIcon,
   DatabaseIcon,
   FlagIcon,
@@ -19,6 +20,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { CalendarSettings } from '@/features/calendar/CalendarSettings';
 import { SyncSettings } from '@/features/sync/SyncSettings';
 import { type Platform, platform } from '@/platform';
 
@@ -65,6 +67,14 @@ const sections: Section[] = [
     description: 'How weeks are laid out, and what counts as tracked time.',
     icon: CalendarRangeIcon,
     content: WeekSettings,
+  },
+  {
+    id: 'calendars',
+    label: 'Calendars',
+    description: 'Show events from Google Calendar on Day and Week.',
+    icon: CalendarDaysIcon,
+    content: CalendarSettings,
+    available: (platform) => platform.calendars !== undefined,
   },
   {
     id: 'reminders',

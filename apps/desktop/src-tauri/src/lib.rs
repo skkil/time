@@ -45,12 +45,15 @@ fn platform_builder() -> Builder<tauri::Wry> {
             sync::commands::sign_out,
             sync::commands::get_sync_config,
             sync::commands::set_sync_config,
+            sync::commands::calendar_status,
+            sync::commands::connect_calendar,
+            sync::commands::disconnect_calendar,
             tray::get_keep_in_tray,
             tray::set_keep_in_tray,
         ])
 }
 
-const PLATFORM_COMMANDS: [&str; 12] = [
+const PLATFORM_COMMANDS: [&str; 15] = [
     "sync_status",
     "sync_now",
     "sync_issues",
@@ -61,6 +64,9 @@ const PLATFORM_COMMANDS: [&str; 12] = [
     "sign_out",
     "get_sync_config",
     "set_sync_config",
+    "calendar_status",
+    "connect_calendar",
+    "disconnect_calendar",
     "get_keep_in_tray",
     "set_keep_in_tray",
 ];

@@ -1,3 +1,4 @@
+import { busyOn, clashes } from '@skkil-time/rules/calendar';
 import { dayTarget } from '@skkil-time/rules/move';
 import { CheckIcon, StarIcon } from 'lucide-react';
 import { type ReactNode, useMemo, useState } from 'react';
@@ -7,6 +8,8 @@ import { FeltScale } from '@/components/FeltScale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { GoogleMark } from '@/features/calendar/CalendarEventDetails';
+import { useCalendarEvents } from '@/features/calendar/api';
 import { Leftovers } from '@/features/day/Leftovers';
 import { earlierTasks, nextActions } from '@/features/day/plan';
 import { HabitCell } from '@/features/habits/HabitCell';
@@ -335,6 +338,11 @@ function TimeblockStep({ ctx }: { ctx: RitualContext }) {
   const { data: blocks } = useBlocks(monday);
   const { data: tasks } = useTasks();
   const create = useCreateBlock(monday);
+  const { data: external = [] } = useCalendarEvents(
+    ctx.target,
+    shiftKey(ctx.target, 1),
+  );
+  const busy = busyOn(external, ctx.target);
   const dayBlocks = (blocks ?? [])
     .filter((block) => dateKeyOf(block.startAt) === ctx.target)
     .sort((a, b) => a.startAt - b.startAt);
@@ -375,7 +383,10 @@ function TimeblockStep({ ctx }: { ctx: RitualContext }) {
                   key={minute}
                   size="xs"
                   variant="outline"
-                  disabled={taken(minute)}
+                  disabled={
+                    taken(minute) ||
+                    clashes(minute, task.estimateMinutes ?? 60, busy)
+                  }
                   onClick={() => {
                     const startAt = atMinutes(ctx.target, minute);
                     create.mutate({
@@ -394,6 +405,22 @@ function TimeblockStep({ ctx }: { ctx: RitualContext }) {
           </li>
         ))}
       </ul>
+      {busy.length > 0 && (
+        <ul className="grid gap-1 text-sm text-muted-foreground">
+          {external
+            .filter((event) => !event.allDay)
+            .map((event) => (
+              <li key={event.id} className="flex items-center gap-3">
+                <span className="w-24 shrink-0">
+                  {formatClockTime(event.startAt)}–
+                  {formatClockTime(event.endAt)}
+                </span>
+                <span className="truncate">{event.title}</span>
+                <GoogleMark />
+              </li>
+            ))}
+        </ul>
+      )}
       {dayBlocks.length > 0 && (
         <ul className="grid gap-1 text-sm text-muted-foreground">
           {dayBlocks.map((block) => (

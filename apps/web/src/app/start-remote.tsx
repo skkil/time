@@ -5,6 +5,7 @@ import type { WebAuth } from '@skkil-time/client/sign-in/web';
 import { toast } from 'sonner';
 import { config } from '~/app/config';
 import { setUpWebPush } from '~/notifications/web-push';
+import { accountCalendars } from '~/platform/account-calendars';
 import { createConnection } from '~/platform/connection';
 import { webHost } from '~/platform/host';
 import { createLiveUpdates } from '~/platform/live-updates';
@@ -54,6 +55,7 @@ export async function startRemote(
         await signOut();
       },
       preferences: accountPreferences(api),
+      calendars: accountCalendars(api),
       notifications,
       onConnectionChange: connection.subscribe,
       onRemoteChange,

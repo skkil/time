@@ -6,6 +6,7 @@ import { createSyncAccount } from '@skkil-time/client/sync';
 import { config } from '~/app/config';
 import { type StartedEngine, localEngine } from '~/engine/start';
 import { setUpWebPush } from '~/notifications/web-push';
+import { accountCalendars } from '~/platform/account-calendars';
 import { webDeviceCommands } from '~/platform/device-commands';
 import { createLiveUpdates } from '~/platform/live-updates';
 import { localChanges } from '~/platform/local-changes';
@@ -84,6 +85,7 @@ export async function startLocal(
         await finishSignOut();
       },
       preferences: accountPreferences(api),
+      calendars: accountCalendars(api),
       notifications,
       onConnectionChange: web.onConnectionChange,
       onRemoteChange: localChanges(engine, serverChanges),
