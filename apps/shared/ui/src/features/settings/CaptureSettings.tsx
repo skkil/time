@@ -4,8 +4,10 @@ import { commands } from '@/backend';
 import { Checkbox } from '@/components/ui/checkbox';
 import { keys } from '@/lib/query';
 import { formatShortcut } from '@/lib/shortcuts';
+import { platform } from '@/platform';
 
 import { SettingRow } from './SettingRow';
+import { TraySetting } from './TraySetting';
 
 export function CaptureSettings() {
   const client = useQueryClient();
@@ -17,6 +19,8 @@ export function CaptureSettings() {
     mutationFn: (next: boolean) => commands.setCaptureHotkey(next),
     onSuccess: (_result, next) => client.setQueryData(keys.captureHotkey, next),
   });
+
+  const tray = platform().tray;
 
   return (
     <div>
@@ -38,6 +42,7 @@ export function CaptureSettings() {
           skkil-time --quick-add
         </code>
       </SettingRow>
+      {tray && <TraySetting tray={tray} />}
     </div>
   );
 }

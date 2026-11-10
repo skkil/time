@@ -33,6 +33,11 @@ export type Notifications = {
   disable(): Promise<void>;
 };
 
+export interface Tray {
+  keepOnClose(): Promise<boolean>;
+  setKeepOnClose(keep: boolean): Promise<void>;
+}
+
 export interface Platform {
   kind: 'desktop' | 'web';
   openUrl(url: string): void;
@@ -40,6 +45,7 @@ export interface Platform {
   setZoom(zoom: number): void;
   onOpenTask(listener: (id: Id) => void): Unsubscribe;
   onQuickAdd(listener: () => void): Unsubscribe;
+  onOpenEarlier?(listener: () => void): Unsubscribe;
   account: Account | null;
   /** Pushes other devices' writes as they happen; without it the app polls. */
   onRemoteChange?(listener: (change: RemoteChange) => void): Unsubscribe;
@@ -52,6 +58,8 @@ export interface Platform {
   notifications?: Notifications;
   /** Sign-in and background sync for a local-first device. */
   sync?: Sync;
+  /** Whether closing the window leaves the app running in the tray. */
+  tray?: Tray;
   features: {
     captureHotkey: boolean;
     reminders: boolean;

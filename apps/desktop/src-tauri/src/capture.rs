@@ -30,7 +30,7 @@ pub fn set_enabled(conn: &Connection, enabled: bool) -> Result<()> {
     device_settings::set_switch(conn, ENABLED_SETTING, enabled)
 }
 
-fn quick_add(app: &AppHandle) {
+pub fn quick_add(app: &AppHandle) {
     window::show_main(app);
     let _ = app.emit(QUICK_ADD_EVENT, ());
 }

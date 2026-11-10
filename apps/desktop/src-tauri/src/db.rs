@@ -1,5 +1,5 @@
 use std::path::Path;
-use std::sync::{Mutex, OnceLock};
+use std::sync::Mutex;
 
 use rusqlite::Connection;
 use time_core::Result;
@@ -16,20 +16,26 @@ type WriteListener = Box<dyn Fn() + Send + Sync>;
 /// [`Db::mutate`] so they are captured for sync and wake the sync loop.
 pub struct Db {
     engine: Mutex<Engine>,
-    on_write: OnceLock<WriteListener>,
+    on_write: Mutex<Vec<WriteListener>>,
 }
 
 impl Db {
     pub fn new(engine: Engine) -> Self {
         Self {
             engine: Mutex::new(engine),
-            on_write: OnceLock::new(),
+            on_write: Mutex::new(Vec::new()),
         }
     }
 
     /// Calls `listener` after every write made through [`Db::mutate`].
     pub fn on_write(&self, listener: impl Fn() + Send + Sync + 'static) {
-        let _ = self.on_write.set(Box::new(listener));
+        self.listeners().push(Box::new(listener));
+    }
+
+    fn listeners(&self) -> std::sync::MutexGuard<'_, Vec<WriteListener>> {
+        self.on_write
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
     pub fn mutate(&self, name: &str, args: &serde_json::Value) -> Result<serde_json::Value> {
@@ -40,7 +46,7 @@ impl Db {
     /// [`Db::mutate`].
     pub fn mutate_with<T>(&self, write: impl FnOnce(&mut Engine) -> Result<T>) -> Result<T> {
         let result = self.engine(write)?;
-        if let Some(listener) = self.on_write.get() {
+        for listener in self.listeners().iter() {
             listener();
         }
         Ok(result)

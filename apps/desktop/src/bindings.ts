@@ -15,6 +15,8 @@ export const commands = {
 	signOut: () => __TAURI_INVOKE<null>("sign_out"),
 	getSyncConfig: () => __TAURI_INVOKE<SyncConfig>("get_sync_config"),
 	setSyncConfig: (config: SyncConfig) => __TAURI_INVOKE<null>("set_sync_config", { config }),
+	getKeepInTray: () => __TAURI_INVOKE<boolean>("get_keep_in_tray"),
+	setKeepInTray: (keep: boolean) => __TAURI_INVOKE<null>("set_keep_in_tray", { keep }),
 };
 
 /* Types */

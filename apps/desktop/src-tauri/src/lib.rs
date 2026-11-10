@@ -6,6 +6,7 @@ mod db;
 pub mod mcp;
 mod reminders;
 mod sync;
+mod tray;
 mod window;
 
 use std::sync::Arc;
@@ -44,10 +45,12 @@ fn platform_builder() -> Builder<tauri::Wry> {
             sync::commands::sign_out,
             sync::commands::get_sync_config,
             sync::commands::set_sync_config,
+            tray::get_keep_in_tray,
+            tray::set_keep_in_tray,
         ])
 }
 
-const PLATFORM_COMMANDS: [&str; 10] = [
+const PLATFORM_COMMANDS: [&str; 12] = [
     "sync_status",
     "sync_now",
     "sync_issues",
@@ -58,6 +61,8 @@ const PLATFORM_COMMANDS: [&str; 10] = [
     "sign_out",
     "get_sync_config",
     "set_sync_config",
+    "get_keep_in_tray",
+    "set_keep_in_tray",
 ];
 
 fn specta_builder() -> Builder<tauri::Wry> {
@@ -252,6 +257,11 @@ pub fn run() {
             }
         })
         .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event
+                && tray::close_to_tray(window)
+            {
+                api.prevent_close();
+            }
             if let WindowEvent::Focused(true) = event
                 && let Some(sync) = window.try_state::<Arc<sync::SyncService>>()
             {
@@ -275,6 +285,9 @@ pub fn run() {
             app.manage(backup::SeenVersion::default());
             reminders::start(app.handle().clone());
             capture::start(app.handle());
+            if let Err(error) = tray::start(app.handle()) {
+                eprintln!("skkil time: no tray icon on this system: {error}");
+            }
             Ok(())
         })
         .run(tauri::generate_context!())

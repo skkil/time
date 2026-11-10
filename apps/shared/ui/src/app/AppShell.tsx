@@ -9,7 +9,7 @@ import {
   SettingsIcon,
   UserIcon,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   DropdownMenu,
@@ -112,6 +112,22 @@ function Canvas() {
       },
     });
   };
+
+  useEffect(
+    () =>
+      platform().onOpenEarlier?.(
+        () =>
+          void navigate({
+            to: '/',
+            search: {
+              view: 'day',
+              week: weekStartOf(todayKey()),
+              earlier: true,
+            },
+          }),
+      ),
+    [navigate],
+  );
 
   useShortcuts([
     { keys: 'Mod+K', run: () => setSearching(true) },

@@ -6,6 +6,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import type { Id } from '@/backend';
 import type { Platform } from '@/platform';
 
+import { commands } from './bindings';
 import { onConnectionChange, onRemoteChange, tauriSync } from './sync';
 
 function subscribe<T>(event: string, listener: (payload: T) => void) {
@@ -25,8 +26,14 @@ export const tauriPlatform: Platform = {
   setZoom: (zoom) => void getCurrentWebview().setZoom(zoom),
   onOpenTask: (listener) => subscribe<Id>('open-task', listener),
   onQuickAdd: (listener) => subscribe<null>('quick-add', () => listener()),
+  onOpenEarlier: (listener) =>
+    subscribe<null>('open-earlier', () => listener()),
   account: null,
   sync: tauriSync,
+  tray: {
+    keepOnClose: commands.getKeepInTray,
+    setKeepOnClose: async (keep) => void (await commands.setKeepInTray(keep)),
+  },
   onRemoteChange,
   onConnectionChange,
   features: {

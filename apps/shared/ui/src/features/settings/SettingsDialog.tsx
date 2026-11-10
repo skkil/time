@@ -77,7 +77,7 @@ const sections: Section[] = [
   {
     id: 'capture',
     label: 'Capture',
-    description: 'Add a task without switching to skkil time.',
+    description: 'Add a task or see today without switching to skkil time.',
     icon: KeyboardIcon,
     content: CaptureSettings,
     available: (platform) => platform.features.captureHotkey,

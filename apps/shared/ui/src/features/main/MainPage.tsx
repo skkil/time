@@ -6,6 +6,18 @@ import { WeekView } from '@/features/planner/WeekView';
 const route = getRouteApi('/');
 
 export function MainPage() {
-  const { view, week } = route.useSearch();
-  return view === 'week' ? <WeekView week={week} /> : <DayCanvas />;
+  const { view, week, earlier } = route.useSearch();
+  const navigate = route.useNavigate();
+  if (view === 'week') return <WeekView week={week} />;
+  return (
+    <DayCanvas
+      triage={earlier === true}
+      onTriageClose={() =>
+        void navigate({
+          search: (previous) => ({ ...previous, earlier: undefined }),
+          replace: true,
+        })
+      }
+    />
+  );
 }

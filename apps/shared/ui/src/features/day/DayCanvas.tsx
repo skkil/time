@@ -43,7 +43,13 @@ type Panel =
 
 const isTimed = (task: Task) => task.dueTime !== null;
 
-export function DayCanvas() {
+export function DayCanvas({
+  triage = false,
+  onTriageClose,
+}: {
+  triage?: boolean;
+  onTriageClose?: () => void;
+}) {
   const today = todayKey();
   const plan = useDayPlan(today);
   const { data: events = [] } = useEvents(today, shiftKey(today, 1));
@@ -212,7 +218,13 @@ export function DayCanvas() {
         )}
       </div>
 
-      <Dialog open={sorting} onOpenChange={setSorting}>
+      <Dialog
+        open={sorting || triage}
+        onOpenChange={(open) => {
+          setSorting(open);
+          if (!open) onTriageClose?.();
+        }}
+      >
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>From earlier days</DialogTitle>

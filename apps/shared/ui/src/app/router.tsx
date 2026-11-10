@@ -26,7 +26,7 @@ import { RouteError } from './RouteError';
 
 type WeekSearch = { week: DateKey };
 export type MainView = 'day' | 'week';
-type MainSearch = { view: MainView; week: DateKey };
+type MainSearch = { view: MainView; week: DateKey; earlier?: true };
 type ProjectSearch = { tab?: ProjectTab };
 
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
@@ -47,6 +47,9 @@ export const mainRoute = createRoute({
   validateSearch: (search: Record<string, unknown>): MainSearch => ({
     view: search.view === 'week' ? 'week' : 'day',
     ...validateWeek(search),
+    ...(search.earlier === true || search.earlier === 'true'
+      ? { earlier: true as const }
+      : {}),
   }),
   component: MainPage,
 });
