@@ -5,7 +5,7 @@ use super::queries::get;
 use crate::env::MutationEnv;
 use crate::error::{Error, Result};
 use crate::tasks;
-use crate::types::Id;
+use crate::types::{Id, Timestamp};
 use crate::validate::ensure_changed;
 
 fn validate(span: &BlockSpan) -> Result<()> {
@@ -51,4 +51,22 @@ pub fn reschedule(conn: &Connection, id: &Id, span: &BlockSpan) -> Result<TimeBl
 pub fn delete(conn: &Connection, id: &Id) -> Result<()> {
     let rows = conn.execute("DELETE FROM time_block WHERE id = ?1", params![id])?;
     ensure_changed(rows, "Time block")
+}
+
+pub fn shift_upcoming(conn: &Connection, task_id: &Id, from: Timestamp, days: i64) -> Result<i32> {
+    let seconds = days * Timestamp::DAY;
+    let rows = conn.execute(
+        "UPDATE time_block SET start_at = start_at + ?1, end_at = end_at + ?1
+         WHERE task_id = ?2 AND start_at >= ?3",
+        params![seconds, task_id, from],
+    )?;
+    Ok(rows as i32)
+}
+
+pub fn remove_upcoming(conn: &Connection, task_id: &Id, from: Timestamp) -> Result<i32> {
+    let rows = conn.execute(
+        "DELETE FROM time_block WHERE task_id = ?1 AND start_at >= ?2",
+        params![task_id, from],
+    )?;
+    Ok(rows as i32)
 }

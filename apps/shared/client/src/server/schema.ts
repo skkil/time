@@ -996,6 +996,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/tasks/move': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['moveMany'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/tasks/delete': {
     parameters: {
       query?: never;
@@ -1925,6 +1941,8 @@ export interface components {
       priority: number;
       /** Format: date */
       dueDate: string | null;
+      /** Format: date */
+      dueUntil: string | null;
       /** Format: int32 */
       dueTime: number | null;
       /** Format: date */
@@ -2345,6 +2363,52 @@ export interface components {
       /** Format: date */
       dueDate: string | null;
     };
+    MoveTarget: {
+      kind: string;
+    };
+    MoveToDay: Omit<components['schemas']['MoveTarget'], 'kind'> & {
+      /** Format: date */
+      date: string;
+    } & {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'day';
+    };
+    MoveToSomeday: Omit<components['schemas']['MoveTarget'], 'kind'> & {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'someday';
+    };
+    MoveToWeek: Omit<components['schemas']['MoveTarget'], 'kind'> & {
+      /** Format: date */
+      monday: string;
+    } & {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'week';
+    };
+    TasksMove: {
+      ids: string[];
+      target:
+        | components['schemas']['MoveToDay']
+        | components['schemas']['MoveToSomeday']
+        | components['schemas']['MoveToWeek'];
+      blocks: string | null;
+    };
+    MoveResult: {
+      /** Format: int32 */
+      tasks: number;
+      /** Format: int32 */
+      blocksMoved: number;
+      /** Format: int32 */
+      blocksRemoved: number;
+    };
     SyncTokenRequest: {
       /** Format: uuid */
       clientId: string;
@@ -2746,6 +2810,12 @@ export type TaskPlacement = components['schemas']['TaskPlacement'];
 export type TaskDependency = components['schemas']['TaskDependency'];
 export type TasksSomeday = components['schemas']['TasksSomeday'];
 export type TaskReschedule = components['schemas']['TaskReschedule'];
+export type MoveTarget = components['schemas']['MoveTarget'];
+export type MoveToDay = components['schemas']['MoveToDay'];
+export type MoveToSomeday = components['schemas']['MoveToSomeday'];
+export type MoveToWeek = components['schemas']['MoveToWeek'];
+export type TasksMove = components['schemas']['TasksMove'];
+export type MoveResult = components['schemas']['MoveResult'];
 export type SyncTokenRequest = components['schemas']['SyncTokenRequest'];
 export type SyncGrant = components['schemas']['SyncGrant'];
 export type SectionInput = components['schemas']['SectionInput'];
@@ -4761,6 +4831,30 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  moveMany: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TasksMove'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['MoveResult'];
+        };
       };
     };
   };

@@ -2,7 +2,7 @@ use crate::db::Db;
 use serde_json::json;
 use tauri::State;
 use time_core::Result;
-use time_core::tasks::{self, Task, TaskInput, TaskPlacement};
+use time_core::tasks::{self, BlockMove, MoveResult, MoveTarget, Task, TaskInput, TaskPlacement};
 use time_core::types::{Date, Id};
 
 use super::mutate;
@@ -48,6 +48,21 @@ pub async fn reschedule_tasks(
         &db,
         "rescheduleTasks",
         json!({ "ids": ids, "dueDate": due_date }),
+    )
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn move_tasks(
+    db: State<'_, Db>,
+    ids: Vec<Id>,
+    target: MoveTarget,
+    blocks: Option<BlockMove>,
+) -> Result<MoveResult> {
+    mutate(
+        &db,
+        "moveTasks",
+        json!({ "ids": ids, "target": target, "blocks": blocks }),
     )
 }
 

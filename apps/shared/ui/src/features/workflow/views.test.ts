@@ -13,6 +13,7 @@ const task = (patch: Partial<Task>): Task => ({
   parentId: null,
   priority: 4,
   dueDate: null,
+  dueUntil: null,
   dueTime: null,
   deadline: null,
   recurrence: null,

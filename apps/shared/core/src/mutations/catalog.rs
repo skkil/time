@@ -22,6 +22,7 @@ pub const MUTATIONS: &[&str] = &[
     "updateTask",
     "moveTask",
     "rescheduleTasks",
+    "moveTasks",
     "setTaskCompleted",
     "setTaskOutcome",
     "setTasksSomeday",

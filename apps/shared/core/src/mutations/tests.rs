@@ -222,6 +222,14 @@ fn walk_every_mutation(conn: &Connection) -> Vec<(String, Value)> {
         "rescheduleTasks",
         json!({"ids": [login], "dueDate": "2026-11-05"}),
     );
+    s.run(
+        "moveTasks",
+        json!({"ids": [login], "target": {"kind": "week", "monday": "2026-11-09"}}),
+    );
+    s.run(
+        "moveTasks",
+        json!({"ids": [login], "target": {"kind": "day", "date": "2026-11-05"}, "blocks": "leave"}),
+    );
     s.run("setTaskMust", json!({"id": login, "mustOn": "2026-11-05"}));
     s.run(
         "setTaskNextStep",

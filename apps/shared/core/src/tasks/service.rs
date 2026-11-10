@@ -1,6 +1,6 @@
 use rusqlite::{Connection, params};
 
-use super::model::{Task, TaskInput, TaskPlacement};
+use super::model::{BlockMove, MoveResult, MoveTarget, Task, TaskInput, TaskPlacement, WEEK_DAYS};
 use super::placement::{Container, place, resolve_container};
 use super::queries::{descendants, get};
 use super::rules::{on_first_occurrence, validate};
@@ -9,7 +9,7 @@ use crate::error::{Error, Result};
 use crate::recurrence::Recurrence;
 use crate::types::{Date, Id};
 use crate::validate::{ensure_changed, optional_text};
-use crate::{time_entries, workflow};
+use crate::{blocks, time_entries, workflow};
 
 pub fn create(conn: &Connection, env: &dyn MutationEnv, input: &TaskInput) -> Result<Task> {
     let input = &on_first_occurrence(input, env.today());
@@ -50,7 +50,9 @@ pub fn update(conn: &Connection, id: &Id, input: &TaskInput) -> Result<Task> {
     }
     conn.execute(
         "UPDATE task SET title = ?1, notes = ?2, priority = ?3, due_date = ?4, due_time = ?5,
-                         deadline = ?6, recurrence = ?7, estimate_minutes = ?8
+                         deadline = ?6, recurrence = ?7, estimate_minutes = ?8,
+                         due_until = CASE WHEN due_date IS ?4 AND ?5 IS NULL AND ?7 IS NULL
+                                          THEN due_until ELSE NULL END
          WHERE id = ?9",
         params![
             valid.title,
@@ -99,8 +101,10 @@ pub fn reschedule(
     for id in ids {
         let rows = conn.execute(
             "UPDATE task SET rollover_count = rollover_count
-                               + (due_date IS NOT NULL AND due_date <= ?3 AND ?1 > due_date),
+                               + (due_date IS NOT NULL AND COALESCE(due_until, due_date) <= ?3
+                                  AND ?1 > COALESCE(due_until, due_date)),
                              due_date = ?1,
+                             due_until = NULL,
                              due_time = CASE WHEN ?1 IS NULL THEN NULL ELSE due_time END,
                              recurrence = CASE WHEN ?1 IS NULL THEN NULL ELSE recurrence END,
                              someday = CASE WHEN ?1 IS NULL THEN someday ELSE 0 END,
@@ -111,6 +115,79 @@ pub fn reschedule(
         ensure_changed(rows, "Task")?;
     }
     Ok(())
+}
+
+/// Moves tasks to a day, a week or Someday. With `BlockMove::Follow`, blocks
+/// that haven't started shift by the same days as the date (whole weeks when
+/// a week is involved), and moving to Someday removes them.
+pub fn move_tasks(
+    conn: &Connection,
+    env: &dyn MutationEnv,
+    ids: &[Id],
+    target: MoveTarget,
+    block_move: BlockMove,
+) -> Result<MoveResult> {
+    let (due_date, due_until) = match target {
+        MoveTarget::Day { date } => (Some(date), None),
+        MoveTarget::Week { monday } => {
+            if monday.monday() != monday {
+                return Err(Error::invalid("A week starts on a Monday."));
+            }
+            (Some(monday), Some(monday.add_days(WEEK_DAYS - 1)))
+        }
+        MoveTarget::Someday => (None, None),
+    };
+    let (now, today) = (env.timestamp(), env.today());
+    let mut result = MoveResult::default();
+    let mut seen = std::collections::HashSet::new();
+    for id in ids.iter().filter(|id| seen.insert(*id)) {
+        let task = get(conn, id)?;
+        if !matches!(target, MoveTarget::Day { .. }) {
+            if task.kind == "event" {
+                return Err(Error::invalid(
+                    "Events happen at a time; give them a new date.",
+                ));
+            }
+            if task.recurrence.is_some() {
+                return Err(Error::invalid("Repeating tasks move one day at a time."));
+            }
+        }
+        let previous = task.due_until.or(task.due_date);
+        let next = due_until.or(due_date);
+        let rolled =
+            matches!((previous, next), (Some(from), Some(to)) if from <= today && to > from);
+        conn.execute(
+            "UPDATE task SET rollover_count = rollover_count + ?1,
+                             due_date = ?2,
+                             due_until = ?3,
+                             due_time = CASE WHEN ?2 IS NOT NULL AND ?3 IS NULL THEN due_time END,
+                             recurrence = CASE WHEN ?2 IS NOT NULL THEN recurrence END,
+                             someday = ?2 IS NULL,
+                             must_on = CASE WHEN must_on BETWEEN ?2 AND COALESCE(?3, ?2)
+                                            THEN must_on END
+             WHERE id = ?4",
+            params![rolled, due_date, due_until, id],
+        )?;
+        result.tasks += 1;
+        if block_move == BlockMove::Leave {
+            continue;
+        }
+        match (task.due_date, due_date) {
+            (_, None) => result.blocks_removed += blocks::remove_upcoming(conn, id, now)?,
+            (Some(from), Some(to)) => {
+                let days = if due_until.is_some() || task.due_until.is_some() {
+                    to.monday().days_since(from.monday())
+                } else {
+                    to.days_since(from)
+                };
+                if days != 0 {
+                    result.blocks_moved += blocks::shift_upcoming(conn, id, now, days)?;
+                }
+            }
+            (None, Some(_)) => {}
+        }
+    }
+    Ok(result)
 }
 
 /// Stops a running timer tracking this task or anything nested under it.
@@ -181,6 +258,7 @@ pub fn set_someday(conn: &Connection, ids: &[Id], someday: bool) -> Result<()> {
         let rows = conn.execute(
             "UPDATE task SET someday = ?1,
                              due_date = CASE WHEN ?1 THEN NULL ELSE due_date END,
+                             due_until = CASE WHEN ?1 THEN NULL ELSE due_until END,
                              due_time = CASE WHEN ?1 THEN NULL ELSE due_time END,
                              recurrence = CASE WHEN ?1 THEN NULL ELSE recurrence END,
                              must_on = CASE WHEN ?1 THEN NULL ELSE must_on END

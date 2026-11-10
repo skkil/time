@@ -63,6 +63,13 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
             &a.get::<Vec<_>>("ids")?,
             a.get("dueDate")?,
         )?),
+        "moveTasks" => out(tasks::move_tasks(
+            conn,
+            env,
+            &a.get::<Vec<_>>("ids")?,
+            a.get("target")?,
+            a.get::<Option<_>>("blocks")?.unwrap_or_default(),
+        )?),
         "setTaskCompleted" => out(tasks::set_completed(
             conn,
             env,

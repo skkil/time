@@ -7,7 +7,9 @@ import com.skkil.time.features.tasks.api.TaskMust
 import com.skkil.time.features.tasks.api.TaskNextStep
 import com.skkil.time.features.tasks.api.TaskOutcome
 import com.skkil.time.features.tasks.api.TaskReschedule
+import com.skkil.time.features.tasks.api.TasksMove
 import com.skkil.time.features.tasks.api.TasksSomeday
+import com.skkil.time.features.tasks.domain.MoveTarget
 import com.skkil.time.features.tasks.domain.TaskPlacement
 import com.skkil.time.features.tasks.domain.TaskRules
 import com.skkil.time.support.TaskApiTest
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -174,6 +177,30 @@ class TaskTest : TaskApiTest() {
     }
 
     @Test
+    fun `moving to a week sets a window that a new date clears`() {
+        val today = today()
+        val monday = today.with(TemporalAdjusters.next(DayOfWeek.MONDAY))
+        val id = create(input("Essay").copy(dueDate = today)).id()
+        val moved = postJson("/api/v1/tasks/move", TasksMove(listOf(id), MoveTarget.Week(monday)))
+        assertEquals(1, moved["tasks"].asInt())
+        val window = task(id)
+        assertEquals(monday.toString(), window["dueDate"].asString())
+        assertEquals(monday.plusDays(6).toString(), window["dueUntil"].asString())
+
+        postJson("/api/v1/tasks/move", TasksMove(listOf(id), MoveTarget.Day(monday.plusDays(2)), "leave"))
+        assertTrue(task(id)["dueUntil"].isNull)
+
+        expectProblem(
+            post("/api/v1/tasks/move", TasksMove(listOf(id), MoveTarget.Week(monday.plusDays(1)))),
+            422,
+            "invalid",
+        )
+        expectProblem(post("/api/v1/tasks/move", TasksMove(listOf(id), MoveTarget.Day(today), "stay")), 422, "invalid")
+        val repeat = create(input("Run").copy(dueDate = today, recurrence = "every day")).id()
+        expectProblem(post("/api/v1/tasks/move", TasksMove(listOf(repeat), MoveTarget.Someday)), 422, "invalid")
+    }
+
+    @Test
     fun `completing a repeating task moves it forward`() {
         val id = create(input("Lecture").copy(dueDate = today(), recurrence = "every week")).id()
         val next = complete(id)
@@ -232,6 +259,7 @@ class TaskTest : TaskApiTest() {
         expectProblem(post("/api/v1/tasks", input("Child").copy(parentId = mine)), 404, "notFound")
         expectProblem(post("/api/v1/tasks", input("In theirs", project)), 404, "notFound")
         expectProblem(post("/api/v1/tasks/reschedule", TaskReschedule(listOf(mine), today())), 404, "notFound")
+        expectProblem(post("/api/v1/tasks/move", TasksMove(listOf(mine), MoveTarget.Someday)), 404, "notFound")
         expectProblem(delete("/api/v1/tasks/$mine"), 404, "notFound")
         post("/api/v1/tasks/delete", TaskIds(listOf(mine)))
         val theirs = create(input("Theirs")).id()

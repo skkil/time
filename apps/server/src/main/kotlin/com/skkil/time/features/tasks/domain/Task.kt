@@ -12,6 +12,7 @@ data class Task(
     val parentId: UUID?,
     val priority: Int,
     val dueDate: LocalDate?,
+    val dueUntil: LocalDate?,
     val dueTime: Int?,
     val deadline: LocalDate?,
     val recurrence: String?,

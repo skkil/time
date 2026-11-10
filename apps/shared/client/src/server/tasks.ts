@@ -12,6 +12,7 @@ export const tasks: Commands<
   | 'updateTask'
   | 'moveTask'
   | 'rescheduleTasks'
+  | 'moveTasks'
   | 'setTaskCompleted'
   | 'setTaskOutcome'
   | 'setTasksSomeday'
@@ -35,6 +36,8 @@ export const tasks: Commands<
     ),
   rescheduleTasks: (ids, dueDate) =>
     unwrap(api.POST('/api/v1/tasks/reschedule', { body: { ids, dueDate } })),
+  moveTasks: (ids, target, blocks) =>
+    unwrap(api.POST('/api/v1/tasks/move', { body: { ids, target, blocks } })),
   setTaskCompleted: (id, completed) =>
     unwrap(
       api.PUT('/api/v1/tasks/{id}/completed', {

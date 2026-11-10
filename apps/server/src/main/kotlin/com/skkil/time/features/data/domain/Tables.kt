@@ -153,6 +153,7 @@ val TABLES: List<Table> =
                 bool("someday"),
                 text("next_step"),
                 date("must_on"),
+                date("due_until"),
                 ref("type_id", "item_type"),
                 ref("status_id", "item_status"),
                 ref("milestone_id", "milestone"),

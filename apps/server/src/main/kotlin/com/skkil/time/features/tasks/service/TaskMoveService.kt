@@ -1,0 +1,130 @@
+package com.skkil.time.features.tasks.service
+
+import com.skkil.time.common.error.ensure
+import com.skkil.time.common.error.invalid
+import com.skkil.time.common.web.Caller
+import com.skkil.time.features.tasks.domain.MoveResult
+import com.skkil.time.features.tasks.domain.MoveTarget
+import org.springframework.jdbc.core.simple.JdbcClient
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAdjusters
+import java.util.UUID
+
+/** Moves tasks to a day, a week or Someday, taking their upcoming time blocks along. */
+@Service
+@Transactional
+class TaskMoveService(private val jdbc: JdbcClient, private val tasks: TaskService) {
+    fun move(caller: Caller, ids: List<UUID>, target: MoveTarget, blocks: String?): MoveResult {
+        val follow =
+            when (blocks ?: FOLLOW) {
+                FOLLOW -> true
+                LEAVE -> false
+                else -> invalid("Blocks either follow or stay.")
+            }
+        val (dueDate, dueUntil) = dates(target)
+        val now = caller.now()
+        val today = caller.today()
+        var moved = 0
+        var blocksMoved = 0
+        var blocksRemoved = 0
+        for (id in ids.distinct()) {
+            val task = tasks.get(caller.id, id)
+            if (target !is MoveTarget.Day) {
+                ensure(task.kind != "event") { "Events happen at a time; give them a new date." }
+                ensure(task.recurrence == null) { "Repeating tasks move one day at a time." }
+            }
+            val previous = task.dueUntil ?: task.dueDate
+            val next = dueUntil ?: dueDate
+            val rolled = previous != null && next != null && previous <= today && next > previous
+            jdbc
+                .sql(
+                    """
+                    UPDATE task SET rollover_count = rollover_count + :rolled,
+                      due_date = CAST(:due AS DATE),
+                      due_until = CAST(:until AS DATE),
+                      due_time = CASE WHEN CAST(:due AS DATE) IS NOT NULL AND CAST(:until AS DATE) IS NULL
+                        THEN due_time END,
+                      recurrence = CASE WHEN CAST(:due AS DATE) IS NOT NULL THEN recurrence END,
+                      someday = CAST(:due AS DATE) IS NULL,
+                      must_on = CASE WHEN must_on BETWEEN CAST(:due AS DATE)
+                        AND COALESCE(CAST(:until AS DATE), CAST(:due AS DATE)) THEN must_on END
+                    WHERE user_id = :user AND id = :id
+                    """,
+                ).param("rolled", if (rolled) 1 else 0)
+                .param("due", dueDate)
+                .param("until", dueUntil)
+                .param("user", caller.id)
+                .param("id", id)
+                .update()
+            moved++
+            if (!follow) continue
+            val from = task.dueDate
+            when {
+                dueDate == null -> {
+                    blocksRemoved += removeUpcoming(caller.id, id, now)
+                }
+
+                from != null -> {
+                    val days =
+                        if (dueUntil != null || task.dueUntil != null) {
+                            ChronoUnit.DAYS.between(monday(from), monday(dueDate))
+                        } else {
+                            ChronoUnit.DAYS.between(from, dueDate)
+                        }
+                    if (days != 0L) blocksMoved += shiftUpcoming(caller.id, id, now, days)
+                }
+            }
+        }
+        return MoveResult(moved, blocksMoved, blocksRemoved)
+    }
+
+    private fun dates(target: MoveTarget): Pair<LocalDate?, LocalDate?> =
+        when (target) {
+            is MoveTarget.Day -> {
+                Pair(target.date, null)
+            }
+
+            is MoveTarget.Week -> {
+                ensure(target.monday.dayOfWeek == DayOfWeek.MONDAY) { "A week starts on a Monday." }
+                Pair(target.monday, target.monday.plusDays(WEEK_DAYS - 1))
+            }
+
+            MoveTarget.Someday -> {
+                Pair(null, null)
+            }
+        }
+
+    private fun monday(date: LocalDate): LocalDate = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+
+    private fun shiftUpcoming(user: Long, task: UUID, from: Long, days: Long): Int =
+        jdbc
+            .sql(
+                """
+                UPDATE time_block SET start_at = start_at + :seconds, end_at = end_at + :seconds
+                WHERE user_id = :user AND task_id = :task AND start_at >= :from
+                """,
+            ).param("seconds", days * DAY_SECONDS)
+            .param("user", user)
+            .param("task", task)
+            .param("from", from)
+            .update()
+
+    private fun removeUpcoming(user: Long, task: UUID, from: Long): Int =
+        jdbc
+            .sql("DELETE FROM time_block WHERE user_id = :user AND task_id = :task AND start_at >= :from")
+            .param("user", user)
+            .param("task", task)
+            .param("from", from)
+            .update()
+
+    private companion object {
+        const val FOLLOW = "follow"
+        const val LEAVE = "leave"
+        const val WEEK_DAYS = 7L
+        const val DAY_SECONDS = 24L * 60 * 60
+    }
+}

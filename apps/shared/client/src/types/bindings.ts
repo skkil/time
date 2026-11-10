@@ -26,6 +26,7 @@ export const commands = {
 	updateTask: (id: Id, input: TaskInput) => __TAURI_INVOKE<Task>("update_task", { id, input }),
 	moveTask: (id: Id, placement: TaskPlacement) => __TAURI_INVOKE<Task>("move_task", { id, placement }),
 	rescheduleTasks: (ids: Id[], dueDate: Date | null) => __TAURI_INVOKE<null>("reschedule_tasks", { ids, dueDate }),
+	moveTasks: (ids: Id[], target: MoveTarget, blocks: BlockMove | null) => __TAURI_INVOKE<MoveResult>("move_tasks", { ids, target, blocks }),
 	setTaskCompleted: (id: Id, completed: boolean) => __TAURI_INVOKE<Task>("set_task_completed", { id, completed }),
 	setTaskOutcome: (id: Id, outcomeId: Id | null) => __TAURI_INVOKE<Task>("set_task_outcome", { id, outcomeId }),
 	setTasksSomeday: (ids: Id[], someday: boolean) => __TAURI_INVOKE<null>("set_tasks_someday", { ids, someday }),
@@ -149,6 +150,8 @@ export const commands = {
 };
 
 /* Types */
+export type BlockMove = "follow" | "leave";
+
 export type BlockSpan = {
 	startAt: Timestamp,
 	endAt: Timestamp,
@@ -312,6 +315,14 @@ export type MilestoneInput = {
 	name: string,
 	date: Date | null,
 };
+
+export type MoveResult = {
+	tasks: number,
+	blocksMoved: number,
+	blocksRemoved: number,
+};
+
+export type MoveTarget = { kind: "day"; date: Date } | { kind: "week"; monday: Date } | { kind: "someday" };
 
 export type Outcome = {
 	id: Id,
@@ -501,6 +512,7 @@ export type Task = {
 	parentId: Id | null,
 	priority: number,
 	dueDate: Date | null,
+	dueUntil: Date | null,
 	dueTime: number | null,
 	deadline: Date | null,
 	recurrence: string | null,

@@ -2428,6 +2428,34 @@
         }
       }
     },
+    "/api/v1/tasks/move" : {
+      "post" : {
+        "tags" : [ "task-controller" ],
+        "operationId" : "moveMany",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TasksMove"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MoveResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/delete" : {
       "post" : {
         "tags" : [ "task-controller" ],
@@ -4225,6 +4253,10 @@
             "type" : [ "string", "null" ],
             "format" : "date"
           },
+          "dueUntil" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
           "dueTime" : {
             "type" : [ "integer", "null" ],
             "format" : "int32"
@@ -4321,7 +4353,7 @@
             "format" : "uuid"
           }
         },
-        "required" : [ "blockedBy", "completedAt", "countsAsTime", "createdAt", "deadline", "dueDate", "dueTime", "estimateMinutes", "id", "kind", "location", "milestoneId", "mustOn", "nextStep", "notes", "outcomeId", "parentId", "phaseId", "position", "priority", "projectId", "recurrence", "rolloverCount", "sectionId", "someday", "statusCategory", "statusChangedAt", "statusId", "title", "trackedSeconds", "typeId", "waitingOn" ]
+        "required" : [ "blockedBy", "completedAt", "countsAsTime", "createdAt", "deadline", "dueDate", "dueTime", "dueUntil", "estimateMinutes", "id", "kind", "location", "milestoneId", "mustOn", "nextStep", "notes", "outcomeId", "parentId", "phaseId", "position", "priority", "projectId", "recurrence", "rolloverCount", "sectionId", "someday", "statusCategory", "statusChangedAt", "statusId", "title", "trackedSeconds", "typeId", "waitingOn" ]
       },
       "TaskTypeId" : {
         "type" : "object",
@@ -5351,6 +5383,98 @@
           }
         },
         "required" : [ "dueDate", "ids" ]
+      },
+      "MoveTarget" : {
+        "discriminator" : {
+          "propertyName" : "kind",
+          "mapping" : {
+            "day" : "#/components/schemas/MoveToDay",
+            "week" : "#/components/schemas/MoveToWeek",
+            "someday" : "#/components/schemas/MoveToSomeday"
+          }
+        },
+        "properties" : {
+          "kind" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "kind" ]
+      },
+      "MoveToDay" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/MoveTarget"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "date" : {
+              "type" : "string",
+              "format" : "date"
+            }
+          }
+        } ],
+        "required" : [ "date" ]
+      },
+      "MoveToSomeday" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/MoveTarget"
+        } ]
+      },
+      "MoveToWeek" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/MoveTarget"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "monday" : {
+              "type" : "string",
+              "format" : "date"
+            }
+          }
+        } ],
+        "required" : [ "monday" ]
+      },
+      "TasksMove" : {
+        "type" : "object",
+        "properties" : {
+          "ids" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            }
+          },
+          "target" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/MoveToDay"
+            }, {
+              "$ref" : "#/components/schemas/MoveToSomeday"
+            }, {
+              "$ref" : "#/components/schemas/MoveToWeek"
+            } ]
+          },
+          "blocks" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "blocks", "ids", "target" ]
+      },
+      "MoveResult" : {
+        "type" : "object",
+        "properties" : {
+          "tasks" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "blocksMoved" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "blocksRemoved" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "blocksMoved", "blocksRemoved", "tasks" ]
       },
       "SyncTokenRequest" : {
         "type" : "object",

@@ -758,6 +758,97 @@
       ]
     },
     {
+      "name": "moveTasks",
+      "args": {
+        "ids": ["019a4b00-0000-7000-8000-000000000003"],
+        "target": {
+          "kind": "week",
+          "monday": "2026-11-09"
+        }
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000003",
+          "row": {
+            "due_date": "2026-11-09",
+            "due_until": "2026-11-15",
+            "due_time": null,
+            "rollover_count": 1,
+            "someday": false
+          }
+        },
+        {
+          "table": "time_block",
+          "id": "019a4b00-0000-7000-8000-000000000006",
+          "row": {
+            "start_at": 1794272400,
+            "end_at": 1794274200
+          }
+        }
+      ]
+    },
+    {
+      "name": "moveTasks",
+      "args": {
+        "ids": ["019a4b00-0000-7000-8000-000000000003"],
+        "target": {
+          "kind": "day",
+          "date": "2026-11-04"
+        },
+        "blocks": "leave"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000003",
+          "row": {
+            "due_date": "2026-11-04",
+            "due_until": null,
+            "rollover_count": 1
+          }
+        },
+        {
+          "table": "time_block",
+          "id": "019a4b00-0000-7000-8000-000000000006",
+          "row": {
+            "start_at": 1794272400,
+            "end_at": 1794274200
+          }
+        }
+      ]
+    },
+    {
+      "name": "moveTasks",
+      "args": {
+        "ids": ["019a4b00-0000-7000-8000-000000000003"],
+        "target": {
+          "kind": "someday"
+        }
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-000000000003",
+          "row": {
+            "due_date": null,
+            "due_until": null,
+            "someday": true,
+            "must_on": null
+          }
+        }
+      ],
+      "gone": [
+        {
+          "table": "time_block",
+          "id": "019a4b00-0000-7000-8000-000000000006"
+        }
+      ]
+    },
+    {
       "name": "setSectionCollapsed",
       "args": {
         "id": "019a4b00-0000-7000-8000-000000000002",

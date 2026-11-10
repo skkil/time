@@ -233,3 +233,289 @@ fn completing_a_repeating_task_moves_it_forward() {
     })
     .unwrap();
 }
+
+mod moving {
+    use chrono::{FixedOffset, TimeZone};
+
+    use super::*;
+    use crate::blocks::{self, BlockSpan};
+    use crate::env::{Env, FixedClock, MutationEnv, RandomIds};
+    use crate::error::Result;
+    use crate::types::{Id, Timestamp};
+
+    const HOUR: i64 = 3600;
+
+    fn at(day: &str, hour: u32) -> Env<FixedClock, RandomIds> {
+        let naive = date(day).0.and_hms_opt(hour, 0, 0).unwrap();
+        let now = FixedOffset::east_opt(0)
+            .unwrap()
+            .from_local_datetime(&naive)
+            .unwrap();
+        Env {
+            clock: FixedClock(now),
+            ids: RandomIds,
+        }
+    }
+
+    fn utc(day: &str, hour: i64) -> Timestamp {
+        Timestamp(
+            date(day)
+                .0
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .and_utc()
+                .timestamp()
+                + hour * HOUR,
+        )
+    }
+
+    fn block(
+        conn: &rusqlite::Connection,
+        env: &dyn MutationEnv,
+        task: &Id,
+        day: &str,
+        hour: i64,
+    ) -> Result<Id> {
+        let span = BlockSpan {
+            start_at: utc(day, hour),
+            end_at: utc(day, hour + 1),
+        };
+        Ok(blocks::create(conn, env, task, &span)?.id)
+    }
+
+    fn due(
+        conn: &rusqlite::Connection,
+        env: &dyn MutationEnv,
+        title: &str,
+        day: &str,
+    ) -> Result<Task> {
+        let mut task = input(title, None);
+        task.due_date = Some(date(day));
+        create(conn, env, &task)
+    }
+
+    #[test]
+    fn upcoming_blocks_follow_the_day_and_past_ones_stay() {
+        let (db, env) = (db(), at("2026-11-10", 12));
+        db.call(|conn| {
+            let task = due(conn, &env, "Spec", "2026-11-10")?;
+            let past = block(conn, &env, &task.id, "2026-11-10", 9)?;
+            let later = block(conn, &env, &task.id, "2026-11-10", 15)?;
+
+            let moved = move_tasks(
+                conn,
+                &env,
+                &[task.id.clone(), task.id.clone()],
+                MoveTarget::Day {
+                    date: date("2026-11-12"),
+                },
+                BlockMove::Follow,
+            )?;
+            assert_eq!(
+                moved,
+                MoveResult {
+                    tasks: 1,
+                    blocks_moved: 1,
+                    blocks_removed: 0
+                }
+            );
+
+            let task = get(conn, &task.id)?;
+            assert_eq!(task.due_date, Some(date("2026-11-12")));
+            assert_eq!(task.rollover_count, 1);
+            assert_eq!(blocks::get(conn, &past)?.start_at, utc("2026-11-10", 9));
+            let later = blocks::get(conn, &later)?;
+            assert_eq!(
+                (later.start_at, later.end_at),
+                (utc("2026-11-12", 15), utc("2026-11-12", 16))
+            );
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn leaving_blocks_keeps_them_in_place() {
+        let (db, env) = (db(), at("2026-11-10", 8));
+        db.call(|conn| {
+            let task = due(conn, &env, "Spec", "2026-11-10")?;
+            let planned = block(conn, &env, &task.id, "2026-11-10", 15)?;
+            let moved = move_tasks(
+                conn,
+                &env,
+                std::slice::from_ref(&task.id),
+                MoveTarget::Day {
+                    date: date("2026-11-11"),
+                },
+                BlockMove::Leave,
+            )?;
+            assert_eq!(moved.blocks_moved, 0);
+            assert_eq!(blocks::get(conn, &planned)?.start_at, utc("2026-11-10", 15));
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn a_week_is_a_window_that_moves_blocks_by_whole_weeks() {
+        let (db, env) = (db(), at("2026-11-10", 8));
+        db.call(|conn| {
+            let task = due(conn, &env, "Essay", "2026-11-11")?;
+            let planned = block(conn, &env, &task.id, "2026-11-11", 10)?;
+            set_must(conn, &task.id, Some(date("2026-11-11")))?;
+
+            move_tasks(
+                conn,
+                &env,
+                std::slice::from_ref(&task.id),
+                MoveTarget::Week {
+                    monday: date("2026-11-16"),
+                },
+                BlockMove::Follow,
+            )?;
+            let moved = get(conn, &task.id)?;
+            assert_eq!(moved.due_date, Some(date("2026-11-16")));
+            assert_eq!(moved.due_until, Some(date("2026-11-22")));
+            assert_eq!(moved.due_time, None);
+            assert_eq!(moved.must_on, None);
+            assert_eq!(moved.rollover_count, 0);
+            assert_eq!(blocks::get(conn, &planned)?.start_at, utc("2026-11-18", 10));
+
+            move_tasks(
+                conn,
+                &env,
+                std::slice::from_ref(&task.id),
+                MoveTarget::Day {
+                    date: date("2026-11-27"),
+                },
+                BlockMove::Follow,
+            )?;
+            let moved = get(conn, &task.id)?;
+            assert_eq!(
+                (moved.due_date, moved.due_until),
+                (Some(date("2026-11-27")), None)
+            );
+            assert_eq!(blocks::get(conn, &planned)?.start_at, utc("2026-11-25", 10));
+
+            assert!(
+                move_tasks(
+                    conn,
+                    &env,
+                    std::slice::from_ref(&task.id),
+                    MoveTarget::Week {
+                        monday: date("2026-11-17")
+                    },
+                    BlockMove::Follow,
+                )
+                .is_err()
+            );
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn a_window_counts_a_rollover_only_once_it_has_ended() {
+        let (db, env) = (db(), at("2026-11-12", 8));
+        db.call(|conn| {
+            let task = due(conn, &env, "Read", "2026-11-09")?;
+            let ids = [task.id.clone()];
+            let this_week = MoveTarget::Week {
+                monday: date("2026-11-09"),
+            };
+            move_tasks(conn, &env, &ids, this_week, BlockMove::Follow)?;
+            assert_eq!(get(conn, &task.id)?.rollover_count, 1);
+
+            let next_week = MoveTarget::Week {
+                monday: date("2026-11-16"),
+            };
+            move_tasks(conn, &env, &ids, next_week, BlockMove::Follow)?;
+            assert_eq!(get(conn, &task.id)?.rollover_count, 1);
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn someday_removes_upcoming_blocks_and_refuses_repeats() {
+        let (db, env) = (db(), at("2026-11-10", 12));
+        db.call(|conn| {
+            let task = due(conn, &env, "Taxes", "2026-11-10")?;
+            let past = block(conn, &env, &task.id, "2026-11-10", 9)?;
+            block(conn, &env, &task.id, "2026-11-11", 9)?;
+            let moved = move_tasks(
+                conn,
+                &env,
+                std::slice::from_ref(&task.id),
+                MoveTarget::Someday,
+                BlockMove::Follow,
+            )?;
+            assert_eq!(moved.blocks_removed, 1);
+            let parked = get(conn, &task.id)?;
+            assert!(parked.someday);
+            assert_eq!((parked.due_date, parked.due_until), (None, None));
+            assert!(blocks::get(conn, &past).is_ok());
+
+            let mut repeat = input("Run", None);
+            repeat.due_date = Some(date("2026-11-10"));
+            repeat.recurrence = Some("every day".into());
+            let repeat = create(conn, &env, &repeat)?;
+            let ids = [repeat.id.clone()];
+            assert!(move_tasks(conn, &env, &ids, MoveTarget::Someday, BlockMove::Follow).is_err());
+            let next_week = MoveTarget::Week {
+                monday: date("2026-11-16"),
+            };
+            assert!(move_tasks(conn, &env, &ids, next_week, BlockMove::Follow).is_err());
+            let day = MoveTarget::Day {
+                date: date("2026-11-11"),
+            };
+            move_tasks(conn, &env, &ids, day, BlockMove::Follow)?;
+            assert_eq!(
+                get(conn, &repeat.id)?.recurrence.as_deref(),
+                Some("every day")
+            );
+            Ok(())
+        })
+        .unwrap();
+    }
+
+    #[test]
+    fn editing_keeps_a_window_until_the_date_changes() {
+        let (db, env) = (db(), at("2026-11-10", 8));
+        db.call(|conn| {
+            let task = due(conn, &env, "Plan", "2026-11-10")?;
+            let ids = [task.id.clone()];
+            move_tasks(
+                conn,
+                &env,
+                &ids,
+                MoveTarget::Week {
+                    monday: date("2026-11-16"),
+                },
+                BlockMove::Follow,
+            )?;
+            let mut edit = input("Plan trip", None);
+            edit.due_date = Some(date("2026-11-16"));
+            assert_eq!(
+                update(conn, &task.id, &edit)?.due_until,
+                Some(date("2026-11-22"))
+            );
+            edit.due_date = Some(date("2026-11-17"));
+            assert_eq!(update(conn, &task.id, &edit)?.due_until, None);
+
+            move_tasks(
+                conn,
+                &env,
+                &ids,
+                MoveTarget::Week {
+                    monday: date("2026-11-16"),
+                },
+                BlockMove::Follow,
+            )?;
+            reschedule(conn, &env, &ids, Some(date("2026-11-18")))?;
+            assert_eq!(get(conn, &task.id)?.due_until, None);
+            Ok(())
+        })
+        .unwrap();
+    }
+}

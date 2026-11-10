@@ -92,7 +92,7 @@ class TaskRepository(private val jdbc: JdbcClient) {
                 AS blocked_by,
               ARRAY(SELECT d.blocked_by_id FROM task_dependency d JOIN task b ON b.id = d.blocked_by_id
                     WHERE d.task_id = t.id AND b.completed_at IS NULL ORDER BY d.blocked_by_id) AS waiting_on,
-              t.phase_id
+              t.phase_id, t.due_until
             FROM task t"""
 
         val mapper =
@@ -106,6 +106,7 @@ class TaskRepository(private val jdbc: JdbcClient) {
                     parentId = rs.uuidOrNull("parent_id"),
                     priority = rs.getInt("priority"),
                     dueDate = rs.dateOrNull("due_date"),
+                    dueUntil = rs.dateOrNull("due_until"),
                     dueTime = rs.intOrNull("due_time"),
                     deadline = rs.dateOrNull("deadline"),
                     recurrence = rs.getString("recurrence"),

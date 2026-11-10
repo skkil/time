@@ -39,6 +39,7 @@
     "importProjects",
     "markProjectReviewed",
     "moveTask",
+    "moveTasks",
     "pauseTimer",
     "rateDay",
     "rateWeek",

@@ -1,10 +1,12 @@
 package com.skkil.time.features.tasks.api
 
 import com.skkil.time.common.web.Caller
+import com.skkil.time.features.tasks.domain.MoveResult
 import com.skkil.time.features.tasks.domain.Task
 import com.skkil.time.features.tasks.domain.TaskInput
 import com.skkil.time.features.tasks.domain.TaskPlacement
 import com.skkil.time.features.tasks.service.DependencyService
+import com.skkil.time.features.tasks.service.TaskMoveService
 import com.skkil.time.features.tasks.service.TaskService
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -20,7 +22,11 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/tasks")
-class TaskController(private val tasks: TaskService, private val dependencies: DependencyService) {
+class TaskController(
+    private val tasks: TaskService,
+    private val moves: TaskMoveService,
+    private val dependencies: DependencyService,
+) {
     @GetMapping
     fun list(caller: Caller): List<Task> = tasks.list(caller)
 
@@ -56,6 +62,12 @@ class TaskController(private val tasks: TaskService, private val dependencies: D
         caller: Caller,
         @RequestBody body: TaskReschedule,
     ) = tasks.reschedule(caller, body.ids, body.dueDate)
+
+    @PostMapping("/move")
+    fun moveMany(
+        caller: Caller,
+        @RequestBody body: TasksMove,
+    ): MoveResult = moves.move(caller, body.ids, body.target, body.blocks)
 
     @PutMapping("/{id}/completed")
     fun setCompleted(

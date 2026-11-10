@@ -95,7 +95,10 @@ class TaskService(
             .sql(
                 """
                 UPDATE task SET title = :title, notes = :notes, priority = :priority, due_date = :dueDate,
-                  due_time = :dueTime, deadline = :deadline, recurrence = :recurrence, estimate_minutes = :estimate
+                  due_time = :dueTime, deadline = :deadline, recurrence = :recurrence, estimate_minutes = :estimate,
+                  due_until = CASE WHEN due_date IS NOT DISTINCT FROM CAST(:dueDate AS DATE)
+                    AND CAST(:dueTime AS INTEGER) IS NULL AND CAST(:recurrence AS TEXT) IS NULL
+                    THEN due_until END
                 WHERE user_id = :user AND id = :id
                 """,
             ).param("title", valid.title)
@@ -132,9 +135,11 @@ class TaskService(
                         """
                         UPDATE task SET
                           rollover_count = rollover_count + CASE
-                            WHEN due_date IS NOT NULL AND due_date <= :today AND CAST(:due AS DATE) > due_date
+                            WHEN due_date IS NOT NULL AND COALESCE(due_until, due_date) <= :today
+                              AND CAST(:due AS DATE) > COALESCE(due_until, due_date)
                             THEN 1 ELSE 0 END,
                           due_date = CAST(:due AS DATE),
+                          due_until = NULL,
                           due_time = CASE WHEN CAST(:due AS DATE) IS NULL THEN NULL ELSE due_time END,
                           recurrence = CASE WHEN CAST(:due AS DATE) IS NULL THEN NULL ELSE recurrence END,
                           someday = CASE WHEN CAST(:due AS DATE) IS NULL THEN someday ELSE FALSE END,
@@ -211,6 +216,7 @@ class TaskService(
                         """
                         UPDATE task SET someday = :someday,
                           due_date = CASE WHEN :someday THEN NULL ELSE due_date END,
+                          due_until = CASE WHEN :someday THEN NULL ELSE due_until END,
                           due_time = CASE WHEN :someday THEN NULL ELSE due_time END,
                           recurrence = CASE WHEN :someday THEN NULL ELSE recurrence END,
                           must_on = CASE WHEN :someday THEN NULL ELSE must_on END

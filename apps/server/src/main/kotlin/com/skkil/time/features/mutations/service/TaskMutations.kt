@@ -2,10 +2,12 @@ package com.skkil.time.features.mutations.service
 
 import com.skkil.time.features.mutations.domain.Mutation.Companion.mutation
 import com.skkil.time.features.mutations.domain.MutationSet
+import com.skkil.time.features.tasks.domain.MoveTarget
 import com.skkil.time.features.tasks.domain.TaskInput
 import com.skkil.time.features.tasks.domain.TaskPlacement
 import com.skkil.time.features.tasks.domain.TaskSnapshot
 import com.skkil.time.features.tasks.service.DependencyService
+import com.skkil.time.features.tasks.service.TaskMoveService
 import com.skkil.time.features.tasks.service.TaskService
 import com.skkil.time.features.tasks.service.UndoService
 import org.springframework.stereotype.Component
@@ -15,6 +17,7 @@ import java.util.UUID
 @Component
 class TaskMutations(
     private val tasks: TaskService,
+    private val moves: TaskMoveService,
     private val dependencies: DependencyService,
     private val undo: UndoService,
 ) : MutationSet {
@@ -31,6 +34,14 @@ class TaskMutations(
             },
             mutation("rescheduleTasks", "ids", "dueDate") { caller, args ->
                 tasks.reschedule(caller, args.get<List<UUID>>("ids"), args.get<LocalDate?>("dueDate"))
+            },
+            mutation("moveTasks", "ids", "target", "blocks") { caller, args ->
+                moves.move(
+                    caller,
+                    args.get<List<UUID>>("ids"),
+                    args.get<MoveTarget>("target"),
+                    args.get<String?>("blocks"),
+                )
             },
             mutation("setTaskCompleted", "id", "completed") { caller, args ->
                 tasks.setCompleted(caller, args.get<UUID>("id"), args.get<Boolean>("completed"))
