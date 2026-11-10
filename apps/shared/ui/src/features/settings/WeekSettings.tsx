@@ -11,6 +11,7 @@ import {
   usePreference,
 } from '@/lib/preferences';
 
+import { BlockLogSetting } from './BlockLogSetting';
 import { SettingRow } from './SettingRow';
 import { SleepSettings } from './SleepSettings';
 
@@ -52,6 +53,7 @@ export function WeekSettings() {
         </Select>
       </SettingRow>
       <SleepSettings />
+      <BlockLogSetting />
     </div>
   );
 }

@@ -82,6 +82,7 @@ export const keys = {
   typeTime: (from: string, to: string) => ['typeTime', from, to] as const,
   planningTime: ['rituals', 'planningTime'] as const,
   reminders: ['reminders'] as const,
+  autoLogBlocks: ['auto-log-blocks'] as const,
   captureHotkey: ['capture-hotkey'] as const,
   ritualRuns: (from: string, to: string) =>
     ['rituals', 'runs', from, to] as const,

@@ -62,7 +62,7 @@ const sections: Section[] = [
   {
     id: 'week',
     label: 'Week',
-    description: 'How weeks and the hours of the day are laid out.',
+    description: 'How weeks are laid out, and what counts as tracked time.',
     icon: CalendarRangeIcon,
     content: WeekSettings,
   },

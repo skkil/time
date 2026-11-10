@@ -12,6 +12,7 @@ import { type Backend, installBackend } from '@/backend';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { syncColorScheme } from '@/hooks/use-color-scheme';
+import { syncBlockLog } from '@/lib/block-log';
 import { syncExternalChanges } from '@/lib/external-changes';
 import { syncIdle } from '@/lib/idle';
 import { syncSharedPreferences } from '@/lib/preferences';
@@ -41,6 +42,7 @@ export function mount({
   syncPriorityColors();
   syncSharedPreferences();
   syncExternalChanges();
+  syncBlockLog();
 
   createRoot(document.getElementById('root') as HTMLElement).render(
     <StrictMode>

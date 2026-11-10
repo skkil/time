@@ -789,6 +789,8 @@ function DayColumn({
                   className={cn(
                     'pointer-events-auto absolute right-0 overflow-hidden rounded-[5px] text-left leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70',
                     shared ? 'z-10 w-1.5' : 'left-0 px-2 text-[11px]',
+                    entry.source === 'block' &&
+                      'border border-dashed border-white/60',
                   )}
                   style={{
                     top: scale.top(span.start),
@@ -814,6 +816,11 @@ function DayColumn({
                     : formatClockTime(entry.endedAt)}{' '}
                   · {formatDuration(entry.endedAt - entry.startedAt)}
                 </p>
+                {entry.source === 'block' && (
+                  <p className="text-xs opacity-80">
+                    Logged from your plan. Open it to change or remove it.
+                  </p>
+                )}
               </TooltipContent>
             </Tooltip>
           );

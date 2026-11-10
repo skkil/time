@@ -18,6 +18,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { queryClient } from '@/core/api/query-client';
 import { SessionProvider, useSession } from '@/core/auth/session';
 import { useReminders } from '@/core/notifications/reminders';
+import { useBlockLog } from '@/core/sync/use-block-log';
 import { useSync } from '@/core/sync/use-sync';
 import { useAccountChoice } from '@/features/account/account-choice';
 import { SelectionProvider } from '@/features/tasks/selection';
@@ -60,6 +61,7 @@ function Routes() {
   useSync(session !== null);
   useAccountChoice();
   useReminders(session !== null);
+  useBlockLog(session !== null);
   useEffect(() => {
     if (ready) void SplashScreen.hideAsync();
   }, [ready]);
