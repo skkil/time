@@ -6,6 +6,7 @@ import type { Id, Task } from '@/backend';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
 import { useTasks } from '@/features/tasks/api';
+import { formatDue, isOverdue } from '@/features/tasks/meta';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import {
   type DateKey,
@@ -60,8 +61,10 @@ export function DraggableTask({
         <p className="truncate leading-snug">{task.title}</p>
         <p className="mt-0.5 flex gap-2 text-xs text-muted-foreground">
           {task.dueDate && (
-            <span className={cn(task.dueDate < today && 'text-attention')}>
-              {formatDayLabel(task.dueDate, today)}
+            <span className={cn(isOverdue(task, today) && 'text-earlier')}>
+              {task.dueUntil
+                ? formatDue(task, today)
+                : formatDayLabel(task.dueDate, today)}
             </span>
           )}
           {task.estimateMinutes !== null && (
@@ -92,7 +95,7 @@ export function TaskRail({
   const { data: tasks } = useTasks();
   const [search, setSearch] = useState('');
 
-  const { dueSoon, undated } = useMemo(() => {
+  const { earlier, dueSoon, undated } = useMemo(() => {
     const query = search.trim().toLowerCase();
     const today = todayKey();
     const open = (tasks ?? []).filter(
@@ -100,11 +103,15 @@ export function TaskRail({
         task.completedAt === null &&
         task.kind === 'task' &&
         (task.dueDate === null ||
-          !isDueInAnotherWeek(task.dueDate, week, today)) &&
+          isOverdue(task, today) ||
+          !isDueInAnotherWeek(task.dueUntil ?? task.dueDate, week, today)) &&
         (!query || task.title.toLowerCase().includes(query)),
     );
     return {
-      dueSoon: open.filter((task) => task.dueDate !== null),
+      earlier: open.filter((task) => isOverdue(task, today)),
+      dueSoon: open.filter(
+        (task) => task.dueDate !== null && !isOverdue(task, today),
+      ),
       undated: open.filter((task) => task.dueDate === null),
     };
   }, [tasks, search, week]);
@@ -137,6 +144,11 @@ export function TaskRail({
       </div>
       <div className="p-3 pt-1">
         <RailSection
+          title="From earlier days"
+          tasks={earlier}
+          plannedCounts={plannedCounts}
+        />
+        <RailSection
           title="Due this week"
           tasks={dueSoon}
           plannedCounts={plannedCounts}
@@ -146,11 +158,11 @@ export function TaskRail({
           tasks={undated}
           plannedCounts={plannedCounts}
         />
-        {dueSoon.length + undated.length === 0 && (
+        {earlier.length + dueSoon.length + undated.length === 0 && (
           <p className="text-sm text-muted-foreground">
             {search
               ? 'No task matches.'
-              : 'No open tasks. Add one with New task, then drag it onto a day to plan when you’ll do it.'}
+              : 'No open tasks. Add one with New task, then drag it onto a day to plan when you’ll do it, or onto a day’s name to give it that date.'}
           </p>
         )}
       </div>

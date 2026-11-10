@@ -8,6 +8,8 @@ export {
   formatDue,
   isOpen,
   isOverdue,
+  isStale,
+  taskTone,
 } from '@skkil-time/rules/due';
 
 export const priorityColor = (priority: number) =>
@@ -23,7 +25,7 @@ export const priorityTint = (priority: number) =>
   `var(--p${Math.min(Math.max(priority, 1), 4)})`;
 
 export const dueToneClass: Record<DueTone, string> = {
-  overdue: 'text-p1',
+  overdue: 'text-earlier',
   today: 'text-due-today',
   soon: 'text-p2',
   later: 'text-muted-foreground',

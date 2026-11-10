@@ -69,7 +69,7 @@ export function formatWindow(
 }
 
 export function formatDue(
-  task: Pick<Task, 'dueDate' | 'dueUntil' | 'dueTime'>,
+  task: Pick<Task, 'dueDate' | 'dueTime'> & { dueUntil?: DateKey | null },
   today = todayKey(),
 ): string {
   if (!task.dueDate) return '';

@@ -1,10 +1,13 @@
+import { describeMove, movedTask } from '@skkil-time/rules/move';
 import { EMPTY_TASK } from '@skkil-time/rules/quick-add/task';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import {
+  type BlockMove,
   type Date as DateKey,
   type Id,
+  type MoveTarget,
   type Section,
   type Task,
   type TaskInput,
@@ -229,6 +232,36 @@ export function useRescheduleTasks() {
         snapshot,
       );
     },
+    onError: (_error, _vars, context) => cache.restore(context?.previous),
+    onSettled: () => cache.refresh(),
+  });
+}
+
+export type MoveTasks = {
+  ids: Id[];
+  target: MoveTarget;
+  blocks?: BlockMove;
+};
+
+export function useMoveTasks() {
+  const cache = useTaskCache();
+  return useMutation({
+    mutationFn: ({ ids, target, blocks = 'follow' }: MoveTasks) =>
+      withSnapshot(ids, () => commands.moveTasks(ids, target, blocks)),
+    onMutate: async ({ ids, target }) => {
+      const previous = await cache.freeze();
+      cache.update((tasks) =>
+        tasks.map((task) =>
+          ids.includes(task.id) ? movedTask(task, target) : task,
+        ),
+      );
+      return { previous };
+    },
+    onSuccess: ({ snapshot, result }, { ids, target }, context) =>
+      cache.offerRestore(
+        describeMove(titleOf(ids, context.previous), target, result),
+        snapshot,
+      ),
     onError: (_error, _vars, context) => cache.restore(context?.previous),
     onSettled: () => cache.refresh(),
   });

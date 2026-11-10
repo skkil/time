@@ -50,6 +50,7 @@
   --color-today-foreground: var(--today-foreground);
   --color-attention: var(--attention);
   --color-attention-tint: var(--attention-tint);
+  --color-earlier: var(--earlier);
   --color-p1: var(--p1);
   --color-p2: var(--p2);
   --color-p3: var(--p3);

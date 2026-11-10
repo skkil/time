@@ -41,6 +41,7 @@ import { TaskLink } from './TaskLink';
 import {
   taskToInput,
   useDeleteTask,
+  useMoveTasks,
   useSections,
   useSetTaskCompleted,
   useSetTaskMust,
@@ -78,6 +79,7 @@ export function TaskItem({
 }: TaskItemProps) {
   const complete = useSetTaskCompleted();
   const update = useUpdateTask();
+  const move = useMoveTasks();
   const remove = useDeleteTask();
   const setMust = useSetTaskMust();
   const setSomeday = useSetTasksSomeday();
@@ -275,7 +277,10 @@ export function TaskItem({
             </Tooltip>
             <DuePicker
               value={task}
-              onChange={(due) => save(due)}
+              onChange={({ dueDate, dueTime, recurrence }) =>
+                save({ dueDate, dueTime, recurrence })
+              }
+              onMove={(target) => move.mutate({ ids: [task.id], target })}
               trigger={
                 <Button
                   size="icon-xs"

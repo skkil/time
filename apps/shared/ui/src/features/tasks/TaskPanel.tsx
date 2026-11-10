@@ -63,6 +63,7 @@ import {
   useCreateTask,
   useDeleteTask,
   useMoveTask,
+  useMoveTasks,
   useSections,
   useSetTaskCompleted,
   useSetTaskOutcome,
@@ -263,11 +264,15 @@ function Details({
   task: Task;
   save: (patch: Partial<TaskInput>) => void;
 }) {
+  const moveTasks = useMoveTasks();
   const parts: ReactNode[] = [
     <DuePicker
       key="due"
       value={task}
-      onChange={(due) => save(due)}
+      onChange={({ dueDate, dueTime, recurrence }) =>
+        save({ dueDate, dueTime, recurrence })
+      }
+      onMove={(target) => moveTasks.mutate({ ids: [task.id], target })}
       trigger={
         <Phrase set={task.dueDate !== null}>
           {task.dueDate ? <DueText task={task} /> : 'No date'}

@@ -1,3 +1,4 @@
+import { dayTarget } from '@skkil-time/rules/move';
 import { liveEntry } from '@skkil-time/rules/timer';
 import { format } from 'date-fns';
 import { useMemo, useState } from 'react';
@@ -114,7 +115,9 @@ export function DayCanvas() {
   }, [plan.blocks, plan.musts, plan.due, plan.doneToday, events, today]);
 
   const blocked = new Set(plan.blocks.map((block) => block.taskId));
-  const anyTime = [...plan.musts, ...plan.due].filter((task) => !isTimed(task));
+  const anyTime = [...plan.musts, ...plan.due, ...plan.thisWeek].filter(
+    (task) => !isTimed(task),
+  );
   const finished = plan.doneToday.filter(
     (task) =>
       !blocked.has(task.id) && !(isTimed(task) && task.dueDate === today),
@@ -217,7 +220,7 @@ export function DayCanvas() {
               Give each one a day, park it, or let it go.
             </DialogDescription>
           </DialogHeader>
-          <Leftovers tasks={plan.earlier} target={todayKey()} />
+          <Leftovers tasks={plan.earlier} target={dayTarget(todayKey())} />
         </DialogContent>
       </Dialog>
     </div>

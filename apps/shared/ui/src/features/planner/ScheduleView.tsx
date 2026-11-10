@@ -1,5 +1,6 @@
 import {
   DndContext,
+  type DragEndEvent,
   DragOverlay,
   type DragStartEvent,
   PointerSensor,
@@ -8,6 +9,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { dayTarget } from '@skkil-time/rules/move';
 import { LIVE_ENTRY_ID, liveEntry } from '@skkil-time/rules/timer';
 import {
   type ReactNode,
@@ -34,7 +36,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useProjectIndex } from '@/features/projects/api';
 import { projectColorVar } from '@/features/projects/tree';
-import { useTaskIndex, useTasks } from '@/features/tasks/api';
+import { useMoveTasks, useTaskIndex, useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { EntryDialog } from '@/features/time/EntryDialog';
 import { useTimeEntries, useTimer } from '@/features/time/api';
@@ -288,9 +290,17 @@ export function ScheduleView({
     pointer.current = null;
   };
 
-  const onDragEnd = () => {
+  const moveTasks = useMoveTasks();
+  const onDragEnd = ({ over }: DragEndEvent) => {
     const preview = previewRef.current;
-    if (active && preview) {
+    const header = over?.data.current as HeaderDrop | undefined;
+    if (active?.kind === 'task' && header?.kind === 'header') {
+      if (active.task.dueDate !== header.day || active.task.dueUntil !== null)
+        moveTasks.mutate({
+          ids: [active.task.id],
+          target: dayTarget(header.day),
+        });
+    } else if (active && preview) {
       const span = {
         startAt: atMinutes(preview.day, preview.start),
         endAt: atMinutes(preview.day, preview.end),
@@ -461,6 +471,8 @@ export function ScheduleView({
   );
 }
 
+type HeaderDrop = { kind: 'header'; day: DateKey };
+
 function DayHeader({
   day,
   today,
@@ -473,11 +485,23 @@ function DayHeader({
   tracked: number;
 }) {
   const { openTask } = useTaskDialog();
+  const { setNodeRef, isOver, active } = useDroppable({
+    id: `header:${day}`,
+    data: { kind: 'header', day } satisfies HeaderDrop,
+  });
+  const taking = isOver && active?.data.current?.kind === 'task';
   const isToday = day === today;
   const visible = due.slice(0, 2);
 
   return (
-    <div className="min-w-0 border-l px-2 pt-2 pb-2">
+    <div
+      ref={setNodeRef}
+      title="Drop a task here to give it this day"
+      className={cn(
+        'min-w-0 border-l px-2 pt-2 pb-2 transition-colors',
+        taking && 'bg-now-tint/40 ring-1 ring-now/60 ring-inset',
+      )}
+    >
       <div className="flex items-baseline gap-1.5">
         <span
           className={cn(
@@ -509,7 +533,7 @@ function DayHeader({
             source={`due-${day}`}
             className={cn(
               'px-1.5 py-0.5 text-xs [&_p+p]:hidden [&_svg]:hidden',
-              day < today && 'border-attention/50',
+              day < today && 'border-earlier/50',
             )}
           />
         ))}

@@ -40,6 +40,7 @@
   --today-foreground: #161616;
   --attention: #7a5a00;
   --attention-tint: #fdf4d3;
+  --earlier: #6b5e4a;
   --p1: #c8201a;
   --p2: #c26a00;
   --p3: #0057b8;
@@ -96,6 +97,7 @@
   --today-foreground: #17191e;
   --attention: #ffd23f;
   --attention-tint: rgba(255, 210, 63, 0.12);
+  --earlier: #d9cbb2;
   --p1: #ff6b5e;
   --p2: #ffa53d;
   --p3: #5c9dff;

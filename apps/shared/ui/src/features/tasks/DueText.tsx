@@ -5,7 +5,7 @@ import { formatDue, isOverdue } from './meta';
 
 type Dated = Pick<
   Task,
-  'dueDate' | 'dueTime' | 'completedAt' | 'statusCategory'
+  'dueDate' | 'dueUntil' | 'dueTime' | 'completedAt' | 'statusCategory'
 >;
 
 export function DueText({
@@ -18,9 +18,9 @@ export function DueText({
   if (!task.dueDate) return null;
   const overdue = isOverdue(task);
   return (
-    <span className={cn(overdue && 'text-p1', className)}>
+    <span className={cn(overdue && 'text-earlier', className)}>
       {formatDue(task)}
-      {overdue && <span className="sr-only"> (overdue)</span>}
+      {overdue && <span className="sr-only"> (from an earlier day)</span>}
     </span>
   );
 }

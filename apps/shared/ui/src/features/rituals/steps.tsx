@@ -1,3 +1,4 @@
+import { dayTarget } from '@skkil-time/rules/move';
 import { CheckIcon, StarIcon } from 'lucide-react';
 import { type ReactNode, useMemo, useState } from 'react';
 
@@ -229,7 +230,7 @@ function LeftoversStep({ ctx }: { ctx: RitualContext }) {
         Give each one {targetWord(ctx)}, another day, Someday, or let it go.
         Nothing rolls over on its own.
       </StepHeading>
-      <Leftovers tasks={leftovers} target={ctx.target} />
+      <Leftovers tasks={leftovers} target={dayTarget(ctx.target)} />
     </div>
   );
 }

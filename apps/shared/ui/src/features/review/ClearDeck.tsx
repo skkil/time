@@ -1,3 +1,5 @@
+import { STALE_DAYS, STALE_ROLLOVERS, isStale } from '@skkil-time/rules/due';
+import { weekTarget } from '@skkil-time/rules/move';
 import { useMemo } from 'react';
 
 import type { Id, Project, ProjectSettings } from '@/backend';
@@ -15,10 +17,7 @@ import {
 } from '@/features/projects/api';
 import { useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
-import { type DateKey, nowSeconds, shiftKey, todayKey } from '@/lib/time';
-
-const STALE_DAYS = 14;
-const STALE_ROLLOVERS = 3;
+import { type DateKey, nowSeconds, todayKey } from '@/lib/time';
 
 export function ClearDeck({ nextMonday }: { nextMonday: DateKey }) {
   const { data: tasks } = useTasks();
@@ -34,7 +33,6 @@ export function ClearDeck({ nextMonday }: { nextMonday: DateKey }) {
     for (const task of open)
       if (task.projectId !== null)
         counts.set(task.projectId, (counts.get(task.projectId) ?? 0) + 1);
-    const cutoff = shiftKey(today, -STALE_DAYS);
     return {
       inbox: open.filter(
         (task) =>
@@ -43,12 +41,7 @@ export function ClearDeck({ nextMonday }: { nextMonday: DateKey }) {
           task.dueDate === null &&
           task.mustOn === null,
       ),
-      stale: open.filter(
-        (task) =>
-          task.statusCategory !== 'backlog' &&
-          (task.rolloverCount >= STALE_ROLLOVERS ||
-            (task.dueDate !== null && task.dueDate < cutoff)),
-      ),
+      stale: open.filter((task) => isStale(task, today)),
       dueProjects: (projects ?? []).filter((project) =>
         isDueForReview(project, nowSeconds()),
       ),
@@ -66,7 +59,7 @@ export function ClearDeck({ nextMonday }: { nextMonday: DateKey }) {
           Give each a week, park it, or let it go. Open one to file it into a
           project.
         </p>
-        <Leftovers tasks={inbox} target={nextMonday} targetLabel="Next week" />
+        <Leftovers tasks={inbox} target={weekTarget(nextMonday)} />
       </section>
 
       <section aria-labelledby="deck-stale" className="grid gap-2">
@@ -77,7 +70,7 @@ export function ClearDeck({ nextMonday }: { nextMonday: DateKey }) {
           Moved {STALE_ROLLOVERS}+ times or overdue more than {STALE_DAYS} days.
           Tasks that wait this long rarely get done as they are.
         </p>
-        <Leftovers tasks={stale} target={nextMonday} targetLabel="Next week" />
+        <Leftovers tasks={stale} target={weekTarget(nextMonday)} />
       </section>
 
       <section aria-labelledby="deck-projects" className="grid gap-2">

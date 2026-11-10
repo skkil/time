@@ -1,3 +1,4 @@
+import { SOMEDAY, dayTarget, weekTarget } from '@skkil-time/rules/move';
 import { parseDatePhrase } from '@skkil-time/rules/quick-add/dates';
 import { format } from 'date-fns';
 import {
@@ -14,7 +15,7 @@ import {
 } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
-import type { Id } from '@/backend';
+import type { Id, MoveTarget } from '@/backend';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -50,11 +51,11 @@ import { cn } from '@/lib/utils';
 import { useSections } from './api';
 import {
   PRIORITIES,
-  dueTone,
   dueToneClass,
   formatDate,
   formatDue,
   priorityColor,
+  taskTone,
 } from './meta';
 
 type ChipProps = {
@@ -107,6 +108,7 @@ export function Chip({
 
 export type Due = {
   dueDate: DateKey | null;
+  dueUntil: DateKey | null;
   dueTime: number | null;
   recurrence: string | null;
 };
@@ -120,24 +122,40 @@ const REPEATS = [
   'every year',
 ];
 
-function quickDates(today: DateKey) {
+function quickTargets(today: DateKey, repeating: boolean) {
   const day = fromDateKey(today).getDay();
   const weekend = shiftKey(today, (6 - day + 7) % 7 || 7);
+  const monday = mondayOf(today);
+  const days = [
+    { label: 'Today', hint: 'EEE', target: dayTarget(today) },
+    { label: 'Tomorrow', hint: 'EEE', target: dayTarget(shiftKey(today, 1)) },
+    { label: 'This weekend', hint: 'EEE', target: dayTarget(weekend) },
+  ];
+  if (repeating) return days;
   return [
-    { label: 'Today', date: today },
-    { label: 'Tomorrow', date: shiftKey(today, 1) },
-    { label: 'This weekend', date: weekend },
-    { label: 'Next week', date: shiftKey(mondayOf(today), 7) },
+    ...days,
+    { label: 'This week', hint: 'any day', target: weekTarget(monday) },
+    {
+      label: 'Next week',
+      hint: 'any day',
+      target: weekTarget(shiftKey(monday, 7)),
+    },
+    { label: 'Someday', hint: 'no date', target: SOMEDAY },
   ];
 }
+
+const hintFor = (target: MoveTarget, hint: string) =>
+  target.kind === 'day' ? format(fromDateKey(target.date), hint) : hint;
 
 export function DuePicker({
   value,
   onChange,
+  onMove,
   trigger,
 }: {
   value: Due;
   onChange: (value: Due) => void;
+  onMove: (target: MoveTarget) => void;
   trigger?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -145,15 +163,25 @@ export function DuePicker({
   const [timeText, setTimeText] = useState('');
   const today = todayKey();
   const typed = phrase ? parseDatePhrase(phrase, today) : undefined;
-  const tone = value.dueDate ? dueTone(value.dueDate, today) : 'later';
+  const tone = taskTone(value, today) ?? 'later';
+
+  const move = (target: MoveTarget) => {
+    onMove(target);
+    setPhrase('');
+    setOpen(false);
+  };
 
   const setDate = (dueDate: DateKey | null) => {
-    onChange(
-      dueDate
-        ? { ...value, dueDate }
-        : { dueDate: null, dueTime: null, recurrence: null },
-    );
-    setPhrase('');
+    if (dueDate) move(dayTarget(dueDate));
+    else {
+      onChange({
+        dueDate: null,
+        dueUntil: null,
+        dueTime: null,
+        recurrence: null,
+      });
+      setPhrase('');
+    }
   };
 
   return (
@@ -210,16 +238,16 @@ export function DuePicker({
           )}
         </form>
         <div className="grid border-b p-1">
-          {quickDates(today).map((option) => (
+          {quickTargets(today, value.recurrence !== null).map((option) => (
             <button
               key={option.label}
               type="button"
               className="flex h-8 items-center justify-between rounded-sm px-2 text-sm hover:bg-accent"
-              onClick={() => setDate(option.date)}
+              onClick={() => move(option.target)}
             >
               {option.label}
               <span className="text-xs text-muted-foreground">
-                {format(fromDateKey(option.date), 'EEE')}
+                {hintFor(option.target, option.hint)}
               </span>
             </button>
           ))}
