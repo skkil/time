@@ -5,6 +5,7 @@ import {
   nightAmount,
   sunDirection,
   sunlight,
+  twilight,
   wrapHour,
 } from './bodies';
 import { ATMOSPHERE, COMPOSITE, VERTEX } from './shaders';
@@ -49,6 +50,7 @@ function paintFallback(canvas: HTMLCanvasElement): Sky {
   return {
     setHour(hour) {
       const sky = skyAt(hour);
+      host.style.filter = `saturate(${1 - 0.85 * twilight(sunDirection(hour))})`;
       host.style.background = `radial-gradient(120% 80% at 30% 10%, ${rgb(sky.glows[0], 0.6)}, transparent 60%), linear-gradient(180deg, ${rgb(sky.top)}, ${rgb(sky.bottom)})`;
     },
   };
@@ -176,6 +178,7 @@ export function createSky(canvas: HTMLCanvasElement, still: boolean): Sky {
     gl.uniform3fv(composite.at('uMoon'), moon);
     gl.uniform3fv(composite.at('uSunlight'), sunlight(sun));
     gl.uniform1f(composite.at('uNight'), night);
+    gl.uniform1f(composite.at('uCool'), twilight(sun));
     gl.uniform1f(composite.at('uMoonLight'), moonLight);
     gl.uniform1f(
       composite.at('uTime'),

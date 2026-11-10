@@ -35,6 +35,10 @@ const smoothstep = (from: number, to: number, x: number) => {
 
 export const nightAmount = (sun: Vec3) => smoothstep(0.02, -0.22, sun[1]);
 
+/** How close the sun is to the horizon, where the page cools the sky so it never turns red. */
+export const twilight = (sun: Vec3) =>
+  1 - smoothstep(0.1, 0.32, Math.abs(sun[1] + 0.04));
+
 const OPTICAL_DEPTH: Vec3 = [0.062, 0.118, 0.27];
 
 /** Sunlight left after crossing the air at this sun height (Kasten–Young air mass). */
@@ -68,9 +72,3 @@ export function phaseOf(hour: number): Phase {
   if (h < 22.5) return 'Evening';
   return 'Night';
 }
-
-export const clockLabel = (hour: number) => {
-  const minutes = Math.floor(wrapHour(hour) * 60);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
-};

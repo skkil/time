@@ -5,7 +5,7 @@ import logo from '~assets/skkil-time-horizontal.svg?raw';
 
 import { appUrl } from './config';
 import { startQuickAdd } from './quick-add';
-import { clockLabel, phaseOf } from './sky/bodies';
+import { phaseOf } from './sky/bodies';
 import { createSky } from './sky/sky';
 import { type Anchor, hourAt } from './story';
 import './styles.css';
@@ -22,8 +22,6 @@ for (const slot of document.querySelectorAll('[data-logo]'))
 for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-app]'))
   link.href = appUrl;
 
-const clock = document.querySelector<HTMLElement>('#clock-time')!;
-const phase = document.querySelector<HTMLElement>('#clock-phase')!;
 const sections = [...document.querySelectorAll<HTMLElement>('[data-hour]')];
 
 let shown = 0;
@@ -47,8 +45,6 @@ const retarget = () => {
 const show = (hour: number) => {
   shown = hour;
   sky.setHour(hour);
-  clock.textContent = clockLabel(hour);
-  phase.textContent = phaseOf(hour);
   document.documentElement.dataset.phase = phaseOf(hour).toLowerCase();
 };
 

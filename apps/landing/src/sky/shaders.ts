@@ -120,6 +120,7 @@ uniform float uNight;
 uniform float uMoonLight;
 uniform float uTime;
 uniform float uHorizon;
+uniform float uCool;
 ${VIEW}
 
 float hash(vec2 p) {
@@ -215,6 +216,8 @@ void main() {
   vec3 nearColor = haze * 0.22 + vec3(0.006, 0.008, 0.016);
   col = mix(col, farColor, smoothstep(far + pixel, far - pixel, elevation));
   col = mix(col, nearColor, smoothstep(near + pixel, near - pixel, elevation));
+
+  col = mix(col, vec3(luma(col)) * vec3(0.72, 0.86, 1.3), uCool * 0.85);
 
   col += (hash(gl_FragCoord.xy + fract(uTime)) - 0.5) / 255.0;
   color = vec4(col, 1.0);

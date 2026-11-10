@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  clockLabel,
   moonDirection,
   nightAmount,
   phaseOf,
   sunDirection,
   sunlight,
+  twilight,
 } from './bodies';
 
 describe('sun', () => {
@@ -32,15 +32,18 @@ describe('sun', () => {
   });
 });
 
+describe('twilight', () => {
+  it('cools the sky only while the sun is near the horizon', () => {
+    expect(twilight(sunDirection(12))).toBe(0);
+    expect(twilight(sunDirection(18.5))).toBeCloseTo(1);
+    expect(twilight(sunDirection(23))).toBe(0);
+  });
+});
+
 describe('labels', () => {
   it('names the time of day', () => {
     expect(phaseOf(6)).toBe('Dawn');
     expect(phaseOf(18.6)).toBe('Sunset');
     expect(phaseOf(23)).toBe('Night');
-  });
-
-  it('formats the clock', () => {
-    expect(clockLabel(6.25)).toBe('06:15');
-    expect(clockLabel(24.5)).toBe('00:30');
   });
 });
