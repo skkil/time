@@ -163,6 +163,10 @@ cd apps/server && ./gradlew spotlessApply test | ./gradlew bootRun | ./gradlew o
   `due_ritual(event)` decides what opens; a run fires once a day unless
   snoozed (15 min, once). Shown in a full-window overlay (`features/rituals`)
   over the time-of-day sky (`features/zen/ZenBackdrop.tsx`); no image assets.
+  On the `review_day` setting (Monday = 0, default Sunday) the evening checkout
+  goes on to close the week (`week_to_close`), running the review steps as a
+  `weekly` run; the next morning offers an unclosed week once. The standalone
+  `weekly` ritual is manual.
 - **Item type / Status / Milestone / Saved view**: per-project structure in
   `core/src/workflow/`. A type is a task or an **event** (happens at a time,
   never checked off; repeats expand via `list_events`; may count as tracked
