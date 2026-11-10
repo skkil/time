@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { Task, TimeEntry } from '@skkil-time/client/types';
+import { eventSpanOn } from '@skkil-time/rules/calendar';
 import { planDay } from '@skkil-time/rules/day';
 import {
   dayStart,
@@ -29,7 +30,7 @@ import { useTasks } from '@/features/tasks/hooks';
 import { AnyTime } from '@/features/today/AnyTime';
 import { CloseWeek } from '@/features/today/CloseWeek';
 import { DayThread, type Moment } from '@/features/today/DayThread';
-import { useBlocks, useEvents } from '@/features/week/hooks';
+import { useBlocks, useCalendarEvents, useEvents } from '@/features/week/hooks';
 import { Screen } from '@/ui/Screen';
 import { Failed, Loading } from '@/ui/States';
 import { PRIMARY_PILL } from '@/ui/surfaces';
@@ -45,6 +46,7 @@ export function DayScreen() {
   const projects = useProjects();
   const blocks = useBlocks(mondayOf(today));
   const { data: events = [] } = useEvents(today, tomorrow);
+  const { data: calendar = [] } = useCalendarEvents(today, tomorrow);
   const { data: timer = null } = useTimer();
   const { data: logged = [] } = useTimeEntries(today, tomorrow);
   const now = useNow(true, 30_000);
@@ -95,6 +97,24 @@ export function DayScreen() {
       kind: 'event' as const,
       done: false,
     }));
+    const outside = calendar
+      .filter((event) => eventSpanOn(event, today) !== null)
+      .map((event) => ({
+        key: `calendar-${event.id}`,
+        taskId: event.id,
+        title: event.title,
+        projectId: null,
+        start: event.startAt,
+        end: event.endAt,
+        showEnd: true,
+        kind: 'calendar' as const,
+        done: false,
+        calendar: {
+          source: event.sourceName,
+          color: event.color,
+          link: event.link,
+        },
+      }));
     const finishedHere = plan.doneToday.filter(
       (task) => task.dueDate === today,
     );
@@ -114,8 +134,10 @@ export function DayScreen() {
           done: task.completedAt !== null,
         };
       });
-    return [...timed, ...anchors, ...due].sort((a, b) => a.start - b.start);
-  }, [plan, events, today]);
+    return [...timed, ...anchors, ...outside, ...due].sort(
+      (a, b) => a.start - b.start,
+    );
+  }, [plan, events, calendar, today]);
 
   const blocked = new Set(plan.blocks.map((block) => block.taskId));
   const anyTime = [...plan.musts, ...plan.due, ...plan.thisWeek].filter(

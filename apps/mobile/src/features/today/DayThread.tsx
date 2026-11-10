@@ -19,11 +19,12 @@ import {
 import { openTask } from '@/features/tasks/components/TaskRow';
 import { useCompleteTask } from '@/features/tasks/hooks';
 import { Check } from '@/ui/Check';
+import { GoogleMark, openCalendarEvent } from '@/ui/GoogleMark';
 import { ink, spacing, type, useProjectColor } from '@/ui/theme';
 
 export type Moment = {
   key: string;
-  kind: 'block' | 'event' | 'due';
+  kind: 'block' | 'event' | 'due' | 'calendar';
   taskId: Id;
   title: string;
   projectId: Id | null;
@@ -31,6 +32,7 @@ export type Moment = {
   end: number;
   showEnd: boolean;
   done: boolean;
+  calendar?: { source: string; color: string; link: string | null };
 };
 
 const WINDOW_HOURS = 6;
@@ -180,7 +182,9 @@ export function DayThread({
           return (
             <View key={moment.key} style={[styles.row, { top: y - 12 }]}>
               <View style={styles.marker}>
-                {moment.kind === 'event' ? (
+                {moment.calendar ? (
+                  <GoogleMark dim={past} />
+                ) : moment.kind === 'event' ? (
                   <View
                     accessibilityLabel="Event"
                     style={[
@@ -209,7 +213,11 @@ export function DayThread({
               </View>
               <Pressable
                 accessibilityRole="button"
-                onPress={() => openTask(moment.taskId)}
+                onPress={() =>
+                  moment.calendar
+                    ? openCalendarEvent(moment.calendar.link)
+                    : openTask(moment.taskId)
+                }
                 style={styles.rowBody}
               >
                 <Text
@@ -241,6 +249,19 @@ export function DayThread({
                       />
                       <Text numberOfLines={1} style={[type.tiny, styles.fill]}>
                         {project.name}
+                      </Text>
+                    </>
+                  )}
+                  {moment.calendar && (
+                    <>
+                      <View
+                        style={[
+                          styles.dot,
+                          { backgroundColor: moment.calendar.color },
+                        ]}
+                      />
+                      <Text numberOfLines={1} style={[type.tiny, styles.fill]}>
+                        {moment.calendar.source}
                       </Text>
                     </>
                   )}

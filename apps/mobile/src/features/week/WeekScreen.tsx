@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { coversDay, eventSpanOn } from '@skkil-time/rules/calendar';
 import { planDay } from '@skkil-time/rules/day';
 import {
   dateKeyOf,
@@ -23,7 +24,7 @@ import { SpaceControls } from '@/features/shell/SpaceControls';
 import { useTasks } from '@/features/tasks/hooks';
 import { DayCard } from '@/features/week/DayCard';
 import { Outcomes } from '@/features/week/Outcomes';
-import { useBlocks, useEvents } from '@/features/week/hooks';
+import { useBlocks, useCalendarEvents, useEvents } from '@/features/week/hooks';
 import { Screen } from '@/ui/Screen';
 import { Failed, Loading } from '@/ui/States';
 import { ink, spacing, type } from '@/ui/theme';
@@ -39,6 +40,7 @@ export function WeekScreen() {
   const projects = useProjects();
   const blocks = useBlocks(monday);
   const { data: events = [] } = useEvents(monday, end);
+  const { data: calendar = [] } = useCalendarEvents(monday, end);
   const { data: entries = [] } = useTimeEntries(monday, end);
 
   const byId = useMemo(
@@ -59,6 +61,10 @@ export function WeekScreen() {
           date,
           blocks: plan.blocks,
           events: events.filter((event) => dateKeyOf(event.startAt) === date),
+          calendar: calendar.filter(
+            (event) =>
+              coversDay(event, date) || eventSpanOn(event, date) !== null,
+          ),
           due: [
             ...plan.musts,
             ...plan.due,
@@ -74,7 +80,7 @@ export function WeekScreen() {
           ),
         };
       }),
-    [monday, tasks.data, projects.data, blocks.data, events, entries],
+    [monday, tasks.data, projects.data, blocks.data, events, calendar, entries],
   );
   const planned = (blocks.data ?? []).reduce(
     (sum, block) => sum + (block.endAt - block.startAt),
@@ -141,6 +147,7 @@ export function WeekScreen() {
               today={today}
               blocks={day.blocks}
               events={day.events}
+              calendar={day.calendar}
               due={day.due}
               tracked={day.tracked}
               projects={byId}

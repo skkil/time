@@ -1,10 +1,12 @@
 import type {
+  CalendarEvent,
   EventOccurrence,
   Id,
   Project,
   Task,
   TimeBlock,
 } from '@skkil-time/client/types';
+import { coversDay } from '@skkil-time/rules/calendar';
 import {
   type DateKey,
   formatClockTime,
@@ -18,6 +20,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { openTask } from '@/features/tasks/components/TaskRow';
 import { useCompleteTask } from '@/features/tasks/hooks';
 import { Check } from '@/ui/Check';
+import { GoogleMark, openCalendarEvent } from '@/ui/GoogleMark';
 import { HELD } from '@/ui/surfaces';
 import { ink, spacing, type, useProjectColor, useTheme } from '@/ui/theme';
 
@@ -28,8 +31,10 @@ type Item = {
   projectId: Id | null;
   when: string;
   sort: number;
-  kind: 'block' | 'event' | 'due';
+  kind: 'block' | 'event' | 'due' | 'calendar';
   done: boolean;
+  link?: string | null;
+  source?: string;
 };
 
 /** One day of the week on glass: blocks, events and due work in time order, tracked time in the corner. */
@@ -38,6 +43,7 @@ export function DayCard({
   today,
   blocks,
   events,
+  calendar,
   due,
   tracked,
   projects,
@@ -46,6 +52,7 @@ export function DayCard({
   today: DateKey;
   blocks: TimeBlock[];
   events: EventOccurrence[];
+  calendar: CalendarEvent[];
   due: Task[];
   tracked: number;
   projects: Map<Id, Project>;
@@ -75,6 +82,20 @@ export function DayCard({
       sort: event.startAt,
       kind: 'event' as const,
       done: false,
+    })),
+    ...calendar.map((event) => ({
+      key: `calendar-${event.id}`,
+      taskId: event.id,
+      title: event.title,
+      projectId: null,
+      when: coversDay(event, date)
+        ? 'All day'
+        : `${formatClockTime(event.startAt)} – ${formatClockTime(event.endAt)}`,
+      sort: coversDay(event, date) ? -Infinity : event.startAt,
+      kind: 'calendar' as const,
+      done: false,
+      link: event.link,
+      source: event.sourceName,
     })),
     ...due.map((task) => ({
       key: `due-${task.id}`,
@@ -118,7 +139,9 @@ export function DayCard({
           return (
             <View key={item.key} style={styles.item}>
               <View style={styles.marker}>
-                {item.kind === 'event' ? (
+                {item.kind === 'calendar' ? (
+                  <GoogleMark />
+                ) : item.kind === 'event' ? (
                   <View style={styles.diamond} />
                 ) : item.kind === 'block' ? (
                   <View
@@ -147,7 +170,11 @@ export function DayCard({
               </View>
               <Pressable
                 accessibilityRole="button"
-                onPress={() => openTask(item.taskId)}
+                onPress={() =>
+                  item.kind === 'calendar'
+                    ? openCalendarEvent(item.link ?? null)
+                    : openTask(item.taskId)
+                }
                 style={styles.itemBody}
               >
                 <Text
@@ -156,9 +183,11 @@ export function DayCard({
                 >
                   {item.title}
                 </Text>
-                {(item.when !== '' || project) && (
+                {(item.when !== '' || project || item.source) && (
                   <Text numberOfLines={1} style={type.tiny}>
-                    {[item.when, project?.name].filter(Boolean).join(' · ')}
+                    {[item.when, project?.name ?? item.source]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </Text>
                 )}
               </Pressable>

@@ -21,6 +21,12 @@ export const useEvents = (from: DateKey, to: DateKey) =>
     queryFn: () => commands.listEvents(from, to),
   });
 
+export const useCalendarEvents = (from: DateKey, to: DateKey) =>
+  useQuery({
+    queryKey: ['calendar', 'events', from, to],
+    queryFn: () => commands.listCalendarEvents(from, to),
+  });
+
 export const useWeek = (monday: DateKey) =>
   useQuery({
     queryKey: ['week', monday],
