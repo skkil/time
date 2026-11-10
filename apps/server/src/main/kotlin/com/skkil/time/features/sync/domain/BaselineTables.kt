@@ -28,4 +28,6 @@ val BASELINE_TABLES: List<BaselineTable> =
         BaselineTable("ritual"),
         BaselineTable("ritual_run"),
         BaselineTable("user_preference"),
+        BaselineTable("calendar_source"),
+        BaselineTable("calendar_event"),
     )

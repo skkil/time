@@ -10,6 +10,7 @@ use store_core::{PullOutcome, PushOutcome, SyncStatus};
 use super::issue::Issue;
 use super::mutator::TimeMutator;
 use super::upload;
+use crate::calendar;
 use crate::data::{ID_COLUMN, SYNCED_TABLES};
 use crate::db;
 use crate::env::LocalEnv;
@@ -63,6 +64,7 @@ impl Engine {
         for table in SYNCED_TABLES {
             store_core::register_table(&self.conn, table, ID_COLUMN)?;
         }
+        calendar::guard(&self.conn)?;
         store_core::set_product_schema_version(&self.conn, db::latest_version() as u32)?;
         upload::resume(&mut self.conn)?;
         Ok(())

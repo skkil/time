@@ -1,5 +1,5 @@
 {
-  "$comment": "Mutation round-trip vectors: the same mutations, in order, with the same clock (at, else the file's at) and ids (each step draws exactly its ids, in order), in the account with this scope. Rust (time-core mutations::vectors) and Kotlin (MutationVectorsTest) replay them from an empty account and compare each expected row's listed columns (booleans as true/false; SQLite stores 0/1) and that gone rows are gone, so the two registries can't drift. Natural-key ids are UuidV5(scope, name).",
+  "$comment": "Mutation round-trip vectors: the same mutations, in order, with the same clock (at, else the file's at) and ids (each step draws exactly its ids, in order), in the account with this scope. Rust (time-core mutations::vectors) and Kotlin (MutationVectorsTest) replay them from an empty account (a step's given rows are written first, as the server writes rows no mutation makes) and compare each expected row's listed columns (booleans as true/false; SQLite stores 0/1) and that gone rows are gone, so the two registries can't drift. Natural-key ids are UuidV5(scope, name).",
   "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
   "at": "2026-11-03T09:00:00+09:00",
   "steps": [
@@ -957,6 +957,39 @@
           "row": {
             "key": "auto_log_blocks",
             "value": "off"
+          }
+        }
+      ]
+    },
+    {
+      "name": "setCalendarSourceVisible",
+      "given": [
+        {
+          "table": "calendar_source",
+          "id": "ac9552d0-368b-56d7-bc8c-366ac132e7f6",
+          "row": {
+            "account_id": "019a6c00-0000-7000-8000-00000000ca01",
+            "external_id": "ada@example.com",
+            "name": "Ada",
+            "color": "#039be5",
+            "visible": true,
+            "position": 0
+          }
+        }
+      ],
+      "args": {
+        "id": "ac9552d0-368b-56d7-bc8c-366ac132e7f6",
+        "visible": false
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "calendar_source",
+          "id": "ac9552d0-368b-56d7-bc8c-366ac132e7f6",
+          "row": {
+            "visible": false,
+            "name": "Ada",
+            "color": "#039be5"
           }
         }
       ]

@@ -17,3 +17,6 @@ time:
     reminders: false
   sync:
     baseline-on-start: false
+  calendar:
+    provider: fake
+    sync: false

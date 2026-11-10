@@ -1,5 +1,6 @@
 import type { Api } from '#server/api';
 import type { Backend, RemoteHost } from '#server/backend';
+import { calendar } from '#server/calendar';
 import { data } from '#server/data';
 import { habits } from '#server/habits';
 import { projects } from '#server/projects';
@@ -20,6 +21,7 @@ export const createRemoteBackend = (api: Api, host: RemoteHost): Backend =>
     ...workflow(api),
     ...habits(api),
     ...time(api),
+    ...calendar(api),
     ...review(api),
     ...rituals(api),
     ...data(api, host),

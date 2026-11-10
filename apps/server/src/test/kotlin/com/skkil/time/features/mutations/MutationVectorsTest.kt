@@ -45,6 +45,40 @@ class MutationVectorsTest : TaskApiTest() {
             else -> got?.toString() == want.asString()
         }
 
+    /** A row the server wrote before the step, such as a connected calendar, with the account it belongs to. */
+    private fun write(user: Long, given: JsonNode) {
+        val row = given["row"].properties().associate { (column, value) -> column to value(value) }
+        (row["account_id"] as? UUID)?.let { account ->
+            jdbc
+                .sql(
+                    """
+                    INSERT INTO calendar_account (id, user_id, provider, subject, refresh_token_enc, created_at)
+                    VALUES (:id, :user, 'google', CAST(:id AS text), '', 0) ON CONFLICT (id) DO NOTHING
+                    """,
+                ).param("id", account)
+                .param("user", user)
+                .update()
+        }
+        val columns = listOf("id", "user_id") + row.keys
+        jdbc
+            .sql(
+                "INSERT INTO ${given["table"].asString()} (${columns.joinToString()}) VALUES (${columns.joinToString {
+                    ":$it"
+                }})",
+            )
+            .params(row + mapOf("id" to UUID.fromString(given["id"].asString()), "user_id" to user))
+            .update()
+    }
+
+    private fun value(node: JsonNode): Any? =
+        when {
+            node.isNull -> null
+            node.isBoolean -> node.asBoolean()
+            node.isIntegralNumber -> node.asLong()
+            node.isNumber -> node.asDouble()
+            else -> node.asString().let { runCatching { UUID.fromString(it) }.getOrDefault(it) }
+        }
+
     @Test
     fun `replaying the shared vectors leaves the expected rows`() {
         val user = userId()
@@ -57,6 +91,7 @@ class MutationVectorsTest : TaskApiTest() {
             val ids = ArrayDeque(step["ids"].values().map { UUID.fromString(it.asString()) })
             val caller = Caller(user, scope, at.offset)
             asServer {
+                step.path("given").values().forEach { write(user, it) }
                 mutations.dispatch(
                     caller,
                     name,

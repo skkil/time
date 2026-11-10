@@ -448,6 +448,17 @@ fn walk_every_mutation(conn: &Connection) -> Vec<(String, Value)> {
     s.run("setRemindersEnabled", json!({"enabled": false}));
     s.run("setAutoLogBlocks", json!({"enabled": true}));
     s.run("logEndedBlocks", json!({}));
+    conn.execute(
+        "INSERT INTO calendar_source (id, account_id, external_id, name, color)
+         VALUES ('019a6c00-0000-7000-8000-0000000000c1', '019a6c00-0000-7000-8000-0000000000a1',
+                 'ada@example.com', 'Ada', '#039be5')",
+        [],
+    )
+    .unwrap();
+    s.run(
+        "setCalendarSourceVisible",
+        json!({"id": "019a6c00-0000-7000-8000-0000000000c1", "visible": false}),
+    );
 
     let todo = s.read("getWorkflow", json!({}))["statuses"]
         .as_array()

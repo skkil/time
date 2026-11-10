@@ -23,6 +23,8 @@ pub enum NaturalKey<'a> {
     RecordPhase(&'a Id, &'a Id),
     TaskDependency(&'a Id, &'a Id),
     RunningTimer,
+    CalendarSource(&'a Id, &'a str),
+    CalendarEvent(&'a Id, &'a str),
 }
 
 impl NaturalKey<'_> {
@@ -38,6 +40,10 @@ impl NaturalKey<'_> {
             Self::RecordPhase(task, status) => format!("record_phase/{task}/{status}"),
             Self::TaskDependency(task, blocker) => format!("task_dependency/{task}/{blocker}"),
             Self::RunningTimer => "running_timer".to_owned(),
+            Self::CalendarSource(account, calendar) => {
+                format!("calendar_source/{account}/{calendar}")
+            }
+            Self::CalendarEvent(source, event) => format!("calendar_event/{source}/{event}"),
         }
     }
 
@@ -90,6 +96,8 @@ mod tests {
                 "running_timer" => Some(NaturalKey::RunningTimer),
                 "habit_log" => Some(NaturalKey::HabitLog(&ids[0], date(parts[1]))),
                 "ritual" => Some(NaturalKey::Ritual(parts[0])),
+                "calendar_source" => Some(NaturalKey::CalendarSource(&ids[0], parts[1])),
+                "calendar_event" => Some(NaturalKey::CalendarEvent(&ids[0], parts[1])),
                 "user_preference" => None,
                 other => panic!("unknown natural key kind {other}"),
             };
@@ -100,7 +108,7 @@ mod tests {
             assert_eq!(seed_id(scope, text("name")).as_str(), text("id"));
             kinds.insert(text("kind").to_owned());
         }
-        assert_eq!(kinds.len(), 10, "every natural key in natural-keys.json");
+        assert_eq!(kinds.len(), 12, "every natural key in natural-keys.json");
     }
 
     #[test]

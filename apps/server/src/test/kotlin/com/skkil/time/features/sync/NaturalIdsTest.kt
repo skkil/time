@@ -95,6 +95,14 @@ class NaturalIdsTest : TaskApiTest() {
                         NaturalIds.userPreference(scope)
                     }
 
+                    "calendar_source" -> {
+                        NaturalIds.calendarSource(scope, UUID.fromString(parts[0]), parts[1])
+                    }
+
+                    "calendar_event" -> {
+                        NaturalIds.calendarEvent(scope, UUID.fromString(parts[0]), parts[1])
+                    }
+
                     else -> {
                         error("Unknown natural key kind $kind")
                     }
@@ -147,6 +155,8 @@ class NaturalIdsTest : TaskApiTest() {
                 "habit_log",
                 "ritual",
                 "user_preference",
+                "calendar_source",
+                "calendar_event",
             )
     }
 }

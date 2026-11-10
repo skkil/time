@@ -2,6 +2,7 @@
 //! mutation registry and answer reads straight from time-core.
 
 pub mod blocks;
+pub mod calendar;
 pub mod canvas;
 pub mod capture;
 pub mod data;

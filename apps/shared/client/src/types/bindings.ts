@@ -50,6 +50,9 @@ export const commands = {
 	logEndedBlocks: () => __TAURI_INVOKE<number>("log_ended_blocks"),
 	getAutoLogBlocks: () => __TAURI_INVOKE<boolean>("get_auto_log_blocks"),
 	setAutoLogBlocks: (enabled: boolean) => __TAURI_INVOKE<null>("set_auto_log_blocks", { enabled }),
+	listCalendarSources: () => __TAURI_INVOKE<CalendarSource[]>("list_calendar_sources"),
+	listCalendarEvents: (from: Date, to: Date) => __TAURI_INVOKE<CalendarEvent[]>("list_calendar_events", { from, to }),
+	setCalendarSourceVisible: (id: Id, visible: boolean) => __TAURI_INVOKE<CalendarSource>("set_calendar_source_visible", { id, visible }),
 	listTimeEntries: (from: Date, to: Date) => __TAURI_INVOKE<TimeEntry[]>("list_time_entries", { from, to }),
 	listTaskEntries: (taskId: Id) => __TAURI_INVOKE<TrackedEntry[]>("list_task_entries", { taskId }),
 	listProjectEntries: (projectId: Id) => __TAURI_INVOKE<TrackedEntry[]>("list_project_entries", { projectId }),
@@ -166,6 +169,37 @@ export type BlockMove = "follow" | "leave";
 export type BlockSpan = {
 	startAt: Timestamp,
 	endAt: Timestamp,
+};
+
+/**
+ *  An event of a visible calendar. Timed events span `start_at..end_at`;
+ *  all-day events cover `start_date` up to, not including, `end_date`, and
+ *  their `start_at`/`end_at` are those days' local midnights.
+ */
+export type CalendarEvent = {
+	id: Id,
+	sourceId: Id,
+	sourceName: string,
+	color: string,
+	title: string,
+	startAt: Timestamp,
+	endAt: Timestamp,
+	allDay: boolean,
+	startDate: Date | null,
+	endDate: Date | null,
+	location: string | null,
+	link: string | null,
+	tentative: boolean,
+};
+
+/**  One calendar of a connected account. */
+export type CalendarSource = {
+	id: Id,
+	accountId: Id,
+	name: string,
+	color: string,
+	visible: boolean,
+	position: number,
 };
 
 /**  A calendar day, serialised as `YYYY-MM-DD`. */

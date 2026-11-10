@@ -150,6 +150,9 @@ class UuidMigrationTest {
                 "ritual_run",
                 "setting",
                 "user_preference",
+                "calendar_account",
+                "calendar_source",
+                "calendar_event",
             )
         assertEquals(synced, uuidKeys)
         assertEquals(2, text("SELECT DISTINCT scope_id::TEXT FROM app_user").size)

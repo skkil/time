@@ -8,6 +8,7 @@ data class AppProperties(
     val rateLimit: RateLimit = RateLimit(),
     val push: Push = Push(),
     val sync: Sync = Sync(),
+    val calendar: Calendar = Calendar(),
 ) {
     data class Cors(val allowedOrigins: List<String> = emptyList())
 
@@ -32,5 +33,20 @@ data class AppProperties(
         val tokenPrivateKeyPem: String = "",
         val tokenPublicKeyPem: String = "",
         val baselineOnStart: Boolean = true,
+    )
+
+    /**
+     * Connected calendars. [provider] `google` connects through Google's OAuth and stays off until [googleClientId],
+     * [googleClientSecret] and [tokenKey] (base64 of 32 bytes that encrypt stored tokens) are all set; `fake` serves
+     * fixtures without a network, for `skkil dev` and tests. [redirectUri] is this server's public callback URL, and
+     * [sync] runs the background sync.
+     */
+    data class Calendar(
+        val provider: String = "google",
+        val googleClientId: String = "",
+        val googleClientSecret: String = "",
+        val tokenKey: String = "",
+        val redirectUri: String = "http://localhost:8080/api/v1/calendar/google/callback",
+        val sync: Boolean = true,
     )
 }

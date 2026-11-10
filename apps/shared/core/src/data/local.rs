@@ -5,7 +5,7 @@ use rusqlite::{Connection, OptionalExtension, params, params_from_iter};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Number, Value};
 
-use super::tables::{ID_COLUMN, NATURAL_KEYS, REFERENCES, SYNCED_TABLES};
+use super::tables::{ID_COLUMN, NATURAL_KEYS, REFERENCES, SYNCED_TABLES, is_connected};
 use uuid::Uuid;
 
 use crate::env::{MutationEnv, NaturalKey};
@@ -203,10 +203,12 @@ fn read_table(conn: &Connection, table: &str) -> Result<Vec<Map<String, Value>>>
 }
 
 /// Every synced row on this device. Rituals still at their defaults are
-/// left out, so an upload never overrides an account's own settings.
+/// left out, so an upload never overrides an account's own settings, and so
+/// are connected calendars, which belong to the account that connected them.
 pub fn dump(conn: &Connection) -> Result<LocalData> {
     let tables = SYNCED_TABLES
         .iter()
+        .filter(|table| !is_connected(table))
         .map(|table| {
             let mut rows = read_table(conn, table)?;
             if *table == "ritual" {
@@ -296,7 +298,8 @@ fn upsert(conn: &Connection, table: &str, row: &Map<String, Value>) -> Result<()
 /// `importLocal`: writes an uploaded copy of a device's rows into the
 /// account, table by table in [`SYNCED_TABLES`] order and parents first.
 ///
-/// - Tables that don't sync are refused, and so is a row without an id.
+/// - Tables that don't sync are refused, and so are connected calendars
+///   and a row without an id.
 ///   Columns this database doesn't have are ignored.
 /// - In an account, a natural-key row (a ritual's kind, a day, a setting,
 ///   …) takes its key's id there, whatever id it arrived with.
@@ -311,7 +314,7 @@ pub fn import(conn: &Connection, env: &dyn MutationEnv, data: &LocalData) -> Res
     if let Some(unknown) = data
         .tables
         .iter()
-        .find(|rows| !SYNCED_TABLES.contains(&rows.table.as_str()))
+        .find(|rows| !SYNCED_TABLES.contains(&rows.table.as_str()) || is_connected(&rows.table))
     {
         return Err(Error::invalid(format!(
             "“{}” can't be imported.",

@@ -5,8 +5,8 @@ use super::args::{Args, out};
 use crate::env::MutationEnv;
 use crate::error::{Error, Result};
 use crate::{
-    blocks, canvas, data, dependencies, groups, habits, imports, projects, records, reminders,
-    review, rituals, sections, tasks, time_entries, undo, workflow,
+    blocks, calendar, canvas, data, dependencies, groups, habits, imports, projects, records,
+    reminders, review, rituals, sections, tasks, time_entries, undo, workflow,
 };
 
 /// Applies one write command by its contract name. Run it inside a
@@ -369,6 +369,11 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
         "setRemindersEnabled" => out(reminders::set_enabled(conn, env, a.get("enabled")?)?),
         "setAutoLogBlocks" => out(blocks::set_auto_log(conn, env, a.get("enabled")?)?),
         "logEndedBlocks" => out(blocks::log_ended(conn, env)?),
+        "setCalendarSourceVisible" => out(calendar::set_visible(
+            conn,
+            &a.id("id")?,
+            a.get("visible")?,
+        )?),
 
         other => Err(Error::invalid(format!("{other} isn't a mutation."))),
     }

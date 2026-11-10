@@ -66,6 +66,13 @@ time:
     token-private-key-pem: ${STORE_TOKEN_PRIVATE_KEY_PEM:}
     token-public-key-pem: ${STORE_TOKEN_PUBLIC_KEY_PEM:}
     baseline-on-start: ${STORE_BASELINE_ON_START:true}
+  calendar:
+    provider: ${CALENDAR_PROVIDER:google}
+    google-client-id: ${GOOGLE_CLIENT_ID:}
+    google-client-secret: ${GOOGLE_CLIENT_SECRET:}
+    token-key: ${CALENDAR_TOKEN_KEY:}
+    redirect-uri: ${CALENDAR_REDIRECT_URI:http://localhost:8080/api/v1/calendar/google/callback}
+    sync: ${CALENDAR_SYNC:true}
 
 
 ---

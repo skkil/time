@@ -16,6 +16,7 @@ pub mod sync;
 pub mod types;
 
 pub mod blocks;
+pub mod calendar;
 pub mod canvas;
 pub mod data;
 pub mod dependencies;

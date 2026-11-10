@@ -756,6 +756,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/calendar/sources/{id}/visible': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setCalendarSourceVisible'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/blocks/{id}': {
     parameters: {
       query?: never;
@@ -1492,6 +1508,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/calendar/google/connect': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['connectGoogleCalendar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/blocks/ended/log': {
     parameters: {
       query?: never;
@@ -1860,6 +1892,54 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/calendar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['calendarStatus'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/calendar/sources': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listCalendarSources'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/calendar/events': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['listCalendarEvents'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/blocks': {
     parameters: {
       query?: never;
@@ -1951,6 +2031,22 @@ export interface paths {
     put?: never;
     post?: never;
     delete: operations['deleteAll'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/calendar/accounts/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['disconnectCalendar'];
     options?: never;
     head?: never;
     patch?: never;
@@ -2393,6 +2489,20 @@ export interface components {
     DayNote: {
       note: string;
     };
+    SourceVisible: {
+      visible: boolean;
+    };
+    CalendarSource: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      accountId: string;
+      name: string;
+      color: string;
+      visible: boolean;
+      /** Format: int32 */
+      position: number;
+    };
     BlockSpan: {
       /** Format: int64 */
       startAt: number;
@@ -2636,6 +2746,9 @@ export interface components {
       date: string;
       /** Format: double */
       value: number;
+    };
+    ConnectLink: {
+      url: string;
     };
     ItemStatus: {
       /** Format: uuid */
@@ -2904,6 +3017,40 @@ export interface components {
       version: number;
       lastWriter: string | null;
     };
+    CalendarAccount: {
+      /** Format: uuid */
+      id: string;
+      provider: string;
+      email: string | null;
+      status: string;
+      /** Format: int64 */
+      syncedAt: number | null;
+    };
+    CalendarStatus: {
+      available: boolean;
+      accounts: components['schemas']['CalendarAccount'][];
+    };
+    CalendarEvent: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      sourceId: string;
+      sourceName: string;
+      color: string;
+      title: string;
+      /** Format: int64 */
+      startAt: number;
+      /** Format: int64 */
+      endAt: number;
+      allDay: boolean;
+      /** Format: date */
+      startDate: string | null;
+      /** Format: date */
+      endDate: string | null;
+      location: string | null;
+      link: string | null;
+      tentative: boolean;
+    };
   };
   responses: never;
   parameters: never;
@@ -2966,6 +3113,8 @@ export type HabitStatus = components['schemas']['HabitStatus'];
 export type GroupName = components['schemas']['GroupName'];
 export type Group = components['schemas']['Group'];
 export type DayNote = components['schemas']['DayNote'];
+export type SourceVisible = components['schemas']['SourceVisible'];
+export type CalendarSource = components['schemas']['CalendarSource'];
 export type BlockSpan = components['schemas']['BlockSpan'];
 export type TimeBlock = components['schemas']['TimeBlock'];
 export type SnapshotCreated = components['schemas']['SnapshotCreated'];
@@ -3005,6 +3154,7 @@ export type ImportTask = components['schemas']['ImportTask'];
 export type HabitDelta = components['schemas']['HabitDelta'];
 export type SyncReport = components['schemas']['SyncReport'];
 export type HabitMeasurement = components['schemas']['HabitMeasurement'];
+export type ConnectLink = components['schemas']['ConnectLink'];
 export type ItemStatus = components['schemas']['ItemStatus'];
 export type ItemType = components['schemas']['ItemType'];
 export type Milestone = components['schemas']['Milestone'];
@@ -3032,6 +3182,9 @@ export type EventOccurrence = components['schemas']['EventOccurrence'];
 export type Day = components['schemas']['Day'];
 export type DataExport = components['schemas']['DataExport'];
 export type Changes = components['schemas']['Changes'];
+export type CalendarAccount = components['schemas']['CalendarAccount'];
+export type CalendarStatus = components['schemas']['CalendarStatus'];
+export type CalendarEvent = components['schemas']['CalendarEvent'];
 export type $defs = Record<string, never>;
 export interface operations {
   reachReviewStep: {
@@ -4634,6 +4787,32 @@ export interface operations {
       };
     };
   };
+  setCalendarSourceVisible: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SourceVisible'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CalendarSource'];
+        };
+      };
+    };
+  };
   rescheduleBlock: {
     parameters: {
       query?: never;
@@ -5873,6 +6052,26 @@ export interface operations {
       };
     };
   };
+  connectGoogleCalendar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ConnectLink'];
+        };
+      };
+    };
+  };
   logEndedBlocks: {
     parameters: {
       query?: never;
@@ -6418,6 +6617,69 @@ export interface operations {
       };
     };
   };
+  calendarStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CalendarStatus'];
+        };
+      };
+    };
+  };
+  listCalendarSources: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CalendarSource'][];
+        };
+      };
+    };
+  };
+  listCalendarEvents: {
+    parameters: {
+      query: {
+        from: string;
+        to: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CalendarEvent'][];
+        };
+      };
+    };
+  };
   listBlocks: {
     parameters: {
       query: {
@@ -6529,6 +6791,26 @@ export interface operations {
       query?: never;
       header?: never;
       path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  disconnectCalendar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
       cookie?: never;
     };
     requestBody?: never;

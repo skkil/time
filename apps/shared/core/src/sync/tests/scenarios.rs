@@ -299,3 +299,100 @@ fn retrying_an_unknown_issue_fails() {
     let mut desk = Device::signed_in(&mut server);
     assert!(desk.engine.retry_issue(42).is_err());
 }
+
+struct WritesEvents;
+
+impl store_core::Mutator for WritesEvents {
+    fn apply(
+        &self,
+        tx: &store_core::rusqlite::Transaction<'_>,
+        _ctx: &mut store_core::MutationContext,
+        _name: &str,
+        args: &serde_json::Value,
+    ) -> Result<serde_json::Value, store_core::MutationError> {
+        tx.execute(args["sql"].as_str().unwrap(), [])?;
+        Ok(serde_json::Value::Null)
+    }
+}
+
+const SOURCE: &str = "019a6c00-0000-7000-8000-0000000000c1";
+
+fn calendar_event(db: &rusqlite::Connection, id: &str, title: &str, start: i64) {
+    db.execute(
+        "INSERT INTO calendar_event (id, source_id, external_id, title, start_at, end_at, updated_at)
+         VALUES (?1, ?2, ?1, ?3, ?4, ?4 + 1800, 0)",
+        rusqlite::params![id, SOURCE, title, start],
+    )
+    .unwrap();
+}
+
+fn calendar_titles(device: &Device) -> Vec<String> {
+    device
+        .read(
+            "listCalendarEvents",
+            json!({ "from": "2026-11-09", "to": "2026-11-16" }),
+        )
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|event| event["title"].as_str().unwrap().to_owned())
+        .collect()
+}
+
+#[test]
+fn calendar_events_arrive_from_the_server_and_devices_only_hide_them() {
+    let mut server = FakeServer::new();
+    let mut laptop = Device::signed_in(&mut server);
+    let nine = crate::types::date("2026-11-10").start().0 + 9 * 3600;
+    server.server_write(|db| {
+        db.execute(
+            "INSERT INTO calendar_source (id, account_id, external_id, name, color)
+             VALUES (?1, '019a6c00-0000-7000-8000-0000000000a1', 'ada@example.com', 'Ada', '#039be5')",
+            [SOURCE],
+        )
+        .unwrap();
+        calendar_event(db, "019a6c00-0000-7000-8000-0000000000e1", "Standup", nine);
+    });
+    laptop.sync(&mut server);
+    assert_eq!(calendar_titles(&laptop), ["Standup"]);
+
+    laptop.run(
+        "setCalendarSourceVisible",
+        json!({ "id": SOURCE, "visible": false }),
+    );
+    server.server_write(|db| {
+        calendar_event(
+            db,
+            "019a6c00-0000-7000-8000-0000000000e2",
+            "Review",
+            nine + 3600,
+        );
+    });
+    laptop.sync(&mut server);
+    assert!(calendar_titles(&laptop).is_empty());
+    laptop.run(
+        "setCalendarSourceVisible",
+        json!({ "id": SOURCE, "visible": true }),
+    );
+    laptop.sync(&mut server);
+    assert_eq!(calendar_titles(&laptop), ["Standup", "Review"]);
+    let phone = Device::signed_in(&mut server);
+    assert_eq!(calendar_titles(&phone), ["Standup", "Review"]);
+
+    for sql in [
+        "INSERT INTO calendar_event (id, source_id, external_id, title, start_at, end_at, updated_at)
+         VALUES ('019a6c00-0000-7000-8000-0000000000e3', '019a6c00-0000-7000-8000-0000000000c1',
+                 'x', 'Made up', 0, 60, 0)",
+        "UPDATE calendar_event SET title = 'Renamed'",
+        "DELETE FROM calendar_event",
+    ] {
+        let refused = store_core::mutate(
+            laptop.engine.connection_mut(),
+            &WritesEvents,
+            "rogue",
+            &json!({ "sql": sql }),
+        );
+        assert!(refused.is_err(), "{sql}");
+    }
+    assert_eq!(calendar_titles(&laptop), ["Standup", "Review"]);
+}

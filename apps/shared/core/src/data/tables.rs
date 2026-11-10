@@ -1,7 +1,7 @@
 /// Every table that syncs through store, each keyed by its `id` column and
 /// listed after every table it references. Device state (`device_setting`,
 /// the sync bookkeeping) is not listed and never syncs.
-pub const SYNCED_TABLES: [&str; 24] = [
+pub const SYNCED_TABLES: [&str; 26] = [
     "project_group",
     "project",
     "project_canvas",
@@ -26,6 +26,8 @@ pub const SYNCED_TABLES: [&str; 24] = [
     "ritual",
     "ritual_run",
     "setting",
+    "calendar_source",
+    "calendar_event",
 ];
 
 /// The row id column of every synced table.
@@ -33,7 +35,7 @@ pub const ID_COLUMN: &str = "id";
 
 /// Every column of a synced table that holds the id of another synced row,
 /// as `(table, column, referenced table)`.
-pub const REFERENCES: [(&str, &str, &str); 31] = [
+pub const REFERENCES: [(&str, &str, &str); 32] = [
     ("project", "parent_id", "project"),
     ("project", "group_id", "project_group"),
     ("project_canvas", "project_id", "project"),
@@ -65,6 +67,7 @@ pub const REFERENCES: [(&str, &str, &str); 31] = [
     ("habit", "track_project_id", "project"),
     ("habit_log", "habit_id", "habit"),
     ("ritual_run", "task_id", "task"),
+    ("calendar_event", "source_id", "calendar_source"),
 ];
 
 /// What identifies a row besides its id, as `(table, columns)`: an account
@@ -86,6 +89,18 @@ pub const NATURAL_KEYS: [(&str, &[&str]); 14] = [
     ("habit_log", &["habit_id", "date"]),
     ("ritual", &["kind"]),
 ];
+
+/// Synced tables the server fills from a connected calendar account. Their
+/// rows belong to that connection rather than to the device: they are never
+/// dumped, imported or wiped here, and `calendar_event` takes no local write.
+pub const CONNECTED_TABLES: [&str; 2] = ["calendar_source", "calendar_event"];
+
+/// Synced tables only the server writes.
+pub const SERVER_TABLES: [&str; 1] = ["calendar_event"];
+
+pub fn is_connected(table: &str) -> bool {
+    CONNECTED_TABLES.contains(&table)
+}
 
 pub fn is_synced(table: &str) -> bool {
     SYNCED_TABLES.contains(&table)

@@ -3,6 +3,7 @@ package com.skkil.time.security
 import com.skkil.time.common.error.ErrorKind
 import com.skkil.time.common.error.ProblemHandler
 import com.skkil.time.config.AppProperties
+import com.skkil.time.features.calendar.api.CalendarCallbackController
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -48,6 +49,7 @@ class SecurityConfig(private val properties: AppProperties) {
                         "/v3/api-docs/**",
                         "/api/v1/realtime",
                         "/api/v1/sync/jwks.json",
+                        CalendarCallbackController.CALLBACK,
                     )
                     .permitAll()
                     .anyRequest()

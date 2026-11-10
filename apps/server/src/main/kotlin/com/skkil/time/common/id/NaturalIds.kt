@@ -31,6 +31,12 @@ object NaturalIds {
 
     fun userPreference(scope: UUID): UUID = of(scope, "user_preference")
 
+    fun calendarSource(scope: UUID, accountId: UUID, calendarId: String): UUID =
+        of(scope, "calendar_source", accountId, calendarId)
+
+    fun calendarEvent(scope: UUID, sourceId: UUID, eventId: String): UUID =
+        of(scope, "calendar_event", sourceId, eventId)
+
     private fun of(scope: UUID, table: String, vararg key: Any): UUID =
         UuidV5.of(scope, (listOf(table) + key.map(Any::toString)).joinToString("/"))
 }

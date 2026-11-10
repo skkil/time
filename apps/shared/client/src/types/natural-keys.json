@@ -123,6 +123,43 @@
       "id": "aa31d27f-6bd9-5b68-8403-22091a258042"
     },
     {
+      "kind": "calendar_source",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": ["019a6c00-0000-7000-8000-00000000ca01", "ada@example.com"],
+      "name": "calendar_source/019a6c00-0000-7000-8000-00000000ca01/ada@example.com",
+      "id": "ac9552d0-368b-56d7-bc8c-366ac132e7f6"
+    },
+    {
+      "kind": "calendar_source",
+      "scope": "7d4e3c2b-1a09-4f8e-9d7c-6b5a49382716",
+      "parts": [
+        "019a6c00-0000-7000-8000-00000000ca01",
+        "en.south_korea#holiday@group.v.calendar.google.com"
+      ],
+      "name": "calendar_source/019a6c00-0000-7000-8000-00000000ca01/en.south_korea#holiday@group.v.calendar.google.com",
+      "id": "67edcd2f-ff71-5a32-ba42-baf8cb0db5de"
+    },
+    {
+      "kind": "calendar_event",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": [
+        "ac9552d0-368b-56d7-bc8c-366ac132e7f6",
+        "7kq2m0c4bb3ql1fdc4ah8hl2es"
+      ],
+      "name": "calendar_event/ac9552d0-368b-56d7-bc8c-366ac132e7f6/7kq2m0c4bb3ql1fdc4ah8hl2es",
+      "id": "3833b086-9538-5663-9335-7c5fe67ef00f"
+    },
+    {
+      "kind": "calendar_event",
+      "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
+      "parts": [
+        "ac9552d0-368b-56d7-bc8c-366ac132e7f6",
+        "2r1h7ub4n0b8bq3cr0kq6bq1hn_20261110T090000Z"
+      ],
+      "name": "calendar_event/ac9552d0-368b-56d7-bc8c-366ac132e7f6/2r1h7ub4n0b8bq3cr0kq6bq1hn_20261110T090000Z",
+      "id": "9c31d183-5523-519f-a3ff-c030964b770d"
+    },
+    {
       "kind": "user_preference",
       "scope": "0192f0c1-7a2b-7c3d-8e4f-0123456789ab",
       "parts": [],

@@ -104,6 +104,7 @@ pub const MUTATIONS: &[&str] = &[
     "setRemindersEnabled",
     "setAutoLogBlocks",
     "logEndedBlocks",
+    "setCalendarSourceVisible",
     "deleteAllData",
 ];
 
@@ -149,6 +150,8 @@ pub const READS: &[&str] = &[
     "listReminders",
     "getAutoLogBlocks",
     "countEndedBlocks",
+    "listCalendarSources",
+    "listCalendarEvents",
 ];
 
 /// Commands that belong to one device and never sync: file pickers, the

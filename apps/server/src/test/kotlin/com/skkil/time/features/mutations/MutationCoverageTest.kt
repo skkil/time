@@ -1,6 +1,7 @@
 package com.skkil.time.features.mutations
 
 import com.skkil.time.features.mutations.domain.MutationSet
+import com.skkil.time.features.mutations.service.CalendarMutations
 import com.skkil.time.features.mutations.service.DataMutations
 import com.skkil.time.features.mutations.service.HabitMutations
 import com.skkil.time.features.mutations.service.ProjectMutations
@@ -48,6 +49,7 @@ class MutationCoverageTest {
             WorkflowMutations::class.java,
             RecordMutations::class.java,
             DataMutations::class.java,
+            CalendarMutations::class.java,
         ).flatMap { type ->
             val constructor = type.constructors.single()
             val set = constructor.newInstance(*constructor.parameterTypes.map { Mockito.mock(it) }.toTypedArray())

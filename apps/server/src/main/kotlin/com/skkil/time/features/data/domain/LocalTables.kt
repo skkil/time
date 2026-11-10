@@ -53,8 +53,8 @@ private val KEYED_IDS: Map<String, (UUID, List<Any>) -> UUID> =
 
 /**
  * Every table a device syncs, in the order `importLocal` writes them (parents before children), as the desktop lists
- * them in `time_core::data::SYNCED_TABLES`, with the natural keys of its `NATURAL_KEYS`. `user_preference` is the
- * server's own and never uploaded.
+ * them in `time_core::data::SYNCED_TABLES`, with the natural keys of its `NATURAL_KEYS`. `user_preference` and the
+ * connected calendars (`calendar_source`, `calendar_event`) are the server's own and never uploaded.
  */
 val LOCAL_TABLES: List<LocalTable> =
     listOf(

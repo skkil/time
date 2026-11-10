@@ -6,8 +6,8 @@ use crate::error::{Error, Result};
 use crate::rituals::Moment;
 use crate::types::{Date, Timestamp};
 use crate::{
-    blocks, canvas, glance, groups, habits, projects, records, reminders, review, rituals,
-    sections, tasks, time_entries, undo, workflow,
+    blocks, calendar, canvas, glance, groups, habits, projects, records, reminders, review,
+    rituals, sections, tasks, time_entries, undo, workflow,
 };
 
 /// Answers one read command by its contract name from the local database.
@@ -59,6 +59,8 @@ pub fn query(conn: &Connection, name: &str, args: &Value) -> Result<Value> {
         )?),
         "getAutoLogBlocks" => out(blocks::auto_log_enabled(conn)?),
         "countEndedBlocks" => out(blocks::count_ended(conn, Timestamp::now())?),
+        "listCalendarSources" => out(calendar::sources(conn)?),
+        "listCalendarEvents" => out(calendar::events(conn, a.get("from")?, a.get("to")?)?),
         other => Err(Error::invalid(format!("{other} isn't a read."))),
     }
 }

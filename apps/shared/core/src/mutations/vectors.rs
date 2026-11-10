@@ -77,6 +77,35 @@ fn comparable(expected: &Value, actual: &Value) -> Value {
     }
 }
 
+/// A row the server wrote before the step, such as a connected calendar.
+fn write_given(conn: &Connection, given: &Value) {
+    let table = given["table"].as_str().unwrap();
+    let mut values: Vec<SqlValue> = vec![SqlValue::Text(given["id"].as_str().unwrap().to_owned())];
+    let mut columns = vec!["id".to_owned()];
+    for (column, value) in given["row"].as_object().unwrap() {
+        columns.push(column.clone());
+        values.push(match value {
+            Value::Null => SqlValue::Null,
+            Value::Bool(flag) => SqlValue::Integer(i64::from(*flag)),
+            Value::Number(number) => number.as_i64().map_or_else(
+                || SqlValue::Real(number.as_f64().unwrap()),
+                SqlValue::Integer,
+            ),
+            Value::String(text) => SqlValue::Text(text.clone()),
+            other => SqlValue::Text(other.to_string()),
+        });
+    }
+    let slots = vec!["?"; columns.len()].join(", ");
+    conn.execute(
+        &format!(
+            "INSERT INTO {table} ({}) VALUES ({slots})",
+            columns.join(", ")
+        ),
+        rusqlite::params_from_iter(values),
+    )
+    .unwrap();
+}
+
 #[test]
 fn replaying_the_shared_vectors_leaves_the_expected_rows() {
     let vectors: Value = serde_json::from_str(VECTORS).unwrap();
@@ -104,6 +133,9 @@ fn replaying_the_shared_vectors_leaves_the_expected_rows() {
                 scope,
             };
             let tx = conn.transaction()?;
+            for given in step["given"].as_array().into_iter().flatten() {
+                write_given(&tx, given);
+            }
             apply(&tx, &env, name, &step["args"])
                 .unwrap_or_else(|error| panic!("{label}: {error}"));
             tx.commit()?;

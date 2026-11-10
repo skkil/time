@@ -23,9 +23,10 @@ class StoreRegistrationTest : TaskApiTest() {
         val registered = names("SELECT table_name FROM store_table")
         val triggered = names("SELECT tgrelid::regclass::text FROM pg_trigger WHERE tgname = 'store_capture'")
 
-        assertEquals(uuidKeyed, registered)
+        assertEquals(uuidKeyed - SERVER_ONLY, registered)
         assertEquals(registered, triggered)
         assertTrue("app_user" !in registered && "push_device" !in registered)
+        assertTrue(SERVER_ONLY.none { it in registered })
     }
 
     @Test
@@ -51,5 +52,10 @@ class StoreRegistrationTest : TaskApiTest() {
         val sql = generateSequence<Throwable>(error) { it.cause }.filterIsInstance<SQLException>().first()
         assertEquals("55000", sql.sqlState)
         assertEquals("Read", task(task)["title"].asString())
+    }
+
+    private companion object {
+        /** Uuid-keyed tables that never leave the server: a calendar account holds its encrypted tokens. */
+        val SERVER_ONLY = setOf("calendar_account")
     }
 }
