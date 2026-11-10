@@ -417,6 +417,18 @@ onto it:
   builds the static libraries and regenerates the committed bindings
   (`src/native`, `cpp`, `android`, `ios`, `CoreNative.podspec`). Build them
   before `expo prebuild` or `expo run:*`.
+- Home-screen widgets (Today, Quick add) never open SQLite.
+  `src/core/widgets/` reads `todayGlance` after local writes, pulls and
+  foregrounding (1 s debounce), turns it into a `WidgetSnapshot` (one entry
+  per change until midnight, text, sky colours) and hands the JSON to the
+  local module `modules/widgets` (`SkkilWidgets.publish`), which writes
+  `glance.json` (Android `filesDir/widgets`, iOS App Group
+  `group.com.skkil.time`) and reloads the widgets. Android providers and
+  layouts live in that module; the iOS WidgetKit extension is
+  `targets/widgets` (SwiftUI, linked by `@bacons/apple-targets` on prebuild).
+  Native code only picks the entry for the current time and draws it; the
+  Today widget's copy and timing stay in TypeScript. Taps open `skkiltime:///` (Day) and
+  `skkiltime://add`.
 
 ## Server (`apps/server/`)
 
