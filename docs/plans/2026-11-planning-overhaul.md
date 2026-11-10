@@ -1,6 +1,6 @@
 # Planning overhaul: moving overdue work, a simpler project page, the plan in view, Google Calendar
 
-Status: plan, ready to build · Written 2026-11-10 · Owner of decisions: the user
+Status: A, B, C, D1 and F built; D2 and E in progress (see Build status) · Written 2026-11-10 · Owner of decisions: the user
 
 **Bottom line.** Six workstreams:
 - **A.** Overdue work moves to a new day, week or Someday without guilt, and
@@ -22,6 +22,51 @@ Every phase below can be picked up by an agent without further context. Read
 checklist apply to every new mutation listed here.
 
 ---
+
+## Build status and deviations (2026-11-10)
+
+Built and on `main`, with core, desktop, server and TypeScript tests green:
+
+| Part | Commits | Notes |
+|---|---|---|
+| A1–A3 move and triage | `66cf649`, `5901e40`, `a87d716`, `e632837` | `moveTasks`, date windows, Leftovers triage on Day, Week, Clear the deck and mobile |
+| A4 block logging | `1431e25`, `b0eae8f` | automatic, `auto_log_blocks` switch in Settings → Week |
+| B project page | `0845388` | list first, settings in one place |
+| C1/C3 shared reminders | `90d2dbd`, `a830206`, `d11de86` | `listReminders` in core and server; desktop uses it, catches up after a restart; server pushes blocks and events too |
+| C2 mobile scheduling | `f66cec0` | local schedule, actions, per-device switches, `scheduling = 'local'` |
+| D1 tray and menu bar | `7c936df`, `3b8b19c` | `todayGlance` read; tray menu; keep-in-tray switch |
+| F weekly checkout | `b0b0977`…`cca8845`, `a85f393` | `review_day` setting, `weekToClose`, offer on Day and Week |
+
+Deviations from the plan, decided while building:
+
+- **A2.** Sub-tasks' blocks don't move with their parent. Blocks shift by
+  `days × 86 400 s`, so a move across a DST change keeps UTC time, not wall-clock
+  time. A Day target keeps the task's `due_time`.
+- **A4.** A block with any time already tracked on its task during the block is
+  skipped whole (no remainder is logged). Each block is handled once through
+  `time_block.logged`, not natural-key entry ids. `time_entry.source` is
+  `manual` or `block`.
+- **C.** Device switches (`on`, tasks, blocks, events) are device-only commands
+  (`getNotificationPrefs`/`setNotificationPrefs`), never synced; the account's
+  `reminders_enabled` still silences every device. The phone's Settings switch
+  is now per device; it used to turn reminders off for the whole account.
+  `listReminders` reached the phone's engine by name, so `time-core-native`
+  needed no new export. The server's job remembers sent block and event
+  reminders in `reminder_sent` (server-only, three days).
+- **C2.** Flyway numbers: `V21__push_device_scheduling.sql`,
+  `V22__reminder_kinds.sql` (the plan's `V19` was taken).
+- **D1.** "Keep running in the tray" starts off on Linux, where many desktops
+  have no tray host; on macOS and Windows it starts on. The setting is a
+  desktop platform command, outside the shared contract. Live tray behaviour is
+  untested: no tray host on the dev machine and no Mac.
+- **F.** `dueRitual` returns `{ ritual, week }` instead of a `weekly` flag.
+  Rituals never open by themselves, so the morning offer is a line on Day and
+  Week ("Close week N? · Close it · Not now"), not a step in the morning ritual.
+  Mobile shows a note instead of the review steps. Custom weekly weekdays were
+  not carried into `review_day`.
+
+Still open: mobile has no undo; the morning ritual "Fresh start" question
+(open question 2) is undecided, so it is not built.
 
 ## 0. Why (evidence)
 
