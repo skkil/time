@@ -1,13 +1,14 @@
 import { planDay } from '@skkil-time/rules/day';
-import { formatDue } from '@skkil-time/rules/due';
-import { shiftKey, todayKey } from '@skkil-time/rules/time';
+import { formatDue, isStale } from '@skkil-time/rules/due';
+import { SOMEDAY, dayTarget, weekTarget } from '@skkil-time/rules/move';
+import { mondayOf, shiftKey, todayKey } from '@skkil-time/rules/time';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useProjects } from '@/features/projects/hooks';
 import { openTask } from '@/features/tasks/components/TaskRow';
 import { useCompleteTask, useTasks } from '@/features/tasks/hooks';
-import { useReschedule, useSetSomeday } from '@/features/week/hooks';
+import { useMoveTasks } from '@/features/week/hooks';
 import { Window } from '@/ui/Window';
 import { WindowHeader } from '@/ui/WindowHeader';
 import { ink, radius, spacing, type } from '@/ui/theme';
@@ -15,11 +16,10 @@ import { ink, radius, spacing, type } from '@/ui/theme';
 /** Desktop's "From earlier days": give each one a day, park it, or skip a repeat. */
 export function EarlierScreen() {
   const today = todayKey();
-  const tomorrow = shiftKey(today, 1);
+  const monday = mondayOf(today);
   const tasks = useTasks();
   const projects = useProjects();
-  const reschedule = useReschedule();
-  const someday = useSetSomeday();
+  const move = useMoveTasks();
   const skip = useCompleteTask();
   const earlier = useMemo(
     () => planDay(today, tasks.data ?? [], projects.data ?? [], []).earlier,
@@ -53,6 +53,9 @@ export function EarlierScreen() {
                   (task.projectId && names.get(task.projectId)) || 'Inbox',
                   formatDue(task),
                   task.rolloverCount >= 2 && `moved ×${task.rolloverCount}`,
+                  task.recurrence === null &&
+                    isStale(task, today) &&
+                    'park it?',
                 ]
                   .filter(Boolean)
                   .join(' · ')}
@@ -62,22 +65,45 @@ export function EarlierScreen() {
               <Chip
                 label="Today"
                 onPress={() =>
-                  reschedule.mutate({ ids: [task.id], date: today })
+                  move.mutate({ ids: [task.id], target: dayTarget(today) })
                 }
               />
               <Chip
                 label="Tomorrow"
                 onPress={() =>
-                  reschedule.mutate({ ids: [task.id], date: tomorrow })
+                  move.mutate({
+                    ids: [task.id],
+                    target: dayTarget(shiftKey(today, 1)),
+                  })
                 }
               />
               {task.recurrence === null ? (
-                <Chip
-                  label="Someday"
-                  onPress={() =>
-                    someday.mutate({ ids: [task.id], someday: true })
-                  }
-                />
+                <>
+                  <Chip
+                    label="This week"
+                    onPress={() =>
+                      move.mutate({
+                        ids: [task.id],
+                        target: weekTarget(monday),
+                      })
+                    }
+                  />
+                  <Chip
+                    label="Next week"
+                    onPress={() =>
+                      move.mutate({
+                        ids: [task.id],
+                        target: weekTarget(shiftKey(monday, 7)),
+                      })
+                    }
+                  />
+                  <Chip
+                    label="Someday"
+                    onPress={() =>
+                      move.mutate({ ids: [task.id], target: SOMEDAY })
+                    }
+                  />
+                </>
               ) : (
                 <Chip
                   label="Skip"
@@ -93,9 +119,20 @@ export function EarlierScreen() {
             <Chip
               label="Today"
               onPress={() =>
-                reschedule.mutate({
+                move.mutate({
                   ids: earlier.map((task) => task.id),
-                  date: today,
+                  target: dayTarget(today),
+                })
+              }
+            />
+            <Chip
+              label="Fresh start"
+              onPress={() =>
+                move.mutate({
+                  ids: earlier
+                    .filter((task) => task.recurrence === null)
+                    .map((task) => task.id),
+                  target: SOMEDAY,
                 })
               }
             />

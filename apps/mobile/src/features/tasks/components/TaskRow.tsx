@@ -64,7 +64,10 @@ export function TaskRow({
           <View style={styles.meta}>
             {due !== '' && (
               <Text
-                style={[type.small, isOverdue(task) && { color: theme.p1 }]}
+                style={[
+                  type.small,
+                  isOverdue(task) && { color: theme.earlier },
+                ]}
               >
                 {due}
               </Text>

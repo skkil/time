@@ -117,7 +117,9 @@ export function DayScreen() {
   }, [plan, events, today]);
 
   const blocked = new Set(plan.blocks.map((block) => block.taskId));
-  const anyTime = [...plan.musts, ...plan.due].filter((task) => !isTimed(task));
+  const anyTime = [...plan.musts, ...plan.due, ...plan.thisWeek].filter(
+    (task) => !isTimed(task),
+  );
   const finished = plan.doneToday.filter(
     (task) =>
       !blocked.has(task.id) && !(isTimed(task) && task.dueDate === today),

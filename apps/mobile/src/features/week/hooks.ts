@@ -1,4 +1,9 @@
-import type { Id, OutcomeStatus } from '@skkil-time/client/types';
+import type {
+  BlockMove,
+  Id,
+  MoveTarget,
+  OutcomeStatus,
+} from '@skkil-time/client/types';
 import { type DateKey, shiftKey } from '@skkil-time/rules/time';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
@@ -33,14 +38,15 @@ export const useOutcomeActions = () => ({
   }),
 });
 
-export const useReschedule = () =>
+export const useMoveTasks = () =>
   useMutation({
-    mutationFn: ({ ids, date }: { ids: Id[]; date: DateKey | null }) =>
-      commands.rescheduleTasks(ids, date),
-  });
-
-export const useSetSomeday = () =>
-  useMutation({
-    mutationFn: ({ ids, someday }: { ids: Id[]; someday: boolean }) =>
-      commands.setTasksSomeday(ids, someday),
+    mutationFn: ({
+      ids,
+      target,
+      blocks = 'follow',
+    }: {
+      ids: Id[];
+      target: MoveTarget;
+      blocks?: BlockMove;
+    }) => commands.moveTasks(ids, target, blocks),
   });
