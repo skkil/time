@@ -84,3 +84,12 @@ logging:
   structured:
     format:
       console: ecs
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+time:
+  calendar:
+    provider: ${CALENDAR_PROVIDER:fake}

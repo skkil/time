@@ -187,6 +187,17 @@ cd apps/server && ./gradlew spotlessApply test | ./gradlew bootRun | ./gradlew o
   tasks into next week, at most twice); a guided weekly review (feel,
   outcomes, clear the deck, one change, plan, quarter wrap-up; progress in
   `week.step`, done at `week.reviewed_at`); quarter priorities over 13 weeks.
+- **Calendar**: Google Calendar read on the server (`core/src/calendar/`,
+  server `features/calendar/`). `calendar_source` (one calendar; devices
+  only toggle `visible` with `setCalendarSourceVisible`) and
+  `calendar_event` (server-written; a time-core trigger refuses any write a
+  mutation makes to it) sync like other rows but stay out of `dump`,
+  `importLocal` and `deleteAllData`. Accounts and their AES-GCM-sealed
+  tokens (`calendar_account`) never leave the server. Week draws timed
+  events in the plans column and all-day ones above the day; Day threads
+  them; new blocks placed by click avoid firm events
+  (`@skkil-time/rules/calendar`). Settings → Calendars talks to the server
+  through `Platform.calendars`.
 
 ## time-core (`apps/shared/core/`)
 
@@ -252,7 +263,10 @@ onto it:
   `setting/<key>`, `project_canvas/<projectId>`, `week/<monday>`,
   `day/<date>`, `task_dependency/<taskId>/<blockedById>`,
   `record_phase/<taskId>/<statusId>`, `running_timer`,
-  `habit_log/<habitId>/<date>`, `ritual/<kind>`, `user_preference`. The
+  `habit_log/<habitId>/<date>`, `ritual/<kind>`, `user_preference`,
+  `calendar_source/<accountId>/<calendarId>` and
+  `calendar_event/<sourceId>/<eventId>` (server-made; with
+  `singleEvents=true` an instance's id already holds its original start). The
   server builds them in `common/id/NaturalIds.kt`; both sides test against
   `natural-keys.json`. `quarter` keeps an ordinary id (its start can change),
   so a second offline create is a conflict.
@@ -469,6 +483,15 @@ onto it:
 - Every write bumps the user's `data_version` and publishes a change event
   over Postgres `LISTEN/NOTIFY` to the user's websockets at
   `/api/v1/realtime`; events only say "refetch".
+- Calendars (`features/calendar`): OAuth with PKCE run by the server
+  (`/api/v1/calendar/google/connect`, a public `/callback` that finds the
+  person by state), `CalendarSyncJob` (advisory lock, claims due accounts,
+  every 5 min each, full read daily over −14 d…+60 d, `syncToken` between,
+  back-off, `reauth` on a lost grant) behind `CalendarProvider`. Google
+  needs `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `CALENDAR_TOKEN_KEY`
+  (base64 of 32 bytes), else it is off; `CALENDAR_PROVIDER=fake` (the
+  default in the `dev` profile and tests) serves fixtures and sends consent
+  straight to the callback.
 - Web and mobile reminders are push (`features/notifications`,
   `ReminderJob` every 20 s, Expo or Web Push). Account-wide preferences are
   one JSON object (`features/preferences`, `PATCH` merges).
