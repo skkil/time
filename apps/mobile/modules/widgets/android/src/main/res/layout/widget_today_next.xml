@@ -1,0 +1,37 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/next"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:orientation="vertical">
+
+  <TextView
+    android:id="@+id/next_label"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:fontFamily="sans-serif-medium"
+    android:letterSpacing="0.06"
+    android:text="Next"
+    android:textColor="#66f1f1ee"
+    android:textSize="11sp" />
+
+  <TextView
+    android:id="@+id/next_title"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="2dp"
+    android:ellipsize="end"
+    android:maxLines="1"
+    android:text="Read"
+    android:textColor="#fff1f1ee"
+    android:textSize="14sp" />
+
+  <TextView
+    android:id="@+id/next_detail"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:fontFeatureSettings="tnum"
+    android:maxLines="1"
+    android:text="16:00"
+    android:textColor="#bff1f1ee"
+    android:textSize="12sp" />
+</LinearLayout>

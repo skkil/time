@@ -1,0 +1,6 @@
+<resources>
+  <string name="widget_today_name">Today</string>
+  <string name="widget_today_description">Now, next and today\'s musts</string>
+  <string name="widget_quick_add_name">Quick add</string>
+  <string name="widget_quick_add_description">Add a task in one tap</string>
+</resources>

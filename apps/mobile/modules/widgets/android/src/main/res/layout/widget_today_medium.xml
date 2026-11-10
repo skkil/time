@@ -1,0 +1,85 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="@drawable/widget_frame"
+  android:clipToOutline="true">
+
+  <ImageView
+    android:id="@+id/sky"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:importantForAccessibility="no"
+    android:scaleType="fitXY" />
+
+  <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:padding="16dp">
+
+    <LinearLayout
+      android:layout_width="0dp"
+      android:layout_height="match_parent"
+      android:layout_weight="1"
+      android:orientation="vertical">
+
+      <include layout="@layout/widget_today_now" />
+
+      <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+      <include layout="@layout/widget_today_next" />
+    </LinearLayout>
+
+    <LinearLayout
+      android:layout_width="0dp"
+      android:layout_height="match_parent"
+      android:layout_marginStart="16dp"
+      android:layout_weight="1"
+      android:orientation="vertical">
+
+      <TextView
+        android:id="@+id/musts_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.06"
+        android:text="Musts today"
+        android:textColor="#66f1f1ee"
+        android:textSize="11sp" />
+
+      <TextView
+        android:id="@+id/must_1"
+        style="@style/WidgetMust"
+        android:text="Call the bank" />
+
+      <TextView
+        android:id="@+id/must_2"
+        style="@style/WidgetMust"
+        android:text="Send the invoice" />
+
+      <TextView
+        android:id="@+id/must_3"
+        style="@style/WidgetMust"
+        android:visibility="gone" />
+
+      <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+      <TextView
+        android:id="@+id/earlier"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="2 tasks from earlier days"
+        android:textColor="#bff1f1ee"
+        android:textSize="12sp" />
+    </LinearLayout>
+  </LinearLayout>
+</FrameLayout>

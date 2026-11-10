@@ -1,0 +1,48 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:orientation="vertical">
+
+  <TextView
+    android:id="@+id/now_label"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:fontFamily="sans-serif-medium"
+    android:letterSpacing="0.06"
+    android:text="Now"
+    android:textColor="#66f1f1ee"
+    android:textSize="11sp" />
+
+  <TextView
+    android:id="@+id/now_title"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="2dp"
+    android:ellipsize="end"
+    android:fontFamily="sans-serif-light"
+    android:maxLines="2"
+    android:text="Write the spec"
+    android:textColor="#fff1f1ee"
+    android:textSize="18sp" />
+
+  <TextView
+    android:id="@+id/now_detail"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="2dp"
+    android:fontFeatureSettings="tnum"
+    android:maxLines="1"
+    android:text="14:00–15:00"
+    android:textColor="#bff1f1ee"
+    android:textSize="12sp" />
+
+  <Chronometer
+    android:id="@+id/now_timer"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="2dp"
+    android:fontFeatureSettings="tnum"
+    android:textColor="#bff1f1ee"
+    android:textSize="12sp"
+    android:visibility="gone" />
+</LinearLayout>
