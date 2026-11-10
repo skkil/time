@@ -44,6 +44,12 @@ pub fn query(conn: &Connection, name: &str, args: &Value) -> Result<Value> {
         "listTimeByType" => out(workflow::time_by_type(conn, a.get("from")?, a.get("to")?)?),
         "listRecordPhases" => out(records::phases(conn, &a.id("taskId")?)?),
         "getRemindersEnabled" => out(reminders::enabled(conn)?),
+        "listReminders" => out(reminders::upcoming(
+            conn,
+            a.get("from")?,
+            a.get("to")?,
+            &a.get("prefs")?,
+        )?),
         "getAutoLogBlocks" => out(blocks::auto_log_enabled(conn)?),
         "countEndedBlocks" => out(blocks::count_ended(conn, Timestamp::now())?),
         other => Err(Error::invalid(format!("{other} isn't a read."))),

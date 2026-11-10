@@ -148,6 +148,9 @@ export const commands = {
 	setCaptureHotkey: (enabled: boolean) => __TAURI_INVOKE<null>("set_capture_hotkey", { enabled }),
 	getRemindersEnabled: () => __TAURI_INVOKE<boolean>("get_reminders_enabled"),
 	setRemindersEnabled: (enabled: boolean) => __TAURI_INVOKE<null>("set_reminders_enabled", { enabled }),
+	listReminders: (from: Timestamp, to: Timestamp, prefs: NotificationPrefs) => __TAURI_INVOKE<Reminder[]>("list_reminders", { from, to, prefs }),
+	getNotificationPrefs: () => __TAURI_INVOKE<NotificationPrefs>("get_notification_prefs"),
+	setNotificationPrefs: (prefs: NotificationPrefs) => __TAURI_INVOKE<null>("set_notification_prefs", { prefs }),
 	exportData: () => __TAURI_INVOKE<string | null>("export_data"),
 	importData: () => __TAURI_INVOKE<boolean>("import_data"),
 	deleteAllData: () => __TAURI_INVOKE<null>("delete_all_data"),
@@ -328,6 +331,17 @@ export type MoveResult = {
 
 export type MoveTarget = { kind: "day"; date: Date } | { kind: "week"; monday: Date } | { kind: "someday" };
 
+/**
+ *  Which reminders this device shows. `on` is the device's own switch; the
+ *  account-wide `reminders_enabled` setting still turns every device off.
+ */
+export type NotificationPrefs = {
+	on: boolean,
+	tasks: boolean,
+	blocks: boolean,
+	events: boolean,
+};
+
 export type Outcome = {
 	id: Id,
 	title: string,
@@ -415,6 +429,19 @@ export type RecordPhase = {
 	statusId: Id,
 	notes: string,
 };
+
+export type Reminder = {
+	key: string,
+	kind: ReminderKind,
+	at: Timestamp,
+	title: string,
+	startsAt: Timestamp,
+	taskId: Id,
+	blockId: Id | null,
+	location: string,
+};
+
+export type ReminderKind = "task" | "block" | "event";
 
 export type Ritual = {
 	kind: string,

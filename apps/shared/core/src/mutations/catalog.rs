@@ -142,6 +142,7 @@ pub const READS: &[&str] = &[
     "listTimeByType",
     "listRecordPhases",
     "getRemindersEnabled",
+    "listReminders",
     "getAutoLogBlocks",
     "countEndedBlocks",
 ];
@@ -153,6 +154,8 @@ pub const DEVICE_ONLY: &[&str] = &[
     "pickImportFiles",
     "getCaptureHotkey",
     "setCaptureHotkey",
+    "getNotificationPrefs",
+    "setNotificationPrefs",
     "syncHabits",
     "exportData",
     "importData",

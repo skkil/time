@@ -4,6 +4,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { deferredEngine } from '@/core/local/deferred-engine';
 import { deviceCommands } from '@/core/local/device-commands';
 
+const stored = new Map<string, string>();
+vi.mock('expo-secure-store', () => ({
+  getItemAsync: async (key: string) => stored.get(key) ?? null,
+  setItemAsync: async (key: string, value: string) => {
+    stored.set(key, value);
+  },
+}));
+
 function setup() {
   const engine = {
     mutate: vi.fn<Engine['mutate']>(async (name) => ({ applied: name })),
@@ -65,5 +73,19 @@ describe('the phone backend', () => {
     });
     expect(engine.mutate).not.toHaveBeenCalled();
     expect(engine.query).not.toHaveBeenCalled();
+  });
+
+  it('keeps notification choices on the phone', async () => {
+    const { engine, backend } = setup();
+    await expect(backend.getNotificationPrefs()).resolves.toEqual({
+      on: true,
+      tasks: true,
+      blocks: true,
+      events: true,
+    });
+    const quiet = { on: true, tasks: true, blocks: false, events: true };
+    await backend.setNotificationPrefs(quiet);
+    await expect(backend.getNotificationPrefs()).resolves.toEqual(quiet);
+    expect(engine.mutate).not.toHaveBeenCalled();
   });
 });

@@ -11,6 +11,7 @@ import com.skkil.time.features.notifications.push.ExpoPushSender
 import com.skkil.time.features.notifications.push.PushSender
 import com.skkil.time.features.notifications.push.WebPushSender
 import com.skkil.time.features.settings.api.Enabled
+import com.skkil.time.features.time.domain.BlockSpan
 import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -119,6 +120,25 @@ class NotificationTest : TaskApiTest() {
         job.run(now)
         assertTrue(local in pushedTasks())
         assertTrue(utcClock !in pushedTasks())
+    }
+
+    @Test
+    fun `lists upcoming reminders by kind, as time-core does`() {
+        val now = Instant.now().epochSecond / 60 * 60
+        val local = localNow(Instant.ofEpochSecond(now)).plusMinutes(30)
+        val call = timed("Call", local)
+        val write = create(input("Write")).id()
+        postJson("/api/v1/tasks/$write/blocks", BlockSpan(now + 600, now + 4200))
+        val window = "/api/v1/notifications/reminders?from=$now&to=${now + 3600}"
+
+        val all = getJson(window)
+        assertEquals(listOf("block", "task"), all.values().map { it["kind"].asString() })
+        assertEquals(call.toString(), all.values().last()["taskId"].asString())
+        assertEquals(1, getJson("$window&blocks=false").size())
+        assertEquals(0, getJson("$window&on=false").size())
+
+        put("/api/v1/settings/reminders", Enabled(false))
+        assertEquals(0, getJson(window).size())
     }
 
     @Test

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { commands } from '@/backend';
+import { type NotificationPrefs, commands } from '@/backend';
 import { Checkbox } from '@/components/ui/checkbox';
 import { keys } from '@/lib/query';
 import { platform } from '@/platform';
@@ -8,6 +8,8 @@ import { platform } from '@/platform';
 import { SettingRow } from './SettingRow';
 
 const deviceKey = [...keys.reminders, 'device'] as const;
+const prefsKey = [...keys.reminders, 'kinds'] as const;
+const EVENT_LEAD_MINUTES = 10;
 
 export function ReminderSettings() {
   const client = useQueryClient();
@@ -64,6 +66,56 @@ export function ReminderSettings() {
           Couldn’t change reminders. Try again.
         </p>
       )}
+      {!notifications && <ReminderKinds disabled={enabled === false} />}
     </div>
   );
+}
+
+const KINDS = [
+  {
+    key: 'tasks',
+    label: 'Tasks with a time',
+    description: 'When a task reaches its time.',
+  },
+  {
+    key: 'blocks',
+    label: 'Focus blocks',
+    description: 'When a planned focus block starts.',
+  },
+  {
+    key: 'events',
+    label: 'Events',
+    description: `${EVENT_LEAD_MINUTES} minutes before an event starts.`,
+  },
+] as const;
+
+function ReminderKinds({ disabled }: { disabled: boolean }) {
+  const client = useQueryClient();
+  const { data: prefs } = useQuery({
+    queryKey: prefsKey,
+    queryFn: commands.getNotificationPrefs,
+  });
+  const save = useMutation({
+    mutationFn: (next: NotificationPrefs) =>
+      commands.setNotificationPrefs(next),
+    onSuccess: (_, next) => client.setQueryData(prefsKey, next),
+  });
+  if (!prefs) return null;
+
+  return KINDS.map((kind) => (
+    <SettingRow
+      key={kind.key}
+      label={kind.label}
+      description={kind.description}
+    >
+      <Checkbox
+        aria-label={kind.label}
+        checked={prefs[kind.key]}
+        disabled={disabled || save.isPending}
+        onCheckedChange={(next) =>
+          save.mutate({ ...prefs, [kind.key]: next === true })
+        }
+      />
+    </SettingRow>
+  ));
 }

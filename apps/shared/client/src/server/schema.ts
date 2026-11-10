@@ -1684,6 +1684,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/notifications/reminders': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['reminders_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/notifications/config': {
     parameters: {
       query?: never;
@@ -2715,6 +2731,21 @@ export interface components {
     PlanningTime: {
       time: string | null;
     };
+    Reminder: {
+      key: string;
+      /** @enum {string} */
+      kind: 'task' | 'block' | 'event';
+      /** Format: int64 */
+      at: number;
+      title: string;
+      /** Format: int64 */
+      startsAt: number;
+      /** Format: uuid */
+      taskId: string;
+      /** Format: uuid */
+      blockId: string | null;
+      location: string;
+    };
     Device: {
       /** Format: int64 */
       id: number;
@@ -2899,6 +2930,7 @@ export type RecordPhase = components['schemas']['RecordPhase'];
 export type Priority = components['schemas']['Priority'];
 export type Quarter = components['schemas']['Quarter'];
 export type PlanningTime = components['schemas']['PlanningTime'];
+export type Reminder = components['schemas']['Reminder'];
 export type Device = components['schemas']['Device'];
 export type PushConfig = components['schemas']['PushConfig'];
 export type Me = components['schemas']['Me'];
@@ -6011,6 +6043,33 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['Preset'][];
+        };
+      };
+    };
+  };
+  reminders_1: {
+    parameters: {
+      query: {
+        from: number;
+        to: number;
+        on?: boolean;
+        tasks?: boolean;
+        blocks?: boolean;
+        events?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Reminder'][];
         };
       };
     };

@@ -124,6 +124,7 @@
     "listProjectEntries",
     "listProjects",
     "listRecordPhases",
+    "listReminders",
     "listRitualRuns",
     "listRituals",
     "listSections",
@@ -139,9 +140,11 @@
     "exportData",
     "externalChanges",
     "getCaptureHotkey",
+    "getNotificationPrefs",
     "importData",
     "pickImportFiles",
     "setCaptureHotkey",
+    "setNotificationPrefs",
     "syncHabits"
   ],
   "syncMutations": ["importLocal"]

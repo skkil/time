@@ -1,5 +1,6 @@
 import { type ApiError, unwrap } from '#server/api';
 import type { HostCommands } from '#server/backend';
+import type { NotificationPrefs } from '#types/bindings';
 
 const JSON_TYPE = 'application/json';
 
@@ -11,6 +12,32 @@ const today = () => {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 };
 
+const PREFS_KEY = 'skkil-time:notification-prefs';
+const DEFAULT_PREFS: NotificationPrefs = {
+  on: true,
+  tasks: true,
+  blocks: true,
+  events: true,
+};
+
+const readNotificationPrefs = (): NotificationPrefs => {
+  try {
+    const saved = globalThis.localStorage?.getItem(PREFS_KEY);
+    return saved ? { ...DEFAULT_PREFS, ...JSON.parse(saved) } : DEFAULT_PREFS;
+  } catch {
+    return DEFAULT_PREFS;
+  }
+};
+
+const writeNotificationPrefs = (prefs: NotificationPrefs) => {
+  try {
+    globalThis.localStorage?.setItem(PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    return null;
+  }
+  return null;
+};
+
 export const data: HostCommands<
   | 'externalChanges'
   | 'pickImportFiles'
@@ -19,6 +46,9 @@ export const data: HostCommands<
   | 'setCaptureHotkey'
   | 'getRemindersEnabled'
   | 'setRemindersEnabled'
+  | 'listReminders'
+  | 'getNotificationPrefs'
+  | 'setNotificationPrefs'
   | 'exportData'
   | 'importData'
   | 'deleteAllData'
@@ -45,6 +75,14 @@ export const data: HostCommands<
     getRemindersEnabled: () => unwrap(api.GET('/api/v1/settings/reminders')),
     setRemindersEnabled: (enabled) =>
       unwrap(api.PUT('/api/v1/settings/reminders', { body: { enabled } })),
+    listReminders: (from, to, prefs) =>
+      unwrap(
+        api.GET('/api/v1/notifications/reminders', {
+          params: { query: { from, to, ...prefs } },
+        }),
+      ),
+    getNotificationPrefs: async () => readNotificationPrefs(),
+    setNotificationPrefs: async (prefs) => writeNotificationPrefs(prefs),
     exportData: async () => {
       const backup = await unwrap(api.GET('/api/v1/data/export'));
       return host.saveFile(

@@ -3772,6 +3772,76 @@
         }
       }
     },
+    "/api/v1/notifications/reminders" : {
+      "get" : {
+        "tags" : [ "notification-controller" ],
+        "operationId" : "reminders_1",
+        "parameters" : [ {
+          "name" : "from",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "on",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : true
+          }
+        }, {
+          "name" : "tasks",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : true
+          }
+        }, {
+          "name" : "blocks",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : true
+          }
+        }, {
+          "name" : "events",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : true
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Reminder"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/notifications/config" : {
       "get" : {
         "tags" : [ "notification-controller" ],
@@ -6195,6 +6265,41 @@
           }
         },
         "required" : [ "time" ]
+      },
+      "Reminder" : {
+        "type" : "object",
+        "properties" : {
+          "key" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "task", "block", "event" ]
+          },
+          "at" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "startsAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "taskId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "blockId" : {
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
+          },
+          "location" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "at", "blockId", "key", "kind", "location", "startsAt", "taskId", "title" ]
       },
       "Device" : {
         "type" : "object",

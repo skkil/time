@@ -69,7 +69,7 @@ const sections: Section[] = [
   {
     id: 'reminders',
     label: 'Reminders',
-    description: 'Alerts for tasks with a time.',
+    description: 'Alerts for timed tasks, focus blocks and events.',
     icon: BellIcon,
     content: ReminderSettings,
     available: (platform) => platform.features.reminders,
