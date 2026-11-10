@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="skkil time is a planner for your tasks, projects and weeks. Pick up to three musts, give them a place on the day, and review the week on Sunday."
+    />
+    <link rel="icon" type="image/svg+xml" href="data:," />
+    <title>skkil time</title>
+  </head>
+  <body>
+    <div class="sky" aria-hidden="true"><canvas id="sky"></canvas></div>
+
+    <header class="bar">
+      <a class="brand" href="#top" aria-label="skkil time" data-logo></a>
+      <a class="button button-quiet" data-app href="#">Open in your browser</a>
+    </header>
+
+    <main id="top">
+      <section class="hero" data-hour="now">
+        <div class="hero-copy">
+          <h1>Keep today small.</h1>
+          <p class="lead">
+            skkil time is a planner for your tasks, projects and weeks. Each
+            morning you pick up to three musts and give them a place on the day.
+            The sky behind it follows the hour, wherever you are.
+          </p>
+          <div class="actions">
+            <a class="button" data-app href="#">Open in your browser</a>
+            <span class="note">Also on desktop and your phone.</span>
+          </div>
+          <label class="scrub">
+            <span class="scrub-row">
+              <span>Move the sky</span>
+              <output id="hour-label" for="hour">00:00</output>
+            </span>
+            <input id="hour" type="range" min="0" max="23.75" step="0.25" />
+          </label>
+        </div>
+        <figure class="window window-hero">
+          <img
+            src="./src/screens/day-task.webp"
+            width="1280"
+            height="800"
+            alt="The Day view: a timeline from 08:00 with Draft the launch announcement at 09:30 and its details open beside it."
+          />
+          <figcaption>The app, with sample data.</figcaption>
+        </figure>
+      </section>
+
+      <section class="chapter capture" data-hour="6.3">
+        <div class="copy">
+          <h2>Write it down the way you'd say it.</h2>
+          <p>
+            Type a task in one line. Quick Add picks out the date, time, repeat,
+            deadline, priority, project and length as you write. This box runs
+            the same parser as the app, so try your own.
+          </p>
+        </div>
+        <div class="quick-add" id="quick-add">
+          <label class="qa-field">
+            <span class="sr-only">Try Quick Add</span>
+            <span class="qa-mirror" aria-hidden="true"></span>
+            <input
+              type="text"
+              spellcheck="false"
+              autocomplete="off"
+              value="Call the framer tomorrow 4pm p2 #Website for 30m"
+            />
+          </label>
+          <p class="qa-title" aria-live="polite"></p>
+          <p class="qa-meta"></p>
+          <div class="qa-examples">
+            <span>Try</span>
+            <button type="button" data-example="Pay rent every 1st p1 #Home">
+              Pay rent every 1st p1 #Home
+            </button>
+            <button
+              type="button"
+              data-example="Long run saturday 8am for 1h10m #Running"
+            >
+              Long run saturday 8am for 1h10m #Running
+            </button>
+            <button
+              type="button"
+              data-example="Send the pitch deck next friday {nov 30} p1"
+            >
+              Send the pitch deck next friday {nov 30} p1
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter split" data-hour="9.2">
+        <div class="copy">
+          <h2>Three musts, then the rest of the day.</h2>
+          <p>
+            Mark up to three tasks as today's musts. Give them a slot on the
+            timeline, or leave them for any time. Open a task and it sits beside
+            the day with its notes and steps.
+          </p>
+        </div>
+        <figure class="window window-tall">
+          <img
+            src="./src/screens/day.webp"
+            width="690"
+            height="760"
+            alt="Monday's timeline: Pay rent at any time, Draft the launch announcement from 09:30 to 11:00 and Pick the photos for the hero at 13:00."
+          />
+        </figure>
+      </section>
+
+      <section class="chapter wide" data-hour="13">
+        <div class="copy copy-columns">
+          <h2>Projects that hold the real work.</h2>
+          <ul class="facts">
+            <li>Nest projects up to three deep and gather them into groups.</li>
+            <li>
+              See the same tasks as a list, a board or a timeline, with a notes
+              page beside them.
+            </li>
+            <li>
+              Let a task wait on another, so the ones you can start stand out.
+            </li>
+            <li>
+              Keep long-running things, like one job application per company, as
+              records that move through phases.
+            </li>
+          </ul>
+        </div>
+        <figure class="window">
+          <img
+            src="./src/screens/project.webp"
+            width="1440"
+            height="410"
+            alt="The Studio launch project in the Work group: four open tasks in a list, the next task named at the top, and the Website sub-project in the sidebar."
+          />
+        </figure>
+      </section>
+
+      <section class="chapter wide" data-hour="16.2">
+        <div class="copy">
+          <h2>See the week before it starts.</h2>
+          <p>
+            Drag tasks onto the week and give it up to three outcomes. Link
+            tasks to an outcome and you can see what each one is for.
+          </p>
+        </div>
+        <figure class="window">
+          <img
+            src="./src/screens/week.webp"
+            width="1440"
+            height="860"
+            alt="Week 46: planned blocks across Monday to Saturday, with two outcomes and the tasks due this week on the right."
+          />
+        </figure>
+      </section>
+
+      <section class="chapter split split-reverse" data-hour="18.55">
+        <div class="copy">
+          <h2>Close the day on purpose.</h2>
+          <p>
+            In the evening, Check out goes through what's left over and asks for
+            one line to remember the day by. Morning, wind-down and weekly
+            routines work the same way: full screen, one step at a time.
+          </p>
+        </div>
+        <figure class="window window-card">
+          <img
+            src="./src/screens/checkout.webp"
+            width="576"
+            height="489"
+            alt="Ready to check out? Leftovers: give unfinished tasks a day or let go. One line: a sentence to remember the day."
+          />
+        </figure>
+      </section>
+
+      <section class="chapter wide" data-hour="21.4">
+        <div class="copy">
+          <h2>Once a week, look back.</h2>
+          <p>
+            The weekly review asks how the week felt before it shows you
+            anything. Then it goes through your outcomes, clears the deck, asks
+            for one change and plans the next week. Each quarter it steps back
+            to your priorities for the next 13 weeks.
+          </p>
+        </div>
+        <figure class="window">
+          <img
+            src="./src/screens/review.webp"
+            width="1280"
+            height="390"
+            alt="Week 46 review, step one of six: how did the week feel, from 1 Rough to 5 Great, with 4 Good chosen."
+          />
+        </figure>
+      </section>
+
+      <section class="closing" data-hour="23.6">
+        <h2>Your planner, on every device.</h2>
+        <p>
+          Desktop, web and phone each keep their own copy of your plans and work
+          offline. Sign in and they stay in sync. On desktop you can skip the
+          account and keep everything on your machine.
+        </p>
+        <a class="button" data-app href="#">Open in your browser</a>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <span class="brand brand-small" data-logo></span>
+      <span>Every screen on this page shows sample data.</span>
+    </footer>
+
+    <div class="clock" aria-hidden="true">
+      <span id="clock-time">00:00</span>
+      <span id="clock-phase">Night</span>
+    </div>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

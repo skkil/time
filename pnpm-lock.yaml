@@ -243,6 +243,40 @@ importers:
         specifier: ^5.0.5
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
 
+  apps/landing:
+    dependencies:
+      '@fontsource-variable/hanken-grotesk':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@skkil-time/design':
+        specifier: workspace:*
+        version: link:../shared/design
+      '@skkil-time/rules':
+        specifier: workspace:*
+        version: link:../shared/rules
+    devDependencies:
+      '@skkil-time/config':
+        specifier: workspace:*
+        version: link:../shared/config
+      '@types/node':
+        specifier: ^26.6.6
+        version: 26.6.6
+      eslint:
+        specifier: ^10.14.0
+        version: 10.14.0(jiti@2.7.0)(supports-color@10.2.2)
+      prettier:
+        specifier: ^3.9.10
+        version: 3.9.10
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^8.0.16
+        version: 8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2)
+      vitest:
+        specifier: ^5.0.5
+        version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(jiti@2.7.0)(terser@5.51.2))
+
   apps/mobile:
     dependencies:
       '@expo-google-fonts/hanken-grotesk':

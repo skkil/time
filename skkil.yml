@@ -215,6 +215,12 @@ ci:
       build: pnpm build
       depends_on:
         - web-engine
+    - name: landing
+      dir: apps/landing
+      format: pnpm format:check
+      lint: pnpm lint
+      test: pnpm test
+      build: pnpm build
     - name: mobile-native
       dir: apps/mobile/native
       format: cargo fmt --check && pnpm format:check
