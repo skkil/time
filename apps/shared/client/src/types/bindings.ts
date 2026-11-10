@@ -57,6 +57,7 @@ export const commands = {
 	updateTimeEntry: (id: Id, input: EntryInput) => __TAURI_INVOKE<TimeEntry>("update_time_entry", { id, input }),
 	deleteTimeEntry: (id: Id) => __TAURI_INVOKE<null>("delete_time_entry", { id }),
 	getTimer: () => __TAURI_INVOKE<RunningTimer | null>("get_timer"),
+	todayGlance: () => __TAURI_INVOKE<Glance>("today_glance"),
 	startTimer: (details: EntryDetails) => __TAURI_INVOKE<RunningTimer>("start_timer", { details }),
 	editTimer: (details: EntryDetails) => __TAURI_INVOKE<RunningTimer>("edit_timer", { details }),
 	stopTimer: () => __TAURI_INVOKE<TimeEntry | null>("stop_timer"),
@@ -198,6 +199,29 @@ export type EventOccurrence = {
 	endAt: Timestamp,
 	location: string,
 	countsAsTime: boolean,
+};
+
+export type Glance = {
+	timer: RunningTimer | null,
+	now: GlanceItem | null,
+	next: GlanceItem | null,
+	musts: GlanceTask[],
+	earlierCount: number,
+};
+
+export type GlanceItem = {
+	kind: GlanceKind,
+	title: string,
+	taskId: Id,
+	startsAt: Timestamp,
+	endsAt: Timestamp | null,
+};
+
+export type GlanceKind = "block" | "task" | "event";
+
+export type GlanceTask = {
+	id: Id,
+	title: string,
 };
 
 export type Group = {

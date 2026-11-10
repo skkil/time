@@ -3925,6 +3925,24 @@
         }
       }
     },
+    "/api/v1/glance" : {
+      "get" : {
+        "tags" : [ "glance-controller" ],
+        "operationId" : "todayGlance",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Glance"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/events" : {
       "get" : {
         "tags" : [ "task-workflow-controller" ],
@@ -6375,6 +6393,81 @@
           }
         },
         "required" : [ "date", "habitId", "manual", "status", "value" ]
+      },
+      "Glance" : {
+        "type" : "object",
+        "properties" : {
+          "timer" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/RunningTimer"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "now" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/GlanceItem"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "next" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/GlanceItem"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "musts" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GlanceTask"
+            }
+          },
+          "earlierCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "earlierCount", "musts", "next", "now", "timer" ]
+      },
+      "GlanceItem" : {
+        "type" : "object",
+        "properties" : {
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "block", "task", "event" ]
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "taskId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "startsAt" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "endsAt" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "endsAt", "kind", "startsAt", "taskId", "title" ]
+      },
+      "GlanceTask" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "title" ]
       },
       "EventOccurrence" : {
         "type" : "object",

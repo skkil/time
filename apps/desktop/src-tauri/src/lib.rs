@@ -14,8 +14,8 @@ use tauri::{Manager, WindowEvent};
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
 
 use commands::{
-    blocks, canvas, data, dependencies, groups, habits, import, projects, records, review, rituals,
-    sections, tasks, time_entries, undo, workflow,
+    blocks, canvas, data, dependencies, glance, groups, habits, import, projects, records, review,
+    rituals, sections, tasks, time_entries, undo, workflow,
 };
 
 #[cfg(any(debug_assertions, test))]
@@ -118,6 +118,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
             time_entries::update_time_entry,
             time_entries::delete_time_entry,
             time_entries::get_timer,
+            glance::today_glance,
             time_entries::start_timer,
             time_entries::edit_timer,
             time_entries::stop_timer,

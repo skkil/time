@@ -124,6 +124,7 @@ pub const READS: &[&str] = &[
     "listTaskEntries",
     "listProjectEntries",
     "getTimer",
+    "todayGlance",
     "listHabits",
     "listHabitDays",
     "listDays",

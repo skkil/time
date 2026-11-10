@@ -134,7 +134,8 @@
     "listTimeEntries",
     "listWeeks",
     "readPreset",
-    "saveProjectPreset"
+    "saveProjectPreset",
+    "todayGlance"
   ],
   "deviceOnly": [
     "exportData",

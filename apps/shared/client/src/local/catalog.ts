@@ -54,6 +54,7 @@ export const parameters = {
   updateTimeEntry: ['id', 'input'] as const,
   deleteTimeEntry: ['id'] as const,
   getTimer: [] as const,
+  todayGlance: [] as const,
   startTimer: ['details'] as const,
   editTimer: ['details'] as const,
   stopTimer: [] as const,
@@ -280,6 +281,7 @@ export const reads = [
   'listWeeks',
   'readPreset',
   'saveProjectPreset',
+  'todayGlance',
 ] as const;
 
 export const deviceOnly = [

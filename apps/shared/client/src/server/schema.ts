@@ -1748,6 +1748,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/glance': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['todayGlance'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/events': {
     parameters: {
       query?: never;
@@ -2777,6 +2793,30 @@ export interface components {
       value: number;
       manual: boolean;
     };
+    Glance: {
+      timer: components['schemas']['RunningTimer'] | null;
+      now: components['schemas']['GlanceItem'] | null;
+      next: components['schemas']['GlanceItem'] | null;
+      musts: components['schemas']['GlanceTask'][];
+      /** Format: int32 */
+      earlierCount: number;
+    };
+    GlanceItem: {
+      /** @enum {string} */
+      kind: 'block' | 'task' | 'event';
+      title: string;
+      /** Format: uuid */
+      taskId: string;
+      /** Format: int64 */
+      startsAt: number;
+      /** Format: int64 */
+      endsAt: number | null;
+    };
+    GlanceTask: {
+      /** Format: uuid */
+      id: string;
+      title: string;
+    };
     EventOccurrence: {
       /** Format: uuid */
       taskId: string;
@@ -2935,6 +2975,9 @@ export type Device = components['schemas']['Device'];
 export type PushConfig = components['schemas']['PushConfig'];
 export type Me = components['schemas']['Me'];
 export type HabitDay = components['schemas']['HabitDay'];
+export type Glance = components['schemas']['Glance'];
+export type GlanceItem = components['schemas']['GlanceItem'];
+export type GlanceTask = components['schemas']['GlanceTask'];
 export type EventOccurrence = components['schemas']['EventOccurrence'];
 export type Day = components['schemas']['Day'];
 export type DataExport = components['schemas']['DataExport'];
@@ -6151,6 +6194,26 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['HabitDay'][];
+        };
+      };
+    };
+  };
+  todayGlance: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Glance'];
         };
       };
     };

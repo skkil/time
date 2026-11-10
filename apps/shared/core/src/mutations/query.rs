@@ -4,10 +4,10 @@ use serde_json::Value;
 use super::args::{Args, out};
 use crate::error::{Error, Result};
 use crate::rituals::Moment;
-use crate::types::Timestamp;
+use crate::types::{Date, Timestamp};
 use crate::{
-    blocks, canvas, groups, habits, projects, records, reminders, review, rituals, sections, tasks,
-    time_entries, undo, workflow,
+    blocks, canvas, glance, groups, habits, projects, records, reminders, review, rituals,
+    sections, tasks, time_entries, undo, workflow,
 };
 
 /// Answers one read command by its contract name from the local database.
@@ -26,6 +26,7 @@ pub fn query(conn: &Connection, name: &str, args: &Value) -> Result<Value> {
         "listTaskEntries" => out(time_entries::list_for_task(conn, &a.id("taskId")?)?),
         "listProjectEntries" => out(time_entries::list_for_project(conn, &a.id("projectId")?)?),
         "getTimer" => out(time_entries::running(conn)?),
+        "todayGlance" => out(glance::today_glance(conn, Timestamp::now(), Date::today())?),
         "listHabits" => out(habits::list(conn)?),
         "listHabitDays" => out(habits::days(conn, a.get("from")?, a.get("to")?)?),
         "listDays" => out(review::days(conn, a.get("from")?, a.get("to")?)?),

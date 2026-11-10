@@ -6,6 +6,7 @@ pub mod canvas;
 pub mod capture;
 pub mod data;
 pub mod dependencies;
+pub mod glance;
 pub mod groups;
 pub mod habits;
 pub mod import;

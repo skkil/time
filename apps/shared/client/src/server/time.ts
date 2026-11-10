@@ -10,6 +10,7 @@ export const time: Commands<
   | 'rescheduleBlock'
   | 'deleteBlock'
   | 'countEndedBlocks'
+  | 'todayGlance'
   | 'logEndedBlocks'
   | 'getAutoLogBlocks'
   | 'setAutoLogBlocks'
@@ -38,6 +39,7 @@ export const time: Commands<
     unwrap(api.PUT('/api/v1/blocks/{id}', { ...byId(id), body: span })),
   deleteBlock: (id) => unwrap(api.DELETE('/api/v1/blocks/{id}', byId(id))),
   countEndedBlocks: () => unwrap(api.GET('/api/v1/blocks/ended')),
+  todayGlance: () => unwrap(api.GET('/api/v1/glance')),
   logEndedBlocks: () => unwrap(api.POST('/api/v1/blocks/ended/log')),
   getAutoLogBlocks: () => unwrap(api.GET('/api/v1/settings/auto-log-blocks')),
   setAutoLogBlocks: (enabled) =>
