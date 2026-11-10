@@ -5,17 +5,20 @@ import { type CSSProperties, type ReactNode, useState } from 'react';
 import type { Ritual, RitualRun } from '@/backend';
 import { WeekReviewFlow } from '@/features/review/WeekReview';
 import { ZenBackdrop } from '@/features/zen/ZenBackdrop';
-import { mondayOf, shiftKey, todayKey } from '@/lib/time';
+import { type DateKey, mondayOf, shiftKey, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 import { DaySummary } from './DaySummary';
-import { useRunActions } from './api';
+import { WeekOffer } from './WeekOffer';
+import { useRitualRuns, useRunActions } from './api';
 import {
   RITUALS,
   type RitualKind,
+  type RitualPart,
   STEPS,
   type StepKey,
   contextFor,
+  isWeekHost,
 } from './meta';
 import { useShownSteps } from './shown-steps';
 import { RitualStep } from './steps';
@@ -89,31 +92,51 @@ function ZenFrame({
   );
 }
 
+type Phase = 'steps' | 'offer' | 'week' | 'closed';
+
 export function ZenOverlay({
   ritual,
   run,
+  week,
+  part,
   onClose,
 }: {
   ritual: Ritual;
   run: RitualRun;
+  week: DateKey | null;
+  part: RitualPart;
   onClose: () => void;
 }) {
   const kind = ritual.kind as RitualKind;
   const meta = RITUALS[kind];
   const actions = useRunActions();
-  const steps = useShownSteps(ritual.steps as StepKey[], todayKey());
+  const today = todayKey();
+  const steps = useShownSteps(ritual.steps as StepKey[], today);
+  const { data: runs = [] } = useRitualRuns(today, shiftKey(today, 1));
   const [index, setIndex] = useState(() =>
     Math.min(run.step, Math.max(0, steps.length - 1)),
   );
-  const ctx = contextFor(kind, todayKey(), run.taskId);
+  const [phase, setPhase] = useState<Phase>(part === 'week' ? 'week' : 'steps');
+  const [weekly, setWeekly] = useState<RitualRun | null>(
+    part === 'week' ? run : null,
+  );
+  const [busy, setBusy] = useState(false);
+  const ctx = contextFor(kind, today, run.taskId);
+  const closesWeek = week !== null && isWeekHost(kind);
   const last = index === steps.length - 1;
   const step = steps[index];
-  const [closed, setClosed] = useState(false);
+  const snoozed = runs.some(
+    (other) =>
+      other.kind === 'weekly' &&
+      other.finishedAt === null &&
+      other.snoozedUntil !== null,
+  );
 
+  const closeDay = () => (kind === 'evening' ? setPhase('closed') : onClose());
   const finish = () => {
     actions.finish.mutate(run.id);
-    if (kind === 'evening') setClosed(true);
-    else onClose();
+    if (closesWeek) setPhase('offer');
+    else closeDay();
   };
   const next = () => {
     if (last) return finish();
@@ -124,19 +147,50 @@ export function ZenOverlay({
     actions.skip.mutate(run.id);
     onClose();
   };
+  const weeklyRun = async () =>
+    weekly ??
+    (await actions.start.mutateAsync({ kind: 'weekly', taskId: null }));
+  const startWeek = async () => {
+    setBusy(true);
+    try {
+      setWeekly(await weeklyRun());
+      setPhase('week');
+    } finally {
+      setBusy(false);
+    }
+  };
+  const putOffWeek = async () => {
+    setBusy(true);
+    try {
+      const pending = await weeklyRun();
+      if (kind === 'evening' && pending.snoozedUntil === null)
+        await actions.snooze.mutateAsync(pending.id);
+      else await actions.skip.mutateAsync(pending.id);
+      closeDay();
+    } finally {
+      setBusy(false);
+    }
+  };
+  const finishWeek = () => {
+    if (weekly) actions.finish.mutate(weekly.id);
+    closeDay();
+  };
 
+  const dots = closesWeek ? [...steps, 'weekly_review' as const] : steps;
   const header = (
     <header className="grid shrink-0 justify-items-center gap-4 text-center">
       <p className="text-xs tracking-[.2em] text-white/80">
-        {meta.label.toUpperCase()}
+        {(phase === 'week' ? 'Close the week' : meta.label).toUpperCase()}
       </p>
-      {steps.length > 1 && (
+      {phase === 'steps' && dots.length > 1 && (
         <ol className="flex gap-2" aria-label="Steps">
-          {steps.map((key, i) => (
+          {dots.map((key, i) => (
             <li
               key={key}
               aria-current={i === index ? 'step' : undefined}
-              title={key === 'weekly_review' ? key : STEPS[key].label}
+              title={
+                key === 'weekly_review' ? 'Close the week' : STEPS[key].label
+              }
               className={cn(
                 'h-1.5 rounded-full transition-all duration-700',
                 i === index
@@ -161,16 +215,51 @@ export function ZenOverlay({
         onEscape={onClose}
       >
         {header}
-        <div className="min-h-0 overflow-y-auto pr-1">
+        <div className="grid min-h-0 content-start gap-6 overflow-y-auto pr-1">
           <WeekReviewFlow
-            week={shiftKey(mondayOf(todayKey()), -7)}
+            week={shiftKey(mondayOf(today), -7)}
             onDone={finish}
           />
         </div>
       </ZenFrame>
     );
 
-  if (closed)
+  if (phase === 'week' && week)
+    return (
+      <ZenFrame
+        label="Close the week"
+        description="Feel the week, settle its outcomes, clear the deck and plan the next one."
+        wide
+        onEscape={onClose}
+      >
+        {header}
+        <div className="grid min-h-0 content-start gap-6 overflow-y-auto pr-1">
+          <WeekReviewFlow week={week} onDone={finishWeek} />
+        </div>
+      </ZenFrame>
+    );
+
+  if (phase === 'offer' && week && isWeekHost(kind))
+    return (
+      <ZenFrame
+        label={meta.label}
+        description={meta.description}
+        onEscape={onClose}
+        leaveLabel="Close"
+      >
+        {header}
+        <WeekOffer
+          host={kind}
+          week={week}
+          snoozed={snoozed}
+          busy={busy}
+          onStart={() => void startWeek()}
+          onLater={() => void putOffWeek()}
+        />
+      </ZenFrame>
+    );
+
+  if (phase === 'closed')
     return (
       <ZenFrame
         label={meta.label}
@@ -221,8 +310,10 @@ export function ZenOverlay({
           onClick={next}
           className="ml-auto flex h-9 shrink-0 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium whitespace-nowrap text-[#0b1a22] transition-colors hover:bg-white pointer-coarse:h-10"
         >
-          {last ? 'Finish' : 'Continue'}
-          {!last && <ArrowRightIcon className="size-4" strokeWidth={1.5} />}
+          {last && !closesWeek ? 'Finish' : 'Continue'}
+          {(!last || closesWeek) && (
+            <ArrowRightIcon className="size-4" strokeWidth={1.5} />
+          )}
         </button>
       </footer>
     </ZenFrame>

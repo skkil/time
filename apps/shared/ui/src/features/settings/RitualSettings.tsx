@@ -11,7 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useRituals, useUpdateRitual } from '@/features/rituals/api';
+import {
+  useReviewDay,
+  useRituals,
+  useSetReviewDay,
+  useUpdateRitual,
+} from '@/features/rituals/api';
 import {
   RITUALS,
   type RitualKind,
@@ -52,24 +57,20 @@ export function RitualSettings() {
   const { data: rituals } = useRituals();
   const update = useUpdateRitual();
   const backdrop = usePreference('zenBackdrop');
-  const weekly = rituals?.find((ritual) => ritual.kind === 'weekly');
+  const { data: reviewDay } = useReviewDay();
+  const setReviewDay = useSetReviewDay();
 
   return (
     <div className="grid gap-6">
       <div>
-        {weekly && (
+        {reviewDay !== undefined && (
           <SettingRow
-            label="Weekly review day"
-            description="On this day, Check out offers last week’s review."
+            label="Weekly checkout on"
+            description="On this day, Check out goes on to close the week: outcomes, a clear deck and next week’s plan."
           >
             <Select
-              value={String(Math.log2(weekly.weekdays) | 0)}
-              onValueChange={(value) =>
-                update.mutate({
-                  kind: 'weekly',
-                  input: { ...inputOf(weekly), weekdays: 1 << Number(value) },
-                })
-              }
+              value={String(reviewDay)}
+              onValueChange={(value) => setReviewDay.mutate(Number(value))}
             >
               <SelectTrigger size="sm" className="w-36">
                 <SelectValue />

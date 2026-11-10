@@ -2,10 +2,11 @@ import { createContext, use } from 'react';
 
 import type { Id } from '@/backend';
 
-import type { RitualKind } from './meta';
+import type { RitualKind, WeekHost } from './meta';
 
 export type RitualRunner = {
   open: (kind: RitualKind, taskId?: Id | null) => void;
+  closeWeek: (host: WeekHost) => void;
   active: RitualKind | null;
 };
 

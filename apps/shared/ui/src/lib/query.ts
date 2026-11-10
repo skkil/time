@@ -81,6 +81,8 @@ export const keys = {
   allEvents: ['events'] as const,
   typeTime: (from: string, to: string) => ['typeTime', from, to] as const,
   planningTime: ['rituals', 'planningTime'] as const,
+  reviewDay: ['rituals', 'reviewDay'] as const,
+  weekToClose: (kind: string) => ['rituals', 'weekToClose', kind] as const,
   reminders: ['reminders'] as const,
   autoLogBlocks: ['auto-log-blocks'] as const,
   captureHotkey: ['capture-hotkey'] as const,

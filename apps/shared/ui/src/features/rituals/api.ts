@@ -15,6 +15,18 @@ export function usePlanningTime() {
   });
 }
 
+export function useReviewDay() {
+  return useQuery({ queryKey: keys.reviewDay, queryFn: commands.getReviewDay });
+}
+
+export function useWeekToClose(kind: 'evening' | 'morning') {
+  return useQuery({
+    queryKey: keys.weekToClose(kind),
+    queryFn: () => commands.weekToClose(kind),
+    staleTime: 0,
+  });
+}
+
 export function useRitualRuns(from: DateKey, to: DateKey) {
   return useQuery({
     queryKey: keys.ritualRuns(from, to),
@@ -41,6 +53,14 @@ export function useChoosePlanningTime() {
   return useMutation({
     mutationFn: (time: 'morning' | 'evening') =>
       commands.choosePlanningTime(time),
+    onSuccess: refresh,
+  });
+}
+
+export function useSetReviewDay() {
+  const refresh = useRefreshRituals();
+  return useMutation({
+    mutationFn: (day: number) => commands.setReviewDay(day),
     onSuccess: refresh,
   });
 }

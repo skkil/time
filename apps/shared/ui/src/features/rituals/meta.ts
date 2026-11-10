@@ -4,6 +4,13 @@ import { type DateKey, fromDateKey, shiftKey } from '@/lib/time';
 export type RitualKind =
   'morning' | 'evening' | 'wind_down' | 'session' | 'weekly';
 
+export type WeekHost = 'evening' | 'morning';
+
+export const isWeekHost = (kind: RitualKind): kind is WeekHost =>
+  kind === 'evening' || kind === 'morning';
+
+export type RitualPart = 'steps' | 'week';
+
 export type StepKey =
   | 'feel'
   | 'what_moved'

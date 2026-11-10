@@ -1,11 +1,12 @@
-import { MoonIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { CalendarCheckIcon, MoonIcon } from 'lucide-react';
 
 import { DAY_PANEL } from '@/components/surfaces';
-import { useRituals } from '@/features/rituals/api';
+import { useRituals, useWeekToClose } from '@/features/rituals/api';
 import { STEPS } from '@/features/rituals/meta';
 import { useRitualRunner } from '@/features/rituals/runner-context';
 import { useShownSteps } from '@/features/rituals/shown-steps';
-import { formatClockTime, todayKey } from '@/lib/time';
+import { formatClockTime, fromDateKey, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 export function CheckOut({
@@ -41,6 +42,7 @@ export function CheckOutPrompt({
 }) {
   const runner = useRitualRunner();
   const { data: rituals } = useRituals();
+  const { data: week = null } = useWeekToClose('evening');
   const steps = useShownSteps(
     (rituals?.find((ritual) => ritual.kind === 'evening')?.steps ?? []).filter(
       (step): step is keyof typeof STEPS => step in STEPS,
@@ -67,13 +69,37 @@ export function CheckOutPrompt({
               <span className="text-foreground/75">{STEPS[step].hint}</span>
             </li>
           ))}
+          {week && (
+            <li className="grid gap-0.5">
+              <span>Close the week</span>
+              <span className="text-foreground/75">
+                It’s {format(fromDateKey(todayKey()), 'EEEE')}: outcomes, a
+                clear deck and next week’s plan
+              </span>
+            </li>
+          )}
         </ol>
       )}
-      <div className="shrink-0 pt-6">
+      <div className="flex shrink-0 flex-wrap gap-2 pt-6">
+        {checkedOutAt && week && (
+          <button
+            type="button"
+            onClick={() => runner.closeWeek('evening')}
+            className="flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
+          >
+            <CalendarCheckIcon className="size-3.5" strokeWidth={1.75} />
+            Close the week
+          </button>
+        )}
         <button
           type="button"
           onClick={() => runner.open('evening')}
-          className="flex h-9 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-medium text-[#08161e] transition-colors hover:bg-white"
+          className={cn(
+            'flex h-9 items-center gap-2 rounded-full px-4 text-sm font-medium transition-colors',
+            checkedOutAt && week
+              ? 'text-foreground ring-1 ring-white/20 hover:bg-white/15'
+              : 'bg-white/90 text-[#08161e] hover:bg-white',
+          )}
         >
           <MoonIcon className="size-3.5" strokeWidth={1.75} />
           {checkedOutAt ? 'Check out again' : 'Check out'}

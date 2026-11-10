@@ -32,6 +32,7 @@ import { cn } from '@/lib/utils';
 
 import { AnyTimeList } from './AnyTimeList';
 import { CheckOut, CheckOutPrompt } from './CheckOut';
+import { CloseLastWeek } from './CloseLastWeek';
 import { DayThread, type Moment } from './DayThread';
 import { FreeFocus, StartFocus } from './FreeFocus';
 import { Leftovers } from './Leftovers';
@@ -166,6 +167,7 @@ export function DayCanvas({
                   : `${plan.earlier.length} tasks from earlier days`}
               </button>
             )}
+            <CloseLastWeek />
           </div>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2 lg:pt-4">
