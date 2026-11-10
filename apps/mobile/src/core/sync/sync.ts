@@ -12,6 +12,7 @@ import { replica } from '@/core/local/replica';
 import { onWrite } from '@/core/local/writes';
 import { createSyncController } from '@/core/sync/controller';
 import { refreshSoon } from '@/core/sync/refresh';
+import { widgets } from '@/core/widgets/widgets';
 
 const signOutWhenRefused =
   <T>(call: () => Promise<T>) =>
@@ -41,7 +42,10 @@ export const sync = createSyncController({
   account,
   createDriver: createSyncDriver,
   fetch: streamingFetch as unknown as typeof globalThis.fetch,
-  onChange: refreshSoon,
+  onChange: () => {
+    refreshSoon();
+    widgets.soon();
+  },
 });
 
 onWrite(() => sync.wrote());

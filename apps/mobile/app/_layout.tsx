@@ -20,6 +20,7 @@ import { SessionProvider, useSession } from '@/core/auth/session';
 import { useReminders } from '@/core/notifications/reminders';
 import { useBlockLog } from '@/core/sync/use-block-log';
 import { useSync } from '@/core/sync/use-sync';
+import { useWidgets } from '@/core/widgets/use-widgets';
 import { useAccountChoice } from '@/features/account/account-choice';
 import { SelectionProvider } from '@/features/tasks/selection';
 import { ConnectionNotice } from '@/ui/ConnectionNotice';
@@ -42,6 +43,8 @@ const NAVIGATION_THEME = {
   },
 };
 
+export const unstable_settings = { anchor: '(tabs)' };
+
 const WINDOW = {
   presentation: 'transparentModal',
   animation: 'fade',
@@ -62,6 +65,7 @@ function Routes() {
   useAccountChoice();
   useReminders(session !== null);
   useBlockLog(session !== null);
+  useWidgets(loading ? null : session !== null);
   useEffect(() => {
     if (ready) void SplashScreen.hideAsync();
   }, [ready]);
