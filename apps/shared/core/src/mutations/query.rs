@@ -4,6 +4,7 @@ use serde_json::Value;
 use super::args::{Args, out};
 use crate::error::{Error, Result};
 use crate::rituals::Moment;
+use crate::types::Timestamp;
 use crate::{
     blocks, canvas, groups, habits, projects, records, reminders, review, rituals, sections, tasks,
     time_entries, undo, workflow,
@@ -43,6 +44,8 @@ pub fn query(conn: &Connection, name: &str, args: &Value) -> Result<Value> {
         "listTimeByType" => out(workflow::time_by_type(conn, a.get("from")?, a.get("to")?)?),
         "listRecordPhases" => out(records::phases(conn, &a.id("taskId")?)?),
         "getRemindersEnabled" => out(reminders::enabled(conn)?),
+        "getAutoLogBlocks" => out(blocks::auto_log_enabled(conn)?),
+        "countEndedBlocks" => out(blocks::count_ended(conn, Timestamp::now())?),
         other => Err(Error::invalid(format!("{other} isn't a read."))),
     }
 }

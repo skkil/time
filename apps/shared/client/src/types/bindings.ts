@@ -46,6 +46,10 @@ export const commands = {
 	createBlock: (taskId: Id, span: BlockSpan) => __TAURI_INVOKE<TimeBlock>("create_block", { taskId, span }),
 	rescheduleBlock: (id: Id, span: BlockSpan) => __TAURI_INVOKE<TimeBlock>("reschedule_block", { id, span }),
 	deleteBlock: (id: Id) => __TAURI_INVOKE<null>("delete_block", { id }),
+	countEndedBlocks: () => __TAURI_INVOKE<number>("count_ended_blocks"),
+	logEndedBlocks: () => __TAURI_INVOKE<number>("log_ended_blocks"),
+	getAutoLogBlocks: () => __TAURI_INVOKE<boolean>("get_auto_log_blocks"),
+	setAutoLogBlocks: (enabled: boolean) => __TAURI_INVOKE<null>("set_auto_log_blocks", { enabled }),
 	listTimeEntries: (from: Date, to: Date) => __TAURI_INVOKE<TimeEntry[]>("list_time_entries", { from, to }),
 	listTaskEntries: (taskId: Id) => __TAURI_INVOKE<TrackedEntry[]>("list_task_entries", { taskId }),
 	listProjectEntries: (projectId: Id) => __TAURI_INVOKE<TrackedEntry[]>("list_project_entries", { projectId }),
@@ -594,6 +598,7 @@ export type TimeEntry = {
 	taskId: Id | null,
 	startedAt: Timestamp,
 	endedAt: Timestamp,
+	source: string,
 };
 
 /**  Seconds since the Unix epoch. */

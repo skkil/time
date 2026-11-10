@@ -9,4 +9,5 @@ data class TimeEntry(
     val taskId: UUID?,
     val startedAt: Long,
     val endedAt: Long,
+    val source: String,
 )

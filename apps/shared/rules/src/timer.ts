@@ -22,5 +22,6 @@ export function liveEntry(
     taskId,
     startedAt,
     endedAt: Math.max(now, startedAt),
+    source: 'timer',
   };
 }

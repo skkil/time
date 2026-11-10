@@ -30,6 +30,7 @@ const MIGRATIONS: &[Migration] = &[
     Migration::Code(sync_ids::migrate),
     Migration::Sql(include_str!("migrations/020_review_position.sql")),
     Migration::Sql(include_str!("migrations/021_due_window.sql")),
+    Migration::Sql(include_str!("migrations/022_block_logging.sql")),
 ];
 
 /// The schema version that switched every id to a UUID.

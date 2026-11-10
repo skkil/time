@@ -9,6 +9,7 @@ data class TrackedEntry(
     val taskId: UUID?,
     val startedAt: Long,
     val endedAt: Long,
+    val source: String,
     val taskTitle: String?,
     val taskCompleted: Boolean,
 )

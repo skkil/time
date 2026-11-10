@@ -762,6 +762,43 @@
         }
       }
     },
+    "/api/v1/settings/auto-log-blocks" : {
+      "get" : {
+        "tags" : [ "block-controller" ],
+        "operationId" : "autoLogBlocks",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "block-controller" ],
+        "operationId" : "setAutoLogBlocks",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Enabled"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/sections/{id}/position" : {
       "put" : {
         "tags" : [ "section-controller" ],
@@ -3351,6 +3388,25 @@
         }
       }
     },
+    "/api/v1/blocks/ended/log" : {
+      "post" : {
+        "tags" : [ "block-controller" ],
+        "operationId" : "logEndedBlocks",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "integer",
+                  "format" : "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/preferences" : {
       "get" : {
         "tags" : [ "preference-controller" ],
@@ -3949,6 +4005,25 @@
         }
       }
     },
+    "/api/v1/blocks/ended" : {
+      "get" : {
+        "tags" : [ "block-controller" ],
+        "operationId" : "countEndedBlocks",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "integer",
+                  "format" : "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/{id}/dependencies/{blockedById}" : {
       "delete" : {
         "tags" : [ "task-controller" ],
@@ -4169,9 +4244,12 @@
           "endedAt" : {
             "type" : "integer",
             "format" : "int64"
+          },
+          "source" : {
+            "type" : "string"
           }
         },
-        "required" : [ "description", "endedAt", "id", "projectId", "startedAt", "taskId" ]
+        "required" : [ "description", "endedAt", "id", "projectId", "source", "startedAt", "taskId" ]
       },
       "TaskInput" : {
         "type" : "object",
@@ -6037,6 +6115,9 @@
             "type" : "integer",
             "format" : "int64"
           },
+          "source" : {
+            "type" : "string"
+          },
           "taskTitle" : {
             "type" : [ "string", "null" ]
           },
@@ -6044,7 +6125,7 @@
             "type" : "boolean"
           }
         },
-        "required" : [ "description", "endedAt", "id", "projectId", "startedAt", "taskCompleted", "taskId", "taskTitle" ]
+        "required" : [ "description", "endedAt", "id", "projectId", "source", "startedAt", "taskCompleted", "taskId", "taskTitle" ]
       },
       "RecordPhase" : {
         "type" : "object",

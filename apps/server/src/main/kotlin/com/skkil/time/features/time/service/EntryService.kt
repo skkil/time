@@ -163,9 +163,9 @@ class EntryService(
         param("description", details.description).param("project", details.projectId).param("task", details.taskId)
 
     private companion object {
-        const val SELECT = "SELECT id, description, project_id, task_id, started_at, ended_at FROM time_entry"
+        const val SELECT = "SELECT id, description, project_id, task_id, started_at, ended_at, source FROM time_entry"
         const val SELECT_TRACKED = """
-            SELECT e.id, e.description, e.project_id, e.task_id, e.started_at, e.ended_at,
+            SELECT e.id, e.description, e.project_id, e.task_id, e.started_at, e.ended_at, e.source,
                    t.title, t.completed_at IS NOT NULL AS task_completed
             FROM time_entry e
             LEFT JOIN task t ON t.id = e.task_id
@@ -179,6 +179,7 @@ class EntryService(
                     rs.uuidOrNull("task_id"),
                     rs.getLong("started_at"),
                     rs.getLong("ended_at"),
+                    rs.getString("source"),
                 )
             }
         val trackedMapper =
@@ -190,6 +191,7 @@ class EntryService(
                     rs.uuidOrNull("task_id"),
                     rs.getLong("started_at"),
                     rs.getLong("ended_at"),
+                    rs.getString("source"),
                     rs.getString("title"),
                     rs.getBoolean("task_completed"),
                 )

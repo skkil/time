@@ -5,7 +5,7 @@ use crate::error::{Error, Result};
 use crate::types::{Date, Id};
 
 const SELECT: &str =
-    "SELECT id, description, project_id, task_id, started_at, ended_at FROM time_entry";
+    "SELECT id, description, project_id, task_id, started_at, ended_at, source FROM time_entry";
 
 fn from_row(row: &Row) -> rusqlite::Result<TimeEntry> {
     Ok(TimeEntry {
@@ -15,19 +15,20 @@ fn from_row(row: &Row) -> rusqlite::Result<TimeEntry> {
         task_id: row.get(3)?,
         started_at: row.get(4)?,
         ended_at: row.get(5)?,
+        source: row.get(6)?,
     })
 }
 
 const SELECT_TRACKED: &str = "SELECT e.id, e.description, e.project_id, e.task_id, e.started_at,
-       e.ended_at, t.title, t.completed_at IS NOT NULL
+       e.ended_at, e.source, t.title, t.completed_at IS NOT NULL
      FROM time_entry e
      LEFT JOIN task t ON t.id = e.task_id";
 
 fn tracked_from_row(row: &Row) -> rusqlite::Result<TrackedEntry> {
     Ok(TrackedEntry {
         entry: from_row(row)?,
-        task_title: row.get(6)?,
-        task_completed: row.get(7)?,
+        task_title: row.get(7)?,
+        task_completed: row.get(8)?,
     })
 }
 

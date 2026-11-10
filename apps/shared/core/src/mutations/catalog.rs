@@ -101,6 +101,8 @@ pub const MUTATIONS: &[&str] = &[
     "createPhaseTask",
     "importProjects",
     "setRemindersEnabled",
+    "setAutoLogBlocks",
+    "logEndedBlocks",
     "deleteAllData",
 ];
 
@@ -140,6 +142,8 @@ pub const READS: &[&str] = &[
     "listTimeByType",
     "listRecordPhases",
     "getRemindersEnabled",
+    "getAutoLogBlocks",
+    "countEndedBlocks",
 ];
 
 /// Commands that belong to one device and never sync: file pickers, the

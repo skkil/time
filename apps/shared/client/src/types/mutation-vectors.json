@@ -880,6 +880,71 @@
       ]
     },
     {
+      "name": "createBlock",
+      "args": {
+        "taskId": "019a4b00-0000-7000-8000-000000000005",
+        "span": {
+          "startAt": 1793671200,
+          "endAt": 1793673000
+        }
+      },
+      "ids": ["019a4b00-0000-7000-8000-0000000000d0"],
+      "expect": [
+        {
+          "table": "time_block",
+          "id": "019a4b00-0000-7000-8000-0000000000d0",
+          "row": {
+            "task_id": "019a4b00-0000-7000-8000-000000000005",
+            "start_at": 1793671200,
+            "end_at": 1793673000,
+            "logged": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "logEndedBlocks",
+      "args": {},
+      "ids": ["019a4b00-0000-7000-8000-0000000000d1"],
+      "at": "2026-11-03T12:00:00+09:00",
+      "expect": [
+        {
+          "table": "time_entry",
+          "id": "019a4b00-0000-7000-8000-0000000000d1",
+          "row": {
+            "task_id": "019a4b00-0000-7000-8000-000000000005",
+            "started_at": 1793671200,
+            "ended_at": 1793673000,
+            "source": "block"
+          }
+        },
+        {
+          "table": "time_block",
+          "id": "019a4b00-0000-7000-8000-0000000000d0",
+          "row": {
+            "logged": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "setAutoLogBlocks",
+      "args": {
+        "enabled": false
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "setting",
+          "id": "ba15d0e4-a7b0-51f7-a634-d1cd61dcc459",
+          "row": {
+            "key": "auto_log_blocks",
+            "value": "off"
+          }
+        }
+      ]
+    },
+    {
       "name": "importLocal",
       "args": {
         "data": {

@@ -15,6 +15,7 @@ pub struct TimeEntry {
     pub task_id: Option<Id>,
     pub started_at: Timestamp,
     pub ended_at: Timestamp,
+    pub source: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

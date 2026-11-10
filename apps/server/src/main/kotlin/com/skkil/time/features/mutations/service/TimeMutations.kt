@@ -6,6 +6,7 @@ import com.skkil.time.features.time.domain.BlockSpan
 import com.skkil.time.features.time.domain.EntryDetails
 import com.skkil.time.features.time.domain.EntryInput
 import com.skkil.time.features.time.domain.RunningTimer
+import com.skkil.time.features.time.service.BlockLogService
 import com.skkil.time.features.time.service.BlockService
 import com.skkil.time.features.time.service.EntryService
 import com.skkil.time.features.time.service.TimerService
@@ -15,6 +16,7 @@ import java.util.UUID
 @Component
 class TimeMutations(
     private val blocks: BlockService,
+    private val blockLog: BlockLogService,
     private val entries: EntryService,
     private val timer: TimerService,
 ) : MutationSet {
@@ -28,6 +30,10 @@ class TimeMutations(
             },
             mutation("deleteBlock", "id") { caller, args ->
                 blocks.delete(caller.id, args.get<UUID>("id"))
+            },
+            mutation("logEndedBlocks") { caller, _ -> blockLog.logEnded(caller) },
+            mutation("setAutoLogBlocks", "enabled") { caller, args ->
+                blockLog.setEnabled(caller, args.get<Boolean>("enabled"))
             },
             mutation("createTimeEntry", "input") { caller, args ->
                 entries.create(caller, args.get<EntryInput>("input"))

@@ -3,7 +3,7 @@ use serde_json::json;
 use tauri::State;
 use time_core::Result;
 use time_core::blocks::{self, BlockSpan, TimeBlock};
-use time_core::types::{Date, Id};
+use time_core::types::{Date, Id, Timestamp};
 
 use super::mutate;
 
@@ -33,4 +33,28 @@ pub async fn reschedule_block(db: State<'_, Db>, id: Id, span: BlockSpan) -> Res
 #[specta::specta]
 pub async fn delete_block(db: State<'_, Db>, id: Id) -> Result<()> {
     mutate(&db, "deleteBlock", json!({ "id": id }))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn count_ended_blocks(db: State<'_, Db>) -> Result<i32> {
+    db.call(|conn| blocks::count_ended(conn, Timestamp::now()))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn log_ended_blocks(db: State<'_, Db>) -> Result<i32> {
+    mutate(&db, "logEndedBlocks", json!({}))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_auto_log_blocks(db: State<'_, Db>) -> Result<bool> {
+    db.call(|conn| blocks::auto_log_enabled(conn))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_auto_log_blocks(db: State<'_, Db>, enabled: bool) -> Result<()> {
+    mutate(&db, "setAutoLogBlocks", json!({ "enabled": enabled }))
 }

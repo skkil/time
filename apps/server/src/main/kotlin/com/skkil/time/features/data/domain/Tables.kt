@@ -176,7 +176,11 @@ val TABLES: List<Table> =
             listOf(ref("task_id", "task"), ref("status_id", "item_status"), text("notes")),
             owner = "task_id IN (SELECT id FROM task WHERE user_id = :user)",
         ),
-        Table("time_block", true, listOf(id(), ref("task_id", "task"), long("start_at"), long("end_at"))),
+        Table(
+            "time_block",
+            true,
+            listOf(id(), ref("task_id", "task"), long("start_at"), long("end_at"), bool("logged")),
+        ),
         Table(
             "time_entry",
             true,
@@ -187,6 +191,7 @@ val TABLES: List<Table> =
                 ref("task_id", "task"),
                 long("started_at"),
                 long("ended_at"),
+                text("source"),
             ),
         ),
         Table(

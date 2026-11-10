@@ -366,6 +366,8 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
 
         "importProjects" => out(imports::import(conn, env, &a.get::<Vec<_>>("projects")?)?),
         "setRemindersEnabled" => out(reminders::set_enabled(conn, env, a.get("enabled")?)?),
+        "setAutoLogBlocks" => out(blocks::set_auto_log(conn, env, a.get("enabled")?)?),
+        "logEndedBlocks" => out(blocks::log_ended(conn, env)?),
 
         other => Err(Error::invalid(format!("{other} isn't a mutation."))),
     }

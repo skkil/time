@@ -445,6 +445,8 @@ fn walk_every_mutation(conn: &Connection) -> Vec<(String, Value)> {
         }]}),
     );
     s.run("setRemindersEnabled", json!({"enabled": false}));
+    s.run("setAutoLogBlocks", json!({"enabled": true}));
+    s.run("logEndedBlocks", json!({}));
 
     let todo = s.read("getWorkflow", json!({}))["statuses"]
         .as_array()

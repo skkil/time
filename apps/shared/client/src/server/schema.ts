@@ -292,6 +292,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/settings/auto-log-blocks': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['autoLogBlocks'];
+    put: operations['setAutoLogBlocks'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/sections/{id}/position': {
     parameters: {
       query?: never;
@@ -1460,6 +1476,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/blocks/ended/log': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['logEndedBlocks'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/preferences': {
     parameters: {
       query?: never;
@@ -1780,6 +1812,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/blocks/ended': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['countEndedBlocks'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/tasks/{id}/dependencies/{blockedById}': {
     parameters: {
       query?: never;
@@ -1904,6 +1952,7 @@ export interface components {
       startedAt: number;
       /** Format: int64 */
       endedAt: number;
+      source: string;
     };
     TaskInput: {
       title: string;
@@ -2636,6 +2685,7 @@ export interface components {
       startedAt: number;
       /** Format: int64 */
       endedAt: number;
+      source: string;
       taskTitle: string | null;
       taskCompleted: boolean;
     };
@@ -3453,6 +3503,48 @@ export interface operations {
     };
   };
   setCaptureHotkey: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Enabled'];
+      };
+    };
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  autoLogBlocks: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': boolean;
+        };
+      };
+    };
+  };
+  setAutoLogBlocks: {
     parameters: {
       query?: never;
       header?: never;
@@ -5614,6 +5706,26 @@ export interface operations {
       };
     };
   };
+  logEndedBlocks: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': number;
+        };
+      };
+    };
+  };
   readPreferences: {
     parameters: {
       query?: never;
@@ -6089,6 +6201,26 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['TimeBlock'][];
+        };
+      };
+    };
+  };
+  countEndedBlocks: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': number;
         };
       };
     };

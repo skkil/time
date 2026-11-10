@@ -9,6 +9,10 @@ export const time: Commands<
   | 'createBlock'
   | 'rescheduleBlock'
   | 'deleteBlock'
+  | 'countEndedBlocks'
+  | 'logEndedBlocks'
+  | 'getAutoLogBlocks'
+  | 'setAutoLogBlocks'
   | 'listTimeEntries'
   | 'listTaskEntries'
   | 'listProjectEntries'
@@ -33,6 +37,11 @@ export const time: Commands<
   rescheduleBlock: (id, span) =>
     unwrap(api.PUT('/api/v1/blocks/{id}', { ...byId(id), body: span })),
   deleteBlock: (id) => unwrap(api.DELETE('/api/v1/blocks/{id}', byId(id))),
+  countEndedBlocks: () => unwrap(api.GET('/api/v1/blocks/ended')),
+  logEndedBlocks: () => unwrap(api.POST('/api/v1/blocks/ended/log')),
+  getAutoLogBlocks: () => unwrap(api.GET('/api/v1/settings/auto-log-blocks')),
+  setAutoLogBlocks: (enabled) =>
+    unwrap(api.PUT('/api/v1/settings/auto-log-blocks', { body: { enabled } })),
   listTimeEntries: (from, to) =>
     unwrap(
       api.GET('/api/v1/time-entries', { params: { query: { from, to } } }),

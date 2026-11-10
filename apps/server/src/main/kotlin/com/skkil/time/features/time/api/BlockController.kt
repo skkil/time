@@ -1,8 +1,10 @@
 package com.skkil.time.features.time.api
 
 import com.skkil.time.common.web.Caller
+import com.skkil.time.features.settings.api.Enabled
 import com.skkil.time.features.time.domain.BlockSpan
 import com.skkil.time.features.time.domain.TimeBlock
+import com.skkil.time.features.time.service.BlockLogService
 import com.skkil.time.features.time.service.BlockService
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
@@ -21,7 +23,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1")
-class BlockController(private val blocks: BlockService) {
+class BlockController(private val blocks: BlockService, private val blockLog: BlockLogService) {
     @GetMapping("/blocks")
     fun listBlocks(
         caller: Caller,
@@ -49,4 +51,20 @@ class BlockController(private val blocks: BlockService) {
         caller: Caller,
         @PathVariable id: UUID,
     ) = blocks.delete(caller.id, id)
+
+    @GetMapping("/blocks/ended")
+    fun countEndedBlocks(caller: Caller): Int = blockLog.countEnded(caller)
+
+    @PostMapping("/blocks/ended/log")
+    fun logEndedBlocks(caller: Caller): Int = blockLog.logEnded(caller)
+
+    @GetMapping("/settings/auto-log-blocks")
+    fun autoLogBlocks(caller: Caller): Boolean = blockLog.enabled(caller.id)
+
+    @PutMapping("/settings/auto-log-blocks")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun setAutoLogBlocks(
+        caller: Caller,
+        @RequestBody body: Enabled,
+    ) = blockLog.setEnabled(caller, body.enabled)
 }
