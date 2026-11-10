@@ -70,15 +70,6 @@ export function useDeleteProject() {
   });
 }
 
-export function useSetProjectView() {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, view }: { id: Id; view: string }) =>
-      commands.setProjectView(id, view),
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.projects }),
-  });
-}
-
 export const settingsOf = (project: Project): ProjectSettings => ({
   groupId: project.groupId,
   status: project.status,
@@ -97,6 +88,45 @@ export function useUpdateProjectSettings() {
       commands.updateProjectSettings(id, settings),
     onSuccess: invalidate,
   });
+}
+
+export function useSaveProject(id: Id) {
+  const client = useQueryClient();
+  const update = useUpdateProject();
+  const updateSettings = useUpdateProjectSettings();
+  const current = () =>
+    client
+      .getQueryData<Project[]>(keys.projects)
+      ?.find((project) => project.id === id);
+  const patchCache = (patch: Partial<Project>) =>
+    client.setQueryData<Project[]>(keys.projects, (projects) =>
+      projects?.map((project) =>
+        project.id === id ? { ...project, ...patch } : project,
+      ),
+    );
+  const refetch = () => client.invalidateQueries({ queryKey: keys.projects });
+
+  return {
+    project: (patch: Partial<ProjectInput>) => {
+      const project = current();
+      if (!project) return;
+      const input: ProjectInput = {
+        name: project.name,
+        parentId: project.parentId,
+        color: project.color,
+        ...patch,
+      };
+      patchCache(input);
+      update.mutate({ id, input }, { onError: refetch });
+    },
+    settings: (patch: Partial<ProjectSettings>) => {
+      const project = current();
+      if (!project) return;
+      const settings = { ...settingsOf(project), ...patch };
+      patchCache(settings);
+      updateSettings.mutate({ id, settings }, { onError: refetch });
+    },
+  };
 }
 
 export function useMarkProjectReviewed() {

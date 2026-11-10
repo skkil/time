@@ -11,7 +11,7 @@ import { TaskLink } from '@/features/tasks/TaskLink';
 import { formatDate } from '@/features/tasks/meta';
 import { useTimeEntries } from '@/features/time/api';
 import { useWorkflow } from '@/features/workflow/api';
-import { useProjectTypeTime } from '@/features/workflow/use-workspace';
+import { useProjectTypeTime } from '@/features/workflow/type-time';
 import {
   formatDuration,
   fromSeconds,

@@ -65,7 +65,7 @@ export function PresetPicker({
         })}
       </div>
       <p id="preset-description" className="min-h-4 text-xs text-foreground/75">
-        {selected?.description || 'Imported preset'}
+        {selected?.description || 'Imported template'}
       </p>
       <button
         type="button"
@@ -73,7 +73,7 @@ export function PresetPicker({
         className="flex items-center gap-2 justify-self-start text-xs text-foreground/75 hover:text-foreground"
       >
         <UploadIcon className="size-3.5" />
-        Import a preset file
+        Import a template file
       </button>
       <input
         ref={file}

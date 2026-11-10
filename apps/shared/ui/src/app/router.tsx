@@ -8,10 +8,11 @@ import {
 
 import { MainPage } from '@/features/main/MainPage';
 import { GroupView } from '@/features/projects/GroupView';
+import { ProjectPage } from '@/features/projects/ProjectPage';
 import { ProjectsSpace } from '@/features/projects/ProjectsSpace';
 import { LazyWeekReview } from '@/features/review/LazyWeekReview';
-import { ProjectView } from '@/features/tasks/ProjectView';
 import { SomedayPage } from '@/features/tasks/SomedayPage';
+import { type ProjectTab, isProjectTab } from '@/lib/preferences';
 import {
   type DateKey,
   mondayOf,
@@ -26,6 +27,7 @@ import { RouteError } from './RouteError';
 type WeekSearch = { week: DateKey };
 export type MainView = 'day' | 'week';
 type MainSearch = { view: MainView; week: DateKey };
+type ProjectSearch = { tab?: ProjectTab };
 
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -107,7 +109,7 @@ export const projectsRoute = createRoute({
 const projectsInboxRoute = createRoute({
   getParentRoute: () => projectsRoute,
   path: '/',
-  component: () => <ProjectView projectId={null} />,
+  component: () => <ProjectPage projectId={null} />,
 });
 
 const projectsSomedayRoute = createRoute({
@@ -119,9 +121,12 @@ const projectsSomedayRoute = createRoute({
 export const projectRoute = createRoute({
   getParentRoute: () => projectsRoute,
   path: '/$projectId',
+  validateSearch: (search: Record<string, unknown>): ProjectSearch =>
+    isProjectTab(search.tab) ? { tab: search.tab } : {},
   component: function ProjectRoute() {
     const { projectId } = projectRoute.useParams();
-    return <ProjectView key={projectId} projectId={projectId} />;
+    const { tab } = projectRoute.useSearch();
+    return <ProjectPage key={projectId} projectId={projectId} tab={tab} />;
   },
 });
 

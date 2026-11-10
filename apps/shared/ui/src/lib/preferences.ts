@@ -5,7 +5,9 @@ import { installedPlatform } from '@/platform';
 
 export type ZenBackdropMode = 'motion' | 'still';
 
-export type ProjectTab = 'graph' | 'timeline';
+export type ProjectTab = 'tasks' | 'notes' | 'focus' | 'settings';
+
+export type ProjectViewMemory = { tab?: ProjectTab; view?: string };
 
 export type { WeekStart };
 
@@ -30,8 +32,7 @@ export type Preferences = {
   dayAnyTimeOpen: boolean;
   weekProjectsOpen: boolean;
   projectsSidebarOpen: boolean;
-  lastViews: Record<string, string>;
-  projectTabs: Partial<Record<string, ProjectTab>>;
+  projectView: Record<string, ProjectViewMemory>;
   weekStartsOn: WeekStart;
   sleep: SleepWindow | null;
   priorityColors: Record<string, string>;
@@ -50,8 +51,7 @@ const defaults: Preferences = {
   dayAnyTimeOpen: true,
   weekProjectsOpen: false,
   projectsSidebarOpen: false,
-  lastViews: {},
-  projectTabs: {},
+  projectView: {},
   weekStartsOn: 1,
   sleep: null,
   priorityColors: {},
@@ -74,8 +74,7 @@ const SHARED_KEYS = new Set<keyof Preferences>([
 const ACCOUNT_KEYS = new Set<keyof Preferences>([
   ...SHARED_KEYS,
   'lastProject',
-  'lastViews',
-  'projectTabs',
+  'projectView',
 ]);
 
 const ownerKey = 'preferences-owner';
@@ -86,8 +85,52 @@ const storageKey = 'preferences';
 const listeners = new Set<() => void>();
 let cache: Preferences | undefined;
 
+const PROJECT_TABS: ProjectTab[] = ['tasks', 'notes', 'focus', 'settings'];
+
+export const isProjectTab = (value: unknown): value is ProjectTab =>
+  PROJECT_TABS.includes(value as ProjectTab);
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const LEGACY_DEFAULT_VIEW = 'default';
+
+const LEGACY_KEYS = new Set(['lastViews', 'projectTabs']);
+
+function legacyProjectView(stored: Record<string, unknown>) {
+  const memory: Record<string, ProjectViewMemory> = {};
+  const lastViews = isRecord(stored.lastViews) ? stored.lastViews : {};
+  const projectTabs = isRecord(stored.projectTabs) ? stored.projectTabs : {};
+  for (const [key, view] of Object.entries(lastViews))
+    if (typeof view === 'string')
+      memory[key] = { view: view === LEGACY_DEFAULT_VIEW ? 'list' : view };
+  for (const [key, view] of Object.entries(projectTabs))
+    if (view === 'graph' || view === 'timeline') memory[key] = { view };
+  return memory;
+}
+
+function projectViewOf(stored: Record<string, unknown>) {
+  if (!isRecord(stored.projectView)) return legacyProjectView(stored);
+  const memory: Record<string, ProjectViewMemory> = {};
+  for (const [key, entry] of Object.entries(stored.projectView)) {
+    if (!isRecord(entry)) continue;
+    memory[key] = {
+      ...(isProjectTab(entry.tab) && { tab: entry.tab }),
+      ...(typeof entry.view === 'string' && { view: entry.view }),
+    };
+  }
+  return memory;
+}
+
 function sanitize(stored: Record<string, unknown>): Preferences {
-  const next = { ...defaults, ...stored } as Preferences;
+  const current = Object.fromEntries(
+    Object.entries(stored).filter(([key]) => !LEGACY_KEYS.has(key)),
+  );
+  const next = {
+    ...defaults,
+    ...current,
+    projectView: projectViewOf(stored),
+  } as Preferences;
   if (!BACKDROP_MODES.includes(next.zenBackdrop)) next.zenBackdrop = 'motion';
   if (![0, 1, 2, 3, 4, 5, 6].includes(next.weekStartsOn)) next.weekStartsOn = 1;
   if (typeof next.priorityColors !== 'object' || !next.priorityColors)

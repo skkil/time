@@ -1,10 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router';
-import {
-  ChevronDownIcon,
-  PlusIcon,
-  SettingsIcon,
-  SunsetIcon,
-} from 'lucide-react';
+import { ChevronDownIcon, PlusIcon, SunsetIcon } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
 import type { Project, Task } from '@/backend';
@@ -21,9 +16,8 @@ import { ProjectLink } from './ProjectLink';
 import { ProjectPicker } from './ProjectPicker';
 import { useProjectIndex, useUpdateProject } from './api';
 import { useProjectGroup } from './groups';
+import type { ProjectTab, TabOption } from './project-view';
 import { STATUSES, projectChain } from './tree';
-
-export type ViewOption = { id: string; label: string };
 
 function ProjectSwitcher({ project }: { project?: Project }) {
   const navigate = useNavigate();
@@ -100,23 +94,19 @@ function ProjectSwitcher({ project }: { project?: Project }) {
 export function ProjectHeader({
   project,
   openCount,
-  views,
-  view,
-  onView,
+  tabs,
+  tab,
+  onTab,
   onAddTask,
-  onSettings,
   next,
-  actions,
 }: {
   project?: Project;
   openCount: number;
-  views: ViewOption[];
-  view: string;
-  onView: (id: string) => void;
+  tabs: TabOption[];
+  tab: ProjectTab;
+  onTab: (tab: ProjectTab) => void;
   onAddTask: () => void;
-  onSettings: () => void;
   next?: Task;
-  actions?: ReactNode;
 }) {
   const index = useProjectIndex();
   const group = useProjectGroup(project?.id);
@@ -179,12 +169,6 @@ export function ProjectHeader({
             Add task
           </Button>
         )}
-        {project && (
-          <Button variant="outline" onClick={onSettings}>
-            <SettingsIcon />
-            Settings
-          </Button>
-        )}
       </div>
       <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-foreground/75">
         {details.map((detail, i) => (
@@ -195,39 +179,30 @@ export function ProjectHeader({
         ))}
       </p>
 
-      {(views.length > 1 || actions) && (
-        <div className="mt-4 flex flex-wrap items-end gap-x-6 gap-y-2 border-b border-white/10">
-          {views.length > 1 && (
-            <nav
-              role="tablist"
-              aria-label="Project sections"
-              className="flex gap-5"
+      {tabs.length > 1 && (
+        <nav
+          role="tablist"
+          aria-label="Project sections"
+          className="mt-4 flex gap-5 border-b border-white/10"
+        >
+          {tabs.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              role="tab"
+              aria-selected={option.id === tab}
+              onClick={() => onTab(option.id)}
+              className={cn(
+                '-mb-px border-b-2 pb-2.5 text-sm transition-colors outline-none focus-visible:text-foreground',
+                option.id === tab
+                  ? 'border-foreground font-medium text-foreground'
+                  : 'border-transparent text-foreground/75 hover:text-foreground',
+              )}
             >
-              {views.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={option.id === view}
-                  onClick={() => onView(option.id)}
-                  className={cn(
-                    '-mb-px border-b-2 pb-2.5 text-sm transition-colors outline-none focus-visible:text-foreground',
-                    option.id === view
-                      ? 'border-foreground font-medium text-foreground'
-                      : 'border-transparent text-foreground/75 hover:text-foreground',
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </nav>
-          )}
-          {actions && (
-            <div className="ml-auto flex items-center gap-3 pb-1.5">
-              {actions}
-            </div>
-          )}
-        </div>
+              {option.label}
+            </button>
+          ))}
+        </nav>
       )}
     </header>
   );

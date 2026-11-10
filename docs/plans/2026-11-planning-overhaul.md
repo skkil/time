@@ -357,6 +357,10 @@ Tasks toolbar: View [List ▾]   Show completed ☐                (left-aligned
    `project.view` (list/board) stays in the data model, but the UI only writes
    the preference. Mark `setProjectView` as deprecated in the plan; do not
    delete the mutation, because synced devices may still send it.
+
+   **Deprecated:** `setProjectView` is kept in the registry for older devices.
+   The UI no longer calls it; `project.view` is read only as the fallback for a
+   project with no remembered view.
 4. **Remove** the "Edit view" toolbar button. Editing a saved view is reached
    from the View picker ("Edit this view…").
 5. Keep the side context panel (`ProjectContext.tsx`) as it is. It already

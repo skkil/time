@@ -1,17 +1,17 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import {
   ArchiveIcon,
   ArchiveRestoreIcon,
   ChevronRightIcon,
   FolderPlusIcon,
   MoreHorizontalIcon,
-  PencilIcon,
   PlusIcon,
+  SettingsIcon,
   Trash2Icon,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-import type { Id, Project } from '@/backend';
+import type { Id } from '@/backend';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,22 +31,23 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useTasks } from '@/features/tasks/api';
+import { offerUndo, quoted } from '@/lib/undo';
 import { cn } from '@/lib/utils';
 
 import { GroupHeading } from './GroupHeading';
 import { NewProjectDialog } from './NewProjectDialog';
 import { ProjectDot } from './ProjectDot';
-import { ProjectSettingsDialog } from './ProjectSettingsDialog';
 import { useArchiveProject, useDeleteProject, useProjectIndex } from './api';
 import { useGroups } from './groups';
 import { MAX_PROJECT_DEPTH, type ProjectNode } from './tree';
 
-type DialogState = { project?: Project; parentId: Id | null } | null;
+type DialogState = { parentId: Id | null } | null;
 
 const isInactive = (node: ProjectNode) =>
   node.archived || node.status !== 'active';
 
 export function ProjectNav() {
+  const navigate = useNavigate();
   const index = useProjectIndex();
   const groups = useGroups();
   const { data: tasks } = useTasks();
@@ -77,10 +78,23 @@ export function ProjectNav() {
 
   const actions = {
     addChild: (node: ProjectNode) => setDialog({ parentId: node.id }),
-    edit: (node: ProjectNode) =>
-      setDialog({ project: node, parentId: node.parentId }),
+    settings: (node: ProjectNode) =>
+      void navigate({
+        to: '/projects/$projectId',
+        params: { projectId: node.id },
+        search: { tab: 'settings' },
+      }),
     archive: (node: ProjectNode, archived: boolean) =>
-      archive.mutate({ id: node.id, archived }),
+      archive.mutate(
+        { id: node.id, archived },
+        {
+          onSuccess: () =>
+            offerUndo(
+              `${archived ? 'Archived' : 'Restored'} ${quoted(node.name)}`,
+              () => archive.mutateAsync({ id: node.id, archived: !archived }),
+            ),
+        },
+      ),
     delete: setDeleting,
   };
 
@@ -197,15 +211,8 @@ export function ProjectNav() {
         </div>
       )}
 
-      {dialog?.project && (
-        <ProjectSettingsDialog
-          open
-          onOpenChange={(open) => !open && setDialog(null)}
-          project={dialog.project}
-        />
-      )}
       <NewProjectDialog
-        open={dialog !== null && !dialog.project}
+        open={dialog !== null}
         onOpenChange={(open) => !open && setDialog(null)}
         parentId={dialog?.parentId ?? null}
       />
@@ -243,7 +250,7 @@ export function ProjectNav() {
 
 type RowActions = {
   addChild: (node: ProjectNode) => void;
-  edit: (node: ProjectNode) => void;
+  settings: (node: ProjectNode) => void;
   archive: (node: ProjectNode, archived: boolean) => void;
   delete: (node: ProjectNode) => void;
 };
@@ -323,9 +330,9 @@ function ProjectRow({
             </DropdownMenuItem>
           ) : (
             <>
-              <DropdownMenuItem onSelect={() => actions.edit(node)}>
-                <PencilIcon />
-                Edit
+              <DropdownMenuItem onSelect={() => actions.settings(node)}>
+                <SettingsIcon />
+                Settings
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={node.depth + 1 >= MAX_PROJECT_DEPTH}
