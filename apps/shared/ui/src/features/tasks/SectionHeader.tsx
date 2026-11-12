@@ -221,7 +221,7 @@ export function AddSection({
       type="button"
       onClick={() => setEditing(true)}
       className={cn(
-        'group/add-section my-1 flex h-7 w-full items-center gap-3 text-sm font-medium text-now opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100',
+        'group/add-section mt-3 mb-1 flex h-7 w-full items-center gap-3 text-sm font-medium text-now opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100',
         always && 'text-foreground/75 opacity-100 hover:text-now',
       )}
     >

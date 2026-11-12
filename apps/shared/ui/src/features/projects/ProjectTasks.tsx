@@ -358,7 +358,7 @@ function SectionList({
                       defaults={{ projectId, sectionId: section.id }}
                       className={
                         sectionTasks.length > 0
-                          ? '-mb-5 opacity-0 transition-opacity group-focus-within/section:opacity-100 group-hover/section:opacity-100 focus-visible:opacity-100'
+                          ? 'opacity-0 transition-opacity group-focus-within/section:opacity-100 group-hover/section:opacity-100 focus-visible:opacity-100'
                           : undefined
                       }
                     />
