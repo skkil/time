@@ -140,6 +140,30 @@ class ProjectRepository(private val jdbc: JdbcClient) {
             .param("id", id)
             .update()
 
+    fun siblings(user: Long, parentId: UUID?, except: UUID): List<UUID> =
+        jdbc
+            .sql(
+                """
+                SELECT id FROM project
+                WHERE user_id = :user AND parent_id IS NOT DISTINCT FROM :parent AND id <> :id
+                ORDER BY position, id
+                """,
+            ).param("user", user)
+            .param("parent", parentId)
+            .param("id", except)
+            .query(UUID::class.java)
+            .list()
+            .filterNotNull()
+
+    fun setPosition(user: Long, id: UUID, position: Int) {
+        jdbc
+            .sql("UPDATE project SET position = :position WHERE user_id = :user AND id = :id")
+            .param("position", position)
+            .param("user", user)
+            .param("id", id)
+            .update()
+    }
+
     fun delete(user: Long, id: UUID): Int =
         jdbc
             .sql("DELETE FROM project WHERE user_id = :user AND id = :id")

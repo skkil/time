@@ -29,6 +29,11 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
             &a.get("settings")?,
         )?),
         "markProjectReviewed" => out(projects::mark_reviewed(conn, env, &a.id("id")?)?),
+        "reorderProject" => out(projects::reorder(
+            conn,
+            &a.id("id")?,
+            a.opt_id("before")?.as_ref(),
+        )?),
         "deleteProject" => out(projects::delete(conn, &a.id("id")?)?),
 
         "addTaskDependency" => out(dependencies::add(

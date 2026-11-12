@@ -45,6 +45,14 @@ pub fn list(conn: &Connection) -> Result<Vec<Project>> {
     Ok(rows.collect::<rusqlite::Result<_>>()?)
 }
 
+pub fn siblings(conn: &Connection, parent_id: Option<&Id>, except: &Id) -> Result<Vec<Id>> {
+    let mut stmt = conn.prepare(
+        "SELECT id FROM project WHERE parent_id IS ?1 AND id IS NOT ?2 ORDER BY position, id",
+    )?;
+    let rows = stmt.query_map(params![parent_id, except], |row| row.get(0))?;
+    Ok(rows.collect::<rusqlite::Result<_>>()?)
+}
+
 pub fn depth(conn: &Connection, id: &Id) -> Result<i64> {
     Ok(conn.query_row(
         "WITH RECURSIVE up(id, parent_id, depth) AS (

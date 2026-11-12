@@ -11,6 +11,7 @@ export const commands = {
 	setProjectView: (id: Id, view: string) => __TAURI_INVOKE<Project>("set_project_view", { id, view }),
 	updateProjectSettings: (id: Id, settings: ProjectSettings) => __TAURI_INVOKE<Project>("update_project_settings", { id, settings }),
 	markProjectReviewed: (id: Id) => __TAURI_INVOKE<Project>("mark_project_reviewed", { id }),
+	reorderProject: (id: Id, before: Id | null) => __TAURI_INVOKE<Project>("reorder_project", { id, before }),
 	deleteProject: (id: Id) => __TAURI_INVOKE<null>("delete_project", { id }),
 	addTaskDependency: (taskId: Id, blockedById: Id) => __TAURI_INVOKE<Task>("add_task_dependency", { taskId, blockedById }),
 	removeTaskDependency: (taskId: Id, blockedById: Id) => __TAURI_INVOKE<Task>("remove_task_dependency", { taskId, blockedById }),

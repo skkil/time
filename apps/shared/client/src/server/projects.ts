@@ -12,6 +12,7 @@ export const projects: Commands<
   | 'setProjectView'
   | 'updateProjectSettings'
   | 'markProjectReviewed'
+  | 'reorderProject'
   | 'deleteProject'
   | 'listGroups'
   | 'createGroup'
@@ -51,6 +52,13 @@ export const projects: Commands<
     ),
   markProjectReviewed: (id) =>
     unwrap(api.POST('/api/v1/projects/{id}/review', byId(id))),
+  reorderProject: (id, before) =>
+    unwrap(
+      api.PUT('/api/v1/projects/{id}/position', {
+        ...byId(id),
+        body: { before },
+      }),
+    ),
   deleteProject: (id) => unwrap(api.DELETE('/api/v1/projects/{id}', byId(id))),
   listGroups: () => unwrap(api.GET('/api/v1/groups')),
   createGroup: (name) => unwrap(api.POST('/api/v1/groups', { body: { name } })),

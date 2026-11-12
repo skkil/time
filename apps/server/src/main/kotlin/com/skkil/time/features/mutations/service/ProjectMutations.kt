@@ -36,6 +36,9 @@ class ProjectMutations(
             mutation("markProjectReviewed", "id") { caller, args ->
                 projects.markReviewed(caller, args.get<UUID>("id"))
             },
+            mutation("reorderProject", "id", "before") { caller, args ->
+                projects.reorder(caller.id, args.get<UUID>("id"), args.get<UUID?>("before"))
+            },
             mutation("deleteProject", "id") { caller, args ->
                 projects.delete(caller.id, args.get<UUID>("id"))
             },

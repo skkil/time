@@ -83,6 +83,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
             projects::set_project_view,
             projects::update_project_settings,
             projects::mark_project_reviewed,
+            projects::reorder_project,
             projects::delete_project,
             dependencies::add_task_dependency,
             dependencies::remove_task_dependency,

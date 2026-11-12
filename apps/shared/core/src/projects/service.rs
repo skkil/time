@@ -1,7 +1,7 @@
 use rusqlite::{Connection, params};
 
 use super::model::{Project, ProjectInput, ProjectSettings, VIEWS};
-use super::queries::{get, subtree};
+use super::queries::{get, siblings, subtree};
 use super::rules::{validate, validate_settings};
 use crate::env::MutationEnv;
 use crate::error::{Error, Result};
@@ -29,6 +29,24 @@ pub fn update(conn: &Connection, id: &Id, input: &ProjectInput) -> Result<Projec
          WHERE id = ?4",
         params![input.parent_id, name, input.color, id],
     )?;
+    get(conn, id)
+}
+
+/// Moves a project before `before` among its siblings (to the end when
+/// `before` is `None` or not a sibling) and renumbers them densely.
+pub fn reorder(conn: &Connection, id: &Id, before: Option<&Id>) -> Result<Project> {
+    let project = get(conn, id)?;
+    let mut ids = siblings(conn, project.parent_id.as_ref(), id)?;
+    let index = before
+        .and_then(|before| ids.iter().position(|other| other == before))
+        .unwrap_or(ids.len());
+    ids.insert(index, id.clone());
+    for (position, id) in ids.iter().enumerate() {
+        conn.execute(
+            "UPDATE project SET position = ?1 WHERE id = ?2",
+            params![position as i64 + 1, id],
+        )?;
+    }
     get(conn, id)
 }
 

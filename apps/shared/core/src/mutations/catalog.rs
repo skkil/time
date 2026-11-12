@@ -11,6 +11,7 @@ pub const MUTATIONS: &[&str] = &[
     "setProjectView",
     "updateProjectSettings",
     "markProjectReviewed",
+    "reorderProject",
     "deleteProject",
     "addTaskDependency",
     "removeTaskDependency",

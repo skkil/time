@@ -63,6 +63,12 @@ pub async fn mark_project_reviewed(db: State<'_, Db>, id: Id) -> Result<Project>
 
 #[tauri::command]
 #[specta::specta]
+pub async fn reorder_project(db: State<'_, Db>, id: Id, before: Option<Id>) -> Result<Project> {
+    mutate(&db, "reorderProject", json!({ "id": id, "before": before }))
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn delete_project(db: State<'_, Db>, id: Id) -> Result<()> {
     mutate(&db, "deleteProject", json!({ "id": id }))
 }

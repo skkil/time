@@ -34,6 +34,33 @@ fn nests_up_to_three_levels() {
 }
 
 #[test]
+fn reorders_among_siblings_only() {
+    let (db, env) = (db(), env());
+    db.call(|conn| {
+        let a = create(conn, &env, &input("A", None))?;
+        let b = create(conn, &env, &input("B", None))?;
+        let child = create(conn, &env, &input("A1", Some(&a.id)))?;
+        let c = create(conn, &env, &input("C", None))?;
+        let top = |conn: &rusqlite::Connection| -> crate::error::Result<Vec<String>> {
+            Ok(list(conn)?
+                .into_iter()
+                .filter(|p| p.parent_id.is_none())
+                .map(|p| p.name)
+                .collect())
+        };
+        reorder(conn, &c.id, Some(&a.id))?;
+        assert_eq!(top(conn)?, ["C", "A", "B"]);
+        reorder(conn, &c.id, None)?;
+        assert_eq!(top(conn)?, ["A", "B", "C"]);
+        reorder(conn, &b.id, Some(&child.id))?;
+        assert_eq!(top(conn)?, ["A", "C", "B"]);
+        assert_eq!(get(conn, &child.id)?.parent_id, Some(a.id.clone()));
+        Ok(())
+    })
+    .unwrap();
+}
+
+#[test]
 fn refuses_cycles_and_deep_moves() {
     let (db, env) = (db(), env());
     db.call(|conn| {

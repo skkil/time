@@ -1119,6 +1119,58 @@
           "id": "019a4b00-0000-7000-8000-0000000000cb"
         }
       ]
+    },
+    {
+      "name": "createProject",
+      "args": {
+        "input": {
+          "name": "Garden",
+          "parentId": null,
+          "color": "green"
+        }
+      },
+      "ids": ["019a4b00-0000-7000-8000-0000000000e0"],
+      "expect": [
+        {
+          "table": "project",
+          "id": "019a4b00-0000-7000-8000-0000000000e0",
+          "row": {
+            "name": "Garden",
+            "position": 3
+          }
+        }
+      ]
+    },
+    {
+      "name": "reorderProject",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-0000000000e0",
+        "before": "019a4b00-0000-7000-8000-000000000001"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "project",
+          "id": "019a4b00-0000-7000-8000-0000000000e0",
+          "row": {
+            "position": 1
+          }
+        },
+        {
+          "table": "project",
+          "id": "019a4b00-0000-7000-8000-000000000001",
+          "row": {
+            "position": 2
+          }
+        },
+        {
+          "table": "project",
+          "id": "019a4b00-0000-7000-8000-0000000000c9",
+          "row": {
+            "position": 3
+          }
+        }
+      ]
     }
   ]
 }

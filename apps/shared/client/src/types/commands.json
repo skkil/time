@@ -89,6 +89,7 @@
     "renameGroup",
     "renameSection",
     "reorderItemStatus",
+    "reorderProject",
     "reorderSection",
     "rescheduleBlock",
     "rescheduleTasks",

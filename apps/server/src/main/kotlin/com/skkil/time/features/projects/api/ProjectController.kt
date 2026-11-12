@@ -70,6 +70,14 @@ class ProjectController(private val projects: ProjectService, private val canvas
         @PathVariable id: UUID,
     ): Project = projects.markReviewed(caller, id)
 
+    @PutMapping("/{id}/position")
+    fun reorder(
+        caller: Caller,
+        @PathVariable id: UUID,
+        @RequestBody body: ProjectPlacement,
+    ): Project =
+        projects.reorder(caller.id, id, body.before)
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(

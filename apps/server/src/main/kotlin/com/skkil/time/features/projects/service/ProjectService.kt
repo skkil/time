@@ -76,6 +76,15 @@ class ProjectService(private val projects: ProjectRepository, private val groups
         return get(caller.id, id)
     }
 
+    fun reorder(user: Long, id: UUID, before: UUID?): Project {
+        val project = get(user, id)
+        val ids = projects.siblings(user, project.parentId, id).toMutableList()
+        val index = ids.indexOf(before).takeIf { it >= 0 } ?: ids.size
+        ids.add(index, id)
+        ids.forEachIndexed { position, sibling -> projects.setPosition(user, sibling, position + 1) }
+        return get(user, id)
+    }
+
     fun delete(user: Long, id: UUID) = ensureChanged(projects.delete(user, id), "Project")
 
     private fun validate(user: Long, input: ProjectInput, moving: UUID?): String {

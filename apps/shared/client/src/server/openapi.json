@@ -1290,6 +1290,43 @@
         }
       }
     },
+    "/api/v1/projects/{id}/position" : {
+      "put" : {
+        "tags" : [ "project-controller" ],
+        "operationId" : "reorder_1",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProjectPlacement"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Project"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{id}/milestone-label" : {
       "put" : {
         "tags" : [ "workflow-controller" ],
@@ -5245,6 +5282,16 @@
           }
         },
         "required" : [ "category", "name" ]
+      },
+      "ProjectPlacement" : {
+        "type" : "object",
+        "properties" : {
+          "before" : {
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "before" ]
       },
       "MilestoneLabel" : {
         "type" : "object",

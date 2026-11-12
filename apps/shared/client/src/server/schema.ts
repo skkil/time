@@ -500,6 +500,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/projects/{id}/position': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['reorder_1'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/projects/{id}/milestone-label': {
     parameters: {
       query?: never;
@@ -2383,6 +2399,10 @@ export interface components {
       name: string;
       category: string;
     };
+    ProjectPlacement: {
+      /** Format: uuid */
+      before: string | null;
+    };
     MilestoneLabel: {
       label: string;
     };
@@ -3096,6 +3116,7 @@ export type ProjectSettings = components['schemas']['ProjectSettings'];
 export type ItemTypeInput = components['schemas']['ItemTypeInput'];
 export type Preset = components['schemas']['Preset'];
 export type StatusInput = components['schemas']['StatusInput'];
+export type ProjectPlacement = components['schemas']['ProjectPlacement'];
 export type MilestoneLabel = components['schemas']['MilestoneLabel'];
 export type CanvasContent = components['schemas']['CanvasContent'];
 export type ProjectCanvas = components['schemas']['ProjectCanvas'];
@@ -4227,6 +4248,32 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  reorder_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ProjectPlacement'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Project'];
+        };
       };
     };
   };
