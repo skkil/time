@@ -93,8 +93,14 @@
 
   html {
     @apply font-sans antialiased;
+    color-scheme: dark;
     font-size: 14px;
     font-variant-numeric: tabular-nums;
+  }
+
+  option,
+  optgroup {
+    @apply bg-background text-foreground;
   }
 
   html,
