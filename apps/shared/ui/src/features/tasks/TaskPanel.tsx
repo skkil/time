@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import {
   CheckIcon,
   ChevronRightIcon,
+  CopyIcon,
   CornerLeftUpIcon,
   EllipsisIcon,
   Link2Icon,
@@ -62,6 +63,7 @@ import {
   taskToInput,
   useCreateTask,
   useDeleteTask,
+  useDuplicateTask,
   useMoveTask,
   useMoveTasks,
   useSections,
@@ -453,6 +455,8 @@ function MoreMenu({ task, onWait }: { task: Task; onWait: () => void }) {
   const waitChosen = useRef(false);
   const remove = useDeleteTask();
   const someday = useSetTasksSomeday();
+  const duplicate = useDuplicateTask();
+  const { openTask } = useTaskDialog();
   const [confirming, setConfirming] = useState(false);
   return (
     <>
@@ -483,6 +487,16 @@ function MoreMenu({ task, onWait }: { task: Task; onWait: () => void }) {
           >
             <SunsetIcon />
             {task.someday ? 'Bring back' : 'Move to Someday'}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() =>
+              duplicate.mutate(task, {
+                onSuccess: (copy) => openTask(copy.id),
+              })
+            }
+          >
+            <CopyIcon />
+            Duplicate
           </DropdownMenuItem>
           {task.completedAt === null && (
             <DropdownMenuItem onSelect={() => (waitChosen.current = true)}>

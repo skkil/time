@@ -3,6 +3,7 @@ import type { useSortable } from '@dnd-kit/sortable';
 import {
   CalendarIcon,
   ChevronRightIcon,
+  CopyIcon,
   GripVerticalIcon,
   MoreHorizontalIcon,
   PencilIcon,
@@ -41,6 +42,7 @@ import { TaskLink } from './TaskLink';
 import {
   taskToInput,
   useDeleteTask,
+  useDuplicateTask,
   useMoveTasks,
   useSections,
   useSetTaskCompleted,
@@ -81,6 +83,7 @@ export function TaskItem({
   const update = useUpdateTask();
   const move = useMoveTasks();
   const remove = useDeleteTask();
+  const duplicate = useDuplicateTask();
   const setMust = useSetTaskMust();
   const setSomeday = useSetTasksSomeday();
   const start = useStartTimer();
@@ -351,6 +354,16 @@ export function TaskItem({
               <DropdownMenuItem onSelect={() => openTask(task.id)}>
                 <PencilIcon />
                 Edit task
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() =>
+                  duplicate.mutate(task, {
+                    onSuccess: (copy) => openTask(copy.id),
+                  })
+                }
+              >
+                <CopyIcon />
+                Duplicate
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() =>

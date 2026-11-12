@@ -15,6 +15,7 @@ import {
   type TaskSnapshot,
   commands,
 } from '@/backend';
+import { duplicatePlan } from '@/features/tasks/duplicate';
 import { formatDate } from '@/features/tasks/meta';
 import { keys } from '@/lib/query';
 import { offerUndo, quoted } from '@/lib/undo';
@@ -142,6 +143,40 @@ export function useCreateTask() {
       cache.update((tasks) => [...tasks, task]);
       return cache.refresh();
     },
+  });
+}
+
+export function useDuplicateTask() {
+  const cache = useTaskCache();
+  return useMutation({
+    mutationFn: async (original: Task) => {
+      const { before, steps } = duplicatePlan(cache.current() ?? [], original);
+      const copy = await commands.createTask(taskToInput(original));
+      if (before)
+        await commands.moveTask(copy.id, {
+          projectId: copy.projectId,
+          sectionId: copy.sectionId,
+          parentId: copy.parentId,
+          before,
+        });
+      const copies = new Map<Id, Id>([[original.id, copy.id]]);
+      for (const step of steps) {
+        const made = await commands.createTask({
+          ...taskToInput(step),
+          parentId: copies.get(step.parentId!) ?? copy.id,
+        });
+        copies.set(step.id, made.id);
+      }
+      return copy;
+    },
+    onSuccess: (copy, original) => {
+      offerUndo(`Duplicated ${quoted(original.title)}`, async () => {
+        await commands.deleteTask(copy.id);
+        await cache.refresh();
+      });
+      return cache.refresh();
+    },
+    onError: () => cache.refresh(),
   });
 }
 
