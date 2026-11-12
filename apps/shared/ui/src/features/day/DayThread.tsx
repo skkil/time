@@ -172,7 +172,9 @@ export function DayThread({
               key={entry.id}
               type="button"
               disabled={entry.id === LIVE_ENTRY_ID}
-              onClick={() => setEditing(entry)}
+              onClick={() =>
+                entry.taskId === null ? setEditing(entry) : onPick(entry.taskId)
+              }
               title={`${label} · ${formatClockTime(entry.startedAt)}–${entry.id === LIVE_ENTRY_ID ? 'now' : formatClockTime(entry.endedAt)} · ${formatDuration(entry.endedAt - entry.startedAt)}`}
               className="absolute right-0 left-16 overflow-hidden rounded-md px-2 text-right text-[11px] leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70"
               style={{
