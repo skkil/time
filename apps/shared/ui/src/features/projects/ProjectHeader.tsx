@@ -1,91 +1,40 @@
-import { Link, useNavigate } from '@tanstack/react-router';
-import { ChevronDownIcon, PlusIcon, SunsetIcon } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { PlusIcon } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
 import type { Project, Task } from '@/backend';
 import { InlineRename } from '@/components/InlineRename';
 import { Button } from '@/components/ui/button';
-import { CommandItem } from '@/components/ui/command';
 import { DueText } from '@/features/tasks/DueText';
 import { TaskLink } from '@/features/tasks/TaskLink';
 import { cn } from '@/lib/utils';
 
-import { NewProjectDialog } from './NewProjectDialog';
 import { ProjectDot } from './ProjectDot';
 import { ProjectLink } from './ProjectLink';
-import { ProjectPicker } from './ProjectPicker';
 import { useProjectIndex, useUpdateProject } from './api';
 import { useProjectGroup } from './groups';
 import type { ProjectTab, TabOption } from './project-view';
 import { STATUSES, projectChain } from './tree';
 
-function ProjectSwitcher({ project }: { project?: Project }) {
-  const navigate = useNavigate();
-  const [creating, setCreating] = useState(false);
+function ProjectTitle({ project }: { project?: Project }) {
   const [renaming, setRenaming] = useState(false);
   const update = useUpdateProject();
-  const chevron = (
-    <ChevronDownIcon
-      className="size-5 shrink-0 text-foreground/75 transition-colors group-hover/switch:text-foreground"
-      strokeWidth={1.5}
-    />
-  );
 
+  if (!project) return 'Inbox';
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      {project && <ProjectDot color={project.color} className="size-3" />}
-      {project && (
-        <InlineRename
-          value={project.name}
-          label="Project name"
-          editing={renaming}
-          onEditingChange={setRenaming}
-          onSave={(name) =>
-            update.mutate({
-              id: project.id,
-              input: { name, parentId: project.parentId, color: project.color },
-            })
-          }
-        />
-      )}
-      <ProjectPicker
-        value={project?.id ?? null}
-        noneLabel="Inbox"
-        onChange={(id) =>
-          id === null
-            ? navigate({ to: '/projects' })
-            : navigate({
-                to: '/projects/$projectId',
-                params: { projectId: id },
-              })
+      <ProjectDot color={project.color} className="size-3" />
+      <InlineRename
+        value={project.name}
+        label="Project name"
+        editing={renaming}
+        onEditingChange={setRenaming}
+        onSave={(name) =>
+          update.mutate({
+            id: project.id,
+            input: { name, parentId: project.parentId, color: project.color },
+          })
         }
-        trigger={
-          <button
-            type="button"
-            aria-label={`Switch project, now ${project?.name ?? 'Inbox'}`}
-            className="group/switch flex max-w-full shrink-0 items-center gap-2.5 rounded-md outline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
-          >
-            {!project && <span className="truncate">Inbox</span>}
-            {chevron}
-          </button>
-        }
-      >
-        <CommandItem
-          value="Someday"
-          onSelect={() => navigate({ to: '/projects/someday' })}
-        >
-          <SunsetIcon className="text-muted-foreground" />
-          Someday
-        </CommandItem>
-        <CommandItem value="New project" onSelect={() => setCreating(true)}>
-          <PlusIcon className="text-muted-foreground" />
-          New project
-        </CommandItem>
-      </ProjectPicker>
-      <NewProjectDialog
-        open={creating}
-        onOpenChange={setCreating}
-        parentId={null}
       />
     </div>
   );
@@ -161,7 +110,7 @@ export function ProjectHeader({
       )}
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="min-w-0 flex-1 text-3xl leading-tight font-light tracking-tight max-sm:basis-full">
-          <ProjectSwitcher project={project} />
+          <ProjectTitle project={project} />
         </h1>
         {!project?.archived && (
           <Button onClick={onAddTask}>
