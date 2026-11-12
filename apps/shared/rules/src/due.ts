@@ -1,3 +1,4 @@
+import { formatDay } from '#date-order';
 import {
   type DateKey,
   formatMinutesOfDay,
@@ -27,8 +28,8 @@ export function formatDate(date: DateKey, today = todayKey()): string {
   if (diff === -1) return 'Yesterday';
   if (diff > 1 && diff < 7) return format(fromDateKey(date), 'EEEE');
   if (date.slice(0, 4) !== today.slice(0, 4))
-    return format(fromDateKey(date), 'd MMM yyyy');
-  return format(fromDateKey(date), 'd MMM');
+    return formatDay(fromDateKey(date), 'dayMonthYear');
+  return formatDay(fromDateKey(date), 'dayMonth');
 }
 
 export const STALE_DAYS = 14;

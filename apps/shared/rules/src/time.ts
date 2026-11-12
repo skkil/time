@@ -1,3 +1,4 @@
+import { dateOrder, formatDay } from '#date-order';
 import {
   addDays,
   differenceInCalendarDays,
@@ -109,7 +110,7 @@ export function formatDayLabel(key: DateKey, today = todayKey()): string {
   if (diff === 0) return 'Today';
   if (diff === 1) return 'Tomorrow';
   if (diff === -1) return 'Yesterday';
-  return format(fromDateKey(key), 'EEE d MMM');
+  return formatDay(fromDateKey(key), 'weekdayDayMonth');
 }
 
 export const formatWeekday = (key: DateKey) => format(fromDateKey(key), 'EEE');
@@ -120,9 +121,11 @@ export function formatWeekRange(monday: DateKey): string {
   const start = fromDateKey(monday);
   const end = addDays(start, 6);
   const sameMonth = start.getMonth() === end.getMonth();
-  return sameMonth
-    ? `${format(start, 'd')} – ${format(end, 'd MMMM yyyy')}`
-    : `${format(start, 'd MMM')} – ${format(end, 'd MMM yyyy')}`;
+  if (!sameMonth)
+    return `${formatDay(start, 'dayMonth')} – ${formatDay(end, 'dayMonthYear')}`;
+  return dateOrder() === 'monthFirst'
+    ? `${formatDay(start, 'dayLongMonth')} – ${format(end, 'd, yyyy')}`
+    : `${format(start, 'd')} – ${formatDay(end, 'dayLongMonthYear')}`;
 }
 
 export const isoWeekNumber = (key: DateKey) =>
