@@ -1,12 +1,46 @@
-import type { Milestone, Project, Task } from '@/backend';
+import type { Id, Milestone, Project, Task } from '@/backend';
 import type { DateKey } from '@/lib/time';
 
-import type { TimelineLine, TimelineMark } from './Timeline';
+import type { TimelineLine, TimelineMark, TimelineRow } from './Timeline';
 
 export const isScheduled = (task: Task) =>
   task.kind !== 'record' &&
   task.completedAt === null &&
   (task.dueDate !== null || task.deadline !== null);
+
+const isOpenItem = (task: Task) =>
+  task.kind !== 'record' && task.completedAt === null;
+
+export function taskSpan(task: Task): TimelineRow['span'] {
+  if (task.dueDate === null) return undefined;
+  const end = [task.dueUntil, task.deadline]
+    .filter((date): date is DateKey => date !== null && date > task.dueDate!)
+    .sort()
+    .at(-1);
+  return end ? { from: task.dueDate, to: end } : undefined;
+}
+
+export function taskTimelineRows(
+  tasks: Task[],
+  today: DateKey,
+  colorOf: (projectId: Id | null) => string,
+  onOpen: (task: Task) => void,
+): TimelineRow[] {
+  const open = tasks.filter(isOpenItem);
+  const dated = open
+    .filter(isScheduled)
+    .sort((a, b) => firstDate(a).localeCompare(firstDate(b)));
+  const undated = open.filter((task) => !isScheduled(task));
+  return [...dated, ...undated].map((task) => ({
+    id: String(task.id),
+    label: task.title,
+    color: colorOf(task.projectId),
+    marks: taskMarks(task, today),
+    span: taskSpan(task),
+    note: isScheduled(task) ? undefined : 'No date',
+    onOpen: () => onOpen(task),
+  }));
+}
 
 export function taskMarks(task: Task, today: DateKey): TimelineMark[] {
   const late = (date: DateKey) =>

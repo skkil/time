@@ -30,6 +30,7 @@ export type TimelineRow = {
   depth?: number;
   marks: TimelineMark[];
   span?: { from: DateKey; to: DateKey };
+  note?: string;
   onOpen?: () => void;
 };
 
@@ -236,6 +237,14 @@ function TimelineRowView({
         <span className="truncate">{row.label}</span>
       </button>
       <div className="relative flex-1">
+        {row.note && (
+          <span
+            className="sticky flex h-full w-max items-center text-xs text-foreground/50"
+            style={{ left: LABEL + 12 }}
+          >
+            {row.note}
+          </span>
+        )}
         {row.span && (
           <div
             className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full opacity-40"

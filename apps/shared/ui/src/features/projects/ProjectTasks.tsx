@@ -146,7 +146,7 @@ export function ProjectTasks({
     current.id === 'graph' ? (
       <GraphView projectId={projectId} own={own} />
     ) : current.id === 'timeline' && project ? (
-      <ProjectTimeline project={project} own={own} />
+      <ProjectTimeline project={project} />
     ) : isSaved(current) && project ? (
       <Workspace
         project={project}
