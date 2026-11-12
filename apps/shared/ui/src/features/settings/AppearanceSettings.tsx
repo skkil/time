@@ -1,7 +1,18 @@
 import { MinusIcon, PlusIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { usePreference } from '@/lib/preferences';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  type DateOrder,
+  setPreference,
+  usePreference,
+} from '@/lib/preferences';
 import { formatShortcut } from '@/lib/shortcuts';
 import {
   ZOOM_LEVELS,
@@ -13,7 +24,46 @@ import {
 
 import { SettingRow } from './SettingRow';
 
+const DATE_ORDERS: { value: DateOrder; label: string }[] = [
+  { value: 'dayFirst', label: 'Day first (24 Nov)' },
+  { value: 'monthFirst', label: 'Month first (Nov 24)' },
+];
+
 export function AppearanceSettings() {
+  return (
+    <div>
+      <ZoomSetting />
+      <DateOrderSetting />
+    </div>
+  );
+}
+
+function DateOrderSetting() {
+  const order = usePreference('dateOrder');
+  return (
+    <SettingRow label="Date order" description="How dates read across the app.">
+      <Select
+        value={order}
+        onValueChange={(value) =>
+          setPreference('dateOrder', value as DateOrder)
+        }
+      >
+        <SelectTrigger size="sm" className="w-48">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {DATE_ORDERS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </SettingRow>
+  );
+}
+
+function ZoomSetting() {
   const zoom = usePreference('zoom');
   return (
     <SettingRow

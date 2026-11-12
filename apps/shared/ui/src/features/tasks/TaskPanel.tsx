@@ -1,5 +1,4 @@
 import { focusedSeconds } from '@skkil-time/rules/timer';
-import { format } from 'date-fns';
 import {
   CheckIcon,
   ChevronRightIcon,
@@ -43,6 +42,7 @@ import { EventLine, WorkflowLine } from '@/features/workflow/TaskWorkflow';
 import { useProjectWorkflow } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
 import {
+  formatDay,
   formatDuration,
   formatEstimate,
   formatStopwatch,
@@ -311,7 +311,7 @@ function Details({
       trigger={
         <Phrase set={task.deadline !== null}>
           {task.deadline
-            ? `due by ${format(fromDateKey(task.deadline), 'd MMM')}`
+            ? `due by ${formatDay(fromDateKey(task.deadline), 'dayMonth')}`
             : 'deadline'}
         </Phrase>
       }

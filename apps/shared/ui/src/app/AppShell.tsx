@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { DateOrderBoundary } from '@/components/DateOrderBoundary';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -167,7 +168,9 @@ function Canvas() {
         </div>
       </header>
       <main className="relative z-10 h-full pt-[calc(5rem+env(safe-area-inset-top))]">
-        <Outlet />
+        <DateOrderBoundary>
+          <Outlet />
+        </DateOrderBoundary>
       </main>
       <SearchDialog open={searching} onOpenChange={setSearching} />
       <SettingsDialog

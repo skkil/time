@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { CheckIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -12,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Dot, Phrase } from '@/features/tasks/Phrase';
-import { formatMinutesOfDay, fromDateKey } from '@/lib/time';
+import { formatDay, formatMinutesOfDay, fromDateKey } from '@/lib/time';
 
 import { TypeIcon } from './TypeIcon';
 import {
@@ -143,7 +142,7 @@ export function WorkflowLine({ task }: { task: Task }) {
               <span className="flex-1">{item.name}</span>
               {item.date && (
                 <span className="text-xs text-foreground/75">
-                  {format(fromDateKey(item.date), 'd MMM')}
+                  {formatDay(fromDateKey(item.date), 'dayMonth')}
                 </span>
               )}
               {item.id === task.milestoneId && <CheckIcon />}
@@ -196,7 +195,7 @@ export function EventLine({ task }: { task: Task }) {
         Event
       </span>
       <span>
-        {format(fromDateKey(task.dueDate), 'EEE d MMM')},{' '}
+        {formatDay(fromDateKey(task.dueDate), 'weekdayDayMonth')},{' '}
         {formatMinutesOfDay(task.dueTime)}–{formatMinutesOfDay(end)}
       </span>
       <Dot />

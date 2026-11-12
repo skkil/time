@@ -1,5 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router';
-import { differenceInCalendarDays, format } from 'date-fns';
+import { differenceInCalendarDays } from 'date-fns';
 import { FoldersIcon, PencilIcon, PlusIcon } from 'lucide-react';
 import { type ReactNode, useMemo, useState } from 'react';
 
@@ -9,6 +9,7 @@ import { useTasks } from '@/features/tasks/api';
 import { useTimeEntries } from '@/features/time/api';
 import { useWorkflow } from '@/features/workflow/api';
 import {
+  formatDay,
   formatDuration,
   fromDateKey,
   mondayOf,
@@ -309,13 +310,13 @@ function ProjectGrid({
 }
 
 const dayLabel = (date: string, today: string) =>
-  date === today ? 'Today' : format(fromDateKey(date), 'd MMM');
+  date === today ? 'Today' : formatDay(fromDateKey(date), 'dayMonth');
 
 function deadlineLabel(date: string, today: string) {
   const days = differenceInCalendarDays(fromDateKey(date), fromDateKey(today));
   const left =
     days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`;
-  return `${format(fromDateKey(date), 'd MMM')} · ${left}`;
+  return `${formatDay(fromDateKey(date), 'dayMonth')} · ${left}`;
 }
 
 function ProjectCard({ summary, today }: { summary: Summary; today: string }) {
@@ -335,7 +336,7 @@ function ProjectCard({ summary, today }: { summary: Summary; today: string }) {
     [
       'Target',
       node.targetDate
-        ? format(fromDateKey(node.targetDate), 'd MMM yyyy')
+        ? formatDay(fromDateKey(node.targetDate), 'dayMonthYear')
         : '—',
     ],
     [

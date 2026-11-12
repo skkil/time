@@ -13,6 +13,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { syncColorScheme } from '@/hooks/use-color-scheme';
 import { syncBlockLog } from '@/lib/block-log';
+import { syncDateOrder } from '@/lib/date-order';
 import { syncExternalChanges } from '@/lib/external-changes';
 import { syncIdle } from '@/lib/idle';
 import { syncSharedPreferences } from '@/lib/preferences';
@@ -40,6 +41,7 @@ export function mount({
   syncIdle();
   syncZoom();
   syncPriorityColors();
+  syncDateOrder();
   syncSharedPreferences();
   syncExternalChanges();
   syncBlockLog();

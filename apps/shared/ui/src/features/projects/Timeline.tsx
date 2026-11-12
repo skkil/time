@@ -5,6 +5,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { TABLE_STICKY, TABLE_SURFACE } from '@/components/surfaces';
 import {
   type DateKey,
+  formatDay,
   fromDateKey,
   mondayOf,
   shiftKey,
@@ -138,13 +139,13 @@ export function Timeline({
                 className="absolute top-7 border-l border-white/15 pl-1.5 tabular-nums"
                 style={{ left: x(key) }}
               >
-                {format(fromDateKey(key), 'd MMM')}
+                {formatDay(fromDateKey(key), 'dayMonth')}
               </span>
             ))}
             {lines.map((line) => (
               <span
                 key={`${line.date}-${line.label}`}
-                title={`${line.label} · ${format(fromDateKey(line.date), 'd MMM yyyy')}`}
+                title={`${line.label} · ${formatDay(fromDateKey(line.date), 'dayMonthYear')}`}
                 className="absolute bottom-2 max-w-40 -translate-x-1/2 truncate rounded-full bg-white/10 px-1.5 text-[11px] text-foreground/80"
                 style={{ left: x(line.date) + DAY / 2 }}
               >
@@ -280,7 +281,7 @@ function Mark({
   const { kind, date } = marks[0];
   const late = marks.some((mark) => mark.late);
   const title = [
-    `${KIND_LABEL[kind]} ${format(fromDateKey(date), 'EEE d MMM yyyy')}`,
+    `${KIND_LABEL[kind]} ${formatDay(fromDateKey(date), 'weekdayDayMonthYear')}`,
     ...marks.map((mark) => `• ${mark.label}`),
   ].join('\n');
 

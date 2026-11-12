@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { type ReactNode, useMemo } from 'react';
 
 import type { Project, Task } from '@/backend';
@@ -13,6 +12,7 @@ import { useTimeEntries } from '@/features/time/api';
 import { useWorkflow } from '@/features/workflow/api';
 import { useProjectTypeTime } from '@/features/workflow/type-time';
 import {
+  formatDay,
   formatDuration,
   fromSeconds,
   mondayOf,
@@ -119,7 +119,7 @@ function ThisWeek({
     ...byType.map(([name, seconds]) => `${name}: ${formatDuration(seconds)}`),
     nextReview === null
       ? 'Not reviewed yet'
-      : `Next review ${format(fromSeconds(nextReview), 'd MMM')}`,
+      : `Next review ${formatDay(fromSeconds(nextReview), 'dayMonth')}`,
   ];
 
   return (

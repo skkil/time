@@ -1,3 +1,4 @@
+import { DATE_ORDERS, type DateOrder } from '@skkil-time/rules/date-order';
 import type { WeekStart } from '@skkil-time/rules/time';
 import { useSyncExternalStore } from 'react';
 
@@ -9,7 +10,7 @@ export type ProjectTab = 'tasks' | 'notes' | 'focus' | 'settings';
 
 export type ProjectViewMemory = { tab?: ProjectTab; view?: string };
 
-export type { WeekStart };
+export type { DateOrder, WeekStart };
 
 export type WeatherPlace = {
   name: string;
@@ -34,6 +35,7 @@ export type Preferences = {
   projectsSidebarOpen: boolean;
   projectView: Record<string, ProjectViewMemory>;
   weekStartsOn: WeekStart;
+  dateOrder: DateOrder;
   sleep: SleepWindow | null;
   priorityColors: Record<string, string>;
 };
@@ -53,6 +55,7 @@ const defaults: Preferences = {
   projectsSidebarOpen: false,
   projectView: {},
   weekStartsOn: 1,
+  dateOrder: 'dayFirst',
   sleep: null,
   priorityColors: {},
 };
@@ -65,6 +68,7 @@ const SHARED_KEYS = new Set<keyof Preferences>([
   'showWeather',
   'weatherPlace',
   'weekStartsOn',
+  'dateOrder',
   'sleep',
   'priorityColors',
   'zenBackdrop',
@@ -133,6 +137,7 @@ function sanitize(stored: Record<string, unknown>): Preferences {
   } as Preferences;
   if (!BACKDROP_MODES.includes(next.zenBackdrop)) next.zenBackdrop = 'motion';
   if (![0, 1, 2, 3, 4, 5, 6].includes(next.weekStartsOn)) next.weekStartsOn = 1;
+  if (!DATE_ORDERS.includes(next.dateOrder)) next.dateOrder = 'dayFirst';
   if (typeof next.priorityColors !== 'object' || !next.priorityColors)
     next.priorityColors = {};
   return next;

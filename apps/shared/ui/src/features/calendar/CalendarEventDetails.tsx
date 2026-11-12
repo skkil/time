@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { ExternalLinkIcon, MapPinIcon } from 'lucide-react';
 
 import type { CalendarEvent } from '@/backend';
@@ -11,6 +10,7 @@ import {
 } from '@/components/ui/popover';
 import {
   formatClockTime,
+  formatDay,
   fromDateKey,
   fromSeconds,
   shiftKey,
@@ -21,12 +21,12 @@ import { platform } from '@/platform';
 function when(event: CalendarEvent): string {
   if (event.allDay && event.startDate && event.endDate) {
     const last = shiftKey(event.endDate, -1);
-    const first = format(fromDateKey(event.startDate), 'EEE d MMM');
+    const first = formatDay(fromDateKey(event.startDate), 'weekdayDayMonth');
     return last === event.startDate
       ? `${first} · All day`
-      : `${first} – ${format(fromDateKey(last), 'EEE d MMM')} · All day`;
+      : `${first} – ${formatDay(fromDateKey(last), 'weekdayDayMonth')} · All day`;
   }
-  return `${format(fromSeconds(event.startAt), 'EEE d MMM')} · ${formatClockTime(event.startAt)}–${formatClockTime(event.endAt)}`;
+  return `${formatDay(fromSeconds(event.startAt), 'weekdayDayMonth')} · ${formatClockTime(event.startAt)}–${formatClockTime(event.endAt)}`;
 }
 
 export function GoogleMark({ className }: { className?: string }) {

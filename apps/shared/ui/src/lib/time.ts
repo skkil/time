@@ -7,6 +7,7 @@ import {
 import { getPreference } from '@/lib/preferences';
 
 export * from '@skkil-time/rules/time';
+export { type DateStyle, formatDay } from '@skkil-time/rules/date-order';
 
 export const weekStartOf = (
   key: DateKey,

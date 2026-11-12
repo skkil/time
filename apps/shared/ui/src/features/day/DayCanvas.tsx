@@ -25,6 +25,7 @@ import { usePreference } from '@/lib/preferences';
 import { useShortcuts } from '@/lib/shortcuts';
 import {
   dayStart,
+  formatDay,
   formatDuration,
   fromDateKey,
   secondsWithin,
@@ -299,7 +300,7 @@ function TodayLine({ tracked }: { tracked: number }) {
       )}
       <p className="text-base text-foreground/70">
         {[
-          showDate && format(date, 'd MMMM'),
+          showDate && formatDay(date, 'dayLongMonth'),
           showWeather &&
             weather &&
             `${weather.temperature}° ${describeWeather(weather.code)}${place ? ` in ${place.name}` : ''}`,
