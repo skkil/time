@@ -184,6 +184,13 @@ export function DuePicker({
     }
   };
 
+  const commitTime = () => {
+    const minutes = timeText ? parseClockInput(timeText) : null;
+    if (timeText && minutes === null) return false;
+    if (minutes !== value.dueTime) onChange({ ...value, dueTime: minutes });
+    return true;
+  };
+
   return (
     <Popover
       open={open}
@@ -281,10 +288,11 @@ export function DuePicker({
               className="h-7 flex-1 text-sm"
               disabled={!value.dueDate}
               onChange={(event) => setTimeText(event.target.value)}
-              onBlur={() => {
-                const minutes = timeText ? parseClockInput(timeText) : null;
-                if (timeText && minutes === null) return;
-                onChange({ ...value, dueTime: minutes });
+              onBlur={() => commitTime()}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter') return;
+                event.preventDefault();
+                if (commitTime()) setOpen(false);
               }}
             />
           </label>
