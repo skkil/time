@@ -29,6 +29,7 @@ import { GraphView } from '@/features/workflow/GraphView';
 import { ViewEditor } from '@/features/workflow/ViewEditor';
 import { Workspace } from '@/features/workflow/Workspace';
 import type { ProjectWorkflow } from '@/features/workflow/api';
+import { useShortcuts } from '@/lib/shortcuts';
 import { cn } from '@/lib/utils';
 
 import { NewProjectDialog } from './NewProjectDialog';
@@ -36,10 +37,13 @@ import { ProjectContext } from './ProjectContext';
 import { ProjectTimeline } from './ProjectTimeline';
 import { useProjectIndex } from './api';
 import {
+  NEXT_VIEW_KEYS,
+  PREVIOUS_VIEW_KEYS,
   type ViewOption,
   chooseView,
   fallbackView,
   isSaved,
+  stepView,
   viewOptions,
 } from './project-view';
 import { useProjectMemory } from './use-project-memory';
@@ -108,6 +112,18 @@ export function ProjectTasks({
     fallbackView(project?.view, workflow.views),
   );
   const choose = (id: string) => remember({ view: id });
+  useShortcuts([
+    {
+      keys: NEXT_VIEW_KEYS,
+      run: () => choose(stepView(options, current.id, 1).id),
+      idle: true,
+    },
+    {
+      keys: PREVIOUS_VIEW_KEYS,
+      run: () => choose(stepView(options, current.id, -1).id),
+      idle: true,
+    },
+  ]);
   const archived = project?.archived ?? false;
   const unsectioned = topLevel(own, null);
   const completed = own

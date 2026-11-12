@@ -46,6 +46,18 @@ export function viewOptions({
   ];
 }
 
+export const NEXT_VIEW_KEYS = 'V';
+export const PREVIOUS_VIEW_KEYS = 'Shift+V';
+
+export function stepView(
+  options: ViewOption[],
+  currentId: string,
+  step: 1 | -1,
+): ViewOption {
+  const at = options.findIndex((option) => option.id === currentId);
+  return options[(at + step + options.length) % options.length];
+}
+
 export function chooseView(
   options: ViewOption[],
   remembered: string | undefined,

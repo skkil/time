@@ -7,6 +7,10 @@ import {
 } from '@/components/ui/dialog';
 import { Kbd } from '@/components/ui/kbd';
 import { PROJECTS_NAV_KEYS } from '@/features/projects/ProjectsNavToggle';
+import {
+  NEXT_VIEW_KEYS,
+  PREVIOUS_VIEW_KEYS,
+} from '@/features/projects/project-view';
 import { formatShortcut } from '@/lib/shortcuts';
 
 const GROUPS: { title: string; items: [string, string][] }[] = [
@@ -29,6 +33,13 @@ const GROUPS: { title: string; items: [string, string][] }[] = [
       ['Mod+2', 'Week'],
       ['Mod+3', 'Projects'],
       [PROJECTS_NAV_KEYS, 'Show or hide the projects sidebar'],
+    ],
+  },
+  {
+    title: 'Projects',
+    items: [
+      [NEXT_VIEW_KEYS, 'Next view'],
+      [PREVIOUS_VIEW_KEYS, 'Previous view'],
     ],
   },
   {

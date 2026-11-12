@@ -7,6 +7,7 @@ import {
   chooseView,
   fallbackView,
   remembersTab,
+  stepView,
   viewOptions,
 } from './project-view';
 
@@ -66,6 +67,13 @@ describe('view picker', () => {
     expect(fallbackView('board', [view('v1', 'Pipeline')])).toBe('board');
     expect(fallbackView('list', [view('v1', 'Pipeline')])).toBe('v1');
     expect(fallbackView(undefined, [])).toBe('list');
+  });
+
+  it('steps through the views in order and wraps at both ends', () => {
+    const options = viewOptions({ inProject: true, linked: false, saved: [] });
+    expect(stepView(options, 'list', 1).id).toBe('board');
+    expect(stepView(options, 'timeline', 1).id).toBe('list');
+    expect(stepView(options, 'list', -1).id).toBe('timeline');
   });
 });
 
