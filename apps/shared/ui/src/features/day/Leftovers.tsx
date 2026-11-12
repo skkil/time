@@ -27,13 +27,7 @@ import {
   useSetTaskCompleted,
 } from '@/features/tasks/api';
 import { isStale } from '@/features/tasks/meta';
-import {
-  type DateKey,
-  mondayOf,
-  shiftKey,
-  toDateKey,
-  todayKey,
-} from '@/lib/time';
+import { mondayOf, shiftKey, toDateKey, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
 export function Leftovers({
@@ -63,6 +57,7 @@ export function Leftovers({
         }
       : null;
   const thisWeek = weekTarget(mondayOf(today));
+  const nextWeek = weekTarget(shiftKey(mondayOf(today), 7));
   const offerWeek = target.kind === 'day';
   const oneOffIds = tasks
     .filter((task) => task.recurrence === null)
@@ -76,8 +71,8 @@ export function Leftovers({
     );
 
   return (
-    <div className={cn('grid gap-3', className)}>
-      <ul className="grid divide-y rounded-lg border bg-card">
+    <div className={cn('grid min-w-0 gap-3', className)}>
+      <ul className="grid min-w-0 divide-y divide-white/10 border-y border-white/10">
         {tasks.map((task) => {
           const project =
             task.projectId === null
@@ -85,22 +80,37 @@ export function Leftovers({
               : index.byId.get(task.projectId);
           const oneOff = task.recurrence === null;
           const stale = oneOff && isStale(task, today);
+          const later: LaterOption[] = [
+            ...(nextDay ? [nextDay] : []),
+            ...(offerWeek && oneOff
+              ? [{ label: 'This week', target: thisWeek }]
+              : []),
+            ...(oneOff
+              ? [
+                  { label: 'Next week', target: nextWeek },
+                  { label: 'Someday', target: SOMEDAY },
+                ]
+              : []),
+          ];
           return (
             <li
               key={task.id}
-              className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2"
+              className="flex min-w-0 items-center gap-3 py-2.5"
             >
-              <div className="min-w-0 flex-1 basis-48">
-                <TaskLink taskId={task.id} className="block truncate text-sm">
+              <div className="min-w-0 flex-1">
+                <TaskLink
+                  taskId={task.id}
+                  className="block w-full truncate text-sm"
+                >
                   {task.title}
                 </TaskLink>
-                <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+                <p className="flex min-w-0 items-center gap-x-1.5 text-xs whitespace-nowrap text-muted-foreground">
                   <ProjectLink
                     projectId={task.projectId}
-                    className="flex items-center gap-2"
+                    className="flex min-w-0 items-center gap-1.5"
                   >
                     <ProjectDot color={project?.color} />
-                    {project?.name ?? 'Inbox'}
+                    <span className="truncate">{project?.name ?? 'Inbox'}</span>
                   </ProjectLink>
                   {task.dueDate && (
                     <span>
@@ -113,53 +123,23 @@ export function Leftovers({
                   {stale && <span>· park it?</span>}
                 </p>
               </div>
-              <div className="flex shrink-0 flex-wrap gap-1">
+              <div className="flex shrink-0 items-center gap-1">
                 <Button
                   size="xs"
                   variant="outline"
-                  onClick={() => moveTo([task.id], target)}
+                  onClick={() => moveTo([task.id], stale ? SOMEDAY : target)}
                 >
-                  {label}
+                  {stale ? 'Someday' : label}
                 </Button>
-                {nextDay && (
-                  <Button
-                    size="xs"
-                    variant="ghost"
-                    onClick={() => moveTo([task.id], nextDay.target)}
-                  >
-                    {nextDay.label}
-                  </Button>
-                )}
-                {stale ? (
-                  <Button
-                    size="xs"
-                    variant="outline"
-                    onClick={() => moveTo([task.id], SOMEDAY)}
-                  >
-                    Someday
-                  </Button>
-                ) : (
-                  offerWeek &&
-                  oneOff && (
-                    <Button
-                      size="xs"
-                      variant="ghost"
-                      onClick={() => moveTo([task.id], thisWeek)}
-                    >
-                      This week
-                    </Button>
-                  )
-                )}
                 <Later
-                  oneOff={oneOff}
-                  today={today}
+                  options={stale ? [{ label, target }, ...later] : later}
                   onPick={(to) => moveTo([task.id], to)}
                 />
                 {oneOff ? (
                   <Button
                     size="xs"
                     variant="ghost"
-                    className="text-muted-foreground"
+                    className="w-12 text-muted-foreground"
                     onClick={() => drop.mutate([task.id])}
                   >
                     Drop
@@ -168,7 +148,7 @@ export function Leftovers({
                   <Button
                     size="xs"
                     variant="ghost"
-                    className="text-muted-foreground"
+                    className="w-12 text-muted-foreground"
                     title="Skip this one and keep the repeat"
                     onClick={() =>
                       skip.mutate({ id: task.id, completed: true })
@@ -231,13 +211,13 @@ export function Leftovers({
   );
 }
 
+type LaterOption = { label: string; target: MoveTarget };
+
 function Later({
-  oneOff,
-  today,
+  options,
   onPick,
 }: {
-  oneOff: boolean;
-  today: DateKey;
+  options: LaterOption[];
   onPick: (target: MoveTarget) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -254,22 +234,18 @@ function Later({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="end">
-        {oneOff && (
+        {options.length > 0 && (
           <div className="grid border-b p-1">
-            <button
-              type="button"
-              className="flex h-8 items-center rounded-sm px-2 text-sm hover:bg-accent"
-              onClick={() => pick(weekTarget(shiftKey(mondayOf(today), 7)))}
-            >
-              Next week
-            </button>
-            <button
-              type="button"
-              className="flex h-8 items-center rounded-sm px-2 text-sm hover:bg-accent"
-              onClick={() => pick(SOMEDAY)}
-            >
-              Someday
-            </button>
+            {options.map((option) => (
+              <button
+                key={option.label}
+                type="button"
+                className="flex h-8 items-center rounded-sm px-2 text-sm hover:bg-accent"
+                onClick={() => pick(option.target)}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
         )}
         <Calendar
