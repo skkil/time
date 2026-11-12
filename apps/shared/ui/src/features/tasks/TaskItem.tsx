@@ -125,7 +125,7 @@ export function TaskItem({
         'group/task relative flex items-start gap-2.5',
         variant === 'row'
           ? 'border-b border-white/[.06] py-2.5 pr-1'
-          : 'mb-2 rounded-2xl bg-white/[.06] p-3 ring-1 ring-white/10 backdrop-blur-md',
+          : 'mb-2 flex-wrap rounded-2xl bg-white/[.06] p-3 pb-1.5 ring-1 ring-white/10 backdrop-blur-md',
         dragging && 'opacity-40',
       )}
     >
@@ -183,7 +183,7 @@ export function TaskItem({
         />
       )}
 
-      <div className="min-w-0 flex-1 pr-7">
+      <div className={cn('min-w-0 flex-1', variant === 'row' && 'pr-7')}>
         <button
           type="button"
           onClick={() => openTask(task.id)}
@@ -252,14 +252,17 @@ export function TaskItem({
       {!done && task.kind !== 'event' && (
         <div
           className={cn(
-            'absolute right-0 flex items-center rounded-md',
-            variant === 'row' ? 'top-1.5' : 'top-2 right-2',
+            'flex items-center rounded-md',
+            variant === 'row'
+              ? 'absolute top-1.5 right-0'
+              : 'basis-full justify-end text-foreground/75 opacity-70 transition-opacity group-hover/task:opacity-100 group-has-[:focus-visible]/task:opacity-100 has-[[data-state=open]]:opacity-100',
           )}
         >
           <div
             className={cn(
-              'flex items-center rounded-md bg-popover opacity-0 group-hover/task:opacity-100 group-has-[:focus-visible]/task:opacity-100 has-[[data-state=open]]:opacity-100',
-              variant === 'card' && 'bg-card',
+              'flex items-center rounded-md',
+              variant === 'row' &&
+                'bg-popover opacity-0 group-hover/task:opacity-100 group-has-[:focus-visible]/task:opacity-100 has-[[data-state=open]]:opacity-100',
             )}
           >
             <Tooltip>
