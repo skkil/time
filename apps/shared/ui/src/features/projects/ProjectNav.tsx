@@ -2,6 +2,8 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import {
   ArchiveIcon,
   ArchiveRestoreIcon,
+  ArrowDownIcon,
+  ArrowUpIcon,
   ChevronRightIcon,
   FolderPlusIcon,
   MoreHorizontalIcon,
@@ -31,13 +33,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useTasks } from '@/features/tasks/api';
+import { stepBefore } from '@/lib/reorder';
 import { offerUndo, quoted } from '@/lib/undo';
 import { cn } from '@/lib/utils';
 
 import { GroupHeading } from './GroupHeading';
 import { NewProjectDialog } from './NewProjectDialog';
 import { ProjectDot } from './ProjectDot';
-import { useArchiveProject, useDeleteProject, useProjectIndex } from './api';
+import {
+  useArchiveProject,
+  useDeleteProject,
+  useProjectIndex,
+  useReorderProject,
+} from './api';
 import { useGroups } from './groups';
 import { MAX_PROJECT_DEPTH, type ProjectNode } from './tree';
 
@@ -56,6 +64,7 @@ export function ProjectNav() {
   const [deleting, setDeleting] = useState<ProjectNode | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const archive = useArchiveProject();
+  const reorder = useReorderProject();
   const remove = useDeleteProject();
 
   const openCounts = useMemo(() => {
@@ -96,9 +105,15 @@ export function ProjectNav() {
         },
       ),
     delete: setDeleting,
+    move: (node: ProjectNode, before: Id | null) =>
+      reorder.mutate({ id: node.id, before }),
   };
 
-  const renderNode = (node: ProjectNode) => {
+  const renderNode = (
+    node: ProjectNode,
+    _: number,
+    siblings: ProjectNode[],
+  ) => {
     const children = node.children.filter((child) => !isInactive(child));
     const isCollapsed = collapsed.has(node.id);
     return (
@@ -110,6 +125,7 @@ export function ProjectNav() {
           collapsed={isCollapsed}
           onToggle={() => toggle(node.id)}
           actions={actions}
+          siblings={siblings.map((sibling) => sibling.id)}
         />
         {children.length > 0 && !isCollapsed && (
           <ul>{children.map(renderNode)}</ul>
@@ -249,6 +265,7 @@ export function ProjectNav() {
 }
 
 type RowActions = {
+  move: (node: ProjectNode, before: Id | null) => void;
   addChild: (node: ProjectNode) => void;
   settings: (node: ProjectNode) => void;
   archive: (node: ProjectNode, archived: boolean) => void;
@@ -262,6 +279,7 @@ function ProjectRow({
   collapsed,
   onToggle,
   actions,
+  siblings = [],
 }: {
   node: ProjectNode;
   count: number;
@@ -269,7 +287,10 @@ function ProjectRow({
   collapsed: boolean;
   onToggle: () => void;
   actions: RowActions;
+  siblings?: Id[];
 }) {
+  const up = stepBefore(siblings, node.id, -1);
+  const down = stepBefore(siblings, node.id, 1);
   return (
     <div
       className="group/row relative flex h-8 items-center rounded-md transition-colors hover:bg-white/[.06] has-[[data-status=active]]:bg-white/[.1] has-[[data-status=active]]:font-medium"
@@ -344,6 +365,21 @@ function ProjectRow({
               <DropdownMenuItem onSelect={() => actions.archive(node, true)}>
                 <ArchiveIcon />
                 Archive
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={up === undefined}
+                onSelect={() => up !== undefined && actions.move(node, up)}
+              >
+                <ArrowUpIcon />
+                Move up
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={down === undefined}
+                onSelect={() => down !== undefined && actions.move(node, down)}
+              >
+                <ArrowDownIcon />
+                Move down
               </DropdownMenuItem>
             </>
           )}

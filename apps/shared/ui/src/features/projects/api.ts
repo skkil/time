@@ -48,6 +48,15 @@ export function useUpdateProject() {
   });
 }
 
+export function useReorderProject() {
+  const invalidate = useInvalidateProjects();
+  return useMutation({
+    mutationFn: ({ id, before }: { id: Id; before: Id | null }) =>
+      commands.reorderProject(id, before),
+    onSuccess: invalidate,
+  });
+}
+
 export function useArchiveProject() {
   const invalidate = useInvalidateProjects();
   return useMutation({

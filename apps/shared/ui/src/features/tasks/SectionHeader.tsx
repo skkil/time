@@ -1,4 +1,6 @@
 import {
+  ArrowDownIcon,
+  ArrowUpIcon,
   ChevronRightIcon,
   MoreHorizontalIcon,
   PencilIcon,
@@ -26,9 +28,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { stepBefore } from '@/lib/reorder';
 import { cn } from '@/lib/utils';
 
-import { useCollapseSection, useDeleteSection, useRenameSection } from './api';
+import {
+  useCollapseSection,
+  useDeleteSection,
+  useRenameSection,
+  useReorderSection,
+  useSections,
+} from './api';
 
 export function SectionTitle({
   section,
@@ -62,6 +71,14 @@ export function SectionMenu({
   onRename: () => void;
 }) {
   const remove = useDeleteSection();
+  const reorder = useReorderSection();
+  const { data: sections = [] } = useSections();
+  const siblings = sections
+    .filter((other) => other.projectId === section.projectId)
+    .sort((a, b) => a.position - b.position || a.id.localeCompare(b.id))
+    .map((other) => other.id);
+  const up = stepBefore(siblings, section.id, -1);
+  const down = stepBefore(siblings, section.id, 1);
   const [confirming, setConfirming] = useState(false);
   return (
     <>
@@ -80,6 +97,25 @@ export function SectionMenu({
           <DropdownMenuItem onSelect={onRename}>
             <PencilIcon />
             Rename
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={up === undefined}
+            onSelect={() =>
+              up !== undefined && reorder.mutate({ id: section.id, before: up })
+            }
+          >
+            <ArrowUpIcon />
+            Move up
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={down === undefined}
+            onSelect={() =>
+              down !== undefined &&
+              reorder.mutate({ id: section.id, before: down })
+            }
+          >
+            <ArrowDownIcon />
+            Move down
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
