@@ -2,11 +2,9 @@ import { Link } from '@tanstack/react-router';
 import { PlusIcon } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
-import type { Project, Task } from '@/backend';
+import type { Project } from '@/backend';
 import { InlineRename } from '@/components/InlineRename';
 import { Button } from '@/components/ui/button';
-import { DueText } from '@/features/tasks/DueText';
-import { TaskLink } from '@/features/tasks/TaskLink';
 import { cn } from '@/lib/utils';
 
 import { ProjectDot } from './ProjectDot';
@@ -47,7 +45,6 @@ export function ProjectHeader({
   tab,
   onTab,
   onAddTask,
-  next,
   options,
 }: {
   project?: Project;
@@ -56,7 +53,6 @@ export function ProjectHeader({
   tab: ProjectTab;
   onTab: (tab: ProjectTab) => void;
   onAddTask: () => void;
-  next?: Task;
   options: ReactNode;
 }) {
   const index = useProjectIndex();
@@ -66,21 +62,6 @@ export function ProjectHeader({
     project?.parentId != null ? projectChain(index, project.parentId) : [];
 
   const details: ReactNode[] = [
-    next && (
-      <TaskLink
-        key="next"
-        taskId={next.id}
-        label={`Open ${next.title}`}
-        className="max-w-full truncate text-base text-foreground sm:max-w-xl"
-      >
-        Next: {next.title}
-        {next.dueDate && (
-          <>
-            , <DueText task={next} />
-          </>
-        )}
-      </TaskLink>
-    ),
     `${openCount} open ${openCount === 1 ? 'task' : 'tasks'}`,
     project?.archived && 'Archived',
     project && project.status !== 'active' && status?.label,

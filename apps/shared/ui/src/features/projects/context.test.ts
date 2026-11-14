@@ -76,17 +76,6 @@ describe('comingUp', () => {
     expect(items.map((item) => item.taskId)).toEqual(['1']);
   });
 
-  it('leaves out the next task but keeps its deadline', () => {
-    const items = comingUp(
-      [task('1', { dueDate: '2026-11-10', deadline: '2026-11-20' })],
-      [],
-      project(),
-      TODAY,
-      '1',
-    );
-    expect(items.map((item) => item.date)).toEqual(['2026-11-20']);
-  });
-
   it('shows five at most', () => {
     const tasks = Array.from({ length: 8 }, (_, i) =>
       task(String(i + 1), { dueDate: '2026-11-09' }),

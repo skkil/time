@@ -1,4 +1,3 @@
-import { nextUp } from '@skkil-time/rules/next';
 import { useNavigate } from '@tanstack/react-router';
 import { Suspense, lazy, useMemo } from 'react';
 
@@ -7,7 +6,6 @@ import { EmptyState, Page, PageBody } from '@/components/page';
 import { useSections, useTasks } from '@/features/tasks/api';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { useProjectWorkflow } from '@/features/workflow/api';
-import { todayKey } from '@/lib/time';
 
 import { ProjectFocus } from './ProjectFocus';
 import { ProjectHeader } from './ProjectHeader';
@@ -68,7 +66,6 @@ export function ProjectPage({
     requested,
     memory,
   });
-  const next = nextUp(own, todayKey());
   const showCompleted = memory.showCompleted ?? false;
   const openTab = (target: ProjectTab) => {
     remember({ tab: target });
@@ -97,7 +94,6 @@ export function ProjectPage({
         tab={tab}
         onTab={openTab}
         onAddTask={() => newTask({ projectId })}
-        next={next}
         options={
           <ProjectOptions
             showCompleted={showCompleted}
@@ -122,7 +118,6 @@ export function ProjectPage({
           sections={sections}
           openCount={openCount}
           showCompleted={showCompleted}
-          next={next}
           onOpenNotes={() => openTab('notes')}
           onOpenFocus={() => openTab('focus')}
         />

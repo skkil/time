@@ -38,25 +38,17 @@ function Block({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function ComingUp({
-  project,
-  own,
-  nextId,
-}: {
-  project: Project;
-  own: Task[];
-  nextId?: Task['id'];
-}) {
+function ComingUp({ project, own }: { project: Project; own: Task[] }) {
   const { data: workflow } = useWorkflow();
   const today = todayKey();
   const milestones = (workflow?.milestones ?? []).filter(
     (milestone) => milestone.projectId === project.id,
   );
-  const items = comingUp(own, milestones, project, today, nextId);
+  const items = comingUp(own, milestones, project, today);
   if (items.length === 0) return null;
 
   return (
-    <Block title="After that">
+    <Block title="Coming up">
       <ul className="grid gap-1.5">
         {items.map((item) => (
           <li
@@ -191,13 +183,11 @@ function Notes({
 export function ProjectContext({
   project,
   own,
-  nextId,
   onOpenNotes,
   onOpenFocus,
 }: {
   project: Project;
   own: Task[];
-  nextId?: Task['id'];
   onOpenNotes: () => void;
   onOpenFocus: () => void;
 }) {
@@ -207,7 +197,7 @@ export function ProjectContext({
       className="hidden w-80 shrink-0 overflow-y-auto pt-4 pr-10 pb-5 pl-6 @3xl:block"
     >
       <div className="grid gap-7">
-        <ComingUp project={project} own={own} nextId={nextId} />
+        <ComingUp project={project} own={own} />
         <ThisWeek project={project} onOpenFocus={onOpenFocus} />
         <Notes project={project} onOpenNotes={onOpenNotes} />
       </div>

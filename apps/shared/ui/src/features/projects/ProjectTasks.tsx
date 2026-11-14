@@ -74,7 +74,6 @@ export function ProjectTasks({
   sections,
   openCount,
   showCompleted,
-  next,
   onOpenNotes,
   onOpenFocus,
 }: {
@@ -85,7 +84,6 @@ export function ProjectTasks({
   sections: Section[];
   openCount: number;
   showCompleted: boolean;
-  next?: Task;
   onOpenNotes: () => void;
   onOpenFocus: () => void;
 }) {
@@ -203,7 +201,6 @@ export function ProjectTasks({
           <ProjectContext
             project={project}
             own={own}
-            nextId={next?.id}
             onOpenNotes={onOpenNotes}
             onOpenFocus={onOpenFocus}
           />

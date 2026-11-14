@@ -26,7 +26,6 @@ export function comingUp(
   milestones: Milestone[],
   project: Project,
   today: DateKey,
-  nextId?: Task['id'],
 ): ComingItem[] {
   const open = tasks.filter(
     (task) =>
@@ -36,7 +35,7 @@ export function comingUp(
   );
   const tasksAhead = open.flatMap((task) => {
     const dates: ComingItem[] = [];
-    if (task.id !== nextId && task.dueDate !== null && task.dueDate >= today)
+    if (task.dueDate !== null && task.dueDate >= today)
       dates.push({
         key: `due-${task.id}`,
         date: task.dueDate,
