@@ -81,6 +81,7 @@ export function DayCanvas({
   const moments = useMemo<Moment[]>(() => {
     const timed = plan.blocks.map((block) => ({
       key: `block-${block.id}`,
+      blockId: block.id,
       taskId: block.taskId,
       title: block.title,
       priority: block.priority,

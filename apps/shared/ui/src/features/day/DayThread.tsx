@@ -7,13 +7,19 @@ import {
   CalendarEventDetails,
   GoogleMark,
 } from '@/features/calendar/CalendarEventDetails';
+import { useRescheduleBlock } from '@/features/planner/api';
 import { TRACKED_LOOK, cardColors } from '@/features/planner/card-colors';
 import { createTimeScale } from '@/features/planner/time-scale';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { ProjectLink } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
 import { PriorityCheck } from '@/features/tasks/PriorityCheck';
-import { useSetTaskCompleted, useTaskIndex } from '@/features/tasks/api';
+import {
+  taskToInput,
+  useSetTaskCompleted,
+  useTaskIndex,
+  useUpdateTask,
+} from '@/features/tasks/api';
 import { priorityTint } from '@/features/tasks/meta';
 import { EntryDialog } from '@/features/time/EntryDialog';
 import { MIN_ENTRY_HEIGHT } from '@/features/time/tracked';
@@ -24,13 +30,17 @@ import {
   formatDuration,
   formatMinutesOfDay,
   minutesIntoDay,
+  mondayOf,
   todayKey,
 } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
+import { useMomentDrag } from './use-moment-drag';
+
 export type Moment = {
   key: string;
   kind: 'block' | 'event' | 'due' | 'calendar';
+  blockId?: Id;
   taskId: Id;
   title: string;
   priority: number;
@@ -74,6 +84,30 @@ export function DayThread({
     [hourHeight, sleep],
   );
   const nowTop = scale.top(minutesIntoDay(now));
+  const dayOpen = dayStart(today);
+  const reschedule = useRescheduleBlock(mondayOf(today));
+  const update = useUpdateTask();
+  const { drag, begin, consumeDrag } = useMomentDrag({
+    scale,
+    onDrop: (key, start) => {
+      const moment = moments.find((candidate) => candidate.key === key);
+      if (!moment) return;
+      const startAt = dayOpen + start * 60;
+      if (moment.blockId !== undefined)
+        reschedule.mutate({
+          id: moment.blockId,
+          span: { startAt, endAt: startAt + moment.end - moment.start },
+        });
+      const task = tasks.byId.get(moment.taskId);
+      if (moment.kind === 'due' && task)
+        update.mutate({
+          id: task.id,
+          input: { ...taskToInput(task), dueTime: start },
+        });
+    },
+  });
+  const movable = (moment: Moment) =>
+    !moment.done && (moment.kind === 'block' || moment.kind === 'due');
 
   useLayoutEffect(() => {
     const element = scroller.current;
@@ -95,14 +129,20 @@ export function DayThread({
   }, [height, nowTop, hourHeight]);
 
   const rows = useMemo(() => {
-    const dayOpen = dayStart(today);
+    const shown = moments
+      .map((moment) => {
+        if (moment.key !== drag?.key) return moment;
+        const start = dayOpen + drag.start * 60;
+        return { ...moment, start, end: start + moment.end - moment.start };
+      })
+      .sort((a, b) => a.start - b.start);
     const placed: {
       moment: Moment;
       start: number;
       end: number;
       top: number;
     }[] = [];
-    for (const moment of moments) {
+    for (const moment of shown) {
       const start = scale.top(Math.max(0, (moment.start - dayOpen) / 60));
       const end = scale.top(Math.min(24 * 60, (moment.end - dayOpen) / 60));
       const previous = placed.at(-1);
@@ -110,7 +150,7 @@ export function DayThread({
       placed.push({ moment, start, end, top });
     }
     return placed;
-  }, [moments, scale, today]);
+  }, [moments, drag, dayOpen, scale]);
 
   return (
     <div
@@ -154,7 +194,6 @@ export function DayThread({
           />
         ))}
         {entries.map((entry) => {
-          const dayOpen = dayStart(today);
           const from = Math.max(0, (entry.startedAt - dayOpen) / 60);
           const to = Math.min(24 * 60, (entry.endedAt - dayOpen) / 60);
           if (to <= from) return null;
@@ -219,7 +258,22 @@ export function DayThread({
             return (
               <li
                 key={moment.key}
-                className="absolute right-28 left-[48px]"
+                onPointerDown={
+                  movable(moment)
+                    ? (event) =>
+                        begin(
+                          moment.key,
+                          (moment.start - dayOpen) / 60,
+                          (moment.end - moment.start) / 60,
+                          event,
+                        )
+                    : undefined
+                }
+                className={cn(
+                  'absolute right-28 left-[48px]',
+                  movable(moment) && 'cursor-grab touch-none select-none',
+                  drag?.key === moment.key && 'z-10 cursor-grabbing',
+                )}
                 style={{ top: top - 11 }}
               >
                 <div className="flex items-start gap-4">
@@ -290,7 +344,7 @@ export function DayThread({
                   ) : (
                     <button
                       type="button"
-                      onClick={() => onPick(moment.taskId)}
+                      onClick={() => !consumeDrag() && onPick(moment.taskId)}
                       aria-current={open ? 'true' : undefined}
                       className="group min-w-0 text-left outline-none"
                     >
