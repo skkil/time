@@ -1,6 +1,4 @@
-import type { Task } from '@skkil-time/client/types';
 import { formatDate } from '@skkil-time/rules/due';
-import { nextUp } from '@skkil-time/rules/next';
 import {
   formatDuration,
   mondayOf,
@@ -22,7 +20,6 @@ import {
 import { SpaceControls } from '@/features/shell/SpaceControls';
 import { TaskAside } from '@/features/tasks/components/TaskAside';
 import { TaskList } from '@/features/tasks/components/TaskList';
-import { openTask } from '@/features/tasks/components/TaskRow';
 import { useTasks } from '@/features/tasks/hooks';
 import { Screen } from '@/ui/Screen';
 import { Empty, Failed, Loading } from '@/ui/States';
@@ -46,7 +43,7 @@ const plainText = (html: string) =>
     .map((line) => line.trim())
     .filter(Boolean);
 
-/** A project or the Inbox (`inbox`): header, Next, then tasks by section. */
+/** A project or the Inbox (`inbox`): header, then tasks by section. */
 export function ProjectScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const place = id === 'inbox' ? id : null;
@@ -76,7 +73,6 @@ export function ProjectScreen() {
   const open = own
     .filter((task) => task.parentId === null && task.completedAt === null)
     .sort((a, b) => a.position - b.position);
-  const next = nextUp(own, today);
   const tracked = entries
     .filter((entry) => projectId !== null && entry.projectId === projectId)
     .reduce(
@@ -121,7 +117,6 @@ export function ProjectScreen() {
           </Text>
         </View>
         <Text style={type.small}>{meta}</Text>
-        {next && <NextLine task={next} />}
       </View>
       {projectId !== null && (
         <View accessibilityRole="tablist" style={styles.tabs}>
@@ -196,34 +191,11 @@ export function ProjectScreen() {
   );
 }
 
-function NextLine({ task }: { task: Task }) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={() => openTask(task.id)}
-      style={styles.next}
-    >
-      <Text style={type.small}>Next:</Text>
-      <Text numberOfLines={1} style={[type.small, styles.nextTitle]}>
-        {task.title}
-        {task.dueDate && `, ${formatDate(task.dueDate)}`}
-      </Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   head: { gap: spacing.xs },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   dot: { width: 12, height: 12, borderRadius: 6 },
   fill: { flex: 1 },
-  next: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-    minHeight: 32,
-    alignItems: 'center',
-  },
-  nextTitle: { flex: 1, color: ink.full },
   tabs: {
     flexDirection: 'row',
     gap: spacing.lg,
