@@ -4,7 +4,6 @@ import { useRef } from 'react';
 import { Page, PageHeader, Stat, WeekSwitcher } from '@/components/page';
 import { useTasks } from '@/features/tasks/api';
 import { useTimeEntries } from '@/features/time/api';
-import { trackedFill } from '@/features/time/tracked';
 import { usePreference } from '@/lib/preferences';
 import { useShortcuts } from '@/lib/shortcuts';
 import {
@@ -18,11 +17,13 @@ import {
   weekOfMonday,
   weekStartOf,
 } from '@/lib/time';
+import { cn } from '@/lib/utils';
 
 import { ScheduleView } from './ScheduleView';
 import { WeekPicker } from './WeekPicker';
 import { WeekReflection } from './WeekReflection';
 import { useBlocks } from './api';
+import { TRACKED_LOOK } from './card-colors';
 import { plannedSeconds } from './planned';
 import { useWeekSwipe } from './use-week-swipe';
 
@@ -79,8 +80,10 @@ export function WeekView({ week }: { week: DateKey }) {
             swatch={
               <span
                 aria-hidden
-                className="size-2.5 rounded-[3px]"
-                style={{ background: trackedFill('var(--foreground)') }}
+                className={cn(
+                  'size-2.5 rounded-[3px] border-l-2 border-foreground/80 bg-foreground/25',
+                  TRACKED_LOOK,
+                )}
               />
             }
           />,

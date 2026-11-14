@@ -7,15 +7,16 @@ import {
   CalendarEventDetails,
   GoogleMark,
 } from '@/features/calendar/CalendarEventDetails';
+import { TRACKED_LOOK, cardColors } from '@/features/planner/card-colors';
 import { createTimeScale } from '@/features/planner/time-scale';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { ProjectLink } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
-import { projectColorVar } from '@/features/projects/tree';
 import { PriorityCheck } from '@/features/tasks/PriorityCheck';
 import { useSetTaskCompleted, useTaskIndex } from '@/features/tasks/api';
+import { priorityTint } from '@/features/tasks/meta';
 import { EntryDialog } from '@/features/time/EntryDialog';
-import { MIN_ENTRY_HEIGHT, trackedFill } from '@/features/time/tracked';
+import { MIN_ENTRY_HEIGHT } from '@/features/time/tracked';
 import { usePreference } from '@/lib/preferences';
 import {
   dayStart,
@@ -162,11 +163,10 @@ export function DayThread({
             entry.projectId === null
               ? undefined
               : index.byId.get(entry.projectId);
+          const task =
+            entry.taskId === null ? undefined : tasks.byId.get(entry.taskId);
           const label =
-            (entry.taskId !== null && tasks.byId.get(entry.taskId)?.title) ||
-            entry.description ||
-            project?.name ||
-            'Focus';
+            task?.title || entry.description || project?.name || 'Focus';
           return (
             <button
               key={entry.id}
@@ -176,13 +176,16 @@ export function DayThread({
                 entry.taskId === null ? setEditing(entry) : onPick(entry.taskId)
               }
               title={`${label} · ${formatClockTime(entry.startedAt)}–${entry.id === LIVE_ENTRY_ID ? 'now' : formatClockTime(entry.endedAt)} · ${formatDuration(entry.endedAt - entry.startedAt)}`}
-              className="absolute right-0 left-16 overflow-hidden rounded-md px-2 text-right text-[11px] leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+              className={cn(
+                'absolute right-0 left-16 overflow-hidden rounded-md border px-2 text-right text-[11px] leading-tight font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                TRACKED_LOOK,
+              )}
               style={{
                 top: scale.top(from),
                 height: Math.max(tall - 1, MIN_ENTRY_HEIGHT),
-                background: trackedFill(
-                  project
-                    ? projectColorVar(project.color)
+                ...cardColors(
+                  task
+                    ? priorityTint(task.priority)
                     : 'var(--muted-foreground)',
                 ),
               }}

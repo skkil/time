@@ -33,6 +33,7 @@ import { useStartTimer } from '@/features/time/api';
 import { formatDuration, formatMinutesOfDay } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
+import { cardColors } from './card-colors';
 import { DAY_MINUTES, MIN_BLOCK_MINUTES, clamp, snap } from './geometry';
 import { useTimeScale } from './scale';
 
@@ -95,16 +96,12 @@ export function BlockCard({
   }, [isDragging]);
 
   const scale = useTimeScale();
-  const tint = priorityTint(block.priority);
-  const fill = `color-mix(in oklab, ${tint} var(--block-tint), var(--card))`;
   const style: CSSProperties = {
     top: scale.top(start),
     height: Math.max(scale.extent(start, start + minutes) - 2, 14),
     left: `calc(${(lane / lanes) * 100}% + 2px)`,
     width: `calc(${100 / lanes}% - 4px)`,
-    background: `linear-gradient(${fill}, ${fill}), var(--card-under, transparent)`,
-    borderColor: `color-mix(in oklab, ${tint} var(--block-edge), var(--card))`,
-    borderLeft: `3px solid ${tint}`,
+    ...cardColors(priorityTint(block.priority)),
   };
 
   const beginResize = (event: PointerEvent<HTMLDivElement>) => {

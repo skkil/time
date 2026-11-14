@@ -16,7 +16,7 @@ import {
   freeStart,
 } from '@skkil-time/rules/calendar';
 import { dayTarget } from '@skkil-time/rules/move';
-import { LIVE_ENTRY_ID, liveEntry } from '@skkil-time/rules/timer';
+import { liveEntry } from '@skkil-time/rules/timer';
 import {
   type ReactNode,
   type PointerEvent as ReactPointerEvent,
@@ -36,21 +36,15 @@ import type {
   TimeBlock,
   TimeEntry,
 } from '@/backend';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { CalendarDayChip } from '@/features/calendar/CalendarDayChip';
 import { CalendarEventCard } from '@/features/calendar/CalendarEventCard';
 import { useCalendarEvents } from '@/features/calendar/api';
 import { useProjectIndex } from '@/features/projects/api';
-import { projectColorVar } from '@/features/projects/tree';
 import { useMoveTasks, useTaskIndex, useTasks } from '@/features/tasks/api';
+import { priorityTint } from '@/features/tasks/meta';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { EntryDialog } from '@/features/time/EntryDialog';
 import { useTimeEntries, useTimer } from '@/features/time/api';
-import { MIN_ENTRY_HEIGHT, trackedFill } from '@/features/time/tracked';
 import { useEvents } from '@/features/workflow/api';
 import { useNow } from '@/hooks/use-now';
 import { usePreference } from '@/lib/preferences';
@@ -58,7 +52,6 @@ import {
   type DateKey,
   atMinutes,
   dateKeyOf,
-  formatClockTime,
   formatDayOfMonth,
   formatDuration,
   formatMinutesOfDay,
@@ -72,6 +65,7 @@ import { cn } from '@/lib/utils';
 
 import { BlockCard, type BlockDragData } from './BlockCard';
 import { DueCard } from './DueCard';
+import { EntryCard } from './EntryCard';
 import { EventCard } from './EventCard';
 import { type BlockSlot, NewBlockDialog } from './NewBlockDialog';
 import { DraggableTask, type TaskDragData, TaskRail } from './TaskRail';
@@ -686,11 +680,16 @@ function DayColumn({
         ),
       };
     });
+    const tracked = entries.flatMap((entry) => {
+      const span = clipToDay(day, entry.startedAt, entry.endedAt);
+      return span ? [{ entry, id: `entry-${entry.id}`, ...span }] : [];
+    });
     const lanes = layoutLanes([
       ...own.map(({ block, start, end }) => ({ id: block.id, start, end })),
       ...anchors.map(({ id, start, end }) => ({ id, start, end })),
       ...outside.map(({ id, start, end }) => ({ id, start, end })),
       ...due.map(({ id, start, end }) => ({ id, start, end })),
+      ...tracked.map(({ id, start, end }) => ({ id, start, end })),
     ]);
     const lane = (id: string) => lanes.get(id) ?? { lane: 0, lanes: 1 };
     return {
@@ -698,25 +697,9 @@ function DayColumn({
       events: anchors.map((item) => ({ ...item, ...lane(item.id) })),
       external: outside.map((item) => ({ ...item, ...lane(item.id) })),
       due: due.map((item) => ({ ...item, ...lane(item.id) })),
+      tracked: tracked.map((item) => ({ ...item, ...lane(item.id) })),
     };
-  }, [blocks, events, external, timed, day]);
-
-  const actual = useMemo(() => {
-    const planned = [
-      ...placed.blocks,
-      ...placed.events,
-      ...placed.external,
-      ...placed.due,
-    ];
-    return entries.flatMap((entry) => {
-      const span = clipToDay(day, entry.startedAt, entry.endedAt);
-      if (!span) return [];
-      const shared = planned.some(
-        (item) => item.start < span.end && item.end > span.start,
-      );
-      return [{ entry, span, shared }];
-    });
-  }, [entries, day, placed]);
+  }, [blocks, events, external, timed, entries, day]);
 
   return (
     <div
@@ -779,6 +762,33 @@ function DayColumn({
               onRemove={() => onRemove(block)}
             />
           ))}
+          {placed.tracked.map(({ entry, start, end, lane, lanes }) => {
+            const task =
+              entry.taskId === null
+                ? undefined
+                : taskIndex.byId.get(entry.taskId);
+            return (
+              <EntryCard
+                key={entry.id}
+                entry={entry}
+                label={
+                  task?.title ||
+                  entry.description ||
+                  (entry.projectId !== null &&
+                    index.byId.get(entry.projectId)?.name) ||
+                  'Focus'
+                }
+                tint={
+                  task ? priorityTint(task.priority) : 'var(--muted-foreground)'
+                }
+                start={start}
+                end={end}
+                lane={lane}
+                lanes={lanes}
+                onOpen={() => onOpenEntry(entry)}
+              />
+            );
+          })}
         </div>
         {selection && (
           <div
@@ -808,68 +818,6 @@ function DayColumn({
             </span>
           </div>
         )}
-      </div>
-
-      <div className="pointer-events-none absolute inset-y-0 right-0.5 left-0.5">
-        {actual.map(({ entry, span, shared }) => {
-          const project =
-            entry.projectId === null
-              ? undefined
-              : index.byId.get(entry.projectId);
-          const label =
-            (entry.taskId !== null &&
-              taskIndex.byId.get(entry.taskId)?.title) ||
-            entry.description ||
-            project?.name ||
-            'Focus';
-          const tall = scale.extent(span.start, span.end);
-          return (
-            <Tooltip key={entry.id}>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  disabled={entry.id === LIVE_ENTRY_ID}
-                  onPointerDown={(event) => event.stopPropagation()}
-                  onClick={() => onOpenEntry(entry)}
-                  className={cn(
-                    'pointer-events-auto absolute right-0 overflow-hidden rounded-[5px] text-left leading-tight text-white/90 outline-none focus-visible:ring-2 focus-visible:ring-white/70',
-                    shared ? 'z-10 w-1.5' : 'left-0 px-2 text-[11px]',
-                    entry.source === 'block' &&
-                      'border border-dashed border-white/60',
-                  )}
-                  style={{
-                    top: scale.top(span.start),
-                    height: Math.max(tall - 1, MIN_ENTRY_HEIGHT),
-                    background: trackedFill(
-                      project
-                        ? projectColorVar(project.color)
-                        : 'var(--muted-foreground)',
-                    ),
-                  }}
-                >
-                  {!shared && tall >= 24 && (
-                    <span className="block truncate pt-0.5">{label}</span>
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                <p>Focus: {label}</p>
-                <p className="text-xs opacity-80">
-                  {formatClockTime(entry.startedAt)}–
-                  {entry.id === LIVE_ENTRY_ID
-                    ? 'now'
-                    : formatClockTime(entry.endedAt)}{' '}
-                  · {formatDuration(entry.endedAt - entry.startedAt)}
-                </p>
-                {entry.source === 'block' && (
-                  <p className="text-xs opacity-80">
-                    Logged from your plan. Open it to change or remove it.
-                  </p>
-                )}
-              </TooltipContent>
-            </Tooltip>
-          );
-        })}
       </div>
 
       {isToday && (
