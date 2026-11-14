@@ -25,7 +25,7 @@ const FORMER_SETTINGS: Record<string, SettingId> = {
 
 const placed = SETTINGS_SECTIONS.flatMap((section) => section.settings);
 
-describe('project settings tab', () => {
+describe('project settings', () => {
   it.each(Object.entries(FORMER_SETTINGS))(
     'keeps “%s” reachable',
     (_name, id) => {

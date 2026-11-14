@@ -4,7 +4,6 @@ import { useState } from 'react';
 import type { Id, Project, SavedView, Section, Task } from '@/backend';
 import { EmptyState, PageBody } from '@/components/page';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -74,6 +73,7 @@ export function ProjectTasks({
   own,
   sections,
   openCount,
+  showCompleted,
   next,
   onOpenNotes,
   onOpenFocus,
@@ -84,13 +84,13 @@ export function ProjectTasks({
   own: Task[];
   sections: Section[];
   openCount: number;
+  showCompleted: boolean;
   next?: Task;
   onOpenNotes: () => void;
   onOpenFocus: () => void;
 }) {
   const taskIndex = useTaskIndex();
   const { memory, remember } = useProjectMemory(projectId);
-  const [showCompleted, setShowCompleted] = useState(false);
   const [viewEditor, setViewEditor] = useState<SavedView | 'new' | null>(null);
 
   const linked = own.some(
@@ -195,15 +195,6 @@ export function ProjectTasks({
             isSaved(current) ? () => setViewEditor(current.saved) : undefined
           }
         />
-        {current.id === 'list' && (
-          <label className="flex items-center gap-2 text-sm text-foreground/75">
-            <Checkbox
-              checked={showCompleted}
-              onCheckedChange={(checked) => setShowCompleted(checked === true)}
-            />
-            Show completed
-          </label>
-        )}
       </div>
 
       <div className="@container flex min-h-0 flex-1">

@@ -11,15 +11,11 @@ import { todayKey } from '@/lib/time';
 
 import { ProjectFocus } from './ProjectFocus';
 import { ProjectHeader } from './ProjectHeader';
-import { ProjectSettings } from './ProjectSettings';
+import { ProjectOptions } from './ProjectOptions';
+import { ProjectSettingsDialog } from './ProjectSettingsDialog';
 import { ProjectTasks } from './ProjectTasks';
 import { useProjectIndex } from './api';
-import {
-  PROJECT_TABS,
-  type ProjectTab,
-  chooseTab,
-  remembersTab,
-} from './project-view';
+import { PROJECT_TABS, type ProjectTab, chooseTab } from './project-view';
 import { useProjectMemory } from './use-project-memory';
 
 const ProjectCanvas = lazy(() =>
@@ -31,9 +27,11 @@ const ProjectCanvas = lazy(() =>
 export function ProjectPage({
   projectId,
   tab: requested,
+  settingsOpen = false,
 }: {
   projectId: Id | null;
   tab?: ProjectTab;
+  settingsOpen?: boolean;
 }) {
   const navigate = useNavigate();
   const { data: tasks, isPending } = useTasks();
@@ -71,13 +69,22 @@ export function ProjectPage({
     memory,
   });
   const next = nextUp(own, todayKey());
+  const showCompleted = memory.showCompleted ?? false;
   const openTab = (target: ProjectTab) => {
-    if (remembersTab(target)) remember({ tab: target });
+    remember({ tab: target });
     if (projectId !== null)
       void navigate({
         to: '/projects/$projectId',
         params: { projectId },
         search: { tab: target },
+      });
+  };
+  const setSettingsOpen = (open: boolean) => {
+    if (projectId !== null)
+      void navigate({
+        to: '/projects/$projectId',
+        params: { projectId },
+        search: (search) => ({ tab: search.tab, settings: open || undefined }),
       });
   };
 
@@ -91,6 +98,13 @@ export function ProjectPage({
         onTab={openTab}
         onAddTask={() => newTask({ projectId })}
         next={next}
+        options={
+          <ProjectOptions
+            showCompleted={showCompleted}
+            onShowCompleted={(show) => remember({ showCompleted: show })}
+            onOpenSettings={project ? () => setSettingsOpen(true) : undefined}
+          />
+        }
       />
 
       {tab === 'notes' && project ? (
@@ -99,8 +113,6 @@ export function ProjectPage({
         </Suspense>
       ) : tab === 'focus' && project ? (
         <ProjectFocus projectId={project.id} />
-      ) : tab === 'settings' && project ? (
-        <ProjectSettings project={project} />
       ) : (
         <ProjectTasks
           projectId={projectId}
@@ -109,9 +121,18 @@ export function ProjectPage({
           own={own}
           sections={sections}
           openCount={openCount}
+          showCompleted={showCompleted}
           next={next}
           onOpenNotes={() => openTab('notes')}
           onOpenFocus={() => openTab('focus')}
+        />
+      )}
+
+      {project && (
+        <ProjectSettingsDialog
+          project={project}
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
         />
       )}
     </Page>

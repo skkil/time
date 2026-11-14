@@ -91,7 +91,7 @@ export function ProjectNav() {
       void navigate({
         to: '/projects/$projectId',
         params: { projectId: node.id },
-        search: { tab: 'settings' },
+        search: { settings: true },
       }),
     archive: (node: ProjectNode, archived: boolean) =>
       archive.mutate(

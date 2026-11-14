@@ -420,7 +420,7 @@ export function ProjectSettings({ project }: { project: Project }) {
   };
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-16 sm:px-10">
+    <div>
       {SETTINGS_SECTIONS.map((section) => {
         const sectionRows = section.settings
           .map((id) => ({ id, row: rows[id] }))

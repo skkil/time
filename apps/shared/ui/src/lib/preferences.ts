@@ -6,9 +6,13 @@ import { installedPlatform } from '@/platform';
 
 export type ZenBackdropMode = 'motion' | 'still';
 
-export type ProjectTab = 'tasks' | 'notes' | 'focus' | 'settings';
+export type ProjectTab = 'tasks' | 'notes' | 'focus';
 
-export type ProjectViewMemory = { tab?: ProjectTab; view?: string };
+export type ProjectViewMemory = {
+  tab?: ProjectTab;
+  view?: string;
+  showCompleted?: boolean;
+};
 
 export type { DateOrder, WeekStart };
 
@@ -89,7 +93,7 @@ const storageKey = 'preferences';
 const listeners = new Set<() => void>();
 let cache: Preferences | undefined;
 
-const PROJECT_TABS: ProjectTab[] = ['tasks', 'notes', 'focus', 'settings'];
+const PROJECT_TABS: ProjectTab[] = ['tasks', 'notes', 'focus'];
 
 export const isProjectTab = (value: unknown): value is ProjectTab =>
   PROJECT_TABS.includes(value as ProjectTab);
@@ -121,6 +125,7 @@ function projectViewOf(stored: Record<string, unknown>) {
     memory[key] = {
       ...(isProjectTab(entry.tab) && { tab: entry.tab }),
       ...(typeof entry.view === 'string' && { view: entry.view }),
+      ...(entry.showCompleted === true && { showCompleted: true }),
     };
   }
   return memory;

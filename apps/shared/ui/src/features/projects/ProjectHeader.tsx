@@ -48,6 +48,7 @@ export function ProjectHeader({
   onTab,
   onAddTask,
   next,
+  options,
 }: {
   project?: Project;
   openCount: number;
@@ -56,6 +57,7 @@ export function ProjectHeader({
   onTab: (tab: ProjectTab) => void;
   onAddTask: () => void;
   next?: Task;
+  options: ReactNode;
 }) {
   const index = useProjectIndex();
   const group = useProjectGroup(project?.id);
@@ -112,12 +114,15 @@ export function ProjectHeader({
         <h1 className="min-w-0 flex-1 text-3xl leading-tight font-light tracking-tight max-sm:basis-full">
           <ProjectTitle project={project} />
         </h1>
-        {!project?.archived && (
-          <Button onClick={onAddTask}>
-            <PlusIcon />
-            Add task
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {options}
+          {!project?.archived && (
+            <Button onClick={onAddTask}>
+              <PlusIcon />
+              Add task
+            </Button>
+          )}
+        </div>
       </div>
       <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-foreground/75">
         {details.map((detail, i) => (

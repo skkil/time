@@ -6,7 +6,6 @@ import {
   chooseTab,
   chooseView,
   fallbackView,
-  remembersTab,
   stepView,
   viewOptions,
 } from './project-view';
@@ -82,10 +81,10 @@ describe('project tabs', () => {
     expect(
       chooseTab({
         inProject: true,
-        requested: 'settings',
+        requested: 'focus',
         memory: { tab: 'notes' },
       }),
-    ).toBe('settings');
+    ).toBe('focus');
     expect(
       chooseTab({
         inProject: true,
@@ -106,10 +105,5 @@ describe('project tabs', () => {
         memory: { tab: 'focus' },
       }),
     ).toBe('tasks');
-  });
-
-  it('remembers working tabs but not Settings', () => {
-    expect(remembersTab('notes')).toBe(true);
-    expect(remembersTab('settings')).toBe(false);
   });
 });

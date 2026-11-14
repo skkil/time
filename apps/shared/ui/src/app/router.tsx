@@ -27,7 +27,7 @@ import { RouteError } from './RouteError';
 type WeekSearch = { week: DateKey };
 export type MainView = 'day' | 'week';
 type MainSearch = { view: MainView; week: DateKey; earlier?: true };
-type ProjectSearch = { tab?: ProjectTab };
+type ProjectSearch = { tab?: ProjectTab; settings?: true };
 
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -124,12 +124,23 @@ const projectsSomedayRoute = createRoute({
 export const projectRoute = createRoute({
   getParentRoute: () => projectsRoute,
   path: '/$projectId',
-  validateSearch: (search: Record<string, unknown>): ProjectSearch =>
-    isProjectTab(search.tab) ? { tab: search.tab } : {},
+  validateSearch: (search: Record<string, unknown>): ProjectSearch => ({
+    ...(isProjectTab(search.tab) && { tab: search.tab }),
+    ...((search.settings === true ||
+      search.settings === 'true' ||
+      search.tab === 'settings') && { settings: true }),
+  }),
   component: function ProjectRoute() {
     const { projectId } = projectRoute.useParams();
-    const { tab } = projectRoute.useSearch();
-    return <ProjectPage key={projectId} projectId={projectId} tab={tab} />;
+    const { tab, settings } = projectRoute.useSearch();
+    return (
+      <ProjectPage
+        key={projectId}
+        projectId={projectId}
+        tab={tab}
+        settingsOpen={settings === true}
+      />
+    );
   },
 });
 

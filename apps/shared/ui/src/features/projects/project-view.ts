@@ -9,7 +9,6 @@ export const PROJECT_TABS: TabOption[] = [
   { id: 'tasks', label: 'Tasks' },
   { id: 'notes', label: 'Notes' },
   { id: 'focus', label: 'Focus' },
-  { id: 'settings', label: 'Settings' },
 ];
 
 export const INBOX_KEY = 'inbox';
@@ -90,5 +89,3 @@ export function chooseTab({
   if (!inProject) return 'tasks';
   return requested ?? memory.tab ?? 'tasks';
 }
-
-export const remembersTab = (tab: ProjectTab) => tab !== 'settings';
