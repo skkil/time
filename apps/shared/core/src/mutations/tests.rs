@@ -198,6 +198,12 @@ fn walk_every_mutation(conn: &Connection) -> Vec<(String, Value)> {
         "createTask",
         json!({"input": task("Fix login", &website, &doing)}),
     );
+    let library = s.id("createPlace", json!({"name": "Library"}));
+    s.run(
+        "renamePlace",
+        json!({"id": library, "name": "City library"}),
+    );
+    s.run("setTaskPlace", json!({"id": login, "placeId": library}));
     let tests = s.id(
         "createTask",
         json!({"input": task("Write tests", &website, &null)}),
@@ -484,6 +490,7 @@ fn walk_every_mutation(conn: &Connection) -> Vec<(String, Value)> {
     s.run("deleteTasks", json!({"ids": [tests]}));
     s.run("deleteSection", json!({"id": later}));
     s.run("deleteGroup", json!({"id": acme}));
+    s.run("deletePlace", json!({"id": library}));
     s.run("setProjectArchived", json!({"id": copy, "archived": true}));
     s.run("deleteProject", json!({"id": copy}));
     let tasks = s.read("listTasks", json!({}));

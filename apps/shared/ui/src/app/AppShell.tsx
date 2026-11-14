@@ -26,7 +26,8 @@ import { useHabitSync } from '@/features/habits/api';
 import { ProjectsNavToggle } from '@/features/projects/ProjectsNavToggle';
 import { RitualProvider } from '@/features/rituals/RitualProvider';
 import { useRitualRunner } from '@/features/rituals/runner-context';
-import { SettingsDialog } from '@/features/settings/SettingsDialog';
+import { SettingsProvider } from '@/features/settings/SettingsProvider';
+import { useSettings } from '@/features/settings/settings-context';
 import { useSyncStatus } from '@/features/sync/api';
 import { isSignedIn } from '@/features/sync/view';
 import { TaskDialogProvider } from '@/features/tasks/TaskDialog';
@@ -48,11 +49,13 @@ import { ShortcutSheet } from './ShortcutSheet';
 
 export function AppShell() {
   return (
-    <TaskDialogProvider>
-      <RitualProvider>
-        <Canvas />
-      </RitualProvider>
-    </TaskDialogProvider>
+    <SettingsProvider>
+      <TaskDialogProvider>
+        <RitualProvider>
+          <Canvas />
+        </RitualProvider>
+      </TaskDialogProvider>
+    </SettingsProvider>
   );
 }
 
@@ -69,12 +72,7 @@ function Canvas() {
   const { active } = useRitualRunner();
   const navigate = useNavigate();
   const [searching, setSearching] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [settingsSection, setSettingsSection] = useState<string>();
-  const openSettings = (section?: string) => {
-    setSettingsSection(section);
-    setSettingsOpen(true);
-  };
+  const { openSettings } = useSettings();
   const [sheetOpen, setSheetOpen] = useState(false);
   const location = useRouterState({ select: (state) => state.location });
   const search = location.search as { view?: string; week?: string };
@@ -172,11 +170,6 @@ function Canvas() {
         </DateOrderBoundary>
       </main>
       <SearchDialog open={searching} onOpenChange={setSearching} />
-      <SettingsDialog
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        section={settingsSection}
-      />
       <ShortcutSheet open={sheetOpen} onOpenChange={setSheetOpen} />
       <ConnectionNotice />
     </div>

@@ -132,6 +132,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/tasks/{id}/place': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['setTaskPlace'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/tasks/{id}/phases/{statusId}/notes': {
     parameters: {
       query?: never;
@@ -596,6 +612,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/places/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['rename_1'];
+    post?: never;
+    delete: operations['delete_2'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/outcomes/{id}': {
     parameters: {
       query?: never;
@@ -732,9 +764,9 @@ export interface paths {
       cookie?: never;
     };
     get?: never;
-    put: operations['rename_1'];
+    put: operations['rename_2'];
     post?: never;
-    delete: operations['delete_2'];
+    delete: operations['delete_3'];
     options?: never;
     head?: never;
     patch?: never;
@@ -1364,7 +1396,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/notifications/devices': {
+  '/api/v1/places': {
     parameters: {
       query?: never;
       header?: never;
@@ -1372,6 +1404,22 @@ export interface paths {
       cookie?: never;
     };
     get: operations['list_3'];
+    put?: never;
+    post: operations['create_3'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/notifications/devices': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['list_4'];
     put?: never;
     post: operations['register'];
     delete?: never;
@@ -1403,9 +1451,9 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['list_4'];
+    get: operations['list_5'];
     put?: never;
-    post: operations['create_3'];
+    post: operations['create_4'];
     delete?: never;
     options?: never;
     head?: never;
@@ -1483,9 +1531,9 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['list_5'];
+    get: operations['list_6'];
     put?: never;
-    post: operations['create_4'];
+    post: operations['create_5'];
     delete?: never;
     options?: never;
     head?: never;
@@ -1675,7 +1723,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations['list_6'];
+    get: operations['list_7'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1806,7 +1854,7 @@ export interface paths {
     get: operations['me'];
     put?: never;
     post?: never;
-    delete: operations['delete_3'];
+    delete: operations['delete_4'];
     options?: never;
     head?: never;
     patch?: never;
@@ -2014,7 +2062,7 @@ export interface paths {
     get?: never;
     put?: never;
     post?: never;
-    delete: operations['delete_4'];
+    delete: operations['delete_5'];
     options?: never;
     head?: never;
     patch?: never;
@@ -2030,7 +2078,7 @@ export interface paths {
     get?: never;
     put?: never;
     post?: never;
-    delete: operations['delete_5'];
+    delete: operations['delete_6'];
     options?: never;
     head?: never;
     patch?: never;
@@ -2204,6 +2252,8 @@ export interface components {
       waitingOn: string[];
       /** Format: uuid */
       phaseId: string | null;
+      /** Format: uuid */
+      placeId: string | null;
     };
     TaskTypeId: {
       /** Format: uuid */
@@ -2212,6 +2262,10 @@ export interface components {
     TaskStatusId: {
       /** Format: uuid */
       statusId: string;
+    };
+    TaskPlace: {
+      /** Format: uuid */
+      placeId: string | null;
     };
     PhaseNotes: {
       notes: string;
@@ -2422,6 +2476,16 @@ export interface components {
     };
     PlanningChoice: {
       time: string;
+    };
+    PlaceName: {
+      name: string;
+    };
+    Place: {
+      /** Format: uuid */
+      id: string;
+      name: string;
+      /** Format: int32 */
+      position: number;
     };
     OutcomeInput: {
       title: string;
@@ -3072,6 +3136,7 @@ export type TaskInput = components['schemas']['TaskInput'];
 export type Task = components['schemas']['Task'];
 export type TaskTypeId = components['schemas']['TaskTypeId'];
 export type TaskStatusId = components['schemas']['TaskStatusId'];
+export type TaskPlace = components['schemas']['TaskPlace'];
 export type PhaseNotes = components['schemas']['PhaseNotes'];
 export type TaskPhase = components['schemas']['TaskPhase'];
 export type TaskOutcome = components['schemas']['TaskOutcome'];
@@ -3106,6 +3171,8 @@ export type ProjectCanvas = components['schemas']['ProjectCanvas'];
 export type Archived = components['schemas']['Archived'];
 export type PriorityInput = components['schemas']['PriorityInput'];
 export type PlanningChoice = components['schemas']['PlanningChoice'];
+export type PlaceName = components['schemas']['PlaceName'];
+export type Place = components['schemas']['Place'];
 export type OutcomeInput = components['schemas']['OutcomeInput'];
 export type OutcomeStatusInput = components['schemas']['OutcomeStatusInput'];
 export type MilestoneInput = components['schemas']['MilestoneInput'];
@@ -3499,6 +3566,32 @@ export interface operations {
     requestBody: {
       content: {
         'application/json': components['schemas']['TaskStatusId'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Task'];
+        };
+      };
+    };
+  };
+  setTaskPlace: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TaskPlace'];
       };
     };
     responses: {
@@ -4442,6 +4535,52 @@ export interface operations {
       };
     };
   };
+  rename_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PlaceName'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Place'];
+        };
+      };
+    };
+  };
+  delete_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   updateOutcome: {
     parameters: {
       query?: never;
@@ -4721,7 +4860,7 @@ export interface operations {
       };
     };
   };
-  rename_1: {
+  rename_2: {
     parameters: {
       query?: never;
       header?: never;
@@ -4747,7 +4886,7 @@ export interface operations {
       };
     };
   };
-  delete_2: {
+  delete_3: {
     parameters: {
       query?: never;
       header?: never;
@@ -5814,6 +5953,50 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
+          '*/*': components['schemas']['Place'][];
+        };
+      };
+    };
+  };
+  create_3: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PlaceName'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['Place'];
+        };
+      };
+    };
+  };
+  list_4: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
           '*/*': components['schemas']['Device'][];
         };
       };
@@ -5867,7 +6050,7 @@ export interface operations {
       };
     };
   };
-  list_4: {
+  list_5: {
     parameters: {
       query?: never;
       header?: never;
@@ -5887,7 +6070,7 @@ export interface operations {
       };
     };
   };
-  create_3: {
+  create_4: {
     parameters: {
       query?: never;
       header?: never;
@@ -5998,7 +6181,7 @@ export interface operations {
       };
     };
   };
-  list_5: {
+  list_6: {
     parameters: {
       query?: never;
       header?: never;
@@ -6018,7 +6201,7 @@ export interface operations {
       };
     };
   };
-  create_4: {
+  create_5: {
     parameters: {
       query?: never;
       header?: never;
@@ -6306,7 +6489,7 @@ export interface operations {
       };
     };
   };
-  list_6: {
+  list_7: {
     parameters: {
       query?: never;
       header?: never;
@@ -6502,7 +6685,7 @@ export interface operations {
       };
     };
   };
-  delete_3: {
+  delete_4: {
     parameters: {
       query?: never;
       header?: never;
@@ -6778,7 +6961,7 @@ export interface operations {
       };
     };
   };
-  delete_4: {
+  delete_5: {
     parameters: {
       query?: never;
       header?: never;
@@ -6798,7 +6981,7 @@ export interface operations {
       };
     };
   };
-  delete_5: {
+  delete_6: {
     parameters: {
       query?: never;
       header?: never;

@@ -11,6 +11,7 @@ pub mod glance;
 pub mod groups;
 pub mod habits;
 pub mod import;
+pub mod places;
 pub mod projects;
 pub mod records;
 pub mod reminders;

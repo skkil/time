@@ -53,6 +53,7 @@ export function runOffline() {
 export const keys = {
   projects: ['projects'] as const,
   groups: ['groups'] as const,
+  places: ['places'] as const,
   tasks: ['tasks'] as const,
   task: (id: Id) => ['tasks', id] as const,
   sections: ['sections'] as const,

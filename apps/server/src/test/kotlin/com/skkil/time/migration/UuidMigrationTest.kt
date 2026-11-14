@@ -126,6 +126,7 @@ class UuidMigrationTest {
         val synced =
             setOf(
                 "project_group",
+                "place",
                 "project",
                 "project_canvas",
                 "section",

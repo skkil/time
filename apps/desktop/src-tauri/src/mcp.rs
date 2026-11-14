@@ -15,7 +15,7 @@ use time_core::sync::Engine;
 use time_core::time_entries::{self, EntryDetails, RunningTimer};
 use time_core::types::{Date, Id, Timestamp};
 use time_core::{Error as AppError, Result as AppResult, mutations};
-use time_core::{blocks, groups, projects, sections, tasks};
+use time_core::{blocks, groups, places, projects, sections, tasks};
 
 use crate::db::{self, DATABASE_FILE, Db};
 
@@ -78,6 +78,8 @@ struct TaskView {
     repeats: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     estimate_minutes: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    place: Option<String>,
     #[serde(skip_serializing_if = "String::is_empty")]
     notes: String,
     #[serde(skip_serializing_if = "std::ops::Not::not")]
@@ -189,6 +191,7 @@ struct Names {
     projects: Vec<projects::Project>,
     sections: Vec<sections::Section>,
     groups: Vec<groups::Group>,
+    places: Vec<places::Place>,
 }
 
 impl Names {
@@ -197,6 +200,7 @@ impl Names {
             projects: projects::list(conn)?,
             sections: sections::list(conn)?,
             groups: groups::list(conn)?,
+            places: places::list(conn)?,
         })
     }
 
@@ -230,6 +234,11 @@ impl Names {
     fn section(&self, id: Option<&Id>) -> Option<String> {
         id.and_then(|id| self.sections.iter().find(|section| &section.id == id))
             .map(|section| section.name.clone())
+    }
+
+    fn place(&self, id: Option<&Id>) -> Option<String> {
+        id.and_then(|id| self.places.iter().find(|place| &place.id == id))
+            .map(|place| place.name.clone())
     }
 
     fn sections_of(&self, project_id: Option<&Id>) -> Vec<SectionView> {
@@ -379,6 +388,7 @@ fn view(task: &tasks::Task, names: &Names) -> TaskView {
         deadline: task.deadline.map(|date| date.0.to_string()),
         repeats: task.recurrence.clone(),
         estimate_minutes: task.estimate_minutes,
+        place: names.place(task.place_id.as_ref()),
         notes: task.notes.clone(),
         done: task.completed_at.is_some(),
     }

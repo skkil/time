@@ -4,6 +4,7 @@ import com.skkil.time.features.mutations.domain.MutationSet
 import com.skkil.time.features.mutations.service.CalendarMutations
 import com.skkil.time.features.mutations.service.DataMutations
 import com.skkil.time.features.mutations.service.HabitMutations
+import com.skkil.time.features.mutations.service.PlaceMutations
 import com.skkil.time.features.mutations.service.ProjectMutations
 import com.skkil.time.features.mutations.service.RecordMutations
 import com.skkil.time.features.mutations.service.ReviewMutations
@@ -40,6 +41,7 @@ class MutationCoverageTest {
     private val registered =
         listOf(
             ProjectMutations::class.java,
+            PlaceMutations::class.java,
             TaskMutations::class.java,
             SectionMutations::class.java,
             TimeMutations::class.java,

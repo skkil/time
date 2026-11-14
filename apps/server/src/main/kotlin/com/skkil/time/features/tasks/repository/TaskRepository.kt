@@ -92,7 +92,7 @@ class TaskRepository(private val jdbc: JdbcClient) {
                 AS blocked_by,
               ARRAY(SELECT d.blocked_by_id FROM task_dependency d JOIN task b ON b.id = d.blocked_by_id
                     WHERE d.task_id = t.id AND b.completed_at IS NULL ORDER BY d.blocked_by_id) AS waiting_on,
-              t.phase_id, t.due_until
+              t.phase_id, t.due_until, t.place_id
             FROM task t"""
 
         val mapper =
@@ -129,6 +129,7 @@ class TaskRepository(private val jdbc: JdbcClient) {
                     blockedBy = rs.uuids("blocked_by"),
                     waitingOn = rs.uuids("waiting_on"),
                     phaseId = rs.uuidOrNull("phase_id"),
+                    placeId = rs.uuidOrNull("place_id"),
                 )
             }
     }

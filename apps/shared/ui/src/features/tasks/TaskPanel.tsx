@@ -29,6 +29,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { usePlaces } from '@/features/places/api';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { ProjectJump } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
@@ -68,6 +69,7 @@ import {
   useSections,
   useSetTaskCompleted,
   useSetTaskOutcome,
+  useSetTaskPlace,
   useTaskIndex,
   useUpdateTask,
 } from './api';
@@ -75,6 +77,7 @@ import {
   DeadlinePicker,
   DuePicker,
   EstimatePicker,
+  PlacePicker,
   PlacementPicker,
   PriorityPicker,
 } from './fields';
@@ -265,6 +268,10 @@ function Details({
   save: (patch: Partial<TaskInput>) => void;
 }) {
   const moveTasks = useMoveTasks();
+  const setPlace = useSetTaskPlace();
+  const places = usePlaces();
+  const place =
+    task.placeId === null ? undefined : places.byId.get(task.placeId);
   const parts: ReactNode[] = [
     <DuePicker
       key="due"
@@ -321,6 +328,16 @@ function Details({
       trigger={
         <Phrase set={task.priority < 4}>
           {task.priority < 4 ? `priority ${task.priority}` : 'priority'}
+        </Phrase>
+      }
+    />,
+    <PlacePicker
+      key="place"
+      value={task.placeId}
+      onChange={(placeId) => setPlace.mutate({ id: task.id, placeId })}
+      trigger={
+        <Phrase set={place !== undefined}>
+          {place ? `at ${place.name}` : 'place'}
         </Phrase>
       }
     />,

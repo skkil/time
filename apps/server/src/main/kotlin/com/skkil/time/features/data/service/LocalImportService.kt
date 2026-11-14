@@ -27,9 +27,10 @@ private typealias Row = ObjectNode
  *   ignored, and `user_id` is never read from a row.
  * - A natural-key row (a ritual's kind, a day, a setting, ...) takes its key's id in the caller's scope.
  * - A row whose id belongs to another account is refused. One whose id the account has takes the uploaded values.
- *   Otherwise a row whose natural key (a group's name, a quarter's start, an imported row's external id, ...) another
- *   of the account's rows holds merges into that row: it keeps its id, takes the uploaded values, and every later
- *   uploaded reference to the uploaded id follows it. Anything else is inserted with the id the device chose.
+ *   Otherwise a row whose natural key (a group's or a place's name, a quarter's start, an imported row's external
+ *   id, ...) another of the account's rows holds merges into that row: it keeps its id, takes the uploaded values,
+ *   and every later uploaded reference to the uploaded id follows it. Anything else is inserted with the id the
+ *   device chose.
  * - Every reference must name a row of the caller's, uploaded or not.
  */
 @Service
@@ -145,7 +146,7 @@ class LocalImportService(private val jdbc: JdbcClient) {
         val names = table.naturalKey.orEmpty()
         val conditions =
             names.mapIndexed { index, name ->
-                if (table.name == GROUP && name == "name") "lower(name) = lower(:k$index)" else "\"$name\" = :k$index"
+                if (table.name in NAMED && name == "name") "lower(name) = lower(:k$index)" else "\"$name\" = :k$index"
             } + listOfNotNull("user_id = :user".takeIf { table.owner == null })
         var statement =
             jdbc.sql(
@@ -219,6 +220,6 @@ class LocalImportService(private val jdbc: JdbcClient) {
         }
 
     private companion object {
-        const val GROUP = "project_group"
+        val NAMED = setOf("project_group", "place")
     }
 }

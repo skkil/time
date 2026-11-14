@@ -3,6 +3,7 @@ import type { Backend, RemoteHost } from '#server/backend';
 import { calendar } from '#server/calendar';
 import { data } from '#server/data';
 import { habits } from '#server/habits';
+import { places } from '#server/places';
 import { projects } from '#server/projects';
 import { records } from '#server/records';
 import { review } from '#server/review';
@@ -16,6 +17,7 @@ export type { Backend, RemoteHost };
 export const createRemoteBackend = (api: Api, host: RemoteHost): Backend =>
   ({
     ...projects(api),
+    ...places(api),
     ...tasks(api),
     ...records(api),
     ...workflow(api),

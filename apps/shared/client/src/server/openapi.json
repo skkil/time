@@ -391,6 +391,43 @@
         }
       }
     },
+    "/api/v1/tasks/{id}/place" : {
+      "put" : {
+        "tags" : [ "place-controller" ],
+        "operationId" : "setTaskPlace",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskPlace"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/{id}/phases/{statusId}/notes" : {
       "put" : {
         "tags" : [ "record-controller" ],
@@ -1544,6 +1581,61 @@
         }
       }
     },
+    "/api/v1/places/{id}" : {
+      "put" : {
+        "tags" : [ "place-controller" ],
+        "operationId" : "rename_1",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlaceName"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Place"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "place-controller" ],
+        "operationId" : "delete_2",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/outcomes/{id}" : {
       "put" : {
         "tags" : [ "review-controller" ],
@@ -1890,7 +1982,7 @@
     "/api/v1/groups/{id}" : {
       "put" : {
         "tags" : [ "group-controller" ],
-        "operationId" : "rename_1",
+        "operationId" : "rename_2",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -1925,7 +2017,7 @@
       },
       "delete" : {
         "tags" : [ "group-controller" ],
-        "operationId" : "delete_2",
+        "operationId" : "delete_3",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -3198,10 +3290,57 @@
         }
       }
     },
+    "/api/v1/places" : {
+      "get" : {
+        "tags" : [ "place-controller" ],
+        "operationId" : "list_3",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Place"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "place-controller" ],
+        "operationId" : "create_3",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlaceName"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Place"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/notifications/devices" : {
       "get" : {
         "tags" : [ "notification-controller" ],
-        "operationId" : "list_3",
+        "operationId" : "list_4",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3283,7 +3422,7 @@
     "/api/v1/habits" : {
       "get" : {
         "tags" : [ "habit-controller" ],
-        "operationId" : "list_4",
+        "operationId" : "list_5",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3302,7 +3441,7 @@
       },
       "post" : {
         "tags" : [ "habit-controller" ],
-        "operationId" : "create_3",
+        "operationId" : "create_4",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -3430,7 +3569,7 @@
     "/api/v1/groups" : {
       "get" : {
         "tags" : [ "group-controller" ],
-        "operationId" : "list_5",
+        "operationId" : "list_6",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3449,7 +3588,7 @@
       },
       "post" : {
         "tags" : [ "group-controller" ],
-        "operationId" : "create_4",
+        "operationId" : "create_5",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -3783,7 +3922,7 @@
     "/api/v1/rituals" : {
       "get" : {
         "tags" : [ "ritual-controller" ],
-        "operationId" : "list_6",
+        "operationId" : "list_7",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4050,7 +4189,7 @@
       },
       "delete" : {
         "tags" : [ "account-controller" ],
-        "operationId" : "delete_3",
+        "operationId" : "delete_4",
         "responses" : {
           "204" : {
             "description" : "No Content"
@@ -4398,7 +4537,7 @@
     "/api/v1/sections/{id}" : {
       "delete" : {
         "tags" : [ "section-controller" ],
-        "operationId" : "delete_4",
+        "operationId" : "delete_5",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -4418,7 +4557,7 @@
     "/api/v1/notifications/devices/{id}" : {
       "delete" : {
         "tags" : [ "notification-controller" ],
-        "operationId" : "delete_5",
+        "operationId" : "delete_6",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -4778,9 +4917,13 @@
           "phaseId" : {
             "type" : [ "string", "null" ],
             "format" : "uuid"
+          },
+          "placeId" : {
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
           }
         },
-        "required" : [ "blockedBy", "completedAt", "countsAsTime", "createdAt", "deadline", "dueDate", "dueTime", "dueUntil", "estimateMinutes", "id", "kind", "location", "milestoneId", "mustOn", "nextStep", "notes", "outcomeId", "parentId", "phaseId", "position", "priority", "projectId", "recurrence", "sectionId", "statusCategory", "statusChangedAt", "statusId", "title", "trackedSeconds", "typeId", "waitingOn" ]
+        "required" : [ "blockedBy", "completedAt", "countsAsTime", "createdAt", "deadline", "dueDate", "dueTime", "dueUntil", "estimateMinutes", "id", "kind", "location", "milestoneId", "mustOn", "nextStep", "notes", "outcomeId", "parentId", "phaseId", "placeId", "position", "priority", "projectId", "recurrence", "sectionId", "statusCategory", "statusChangedAt", "statusId", "title", "trackedSeconds", "typeId", "waitingOn" ]
       },
       "TaskTypeId" : {
         "type" : "object",
@@ -4801,6 +4944,16 @@
           }
         },
         "required" : [ "statusId" ]
+      },
+      "TaskPlace" : {
+        "type" : "object",
+        "properties" : {
+          "placeId" : {
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "placeId" ]
       },
       "PhaseNotes" : {
         "type" : "object",
@@ -5366,6 +5519,32 @@
           }
         },
         "required" : [ "time" ]
+      },
+      "PlaceName" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name" ]
+      },
+      "Place" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "position" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "id", "name", "position" ]
       },
       "OutcomeInput" : {
         "type" : "object",

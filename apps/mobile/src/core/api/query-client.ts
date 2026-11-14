@@ -14,6 +14,7 @@ export const keys = {
   tasks: ['tasks'],
   projects: ['projects'],
   sections: ['sections'],
+  places: ['places'],
   timer: ['timer'],
   habits: ['habits'],
   habitDays: (from: DateKey, to: DateKey) => ['habit-days', from, to],

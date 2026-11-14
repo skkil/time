@@ -35,4 +35,5 @@ data class Task(
     val blockedBy: List<UUID>,
     val waitingOn: List<UUID>,
     val phaseId: UUID?,
+    val placeId: UUID?,
 )

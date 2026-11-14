@@ -10,7 +10,8 @@ export type TokenKind =
   | 'priority'
   | 'project'
   | 'section'
-  | 'type';
+  | 'type'
+  | 'place';
 
 export type Token = { kind: TokenKind; start: number; end: number };
 
@@ -20,6 +21,7 @@ export type ParseContext = {
   projects: { id: Id; name: string }[];
   sections: { id: Id; name: string; projectId: Id | null }[];
   types?: { id: Id; name: string; projectId: Id }[];
+  places?: { id: Id; name: string }[];
   projectId: Id | null;
   ignored?: ReadonlySet<string>;
 };
@@ -37,4 +39,5 @@ export type Parsed = {
   unknownProject?: string;
   sectionId?: Id;
   typeId?: Id;
+  placeId?: Id;
 };

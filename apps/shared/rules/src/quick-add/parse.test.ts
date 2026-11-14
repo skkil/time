@@ -192,4 +192,26 @@ describe('parseQuickAdd', () => {
     expect(parsed.typeId).toBe('3');
     expect(parsed.title).toBe('Fix login');
   });
+
+  it('reads a saved place by name, ignoring case', () => {
+    const withPlaces = (text: string) =>
+      parseQuickAdd(text, {
+        ...context,
+        places: [
+          { id: '20', name: 'Home' },
+          { id: '21', name: 'City library' },
+        ],
+      });
+    expect(withPlaces('Return books @city LIBRARY tomorrow')).toMatchObject({
+      title: 'Return books',
+      placeId: '21',
+      dueDate: '2026-11-05',
+    });
+    expect(withPlaces('Water plants @home').placeId).toBe('20');
+    const unknown = withPlaces('Meet @Office');
+    expect(unknown.title).toBe('Meet @Office');
+    expect(unknown.placeId).toBeUndefined();
+    expect(withPlaces('email a@home.com').placeId).toBeUndefined();
+    expect(withPlaces('Home stuff').placeId).toBeUndefined();
+  });
 });

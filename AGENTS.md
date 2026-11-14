@@ -124,6 +124,11 @@ cd apps/server && ./gradlew spotlessApply test | ./gradlew bootRun | ./gradlew o
   `project_group`); deleting one only clears it from its projects. Its
   overview (`/projects/groups/$groupId`) is a timeline of every project's
   dates, then one card per project.
+- **Place**: a saved place (`core/src/places/`, table `place`; names unique
+  ignoring case). A task has at most one (`task.place_id`, set with
+  `setTaskPlace`); deleting a place only clears it from its tasks. Managed in
+  Settings → Places, picked in the task window or with `@Place` in Quick Add.
+  Separate from an event's free-text `location`.
 - **Canvas**: one Tiptap HTML document per project (`project_canvas`,
   `core/src/canvas/`), the project's Notes tab.
 - **Section**: ordered group inside a project or the Inbox; deleting it
@@ -285,10 +290,10 @@ onto it:
   `syncMutations` entry implemented by `time_core::data::import` and the
   server's `LocalImportService` with the same rules: natural-key rows take
   the account's key id; an id another account owns is refused; a row whose
-  natural key (the tables above plus a group's name, a quarter's start and
-  imported `external_id`s) matches an account row merges into it; anything
-  else keeps the device's id; every reference must name a row of the
-  account. Uploaded values win for shared rows.
+  natural key (the tables above plus a group's or a place's name, a
+  quarter's start and imported `external_id`s) matches an account row merges
+  into it; anything else keeps the device's id; every reference must name a
+  row of the account. Uploaded values win for shared rows.
 - **Refused changes.** A mutation the server rejects is undone on the device
   and kept as an issue with its name, arguments and reason. Settings → Sync
   offers Try again (`retry_issue` re-queues it as a new mutation) and

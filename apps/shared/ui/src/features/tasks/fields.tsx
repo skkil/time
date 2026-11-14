@@ -8,6 +8,7 @@ import {
   ClockIcon,
   FlagIcon,
   InboxIcon,
+  MapPinIcon,
   RepeatIcon,
   TargetIcon,
   TimerIcon,
@@ -32,8 +33,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { usePlaces } from '@/features/places/api';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import { useProjectIndex } from '@/features/projects/api';
+import { useSettings } from '@/features/settings/settings-context';
 import {
   type DateKey,
   formatEstimate,
@@ -420,6 +423,66 @@ export function PriorityPicker({
             {value === priority && <CheckIcon className="ml-auto size-4" />}
           </button>
         ))}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export function PlacePicker({
+  value,
+  onChange,
+  trigger,
+}: {
+  value: Id | null;
+  onChange: (value: Id | null) => void;
+  trigger: ReactNode;
+}) {
+  const places = usePlaces();
+  const { openSettings } = useSettings();
+  const [open, setOpen] = useState(false);
+  const choose = (next: Id | null) => {
+    onChange(next);
+    setOpen(false);
+  };
+  const option = (id: Id | null, label: string) => (
+    <button
+      key={id ?? 'none'}
+      type="button"
+      className="flex h-8 w-full items-center gap-2 rounded-sm px-2 text-sm hover:bg-accent"
+      onClick={() => choose(id)}
+    >
+      <MapPinIcon
+        className={cn('size-4', id === null && 'text-muted-foreground')}
+      />
+      <span className="truncate">{label}</span>
+      {value === id && <CheckIcon className="ml-auto size-4" />}
+    </button>
+  );
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+      <PopoverContent className="w-56 p-1" align="start">
+        <p className="px-2 pt-1 pb-1.5 text-xs text-muted-foreground">Place</p>
+        {option(null, 'No place')}
+        {places.list.map((place) => option(place.id, place.name))}
+        {places.list.length === 0 && (
+          <p className="px-2 py-1.5 text-xs text-muted-foreground">
+            No saved places yet.
+          </p>
+        )}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start font-normal text-muted-foreground"
+          onClick={() => {
+            setOpen(false);
+            openSettings('places');
+          }}
+        >
+          {places.list.length === 0 ? 'Add places in Settings' : 'Edit places'}
+        </Button>
       </PopoverContent>
     </Popover>
   );

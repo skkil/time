@@ -304,11 +304,11 @@ fn upsert(conn: &Connection, table: &str, row: &Map<String, Value>) -> Result<()
 /// - In an account, a natural-key row (a ritual's kind, a day, a setting,
 ///   …) takes its key's id there, whatever id it arrived with.
 /// - A row whose id exists takes the uploaded values. Otherwise a row whose
-///   natural key ([`NATURAL_KEYS`]: a group's name, a quarter's start, an
-///   imported row's external id, …) another row already holds merges into
-///   that row: it keeps its id, takes the uploaded values, and every later
-///   uploaded reference to the uploaded id follows it. Anything else is
-///   inserted with the id the device chose.
+///   natural key ([`NATURAL_KEYS`]: a group's or a place's name, a quarter's
+///   start, an imported row's external id, …) another row already holds
+///   merges into that row: it keeps its id, takes the uploaded values, and
+///   every later uploaded reference to the uploaded id follows it. Anything
+///   else is inserted with the id the device chose.
 /// - Every reference must name a row the account has, uploaded or not.
 pub fn import(conn: &Connection, env: &dyn MutationEnv, data: &LocalData) -> Result<()> {
     if let Some(unknown) = data

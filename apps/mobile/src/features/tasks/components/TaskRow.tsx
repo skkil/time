@@ -3,7 +3,7 @@ import { formatDue, isOverdue } from '@skkil-time/rules/due';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { useCompleteTask } from '@/features/tasks/hooks';
+import { useCompleteTask, usePlaces } from '@/features/tasks/hooks';
 import { useSelection } from '@/features/tasks/selection';
 import { Check } from '@/ui/Check';
 import { useWide } from '@/ui/responsive';
@@ -28,11 +28,13 @@ export function TaskRow({
   const colorOf = useProjectColor();
   const complete = useCompleteTask();
   const wide = useWide();
+  const places = usePlaces();
+  const place = places.data?.find((candidate) => candidate.id === task.placeId);
   const { selected, select } = useSelection();
   const done = task.completedAt !== null;
   const open = wide && selected === task.id;
   const due = showDue ? formatDue(task) : '';
-  const meta = due !== '' || project || task.recurrence;
+  const meta = due !== '' || project || task.recurrence || place;
 
   return (
     <View style={styles.row}>
@@ -74,6 +76,11 @@ export function TaskRow({
             )}
             {task.recurrence && (
               <Text style={type.small}>↻ {task.recurrence}</Text>
+            )}
+            {place && (
+              <Text style={type.small} numberOfLines={1}>
+                at {place.name}
+              </Text>
             )}
             {project && (
               <View style={styles.project}>

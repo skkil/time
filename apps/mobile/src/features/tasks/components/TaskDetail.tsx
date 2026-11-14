@@ -21,6 +21,8 @@ import { useProjects } from '@/features/projects/hooks';
 import {
   useCompleteTask,
   useDeleteTask,
+  usePlaces,
+  useSetTaskPlace,
   useTasks,
   useUpdateTask,
 } from '@/features/tasks/hooks';
@@ -89,6 +91,8 @@ function TaskEditor({
   const colorOf = useProjectColor();
   const projects = useProjects();
   const update = useUpdateTask();
+  const places = usePlaces();
+  const setPlace = useSetTaskPlace();
   const complete = useCompleteTask();
   const remove = useDeleteTask();
   const timer = useTimerActions();
@@ -241,6 +245,42 @@ function TaskEditor({
           </View>
         </View>
 
+        {(places.data?.length ?? 0) > 0 && (
+          <View style={styles.property}>
+            <Text style={[type.small, styles.key]}>Place</Text>
+            <View style={styles.places}>
+              {[{ id: null, name: 'None' }, ...(places.data ?? [])].map(
+                (option) => {
+                  const selected = task.placeId === option.id;
+                  return (
+                    <Pressable
+                      key={option.id ?? 'none'}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected }}
+                      accessibilityLabel={
+                        option.id === null ? 'No place' : option.name
+                      }
+                      onPress={() =>
+                        setPlace.mutate({ id: task.id, placeId: option.id })
+                      }
+                      style={[styles.priority, selected && styles.chosen]}
+                    >
+                      <Text
+                        style={[
+                          type.small,
+                          { color: selected ? ink.onPrimary : ink.full },
+                        ]}
+                      >
+                        {option.name}
+                      </Text>
+                    </Pressable>
+                  );
+                },
+              )}
+            </View>
+          </View>
+        )}
+
         <TextInput
           value={notes}
           onChangeText={setNotes}
@@ -296,6 +336,13 @@ const styles = StyleSheet.create({
   key: { width: 84 },
   value: { flex: 1, padding: 0 },
   priorities: { flexDirection: 'row', gap: spacing.sm },
+  places: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
   priority: {
     minWidth: 40,
     height: 30,

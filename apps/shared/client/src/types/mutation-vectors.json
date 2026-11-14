@@ -1253,6 +1253,79 @@
           }
         }
       ]
+    },
+    {
+      "name": "createPlace",
+      "args": {
+        "name": "Library"
+      },
+      "ids": ["019a4b00-0000-7000-8000-0000000001a0"],
+      "expect": [
+        {
+          "table": "place",
+          "id": "019a4b00-0000-7000-8000-0000000001a0",
+          "row": {
+            "name": "Library",
+            "position": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "renamePlace",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-0000000001a0",
+        "name": "City library"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "place",
+          "id": "019a4b00-0000-7000-8000-0000000001a0",
+          "row": {
+            "name": "City library"
+          }
+        }
+      ]
+    },
+    {
+      "name": "setTaskPlace",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-0000000000f0",
+        "placeId": "019a4b00-0000-7000-8000-0000000001a0"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-0000000000f0",
+          "row": {
+            "place_id": "019a4b00-0000-7000-8000-0000000001a0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "deletePlace",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-0000000001a0"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-0000000000f0",
+          "row": {
+            "place_id": null
+          }
+        }
+      ],
+      "gone": [
+        {
+          "table": "place",
+          "id": "019a4b00-0000-7000-8000-0000000001a0"
+        }
+      ]
     }
   ]
 }

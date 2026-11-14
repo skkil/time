@@ -147,12 +147,16 @@ class LocalImportTest : TaskApiTest() {
                 .param("start", LocalDate.parse("2026-01-05"))
                 .update()
         }
+        val place = postJson("/api/v1/places", mapOf("name" to "Office")).id()
         val (theirGroup, theirQuarter, project, priority) = listOf(id(), id(), id(), id())
+        val (theirPlace, task) = listOf(id(), id())
         upload(
             "project_group" to listOf(mapOf("id" to theirGroup, "name" to "home", "position" to 3)),
+            "place" to listOf(mapOf("id" to theirPlace, "name" to "OFFICE", "position" to 2)),
             "project" to listOf(mapOf("id" to project, "name" to "Garden", "group_id" to theirGroup)),
             "quarter" to listOf(mapOf("id" to theirQuarter, "label" to "Winter", "start_date" to "2026-01-05")),
             "priority" to listOf(mapOf("id" to priority, "quarter_id" to theirQuarter, "title" to "Rest")),
+            "task" to listOf(mapOf("id" to task, "title" to "Print", "created_at" to 1, "place_id" to theirPlace)),
         )
 
         assertEquals(listOf("$group"), column("SELECT id FROM project_group WHERE user_id = :user"))
@@ -161,6 +165,8 @@ class LocalImportTest : TaskApiTest() {
         assertEquals(listOf("Winter"), column("SELECT label FROM quarter WHERE user_id = :user"))
         assertEquals(listOf("$quarter"), column("SELECT quarter_id FROM priority WHERE user_id = :user"))
         assertEquals(listOf("$priority"), column("SELECT id FROM priority WHERE user_id = :user"))
+        assertEquals(listOf("$place"), column("SELECT id FROM place WHERE user_id = :user"))
+        assertEquals(listOf("$place"), column("SELECT place_id FROM task WHERE user_id = :user"))
     }
 
     @Test

@@ -19,6 +19,10 @@ pub const MUTATIONS: &[&str] = &[
     "renameGroup",
     "reorderGroup",
     "deleteGroup",
+    "createPlace",
+    "renamePlace",
+    "deletePlace",
+    "setTaskPlace",
     "saveProjectCanvas",
     "createTask",
     "updateTask",
@@ -117,6 +121,7 @@ pub const SYNC_MUTATIONS: &[&str] = &["importLocal"];
 pub const READS: &[&str] = &[
     "listProjects",
     "listGroups",
+    "listPlaces",
     "getProjectCanvas",
     "listTasks",
     "getTask",

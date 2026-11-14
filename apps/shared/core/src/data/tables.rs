@@ -1,8 +1,9 @@
 /// Every table that syncs through store, each keyed by its `id` column and
 /// listed after every table it references. Device state (`device_setting`,
 /// the sync bookkeeping) is not listed and never syncs.
-pub const SYNCED_TABLES: [&str; 26] = [
+pub const SYNCED_TABLES: [&str; 27] = [
     "project_group",
+    "place",
     "project",
     "project_canvas",
     "section",
@@ -35,7 +36,7 @@ pub const ID_COLUMN: &str = "id";
 
 /// Every column of a synced table that holds the id of another synced row,
 /// as `(table, column, referenced table)`.
-pub const REFERENCES: [(&str, &str, &str); 32] = [
+pub const REFERENCES: [(&str, &str, &str); 33] = [
     ("project", "parent_id", "project"),
     ("project", "group_id", "project_group"),
     ("project_canvas", "project_id", "project"),
@@ -55,6 +56,7 @@ pub const REFERENCES: [(&str, &str, &str); 32] = [
     ("task", "status_id", "item_status"),
     ("task", "milestone_id", "milestone"),
     ("task", "phase_id", "item_status"),
+    ("task", "place_id", "place"),
     ("task_dependency", "task_id", "task"),
     ("task_dependency", "blocked_by_id", "task"),
     ("record_phase", "task_id", "task"),
@@ -71,10 +73,11 @@ pub const REFERENCES: [(&str, &str, &str); 32] = [
 ];
 
 /// What identifies a row besides its id, as `(table, columns)`: an account
-/// holds at most one row per value (group names ignore case; an empty list
-/// means one row per account). The server keeps the same keys.
-pub const NATURAL_KEYS: [(&str, &[&str]); 14] = [
+/// holds at most one row per value (group and place names ignore case; an
+/// empty list means one row per account). The server keeps the same keys.
+pub const NATURAL_KEYS: [(&str, &[&str]); 15] = [
     ("project_group", &["name"]),
+    ("place", &["name"]),
     ("project", &["external_id"]),
     ("section", &["external_id"]),
     ("task", &["external_id"]),

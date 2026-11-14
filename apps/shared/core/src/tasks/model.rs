@@ -41,6 +41,7 @@ pub struct Task {
     pub blocked_by: Vec<Id>,
     pub waiting_on: Vec<Id>,
     pub phase_id: Option<Id>,
+    pub place_id: Option<Id>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

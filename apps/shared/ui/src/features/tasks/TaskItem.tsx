@@ -27,6 +27,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { usePlaces } from '@/features/places/api';
 import { ProjectLink } from '@/features/projects/ProjectLink';
 import { useProjectIndex } from '@/features/projects/api';
 import { useStartTimer, useTimer } from '@/features/time/api';
@@ -104,6 +105,9 @@ export function TaskItem({
   const waitingOn = done ? [] : task.waitingOn;
   const firstBlocker =
     waitingOn.length > 0 ? tasks.byId.get(waitingOn[0]) : undefined;
+  const places = usePlaces();
+  const place =
+    task.placeId === null ? undefined : places.byId.get(task.placeId);
   const workflowIndex = useWorkflowIndex();
   const type =
     task.typeId === null ? undefined : workflowIndex.types.get(task.typeId);
@@ -219,6 +223,7 @@ export function TaskItem({
               task.deadline && `due by ${formatDate(task.deadline, today)}`,
               task.estimateMinutes !== null &&
                 `about ${formatEstimate(task.estimateMinutes)}`,
+              place && `at ${place.name}`,
               task.trackedSeconds > 0 &&
                 `${formatDuration(task.trackedSeconds)} focused`,
               children.length > 0 &&

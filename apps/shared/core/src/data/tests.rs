@@ -267,8 +267,10 @@ fn an_upload_merges_into_rows_that_hold_its_natural_keys() {
             "upsertQuarter",
             &json!({ "id": null, "label": "Q1", "startDate": "2026-01-05" }),
         )?;
+        let place = apply(conn, &env, "createPlace", &json!({ "name": "Office" }))?;
         let (their_group, their_quarter, project, priority) =
             (new_id(), new_id(), new_id(), new_id());
+        let (their_place, task) = (new_id(), new_id());
         let data = LocalData {
             tables: vec![
                 rows(
@@ -287,6 +289,14 @@ fn an_upload_merges_into_rows_that_hold_its_natural_keys() {
                     "priority",
                     vec![json!({ "id": priority, "quarter_id": their_quarter, "title": "Rest" })],
                 ),
+                rows(
+                    "place",
+                    vec![json!({ "id": their_place, "name": "OFFICE", "position": 2 })],
+                ),
+                rows(
+                    "task",
+                    vec![json!({ "id": task, "title": "Print", "created_at": 1, "place_id": their_place })],
+                ),
             ],
         };
         import(conn, &env, &data)?;
@@ -301,6 +311,9 @@ fn an_upload_merges_into_rows_that_hold_its_natural_keys() {
             [quarter.as_str().unwrap()]
         );
         assert_eq!(column(conn, "SELECT id FROM priority"), [priority.as_str()]);
+        let place_id = place["id"].as_str().unwrap();
+        assert_eq!(column(conn, "SELECT id FROM place"), [place_id]);
+        assert_eq!(column(conn, "SELECT place_id FROM task"), [place_id]);
         Ok(())
     })
     .unwrap();

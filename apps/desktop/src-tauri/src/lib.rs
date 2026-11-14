@@ -15,7 +15,7 @@ use tauri::{Manager, WindowEvent};
 use tauri_specta::{Builder, ErrorHandlingMode, collect_commands};
 
 use commands::{
-    blocks, calendar, canvas, data, dependencies, glance, groups, habits, import, projects,
+    blocks, calendar, canvas, data, dependencies, glance, groups, habits, import, places, projects,
     records, review, rituals, sections, tasks, time_entries, undo, workflow,
 };
 
@@ -92,6 +92,11 @@ fn specta_builder() -> Builder<tauri::Wry> {
             groups::rename_group,
             groups::reorder_group,
             groups::delete_group,
+            places::list_places,
+            places::create_place,
+            places::rename_place,
+            places::delete_place,
+            places::set_task_place,
             canvas::get_project_canvas,
             canvas::save_project_canvas,
             tasks::list_tasks,

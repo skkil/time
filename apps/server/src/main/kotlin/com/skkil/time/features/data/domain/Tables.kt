@@ -28,6 +28,7 @@ val TABLES: List<Table> =
     listOf(
         Table("setting", false, listOf(text("key"), text("value"))),
         Table("project_group", true, listOf(id(), text("name"), long("position"))),
+        Table("place", true, listOf(id(), text("name"), long("position"))),
         Table(
             "project",
             true,
@@ -160,6 +161,7 @@ val TABLES: List<Table> =
                 long("status_changed_at"),
                 ref("phase_id", "item_status"),
                 text("reminded_for"),
+                ref("place_id", "place"),
             ),
         ),
         Table(

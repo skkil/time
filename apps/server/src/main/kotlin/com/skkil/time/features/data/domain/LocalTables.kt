@@ -23,6 +23,7 @@ data class LocalTable(
 private val NATURAL_KEYS: Map<String, List<String>> =
     mapOf(
         "project_group" to listOf("name"),
+        "place" to listOf("name"),
         "project" to listOf("external_id"),
         "section" to listOf("external_id"),
         "task" to listOf("external_id"),
@@ -59,6 +60,7 @@ private val KEYED_IDS: Map<String, (UUID, List<Any>) -> UUID> =
 val LOCAL_TABLES: List<LocalTable> =
     listOf(
         "project_group",
+        "place",
         "project",
         "project_canvas",
         "section",

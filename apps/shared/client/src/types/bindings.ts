@@ -20,6 +20,11 @@ export const commands = {
 	renameGroup: (id: Id, name: string) => __TAURI_INVOKE<Group>("rename_group", { id, name }),
 	reorderGroup: (id: Id, before: Id | null) => __TAURI_INVOKE<Group>("reorder_group", { id, before }),
 	deleteGroup: (id: Id) => __TAURI_INVOKE<null>("delete_group", { id }),
+	listPlaces: () => __TAURI_INVOKE<Place[]>("list_places"),
+	createPlace: (name: string) => __TAURI_INVOKE<Place>("create_place", { name }),
+	renamePlace: (id: Id, name: string) => __TAURI_INVOKE<Place>("rename_place", { id, name }),
+	deletePlace: (id: Id) => __TAURI_INVOKE<null>("delete_place", { id }),
+	setTaskPlace: (id: Id, placeId: Id | null) => __TAURI_INVOKE<Task>("set_task_place", { id, placeId }),
 	getProjectCanvas: (projectId: Id) => __TAURI_INVOKE<ProjectCanvas>("get_project_canvas", { projectId }),
 	saveProjectCanvas: (projectId: Id, content: string) => __TAURI_INVOKE<ProjectCanvas>("save_project_canvas", { projectId, content }),
 	listTasks: () => __TAURI_INVOKE<Task[]>("list_tasks"),
@@ -427,6 +432,12 @@ export type Outcome = {
 
 export type OutcomeStatus = "open" | "achieved" | "carried" | "dropped";
 
+export type Place = {
+	id: Id,
+	name: string,
+	position: number,
+};
+
 export type Preset = {
 	key: string,
 	name: string,
@@ -637,6 +648,7 @@ export type Task = {
 	blockedBy: Id[],
 	waitingOn: Id[],
 	phaseId: Id | null,
+	placeId: Id | null,
 };
 
 export type TaskInput = {

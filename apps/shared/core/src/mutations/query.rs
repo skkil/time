@@ -6,7 +6,7 @@ use crate::error::{Error, Result};
 use crate::rituals::Moment;
 use crate::types::{Date, Timestamp};
 use crate::{
-    blocks, calendar, canvas, glance, groups, habits, projects, records, reminders, review,
+    blocks, calendar, canvas, glance, groups, habits, places, projects, records, reminders, review,
     rituals, sections, tasks, time_entries, undo, workflow,
 };
 
@@ -16,6 +16,7 @@ pub fn query(conn: &Connection, name: &str, args: &Value) -> Result<Value> {
     match name {
         "listProjects" => out(projects::list(conn)?),
         "listGroups" => out(groups::list(conn)?),
+        "listPlaces" => out(places::list(conn)?),
         "getProjectCanvas" => out(canvas::get(conn, &a.id("projectId")?)?),
         "listTasks" => out(tasks::list(conn)?),
         "getTask" => out(tasks::get(conn, &a.id("id")?)?),

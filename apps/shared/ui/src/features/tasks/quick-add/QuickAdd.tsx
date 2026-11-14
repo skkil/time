@@ -5,13 +5,19 @@ import { toast } from 'sonner';
 
 import type { TaskInput } from '@/backend';
 import { WINDOW_SURFACE } from '@/components/surfaces';
+import { usePlaces } from '@/features/places/api';
 import { ProjectDot } from '@/features/projects/ProjectDot';
 import {
   useCreateProject,
   useProjectIndex,
   useProjects,
 } from '@/features/projects/api';
-import { EMPTY_TASK, useCreateTask, useSections } from '@/features/tasks/api';
+import {
+  EMPTY_TASK,
+  useCreateTask,
+  useSections,
+  useSetTaskPlace,
+} from '@/features/tasks/api';
 import { formatDate, formatDue } from '@/features/tasks/meta';
 import { useTaskDialog } from '@/features/tasks/task-dialog-context';
 import { useSetTaskType, useWorkflow } from '@/features/workflow/api';
@@ -42,6 +48,8 @@ export function QuickAdd({
   const { openTask } = useTaskDialog();
   const { data: workflow } = useWorkflow();
   const setType = useSetTaskType();
+  const places = usePlaces();
+  const setPlace = useSetTaskPlace();
   const [text, setText] = useState('');
   const [ignored, setIgnored] = useState<ReadonlySet<string>>(new Set());
 
@@ -54,9 +62,10 @@ export function QuickAdd({
         projects: (projects ?? []).filter((project) => !project.archived),
         sections: sections ?? [],
         types: workflow?.types ?? [],
+        places: places.list,
         projectId: initial.projectId,
       }),
-    [text, ignored, projects, sections, workflow, initial.projectId],
+    [text, ignored, projects, sections, workflow, places, initial.projectId],
   );
 
   const task = taskFromParsed(initial, parsed);
@@ -64,6 +73,8 @@ export function QuickAdd({
     task.projectId === null ? undefined : index.byId.get(task.projectId);
 
   const type = workflow?.types.find((item) => item.id === parsed.typeId);
+  const atPlace =
+    parsed.placeId === undefined ? undefined : places.byId.get(parsed.placeId);
   const needsTime = type?.kind === 'event' && task.dueTime === null;
   const understood = [
     type && (needsTime ? `${type.name} needs a time` : type.name),
@@ -72,6 +83,7 @@ export function QuickAdd({
     task.deadline && `deadline ${formatDate(task.deadline)}`,
     task.estimateMinutes && `about ${formatEstimate(task.estimateMinutes)}`,
     task.priority < 4 && `priority ${task.priority}`,
+    atPlace && `at ${atPlace.name}`,
   ].filter(Boolean);
 
   const submit = (keepOpen: boolean) => {
@@ -82,6 +94,7 @@ export function QuickAdd({
     create.mutate(task, {
       onSuccess: (created) => {
         if (type) setType.mutate({ id: created.id, typeId: type.id });
+        if (atPlace) setPlace.mutate({ id: created.id, placeId: atPlace.id });
         toast(`Added ${quoted(created.title)} to ${place}`, {
           action: { label: 'Open', onClick: () => openTask(created.id) },
         });

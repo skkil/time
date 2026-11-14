@@ -7,6 +7,15 @@ import { commands } from '@/core/local/backend';
 export const useTasks = () =>
   useQuery({ queryKey: keys.tasks, queryFn: commands.listTasks });
 
+export const usePlaces = () =>
+  useQuery({ queryKey: keys.places, queryFn: commands.listPlaces });
+
+export const useSetTaskPlace = () =>
+  useMutation({
+    mutationFn: ({ id, placeId }: { id: Id; placeId: Id | null }) =>
+      commands.setTaskPlace(id, placeId),
+  });
+
 export const useCompleteTask = () =>
   useMutation({
     mutationFn: ({ id, completed }: { id: Id; completed: boolean }) =>

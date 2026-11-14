@@ -355,6 +355,18 @@ export function useSetTaskOutcome() {
   });
 }
 
+export function useSetTaskPlace() {
+  const cache = useTaskCache();
+  return useMutation({
+    mutationFn: ({ id, placeId }: { id: Id; placeId: Id | null }) =>
+      commands.setTaskPlace(id, placeId),
+    onSuccess: (task) => {
+      cache.replace(task);
+      return cache.refresh();
+    },
+  });
+}
+
 export function useTaskDependency() {
   const cache = useTaskCache();
   const onSuccess = (task: Task) => {

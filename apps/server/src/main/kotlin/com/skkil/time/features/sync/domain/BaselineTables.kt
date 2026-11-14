@@ -5,6 +5,7 @@ val BASELINE_TABLES: List<BaselineTable> =
     listOf(
         BaselineTable("setting"),
         BaselineTable("project_group"),
+        BaselineTable("place"),
         BaselineTable("project"),
         BaselineTable("project_canvas", "project_id", "project"),
         BaselineTable("section"),

@@ -124,6 +124,9 @@ export function parseQuickAdd(text: string, context: ParseContext): Parsed {
   );
   if (type) result.typeId = type.id;
 
+  const place = claimEntity(scanner, '@', 'place', context.places ?? []);
+  if (place) result.placeId = place.id;
+
   if (result.dueTime !== undefined && !result.dueDate && !result.recurrence)
     result.dueDate = result.dueTime > nowMinutes ? today : shiftKey(today, 1);
 

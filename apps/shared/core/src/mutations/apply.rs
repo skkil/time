@@ -5,8 +5,8 @@ use super::args::{Args, out};
 use crate::env::MutationEnv;
 use crate::error::{Error, Result};
 use crate::{
-    blocks, calendar, canvas, data, dependencies, groups, habits, imports, projects, records,
-    reminders, review, rituals, sections, tasks, time_entries, undo, workflow,
+    blocks, calendar, canvas, data, dependencies, groups, habits, imports, places, projects,
+    records, reminders, review, rituals, sections, tasks, time_entries, undo, workflow,
 };
 
 /// Applies one write command by its contract name. Run it inside a
@@ -56,6 +56,15 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
             a.opt_id("before")?.as_ref(),
         )?),
         "deleteGroup" => out(groups::delete(conn, &a.id("id")?)?),
+
+        "createPlace" => out(places::create(conn, env, &a.text("name")?)?),
+        "renamePlace" => out(places::rename(conn, &a.id("id")?, &a.text("name")?)?),
+        "deletePlace" => out(places::delete(conn, &a.id("id")?)?),
+        "setTaskPlace" => out(places::set_task_place(
+            conn,
+            &a.id("id")?,
+            a.opt_id("placeId")?.as_ref(),
+        )?),
 
         "saveProjectCanvas" => out(canvas::save(
             conn,

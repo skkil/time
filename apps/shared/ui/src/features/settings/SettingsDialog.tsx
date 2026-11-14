@@ -6,6 +6,7 @@ import {
   FlagIcon,
   KeyboardIcon,
   type LucideIcon,
+  MapPinIcon,
   PaletteIcon,
   RefreshCwIcon,
   SunIcon,
@@ -21,6 +22,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { CalendarSettings } from '@/features/calendar/CalendarSettings';
+import { PlaceSettings } from '@/features/places/PlaceSettings';
 import { SyncSettings } from '@/features/sync/SyncSettings';
 import { type Platform, platform } from '@/platform';
 
@@ -91,6 +93,13 @@ const sections: Section[] = [
     icon: KeyboardIcon,
     content: CaptureSettings,
     available: (platform) => platform.features.captureHotkey,
+  },
+  {
+    id: 'places',
+    label: 'Places',
+    description: 'Where tasks happen. Each task can have one place.',
+    icon: MapPinIcon,
+    content: PlaceSettings,
   },
   {
     id: 'priorities',

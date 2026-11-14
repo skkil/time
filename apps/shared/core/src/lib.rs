@@ -25,6 +25,7 @@ pub mod groups;
 pub mod habits;
 pub mod imports;
 pub mod mutations;
+pub mod places;
 pub mod projects;
 pub mod records;
 pub mod reminders;
