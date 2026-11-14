@@ -11,7 +11,6 @@ const task = (patch: Partial<Task> = {}) =>
     dueTime: null,
     completedAt: null,
     statusCategory: null,
-    rolloverCount: 0,
     ...patch,
   }) as Task;
 
@@ -42,10 +41,7 @@ describe('windows', () => {
 });
 
 describe('isStale', () => {
-  it('flags tasks moved three times or left for two weeks', () => {
-    expect(isStale(task({ dueDate: TODAY, rolloverCount: 3 }), TODAY)).toBe(
-      true,
-    );
+  it('flags tasks left for two weeks', () => {
     expect(isStale(task({ dueDate: '2026-10-28' }), TODAY)).toBe(false);
     expect(isStale(task({ dueDate: '2026-10-27' }), TODAY)).toBe(true);
     expect(

@@ -92,25 +92,17 @@ pub fn move_to(conn: &Connection, id: &Id, placement: &TaskPlacement) -> Result<
     get(conn, id)
 }
 
-pub fn reschedule(
-    conn: &Connection,
-    env: &dyn MutationEnv,
-    ids: &[Id],
-    due_date: Option<Date>,
-) -> Result<()> {
+pub fn reschedule(conn: &Connection, ids: &[Id], due_date: Option<Date>) -> Result<()> {
     for id in ids {
         let rows = conn.execute(
-            "UPDATE task SET rollover_count = rollover_count
-                               + (due_date IS NOT NULL AND COALESCE(due_until, due_date) <= ?3
-                                  AND ?1 > COALESCE(due_until, due_date)),
-                             due_date = ?1,
+            "UPDATE task SET due_date = ?1,
                              due_until = NULL,
                              due_time = CASE WHEN ?1 IS NULL THEN NULL ELSE due_time END,
                              recurrence = CASE WHEN ?1 IS NULL THEN NULL ELSE recurrence END,
                              someday = CASE WHEN ?1 IS NULL THEN someday ELSE 0 END,
                              must_on = CASE WHEN must_on = ?1 THEN must_on ELSE NULL END
              WHERE id = ?2",
-            params![due_date, id, env.today()],
+            params![due_date, id],
         )?;
         ensure_changed(rows, "Task")?;
     }
@@ -137,7 +129,7 @@ pub fn move_tasks(
         }
         MoveTarget::Someday => (None, None),
     };
-    let (now, today) = (env.timestamp(), env.today());
+    let now = env.timestamp();
     let mut result = MoveResult::default();
     let mut seen = std::collections::HashSet::new();
     for id in ids.iter().filter(|id| seen.insert(*id)) {
@@ -152,21 +144,16 @@ pub fn move_tasks(
                 return Err(Error::invalid("Repeating tasks move one day at a time."));
             }
         }
-        let previous = task.due_until.or(task.due_date);
-        let next = due_until.or(due_date);
-        let rolled =
-            matches!((previous, next), (Some(from), Some(to)) if from <= today && to > from);
         conn.execute(
-            "UPDATE task SET rollover_count = rollover_count + ?1,
-                             due_date = ?2,
-                             due_until = ?3,
-                             due_time = CASE WHEN ?2 IS NOT NULL AND ?3 IS NULL THEN due_time END,
-                             recurrence = CASE WHEN ?2 IS NOT NULL THEN recurrence END,
-                             someday = ?2 IS NULL,
-                             must_on = CASE WHEN must_on BETWEEN ?2 AND COALESCE(?3, ?2)
+            "UPDATE task SET due_date = ?1,
+                             due_until = ?2,
+                             due_time = CASE WHEN ?1 IS NOT NULL AND ?2 IS NULL THEN due_time END,
+                             recurrence = CASE WHEN ?1 IS NOT NULL THEN recurrence END,
+                             someday = ?1 IS NULL,
+                             must_on = CASE WHEN must_on BETWEEN ?1 AND COALESCE(?2, ?1)
                                             THEN must_on END
-             WHERE id = ?4",
-            params![rolled, due_date, due_until, id],
+             WHERE id = ?3",
+            params![due_date, due_until, id],
         )?;
         result.tasks += 1;
         if block_move == BlockMove::Leave {

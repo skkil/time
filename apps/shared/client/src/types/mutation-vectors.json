@@ -82,8 +82,7 @@
             "created_at": 1793664000,
             "completed_at": null,
             "position": 1,
-            "someday": false,
-            "rollover_count": 0
+            "someday": false
           }
         }
       ]
@@ -768,8 +767,7 @@
           "table": "task",
           "id": "019a4b00-0000-7000-8000-000000000003",
           "row": {
-            "due_date": "2026-11-05",
-            "rollover_count": 1
+            "due_date": "2026-11-05"
           }
         }
       ]
@@ -792,7 +790,6 @@
             "due_date": "2026-11-09",
             "due_until": "2026-11-15",
             "due_time": null,
-            "rollover_count": 1,
             "someday": false
           }
         },
@@ -823,8 +820,7 @@
           "id": "019a4b00-0000-7000-8000-000000000003",
           "row": {
             "due_date": "2026-11-04",
-            "due_until": null,
-            "rollover_count": 1
+            "due_until": null
           }
         },
         {

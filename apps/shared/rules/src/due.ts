@@ -33,7 +33,6 @@ export function formatDate(date: DateKey, today = todayKey()): string {
 }
 
 export const STALE_DAYS = 14;
-export const STALE_ROLLOVERS = 3;
 
 type Dated = Pick<Task, 'dueDate' | 'dueUntil'>;
 
@@ -97,19 +96,13 @@ export const isOverdue = (
   );
 };
 
-/** Moved again and again, or left behind for weeks: worth parking. */
+/** Left behind for weeks: worth parking. */
 export function isStale(
-  task: Pick<
-    Task,
-    'dueDate' | 'dueUntil' | 'rolloverCount' | 'statusCategory' | 'completedAt'
-  >,
+  task: Pick<Task, 'dueDate' | 'dueUntil' | 'statusCategory' | 'completedAt'>,
   today = todayKey(),
 ) {
   if (task.completedAt !== null || task.statusCategory === 'backlog')
     return false;
   const end = dueEnd(task);
-  return (
-    task.rolloverCount >= STALE_ROLLOVERS ||
-    (end !== null && end < shiftKey(today, -STALE_DAYS))
-  );
+  return end !== null && end < shiftKey(today, -STALE_DAYS);
 }

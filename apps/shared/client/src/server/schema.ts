@@ -2185,8 +2185,6 @@ export interface components {
       trackedSeconds: number;
       /** Format: uuid */
       outcomeId: string | null;
-      /** Format: int32 */
-      rolloverCount: number;
       someday: boolean;
       nextStep: string;
       /** Format: date */

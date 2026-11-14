@@ -27,7 +27,6 @@ class TaskMoveService(private val jdbc: JdbcClient, private val tasks: TaskServi
             }
         val (dueDate, dueUntil) = dates(target)
         val now = caller.now()
-        val today = caller.today()
         var moved = 0
         var blocksMoved = 0
         var blocksRemoved = 0
@@ -37,14 +36,10 @@ class TaskMoveService(private val jdbc: JdbcClient, private val tasks: TaskServi
                 ensure(task.kind != "event") { "Events happen at a time; give them a new date." }
                 ensure(task.recurrence == null) { "Repeating tasks move one day at a time." }
             }
-            val previous = task.dueUntil ?: task.dueDate
-            val next = dueUntil ?: dueDate
-            val rolled = previous != null && next != null && previous <= today && next > previous
             jdbc
                 .sql(
                     """
-                    UPDATE task SET rollover_count = rollover_count + :rolled,
-                      due_date = CAST(:due AS DATE),
+                    UPDATE task SET due_date = CAST(:due AS DATE),
                       due_until = CAST(:until AS DATE),
                       due_time = CASE WHEN CAST(:due AS DATE) IS NOT NULL AND CAST(:until AS DATE) IS NULL
                         THEN due_time END,
@@ -54,8 +49,7 @@ class TaskMoveService(private val jdbc: JdbcClient, private val tasks: TaskServi
                         AND COALESCE(CAST(:until AS DATE), CAST(:due AS DATE)) THEN must_on END
                     WHERE user_id = :user AND id = :id
                     """,
-                ).param("rolled", if (rolled) 1 else 0)
-                .param("due", dueDate)
+                ).param("due", dueDate)
                 .param("until", dueUntil)
                 .param("user", caller.id)
                 .param("id", id)

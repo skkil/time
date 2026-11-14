@@ -33,6 +33,7 @@ const MIGRATIONS: &[Migration] = &[
     Migration::Sql(include_str!("migrations/022_block_logging.sql")),
     Migration::Code(weekly_checkout::migrate),
     Migration::Sql(include_str!("migrations/024_calendar.sql")),
+    Migration::Sql(include_str!("migrations/025_drop_rollover_count.sql")),
 ];
 
 /// The schema version that switched every id to a UUID.

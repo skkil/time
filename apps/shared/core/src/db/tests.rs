@@ -11,6 +11,7 @@ const BEFORE_UUIDS: usize = UUID_IDS_VERSION - 1;
 const BEFORE_SYNC_IDS: usize = 18;
 const BEFORE_REVIEW_POSITION: usize = 19;
 const BEFORE_WEEKLY_CHECKOUT: usize = 22;
+const BEFORE_ROLLOVER_DROP: usize = 24;
 
 #[test]
 fn migrates_m0_data_forward() {
@@ -384,4 +385,23 @@ fn the_weekly_ritual_stops_opening_by_itself_unless_it_was_changed() {
     };
     assert_eq!(trigger_after("first_open"), "manual");
     assert_eq!(trigger_after("at_time"), "at_time");
+}
+
+#[test]
+fn the_moved_count_goes_even_while_store_watches_the_task_table() {
+    let mut conn = Connection::open_in_memory().unwrap();
+    migrate_to(&mut conn, BEFORE_ROLLOVER_DROP).unwrap();
+    store_core::install(&conn).unwrap();
+    store_core::register_table(&conn, "task", crate::data::ID_COLUMN).unwrap();
+
+    migrate(&mut conn).unwrap();
+
+    let columns: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('task') WHERE name = 'rollover_count'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(columns, 0);
 }

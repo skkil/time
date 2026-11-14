@@ -134,10 +134,6 @@ class TaskService(
                     .sql(
                         """
                         UPDATE task SET
-                          rollover_count = rollover_count + CASE
-                            WHEN due_date IS NOT NULL AND COALESCE(due_until, due_date) <= :today
-                              AND CAST(:due AS DATE) > COALESCE(due_until, due_date)
-                            THEN 1 ELSE 0 END,
                           due_date = CAST(:due AS DATE),
                           due_until = NULL,
                           due_time = CASE WHEN CAST(:due AS DATE) IS NULL THEN NULL ELSE due_time END,
@@ -146,8 +142,7 @@ class TaskService(
                           must_on = CASE WHEN must_on = CAST(:due AS DATE) THEN must_on ELSE NULL END
                         WHERE user_id = :user AND id = :id
                         """,
-                    ).param("today", caller.today())
-                    .param("due", dueDate)
+                    ).param("due", dueDate)
                     .param("user", caller.id)
                     .param("id", id)
                     .update()

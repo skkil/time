@@ -52,7 +52,6 @@ export function EarlierScreen() {
                 {[
                   (task.projectId && names.get(task.projectId)) || 'Inbox',
                   formatDue(task),
-                  task.rolloverCount >= 2 && `moved ×${task.rolloverCount}`,
                   task.recurrence === null &&
                     isStale(task, today) &&
                     'park it?',

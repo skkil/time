@@ -1,4 +1,4 @@
-import { STALE_DAYS, STALE_ROLLOVERS, isStale } from '@skkil-time/rules/due';
+import { STALE_DAYS, isStale } from '@skkil-time/rules/due';
 import { weekTarget } from '@skkil-time/rules/move';
 import { useMemo } from 'react';
 
@@ -67,8 +67,8 @@ export function ClearDeck({ nextMonday }: { nextMonday: DateKey }) {
           <span id="deck-stale">Going stale</span>
         </SectionTitle>
         <p className="text-sm text-muted-foreground">
-          Moved {STALE_ROLLOVERS}+ times or overdue more than {STALE_DAYS} days.
-          Tasks that wait this long rarely get done as they are.
+          Overdue more than {STALE_DAYS} days. Tasks that wait this long rarely
+          get done as they are.
         </p>
         <Leftovers tasks={stale} target={weekTarget(nextMonday)} />
       </section>

@@ -227,9 +227,6 @@ export function TaskItem({
               children.length > 0 &&
                 `${finished} of ${children.length} ${children.length === 1 ? 'step' : 'steps'}`,
               task.priority < 4 && `priority ${task.priority}`,
-              !done &&
-                task.rolloverCount >= 2 &&
-                `moved ${task.rolloverCount}×`,
             ]
               .filter(Boolean)
               .flatMap((part, at) => (at === 0 ? [part] : [' · ', part]))}

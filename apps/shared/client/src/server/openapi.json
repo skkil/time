@@ -4710,10 +4710,6 @@
             "type" : [ "string", "null" ],
             "format" : "uuid"
           },
-          "rolloverCount" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
           "someday" : {
             "type" : "boolean"
           },
@@ -4771,7 +4767,7 @@
             "format" : "uuid"
           }
         },
-        "required" : [ "blockedBy", "completedAt", "countsAsTime", "createdAt", "deadline", "dueDate", "dueTime", "dueUntil", "estimateMinutes", "id", "kind", "location", "milestoneId", "mustOn", "nextStep", "notes", "outcomeId", "parentId", "phaseId", "position", "priority", "projectId", "recurrence", "rolloverCount", "sectionId", "someday", "statusCategory", "statusChangedAt", "statusId", "title", "trackedSeconds", "typeId", "waitingOn" ]
+        "required" : [ "blockedBy", "completedAt", "countsAsTime", "createdAt", "deadline", "dueDate", "dueTime", "dueUntil", "estimateMinutes", "id", "kind", "location", "milestoneId", "mustOn", "nextStep", "notes", "outcomeId", "parentId", "phaseId", "position", "priority", "projectId", "recurrence", "sectionId", "someday", "statusCategory", "statusChangedAt", "statusId", "title", "trackedSeconds", "typeId", "waitingOn" ]
       },
       "TaskTypeId" : {
         "type" : "object",

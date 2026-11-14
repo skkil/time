@@ -625,7 +625,6 @@ export type Task = {
 	createdAt: Timestamp,
 	trackedSeconds: Seconds,
 	outcomeId: Id | null,
-	rolloverCount: number,
 	someday: boolean,
 	nextStep: string,
 	mustOn: Date | null,

@@ -64,7 +64,6 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
         "moveTask" => out(tasks::move_to(conn, &a.id("id")?, &a.get("placement")?)?),
         "rescheduleTasks" => out(tasks::reschedule(
             conn,
-            env,
             &a.get::<Vec<_>>("ids")?,
             a.get("dueDate")?,
         )?),

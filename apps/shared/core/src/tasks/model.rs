@@ -28,7 +28,6 @@ pub struct Task {
     pub created_at: Timestamp,
     pub tracked_seconds: Seconds,
     pub outcome_id: Option<Id>,
-    pub rollover_count: i32,
     pub someday: bool,
     pub next_step: String,
     pub must_on: Option<Date>,

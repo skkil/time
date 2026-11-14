@@ -84,7 +84,7 @@ class TaskRepository(private val jdbc: JdbcClient) {
               t.position, t.completed_at, t.created_at,
               (SELECT COALESCE(SUM(e.ended_at - e.started_at), 0)::BIGINT FROM time_entry e WHERE e.task_id = t.id)
                 AS tracked_seconds,
-              t.outcome_id, t.rollover_count, t.someday, t.next_step, t.must_on,
+              t.outcome_id, t.someday, t.next_step, t.must_on,
               t.type_id, t.status_id, t.milestone_id, t.location, t.counts_as_time, t.status_changed_at,
               COALESCE((SELECT ty.kind FROM item_type ty WHERE ty.id = t.type_id), 'task') AS kind,
               (SELECT st.category FROM item_status st WHERE st.id = t.status_id) AS status_category,
@@ -116,7 +116,6 @@ class TaskRepository(private val jdbc: JdbcClient) {
                     createdAt = rs.getLong("created_at"),
                     trackedSeconds = rs.getLong("tracked_seconds"),
                     outcomeId = rs.uuidOrNull("outcome_id"),
-                    rolloverCount = rs.getInt("rollover_count"),
                     someday = rs.getBoolean("someday"),
                     nextStep = rs.getString("next_step"),
                     mustOn = rs.dateOrNull("must_on"),

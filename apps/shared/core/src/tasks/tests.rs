@@ -191,7 +191,7 @@ fn orders_siblings() {
 }
 
 #[test]
-fn rescheduling_a_due_task_counts_a_rollover() {
+fn rescheduling_and_parking_a_task() {
     let (db, env) = (db(), env());
     db.call(|conn| {
         let today = Date::today();
@@ -199,11 +199,8 @@ fn rescheduling_a_due_task_counts_a_rollover() {
         task.due_date = Some(today.add_days(-1));
         let task = create(conn, &env, &task)?;
         let ids = [task.id.clone()];
-        reschedule(conn, &env, &ids, Some(today))?;
-        reschedule(conn, &env, &ids, Some(today.add_days(1)))?;
-        assert_eq!(get(conn, &task.id)?.rollover_count, 2);
-        reschedule(conn, &env, &ids, Some(today.add_days(5)))?;
-        assert_eq!(get(conn, &task.id)?.rollover_count, 2);
+        reschedule(conn, &ids, Some(today))?;
+        assert_eq!(get(conn, &task.id)?.due_date, Some(today));
 
         set_someday(conn, &ids, true)?;
         let parked = get(conn, &task.id)?;
@@ -322,7 +319,6 @@ mod moving {
 
             let task = get(conn, &task.id)?;
             assert_eq!(task.due_date, Some(date("2026-11-12")));
-            assert_eq!(task.rollover_count, 1);
             assert_eq!(blocks::get(conn, &past)?.start_at, utc("2026-11-10", 9));
             let later = blocks::get(conn, &later)?;
             assert_eq!(
@@ -378,7 +374,6 @@ mod moving {
             assert_eq!(moved.due_until, Some(date("2026-11-22")));
             assert_eq!(moved.due_time, None);
             assert_eq!(moved.must_on, None);
-            assert_eq!(moved.rollover_count, 0);
             assert_eq!(blocks::get(conn, &planned)?.start_at, utc("2026-11-18", 10));
 
             move_tasks(
@@ -409,28 +404,6 @@ mod moving {
                 )
                 .is_err()
             );
-            Ok(())
-        })
-        .unwrap();
-    }
-
-    #[test]
-    fn a_window_counts_a_rollover_only_once_it_has_ended() {
-        let (db, env) = (db(), at("2026-11-12", 8));
-        db.call(|conn| {
-            let task = due(conn, &env, "Read", "2026-11-09")?;
-            let ids = [task.id.clone()];
-            let this_week = MoveTarget::Week {
-                monday: date("2026-11-09"),
-            };
-            move_tasks(conn, &env, &ids, this_week, BlockMove::Follow)?;
-            assert_eq!(get(conn, &task.id)?.rollover_count, 1);
-
-            let next_week = MoveTarget::Week {
-                monday: date("2026-11-16"),
-            };
-            move_tasks(conn, &env, &ids, next_week, BlockMove::Follow)?;
-            assert_eq!(get(conn, &task.id)?.rollover_count, 1);
             Ok(())
         })
         .unwrap();
@@ -512,7 +485,7 @@ mod moving {
                 },
                 BlockMove::Follow,
             )?;
-            reschedule(conn, &env, &ids, Some(date("2026-11-18")))?;
+            reschedule(conn, &ids, Some(date("2026-11-18")))?;
             assert_eq!(get(conn, &task.id)?.due_until, None);
             Ok(())
         })

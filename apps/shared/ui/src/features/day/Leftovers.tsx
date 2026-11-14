@@ -117,9 +117,6 @@ export function Leftovers({
                       · <DueText task={task} />
                     </span>
                   )}
-                  {task.rolloverCount >= 2 && (
-                    <span>· moved ×{task.rolloverCount}</span>
-                  )}
                   {stale && <span>· park it?</span>}
                 </p>
               </div>

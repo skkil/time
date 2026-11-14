@@ -132,7 +132,7 @@ cd apps/server && ./gradlew spotlessApply test | ./gradlew bootRun | ./gradlew o
   (sub-tasks nest to any depth, inherit project/section; complete, move and
   delete reach every level), priority 1–4 (1 = highest), due date and
   optional time, deadline, recurrence, `estimate_minutes`, sibling
-  `position`, `rollover_count`, `someday`, `must_on` (at most 3 musts a day)
+  `position`, `someday`, `must_on` (at most 3 musts a day)
   and a `next_step` note. Dependencies (`task_dependency`,
   `core/src/dependencies/`): `blocked_by` lists every link, `waiting_on` the
   open ones; "blocked" is derived, never stored; loops, self-links and

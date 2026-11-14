@@ -147,14 +147,11 @@ class TaskTest : TaskApiTest() {
     }
 
     @Test
-    fun `rescheduling a due task counts a rollover`() {
+    fun `rescheduling and parking a task`() {
         val today = today()
         val id = create(input("Essay").copy(dueDate = today.minusDays(1))).id()
         post("/api/v1/tasks/reschedule", TaskReschedule(listOf(id), today)).andExpect { status { isNoContent() } }
-        post("/api/v1/tasks/reschedule", TaskReschedule(listOf(id), today.plusDays(1)))
-        assertEquals(2, task(id)["rolloverCount"].asInt())
-        post("/api/v1/tasks/reschedule", TaskReschedule(listOf(id), today.plusDays(5)))
-        assertEquals(2, task(id)["rolloverCount"].asInt())
+        assertEquals(today.toString(), task(id)["dueDate"].asString())
 
         post("/api/v1/tasks/someday", TasksSomeday(listOf(id), true)).andExpect { status { isNoContent() } }
         val parked = task(id)
