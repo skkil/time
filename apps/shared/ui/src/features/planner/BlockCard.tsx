@@ -109,6 +109,7 @@ export function BlockCard({
 
   const beginResize = (event: PointerEvent<HTMLDivElement>) => {
     event.stopPropagation();
+    event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     resizeOrigin.current = { y: event.clientY, end };
     setResizeEnd(end);

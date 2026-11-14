@@ -56,6 +56,7 @@ export function useRangeSelect({
       lastY = up.clientY;
       const range = update();
       if (range.end - range.start >= SNAP_MINUTES) onSelect(range);
+      else setSelection(null);
     };
     const cancel = () => {
       window.removeEventListener('pointermove', onMove);
