@@ -49,9 +49,6 @@ class TaskMutations(
             mutation("setTaskOutcome", "id", "outcomeId") { caller, args ->
                 tasks.setOutcome(caller.id, args.get<UUID>("id"), args.get<UUID?>("outcomeId"))
             },
-            mutation("setTasksSomeday", "ids", "someday") { caller, args ->
-                tasks.setSomeday(caller.id, args.get<List<UUID>>("ids"), args.get<Boolean>("someday"))
-            },
             mutation("setTaskMust", "id", "mustOn") { caller, args ->
                 tasks.setMust(caller.id, args.get<UUID>("id"), args.get<LocalDate?>("mustOn"))
             },

@@ -12,6 +12,7 @@ const BEFORE_SYNC_IDS: usize = 18;
 const BEFORE_REVIEW_POSITION: usize = 19;
 const BEFORE_WEEKLY_CHECKOUT: usize = 22;
 const BEFORE_ROLLOVER_DROP: usize = 24;
+const BEFORE_SOMEDAY_DROP: usize = 25;
 
 #[test]
 fn migrates_m0_data_forward() {
@@ -399,6 +400,25 @@ fn the_moved_count_goes_even_while_store_watches_the_task_table() {
     let columns: i64 = conn
         .query_row(
             "SELECT COUNT(*) FROM pragma_table_info('task') WHERE name = 'rollover_count'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(columns, 0);
+}
+
+#[test]
+fn someday_goes_even_while_store_watches_the_task_table() {
+    let mut conn = Connection::open_in_memory().unwrap();
+    migrate_to(&mut conn, BEFORE_SOMEDAY_DROP).unwrap();
+    store_core::install(&conn).unwrap();
+    store_core::register_table(&conn, "task", crate::data::ID_COLUMN).unwrap();
+
+    migrate(&mut conn).unwrap();
+
+    let columns: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('task') WHERE name = 'someday'",
             [],
             |row| row.get(0),
         )

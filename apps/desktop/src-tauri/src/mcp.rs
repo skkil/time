@@ -82,8 +82,6 @@ struct TaskView {
     notes: String,
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     done: bool,
-    #[serde(skip_serializing_if = "std::ops::Not::not")]
-    someday: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -383,7 +381,6 @@ fn view(task: &tasks::Task, names: &Names) -> TaskView {
         estimate_minutes: task.estimate_minutes,
         notes: task.notes.clone(),
         done: task.completed_at.is_some(),
-        someday: task.someday,
     }
 }
 
@@ -689,7 +686,7 @@ impl Planner {
             let names = Names::load(conn)?;
             let open: Vec<tasks::Task> = tasks::list(conn)?
                 .into_iter()
-                .filter(|task| task.completed_at.is_none() && !task.someday)
+                .filter(|task| task.completed_at.is_none())
                 .collect();
             let pick = |keep: &dyn Fn(Date) -> bool| -> Vec<TaskView> {
                 open.iter()

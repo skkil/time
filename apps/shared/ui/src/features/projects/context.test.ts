@@ -15,7 +15,6 @@ const task = (id: Id, patch: Partial<Task> = {}) =>
     priority: 4,
     completedAt: null,
     kind: 'task',
-    someday: false,
     statusCategory: null,
     waitingOn: [],
     dueDate: null,

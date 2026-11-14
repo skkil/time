@@ -22,7 +22,6 @@ data class Task(
     val createdAt: Long,
     val trackedSeconds: Long,
     val outcomeId: UUID?,
-    val someday: Boolean,
     val nextStep: String,
     val mustOn: LocalDate?,
     val typeId: UUID?,

@@ -46,10 +46,10 @@ const plainText = (html: string) =>
     .map((line) => line.trim())
     .filter(Boolean);
 
-/** A project, the Inbox (`inbox`) or Someday (`someday`): header, Next, then tasks by section. */
+/** A project or the Inbox (`inbox`): header, Next, then tasks by section. */
 export function ProjectScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const place = id === 'inbox' || id === 'someday' ? id : null;
+  const place = id === 'inbox' ? id : null;
   const projectId = place ? null : id;
   const colorOf = useProjectColor();
   const projects = useProjects();
@@ -70,18 +70,13 @@ export function ProjectScreen() {
   );
 
   const own = useMemo(
-    () =>
-      (tasks.data ?? []).filter((task) =>
-        place === 'someday'
-          ? task.someday
-          : task.projectId === projectId && !task.someday,
-      ),
-    [tasks.data, place, projectId],
+    () => (tasks.data ?? []).filter((task) => task.projectId === projectId),
+    [tasks.data, projectId],
   );
   const open = own
     .filter((task) => task.parentId === null && task.completedAt === null)
     .sort((a, b) => a.position - b.position);
-  const next = place === 'someday' ? undefined : nextUp(own, today);
+  const next = nextUp(own, today);
   const tracked = entries
     .filter((entry) => projectId !== null && entry.projectId === projectId)
     .reduce(
@@ -90,16 +85,10 @@ export function ProjectScreen() {
     );
   const lines = plainText(canvas.data?.content ?? '');
   const ownSections = (sections.data ?? [])
-    .filter((section) => place !== 'someday' && section.projectId === projectId)
+    .filter((section) => section.projectId === projectId)
     .sort((a, b) => a.position - b.position);
-  const byId = new Map((projects.data ?? []).map((each) => [each.id, each]));
 
-  const title =
-    place === 'inbox'
-      ? 'Inbox'
-      : place === 'someday'
-        ? 'Someday'
-        : (project?.name ?? '');
+  const title = place === 'inbox' ? 'Inbox' : (project?.name ?? '');
   const meta = [
     `${open.length} open`,
     project?.targetDate && `target ${formatDate(project.targetDate)}`,
@@ -188,11 +177,10 @@ export function ProjectScreen() {
           <TaskList
             tasks={open.filter(
               (task) =>
-                place === 'someday' ||
                 task.sectionId === null ||
                 !ownSections.some((section) => section.id === task.sectionId),
             )}
-            projects={place === 'someday' ? byId : new Map()}
+            projects={new Map()}
           />
           {ownSections.map((section) => (
             <TaskList

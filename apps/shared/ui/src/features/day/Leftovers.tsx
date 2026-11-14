@@ -1,9 +1,4 @@
-import {
-  SOMEDAY,
-  dayTarget,
-  targetLabel,
-  weekTarget,
-} from '@skkil-time/rules/move';
+import { dayTarget, targetLabel, weekTarget } from '@skkil-time/rules/move';
 import { ChevronDownIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -26,7 +21,6 @@ import {
   useMoveTasks,
   useSetTaskCompleted,
 } from '@/features/tasks/api';
-import { isStale } from '@/features/tasks/meta';
 import { mondayOf, shiftKey, toDateKey, todayKey } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
@@ -79,18 +73,12 @@ export function Leftovers({
               ? undefined
               : index.byId.get(task.projectId);
           const oneOff = task.recurrence === null;
-          const stale = oneOff && isStale(task, today);
           const later: LaterOption[] = [
             ...(nextDay ? [nextDay] : []),
             ...(offerWeek && oneOff
               ? [{ label: 'This week', target: thisWeek }]
               : []),
-            ...(oneOff
-              ? [
-                  { label: 'Next week', target: nextWeek },
-                  { label: 'Someday', target: SOMEDAY },
-                ]
-              : []),
+            ...(oneOff ? [{ label: 'Next week', target: nextWeek }] : []),
           ];
           return (
             <li
@@ -117,21 +105,17 @@ export function Leftovers({
                       · <DueText task={task} />
                     </span>
                   )}
-                  {stale && <span>· park it?</span>}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 <Button
                   size="xs"
                   variant="outline"
-                  onClick={() => moveTo([task.id], stale ? SOMEDAY : target)}
+                  onClick={() => moveTo([task.id], target)}
                 >
-                  {stale ? 'Someday' : label}
+                  {label}
                 </Button>
-                <Later
-                  options={stale ? [{ label, target }, ...later] : later}
-                  onPick={(to) => moveTo([task.id], to)}
-                />
+                <Later options={later} onPick={(to) => moveTo([task.id], to)} />
                 {oneOff ? (
                   <Button
                     size="xs"
@@ -182,16 +166,6 @@ export function Leftovers({
                 onClick={() => moveTo(oneOffIds, thisWeek)}
               >
                 This week
-              </Button>
-            )}
-            {oneOffIds.length > 0 && (
-              <Button
-                size="xs"
-                variant="ghost"
-                title="Park every one-off task in Someday and start clean"
-                onClick={() => moveTo(oneOffIds, SOMEDAY)}
-              >
-                Fresh start
               </Button>
             )}
           </span>

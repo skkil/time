@@ -120,7 +120,7 @@ pub fn upcoming(
              LEFT JOIN item_type ty ON ty.id = t.type_id
              LEFT JOIN project p ON p.id = t.project_id
              WHERE t.due_date BETWEEN ?1 AND ?2 AND t.due_time IS NOT NULL
-               AND t.completed_at IS NULL AND t.someday = 0
+               AND t.completed_at IS NULL
                AND COALESCE(ty.kind, 'task') = 'task'
                AND (p.id IS NULL OR p.archived = 0)",
         )?;
@@ -157,7 +157,7 @@ pub fn upcoming(
             "SELECT b.id, b.task_id, t.title, b.start_at FROM time_block b
              JOIN task t ON t.id = b.task_id
              WHERE b.start_at > ?1 AND b.start_at <= ?2
-               AND t.completed_at IS NULL AND t.someday = 0",
+               AND t.completed_at IS NULL",
         )?;
         let rows = stmt.query_map(params![from, to], |row| {
             Ok((

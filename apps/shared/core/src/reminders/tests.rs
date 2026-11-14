@@ -47,21 +47,19 @@ fn reminds_a_timed_task_once_at_its_time() {
 }
 
 #[test]
-fn reminds_blocks_as_they_start_and_skips_finished_or_parked_work() {
+fn reminds_blocks_as_they_start_and_skips_finished_work() {
     let db = db();
     db.call(|conn| {
         let env = env();
         let write = tasks::create(conn, &env, &task_input("Write", None))?;
-        let parked = tasks::create(conn, &env, &task_input("Parked", None))?;
         let done = timed(conn, "Done", "2026-11-07", 9 * 60)?;
-        for task in [&write.id, &parked.id, &done] {
+        for task in [&write.id, &done] {
             let span = BlockSpan {
                 start_at: at("2026-11-07", 10 * 60),
                 end_at: at("2026-11-07", 11 * 60),
             };
             blocks::create(conn, &env, task, &span)?;
         }
-        tasks::set_someday(conn, std::slice::from_ref(&parked.id), true)?;
         tasks::set_completed(conn, &env, &done, true)?;
 
         let found = upcoming(conn, at("2026-11-07", 0), at("2026-11-07", 12 * 60), &ALL)?;

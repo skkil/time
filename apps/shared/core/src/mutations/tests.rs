@@ -237,7 +237,6 @@ fn walk_every_mutation(conn: &Connection) -> Vec<(String, Value)> {
         "setTaskNextStep",
         json!({"id": login, "nextStep": "Reproduce it"}),
     );
-    s.run("setTasksSomeday", json!({"ids": [tests], "someday": true}));
 
     let spike = s.id(
         "createItemType",

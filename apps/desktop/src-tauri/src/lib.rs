@@ -103,7 +103,6 @@ fn specta_builder() -> Builder<tauri::Wry> {
             tasks::move_tasks,
             tasks::set_task_completed,
             tasks::set_task_outcome,
-            tasks::set_tasks_someday,
             tasks::set_task_must,
             tasks::set_task_next_step,
             tasks::delete_tasks,

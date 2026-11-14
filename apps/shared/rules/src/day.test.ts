@@ -13,7 +13,6 @@ const task = (id: Id, patch: Partial<Task> = {}) =>
     position: Number(id),
     completedAt: null,
     kind: 'task',
-    someday: false,
     statusCategory: null,
     mustOn: null,
     dueDate: null,

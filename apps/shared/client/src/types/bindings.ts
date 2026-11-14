@@ -31,7 +31,6 @@ export const commands = {
 	moveTasks: (ids: Id[], target: MoveTarget, blocks: BlockMove | null) => __TAURI_INVOKE<MoveResult>("move_tasks", { ids, target, blocks }),
 	setTaskCompleted: (id: Id, completed: boolean) => __TAURI_INVOKE<Task>("set_task_completed", { id, completed }),
 	setTaskOutcome: (id: Id, outcomeId: Id | null) => __TAURI_INVOKE<Task>("set_task_outcome", { id, outcomeId }),
-	setTasksSomeday: (ids: Id[], someday: boolean) => __TAURI_INVOKE<null>("set_tasks_someday", { ids, someday }),
 	setTaskMust: (id: Id, mustOn: Date | null) => __TAURI_INVOKE<Task>("set_task_must", { id, mustOn }),
 	setTaskNextStep: (id: Id, nextStep: string) => __TAURI_INVOKE<Task>("set_task_next_step", { id, nextStep }),
 	deleteTasks: (ids: Id[]) => __TAURI_INVOKE<null>("delete_tasks", { ids }),
@@ -399,10 +398,9 @@ export type MilestoneInput = {
 export type MoveResult = {
 	tasks: number,
 	blocksMoved: number,
-	blocksRemoved: number,
 };
 
-export type MoveTarget = { kind: "day"; date: Date } | { kind: "week"; monday: Date } | { kind: "someday" };
+export type MoveTarget = { kind: "day"; date: Date } | { kind: "week"; monday: Date };
 
 /**
  *  Which reminders this device shows. `on` is the device's own switch; the
@@ -626,7 +624,6 @@ export type Task = {
 	createdAt: Timestamp,
 	trackedSeconds: Seconds,
 	outcomeId: Id | null,
-	someday: boolean,
 	nextStep: string,
 	mustOn: Date | null,
 	typeId: Id | null,

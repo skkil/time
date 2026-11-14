@@ -18,7 +18,7 @@ class MutationArgsTest {
                 {"data": {"tables": [
                   {"table": "project", "rows": []},
                   {"table": "task", "rows": [{"id": "01a1bea0-d2b5-743e-8656-b414e3287288", "title": "Offline",
-                    "completed_at": null, "someday": 0, "position": 1}]}
+                    "completed_at": null, "counts_as_time": 0, "position": 1}]}
                 ]}}
                 """,
             )

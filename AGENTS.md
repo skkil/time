@@ -132,7 +132,7 @@ cd apps/server && ./gradlew spotlessApply test | ./gradlew bootRun | ./gradlew o
   (sub-tasks nest to any depth, inherit project/section; complete, move and
   delete reach every level), priority 1–4 (1 = highest), due date and
   optional time, deadline, recurrence, `estimate_minutes`, sibling
-  `position`, `someday`, `must_on` (at most 3 musts a day)
+  `position`, `must_on` (at most 3 musts a day)
   and a `next_step` note. Dependencies (`task_dependency`,
   `core/src/dependencies/`): `blocked_by` lists every link, `waiting_on` the
   open ones; "blocked" is derived, never stored; loops, self-links and
@@ -376,7 +376,7 @@ onto it:
   parser is `apps/shared/rules/src/quick-add/` (one rule table per grammar,
   run in order by `parse.ts`); the UI is `features/tasks/quick-add/`.
 - Routes: `/?view=day|week&week=` (a Monday date key), `/projects`,
-  `/projects/someday`, `/projects/$projectId`, `/projects/groups/$groupId`,
+  `/projects/$projectId`, `/projects/groups/$groupId`,
   `/review/$week` (the first, guided review). There is no Reports page: Week
   is the record; a reviewed week is edited in `ReviewDialog`. Old routes
   redirect.

@@ -13,7 +13,6 @@ const task = (id: Id, patch: Partial<Task> = {}) =>
     priority: 4,
     completedAt: null,
     kind: 'task',
-    someday: false,
     statusCategory: null,
     waitingOn: [],
     dueDate: null,
@@ -39,7 +38,6 @@ describe('nextUp', () => {
   it('skips work that cannot be done now', () => {
     const tasks = [
       task('1', { completedAt: 1 }),
-      task('2', { someday: true }),
       task('3', { waitingOn: ['1'] }),
       task('4', { statusCategory: 'backlog' }),
       task('5', { kind: 'event', dueDate: TODAY }),

@@ -81,8 +81,7 @@
             "estimate_minutes": 30,
             "created_at": 1793664000,
             "completed_at": null,
-            "position": 1,
-            "someday": false
+            "position": 1
           }
         }
       ]
@@ -789,8 +788,7 @@
           "row": {
             "due_date": "2026-11-09",
             "due_until": "2026-11-15",
-            "due_time": null,
-            "someday": false
+            "due_time": null
           }
         },
         {
@@ -830,34 +828,6 @@
             "start_at": 1794272400,
             "end_at": 1794274200
           }
-        }
-      ]
-    },
-    {
-      "name": "moveTasks",
-      "args": {
-        "ids": ["019a4b00-0000-7000-8000-000000000003"],
-        "target": {
-          "kind": "someday"
-        }
-      },
-      "ids": [],
-      "expect": [
-        {
-          "table": "task",
-          "id": "019a4b00-0000-7000-8000-000000000003",
-          "row": {
-            "due_date": null,
-            "due_until": null,
-            "someday": true,
-            "must_on": null
-          }
-        }
-      ],
-      "gone": [
-        {
-          "table": "time_block",
-          "id": "019a4b00-0000-7000-8000-000000000006"
         }
       ]
     },
@@ -1050,9 +1020,9 @@
                   "title": "Plant",
                   "project_id": "019a4b00-0000-7000-8000-0000000000c9",
                   "created_at": 1793664000,
-                  "someday": 1,
                   "position": 1,
-                  "deadline": null
+                  "deadline": null,
+                  "counts_as_time": 1
                 }
               ]
             }
@@ -1092,8 +1062,8 @@
           "id": "019a4b00-0000-7000-8000-0000000000ca",
           "row": {
             "project_id": "019a4b00-0000-7000-8000-0000000000c9",
-            "someday": true,
-            "created_at": 1793664000
+            "created_at": 1793664000,
+            "counts_as_time": true
           }
         },
         {

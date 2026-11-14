@@ -70,7 +70,7 @@ class LocalImportTest : TaskApiTest() {
                         "title" to "Fix the tap",
                         "project_id" to project,
                         "created_at" to 1,
-                        "someday" to 1,
+                        "counts_as_time" to 1,
                         "improvement" to "ignored",
                     ),
                 ),
@@ -102,7 +102,7 @@ class LocalImportTest : TaskApiTest() {
             }.sorted(),
         )
         assertEquals(task, task(step).uuid("parentId"))
-        assertEquals(true, task(task)["someday"].asBoolean())
+        assertEquals(true, task(task)["countsAsTime"].asBoolean())
         assertEquals(listOf("${NaturalIds.day(scope, monday)}"), column("SELECT id FROM day WHERE user_id = :user"))
         assertEquals(
             listOf("${NaturalIds.runningTimer(scope)}"),

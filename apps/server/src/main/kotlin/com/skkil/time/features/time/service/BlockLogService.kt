@@ -68,7 +68,6 @@ class BlockLogService(private val jdbc: JdbcClient, private val settings: Settin
                 SELECT b.id, b.task_id, b.start_at, b.end_at
                 FROM time_block b JOIN task t ON t.id = b.task_id
                 WHERE b.user_id = :user AND NOT b.logged AND b.end_at <= :now AND b.end_at > :since
-                  AND NOT t.someday
                   AND NOT EXISTS (SELECT 1 FROM running_timer r WHERE r.user_id = :user AND r.task_id = b.task_id)
                 ORDER BY b.start_at, b.id
                 """,

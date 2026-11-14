@@ -1,6 +1,6 @@
 import { planDay } from '@skkil-time/rules/day';
-import { formatDue, isStale } from '@skkil-time/rules/due';
-import { SOMEDAY, dayTarget, weekTarget } from '@skkil-time/rules/move';
+import { formatDue } from '@skkil-time/rules/due';
+import { dayTarget, weekTarget } from '@skkil-time/rules/move';
 import { mondayOf, shiftKey, todayKey } from '@skkil-time/rules/time';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -13,7 +13,7 @@ import { Window } from '@/ui/Window';
 import { WindowHeader } from '@/ui/WindowHeader';
 import { ink, radius, spacing, type } from '@/ui/theme';
 
-/** Desktop's "From earlier days": give each one a day, park it, or skip a repeat. */
+/** Desktop's "From earlier days": give each one a day or skip a repeat. */
 export function EarlierScreen() {
   const today = todayKey();
   const monday = mondayOf(today);
@@ -33,7 +33,7 @@ export function EarlierScreen() {
     <Window>
       <WindowHeader
         title="From earlier days"
-        detail="Give each one a day, park it, or let it go."
+        detail="Give each one a day or let it go."
       />
       <ScrollView contentContainerStyle={styles.list}>
         {earlier.length === 0 && (
@@ -52,9 +52,6 @@ export function EarlierScreen() {
                 {[
                   (task.projectId && names.get(task.projectId)) || 'Inbox',
                   formatDue(task),
-                  task.recurrence === null &&
-                    isStale(task, today) &&
-                    'park it?',
                 ]
                   .filter(Boolean)
                   .join(' · ')}
@@ -96,12 +93,6 @@ export function EarlierScreen() {
                       })
                     }
                   />
-                  <Chip
-                    label="Someday"
-                    onPress={() =>
-                      move.mutate({ ids: [task.id], target: SOMEDAY })
-                    }
-                  />
                 </>
               ) : (
                 <Chip
@@ -121,17 +112,6 @@ export function EarlierScreen() {
                 move.mutate({
                   ids: earlier.map((task) => task.id),
                   target: dayTarget(today),
-                })
-              }
-            />
-            <Chip
-              label="Fresh start"
-              onPress={() =>
-                move.mutate({
-                  ids: earlier
-                    .filter((task) => task.recurrence === null)
-                    .map((task) => task.id),
-                  target: SOMEDAY,
                 })
               }
             />

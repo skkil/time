@@ -26,8 +26,7 @@ export function ClearDeck({ nextMonday }: { nextMonday: DateKey }) {
 
   const { inbox, stale, dueProjects, openCounts } = useMemo(() => {
     const open = (tasks ?? []).filter(
-      (task) =>
-        task.completedAt === null && !task.someday && task.kind === 'task',
+      (task) => task.completedAt === null && task.kind === 'task',
     );
     const counts = new Map<Id, number>();
     for (const task of open)
@@ -56,8 +55,7 @@ export function ClearDeck({ nextMonday }: { nextMonday: DateKey }) {
           <span id="deck-inbox">Inbox</span>
         </SectionTitle>
         <p className="text-sm text-muted-foreground">
-          Give each a week, park it, or let it go. Open one to file it into a
-          project.
+          Give each a week or let it go. Open one to file it into a project.
         </p>
         <Leftovers tasks={inbox} target={weekTarget(nextMonday)} />
       </section>

@@ -78,11 +78,3 @@ pub fn shift_upcoming(conn: &Connection, task_id: &Id, from: Timestamp, days: i6
     )?;
     Ok(rows as i32)
 }
-
-pub fn remove_upcoming(conn: &Connection, task_id: &Id, from: Timestamp) -> Result<i32> {
-    let rows = conn.execute(
-        "DELETE FROM time_block WHERE task_id = ?1 AND start_at >= ?2",
-        params![task_id, from],
-    )?;
-    Ok(rows as i32)
-}

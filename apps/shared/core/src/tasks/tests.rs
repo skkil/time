@@ -191,7 +191,7 @@ fn orders_siblings() {
 }
 
 #[test]
-fn rescheduling_and_parking_a_task() {
+fn rescheduling_a_task() {
     let (db, env) = (db(), env());
     db.call(|conn| {
         let today = Date::today();
@@ -202,13 +202,7 @@ fn rescheduling_and_parking_a_task() {
         reschedule(conn, &ids, Some(today))?;
         assert_eq!(get(conn, &task.id)?.due_date, Some(today));
 
-        set_someday(conn, &ids, true)?;
-        let parked = get(conn, &task.id)?;
-        assert!(parked.someday);
-        assert_eq!(parked.due_date, None);
-
         let must = set_must(conn, &task.id, Some(today))?;
-        assert!(!must.someday);
         assert_eq!(must.must_on, Some(today));
         Ok(())
     })
@@ -313,7 +307,6 @@ mod moving {
                 MoveResult {
                     tasks: 1,
                     blocks_moved: 1,
-                    blocks_removed: 0
                 }
             );
 
@@ -410,31 +403,14 @@ mod moving {
     }
 
     #[test]
-    fn someday_removes_upcoming_blocks_and_refuses_repeats() {
+    fn repeats_move_one_day_at_a_time() {
         let (db, env) = (db(), at("2026-11-10", 12));
         db.call(|conn| {
-            let task = due(conn, &env, "Taxes", "2026-11-10")?;
-            let past = block(conn, &env, &task.id, "2026-11-10", 9)?;
-            block(conn, &env, &task.id, "2026-11-11", 9)?;
-            let moved = move_tasks(
-                conn,
-                &env,
-                std::slice::from_ref(&task.id),
-                MoveTarget::Someday,
-                BlockMove::Follow,
-            )?;
-            assert_eq!(moved.blocks_removed, 1);
-            let parked = get(conn, &task.id)?;
-            assert!(parked.someday);
-            assert_eq!((parked.due_date, parked.due_until), (None, None));
-            assert!(blocks::get(conn, &past).is_ok());
-
             let mut repeat = input("Run", None);
             repeat.due_date = Some(date("2026-11-10"));
             repeat.recurrence = Some("every day".into());
             let repeat = create(conn, &env, &repeat)?;
             let ids = [repeat.id.clone()];
-            assert!(move_tasks(conn, &env, &ids, MoveTarget::Someday, BlockMove::Follow).is_err());
             let next_week = MoveTarget::Week {
                 monday: date("2026-11-16"),
             };

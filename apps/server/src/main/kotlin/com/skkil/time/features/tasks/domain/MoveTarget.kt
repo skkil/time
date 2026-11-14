@@ -10,14 +10,12 @@ import java.time.LocalDate
 @JsonSubTypes(
     JsonSubTypes.Type(MoveTarget.Day::class, name = "day"),
     JsonSubTypes.Type(MoveTarget.Week::class, name = "week"),
-    JsonSubTypes.Type(MoveTarget.Someday::class, name = "someday"),
 )
 @Schema(
     discriminatorProperty = "kind",
     discriminatorMapping = [
         DiscriminatorMapping("day", schema = MoveTarget.Day::class),
         DiscriminatorMapping("week", schema = MoveTarget.Week::class),
-        DiscriminatorMapping("someday", schema = MoveTarget.Someday::class),
     ],
 )
 sealed interface MoveTarget {
@@ -26,7 +24,4 @@ sealed interface MoveTarget {
 
     @Schema(name = "MoveToWeek")
     data class Week(val monday: LocalDate) : MoveTarget
-
-    @Schema(name = "MoveToSomeday")
-    data object Someday : MoveTarget
 }

@@ -1044,22 +1044,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/v1/tasks/someday': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations['setSomeday'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/tasks/reschedule': {
     parameters: {
       query?: never;
@@ -2201,7 +2185,6 @@ export interface components {
       trackedSeconds: number;
       /** Format: uuid */
       outcomeId: string | null;
-      someday: boolean;
       nextStep: string;
       /** Format: date */
       mustOn: string | null;
@@ -2615,10 +2598,6 @@ export interface components {
       /** Format: uuid */
       blockedById: string;
     };
-    TasksSomeday: {
-      ids: string[];
-      someday: boolean;
-    };
     TaskReschedule: {
       ids: string[];
       /** Format: date */
@@ -2637,13 +2616,6 @@ export interface components {
        */
       kind: 'day';
     };
-    MoveToSomeday: Omit<components['schemas']['MoveTarget'], 'kind'> & {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      kind: 'someday';
-    };
     MoveToWeek: Omit<components['schemas']['MoveTarget'], 'kind'> & {
       /** Format: date */
       monday: string;
@@ -2658,7 +2630,6 @@ export interface components {
       ids: string[];
       target:
         | components['schemas']['MoveToDay']
-        | components['schemas']['MoveToSomeday']
         | components['schemas']['MoveToWeek'];
       blocks: string | null;
     };
@@ -2667,8 +2638,6 @@ export interface components {
       tasks: number;
       /** Format: int32 */
       blocksMoved: number;
-      /** Format: int32 */
-      blocksRemoved: number;
     };
     SyncTokenRequest: {
       /** Format: uuid */
@@ -3161,11 +3130,9 @@ export type TaskIds = components['schemas']['TaskIds'];
 export type PhaseTaskInput = components['schemas']['PhaseTaskInput'];
 export type TaskPlacement = components['schemas']['TaskPlacement'];
 export type TaskDependency = components['schemas']['TaskDependency'];
-export type TasksSomeday = components['schemas']['TasksSomeday'];
 export type TaskReschedule = components['schemas']['TaskReschedule'];
 export type MoveTarget = components['schemas']['MoveTarget'];
 export type MoveToDay = components['schemas']['MoveToDay'];
-export type MoveToSomeday = components['schemas']['MoveToSomeday'];
 export type MoveToWeek = components['schemas']['MoveToWeek'];
 export type TasksMove = components['schemas']['TasksMove'];
 export type MoveResult = components['schemas']['MoveResult'];
@@ -5312,28 +5279,6 @@ export interface operations {
         content: {
           '*/*': components['schemas']['TimeBlock'];
         };
-      };
-    };
-  };
-  setSomeday: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['TasksSomeday'];
-      };
-    };
-    responses: {
-      /** @description No Content */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
       };
     };
   };

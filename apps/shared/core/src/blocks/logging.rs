@@ -29,7 +29,7 @@ fn ended(conn: &Connection, now: Timestamp) -> Result<Vec<Ended>> {
     let mut stmt = conn.prepare(
         "SELECT b.id, b.task_id, b.start_at, b.end_at
          FROM time_block b JOIN task t ON t.id = b.task_id
-         WHERE b.logged = 0 AND b.end_at <= ?1 AND b.end_at > ?2 AND t.someday = 0
+         WHERE b.logged = 0 AND b.end_at <= ?1 AND b.end_at > ?2
            AND NOT EXISTS (SELECT 1 FROM running_timer r WHERE r.task_id = b.task_id)
          ORDER BY b.start_at, b.id",
     )?;

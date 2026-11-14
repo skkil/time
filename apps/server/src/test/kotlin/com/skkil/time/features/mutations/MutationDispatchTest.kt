@@ -148,8 +148,6 @@ class MutationDispatchTest : TaskApiTest() {
             (dispatch("setTaskCompleted", mapOf("id" to task, "completed" to 1)) as Task).completedAt,
         )
         assertEquals(null, (dispatch("setTaskCompleted", mapOf("id" to task, "completed" to 0)) as Task).completedAt)
-        dispatch("setTasksSomeday", mapOf("ids" to listOf(task), "someday" to true))
-        assertEquals(true, task(task)["someday"].asBoolean())
 
         val project = UUID.randomUUID()
         dispatch("createProject", projectArgs("Thesis"), idSource = ids(project))

@@ -58,7 +58,7 @@ fn blocks(conn: &Connection, from: Timestamp, to: Timestamp) -> Result<Vec<Glanc
     let mut stmt = conn.prepare(
         "SELECT t.title, b.task_id, b.start_at, b.end_at FROM time_block b
          JOIN task t ON t.id = b.task_id
-         WHERE b.end_at > ?1 AND b.start_at < ?2 AND t.completed_at IS NULL AND t.someday = 0
+         WHERE b.end_at > ?1 AND b.start_at < ?2 AND t.completed_at IS NULL
          ORDER BY b.start_at, b.id",
     )?;
     let rows = stmt.query_map(params![from, to], |row| {
@@ -79,7 +79,7 @@ fn timed_tasks(conn: &Connection, today: Date) -> Result<Vec<GlanceItem>> {
          LEFT JOIN item_type ty ON ty.id = t.type_id
          LEFT JOIN project p ON p.id = t.project_id
          WHERE t.due_date = ?1 AND t.due_time IS NOT NULL AND t.completed_at IS NULL
-           AND t.someday = 0 AND COALESCE(ty.kind, 'task') = 'task'
+           AND COALESCE(ty.kind, 'task') = 'task'
            AND (p.id IS NULL OR p.archived = 0)
          ORDER BY t.due_time, t.position, t.id",
     )?;
@@ -120,7 +120,7 @@ fn earlier_count(conn: &Connection, today: Date) -> Result<i32> {
          LEFT JOIN item_type ty ON ty.id = t.type_id
          LEFT JOIN item_status st ON st.id = t.status_id
          LEFT JOIN project p ON p.id = t.project_id
-         WHERE t.completed_at IS NULL AND t.someday = 0
+         WHERE t.completed_at IS NULL
            AND COALESCE(ty.kind, 'task') = 'task'
            AND COALESCE(st.category, '') <> 'backlog'
            AND COALESCE(t.due_until, t.due_date) < ?1

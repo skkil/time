@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState } from '@tanstack/react-router';
-import { InboxIcon, SunsetIcon } from 'lucide-react';
+import { InboxIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 
 import { useTasks } from '@/features/tasks/api';
@@ -38,14 +38,13 @@ export function ProjectsSpace() {
     shown.current = pathname;
   }, [pathname]);
 
-  const counts = useMemo(() => {
-    const open = (tasks ?? []).filter((task) => task.completedAt === null);
-    return {
-      inbox: open.filter((task) => task.projectId === null && !task.someday)
-        .length,
-      someday: open.filter((task) => task.someday).length,
-    };
-  }, [tasks]);
+  const inboxCount = useMemo(
+    () =>
+      (tasks ?? []).filter(
+        (task) => task.completedAt === null && task.projectId === null,
+      ).length,
+    [tasks],
+  );
 
   return (
     <div className="grid h-full animate-in grid-cols-[minmax(0,1fr)] duration-700 fade-in-0 lg:grid-cols-[auto_minmax(0,1fr)] lg:pl-6">
@@ -80,20 +79,9 @@ export function ProjectsSpace() {
               >
                 <InboxIcon className="size-4 opacity-70" strokeWidth={1.5} />
                 Inbox
-                {counts.inbox > 0 && (
+                {inboxCount > 0 && (
                   <span className="ml-auto text-xs text-foreground/75">
-                    {counts.inbox}
-                  </span>
-                )}
-              </Link>
-            </li>
-            <li>
-              <Link to="/projects/someday" className={listLink}>
-                <SunsetIcon className="size-4 opacity-70" strokeWidth={1.5} />
-                Someday
-                {counts.someday > 0 && (
-                  <span className="ml-auto text-xs text-foreground/75">
-                    {counts.someday}
+                    {inboxCount}
                   </span>
                 )}
               </Link>

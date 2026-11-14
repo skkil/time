@@ -72,8 +72,6 @@ fn lists_todays_musts_and_counts_earlier_work() {
         let first = task(conn, "Thesis")?;
         tasks::set_must(conn, &first, Some(date(TODAY)))?;
         dated(conn, "Overdue", "2026-11-08", None)?;
-        let parked = dated(conn, "Parked", "2026-11-07", None)?;
-        tasks::set_someday(conn, std::slice::from_ref(&parked), true)?;
         let done = dated(conn, "Done", "2026-11-07", None)?;
         tasks::set_completed(conn, &env, &done, true)?;
         let pulled = dated(conn, "Pulled in", "2026-11-09", None)?;

@@ -88,16 +88,6 @@ pub async fn set_task_outcome(db: State<'_, Db>, id: Id, outcome_id: Option<Id>)
 
 #[tauri::command]
 #[specta::specta]
-pub async fn set_tasks_someday(db: State<'_, Db>, ids: Vec<Id>, someday: bool) -> Result<()> {
-    mutate(
-        &db,
-        "setTasksSomeday",
-        json!({ "ids": ids, "someday": someday }),
-    )
-}
-
-#[tauri::command]
-#[specta::specta]
 pub async fn set_task_must(db: State<'_, Db>, id: Id, must_on: Option<Date>) -> Result<Task> {
     mutate(&db, "setTaskMust", json!({ "id": id, "mustOn": must_on }))
 }

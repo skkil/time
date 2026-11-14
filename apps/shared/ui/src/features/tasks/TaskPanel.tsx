@@ -8,7 +8,6 @@ import {
   Link2Icon,
   PlayIcon,
   SquareIcon,
-  SunsetIcon,
   Trash2Icon,
 } from 'lucide-react';
 import { type ReactNode, useRef, useState } from 'react';
@@ -69,7 +68,6 @@ import {
   useSections,
   useSetTaskCompleted,
   useSetTaskOutcome,
-  useSetTasksSomeday,
   useTaskIndex,
   useUpdateTask,
 } from './api';
@@ -454,7 +452,6 @@ function Actions({
 function MoreMenu({ task, onWait }: { task: Task; onWait: () => void }) {
   const waitChosen = useRef(false);
   const remove = useDeleteTask();
-  const someday = useSetTasksSomeday();
   const duplicate = useDuplicateTask();
   const { openTask } = useTaskDialog();
   const [confirming, setConfirming] = useState(false);
@@ -480,14 +477,6 @@ function MoreMenu({ task, onWait }: { task: Task; onWait: () => void }) {
             onWait();
           }}
         >
-          <DropdownMenuItem
-            onSelect={() =>
-              someday.mutate({ ids: [task.id], someday: !task.someday })
-            }
-          >
-            <SunsetIcon />
-            {task.someday ? 'Bring back' : 'Move to Someday'}
-          </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() =>
               duplicate.mutate(task, {

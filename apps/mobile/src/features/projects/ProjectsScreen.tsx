@@ -36,7 +36,7 @@ function flatten(projects: Project[], roots: Project[]): Row[] {
 const openProject = (id: string) =>
   router.push({ pathname: '/project/[id]', params: { id } });
 
-/** Desktop's project drawer as a page: Inbox and Someday, then top-level projects under their groups. */
+/** Desktop's project drawer as a page: Inbox, then top-level projects under their groups. */
 export function ProjectsScreen() {
   const projects = useProjects();
   const groups = useGroups();
@@ -49,13 +49,11 @@ export function ProjectsScreen() {
     [projects.data],
   );
   const counts = useMemo(() => {
-    const open = new Map<Id | 'inbox' | 'someday', number>();
-    const bump = (key: Id | 'inbox' | 'someday') =>
-      open.set(key, (open.get(key) ?? 0) + 1);
+    const open = new Map<Id | 'inbox', number>();
     for (const task of tasks.data ?? []) {
       if (task.completedAt !== null || task.parentId !== null) continue;
-      if (task.someday) bump('someday');
-      else bump(task.projectId ?? 'inbox');
+      const key = task.projectId ?? 'inbox';
+      open.set(key, (open.get(key) ?? 0) + 1);
     }
     return open;
   }, [tasks.data]);
@@ -105,12 +103,6 @@ export function ProjectsScreen() {
               name="Inbox"
               count={counts.get('inbox')}
               onPress={() => openProject('inbox')}
-            />
-            <Place
-              icon="cloud-outline"
-              name="Someday"
-              count={counts.get('someday')}
-              onPress={() => openProject('someday')}
             />
           </View>
           {sections.map((section) => (

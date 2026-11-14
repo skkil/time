@@ -133,13 +133,13 @@ fn snapshots_travel_as_json_and_refuse_foreign_rows() {
         assert!(restore(conn, &env, &stranger).is_err());
 
         let mut from_server = json;
-        let someday = snapshot
+        let counts_as_time = snapshot
             .tasks
             .columns
             .iter()
-            .position(|column| column == "someday")
+            .position(|column| column == "counts_as_time")
             .unwrap();
-        from_server["tasks"]["values"][0][someday] = serde_json::json!(true);
+        from_server["tasks"]["values"][0][counts_as_time] = serde_json::json!(true);
         from_server["tasks"]["columns"]
             .as_array_mut()
             .unwrap()
@@ -150,7 +150,7 @@ fn snapshots_travel_as_json_and_refuse_foreign_rows() {
             .push(serde_json::json!(1));
         let from_server: TaskSnapshot = serde_json::from_value(from_server).unwrap();
         restore(conn, &env, &from_server)?;
-        assert!(tasks::get(conn, &task.id)?.someday);
+        assert!(tasks::get(conn, &task.id)?.counts_as_time);
         Ok(())
     })
     .unwrap();

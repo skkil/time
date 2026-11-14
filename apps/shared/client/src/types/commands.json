@@ -119,7 +119,6 @@
     "setTaskPhase",
     "setTaskStatusId",
     "setTaskTypeId",
-    "setTasksSomeday",
     "skipDayCheckIn",
     "skipRitual",
     "snoozeRitual",

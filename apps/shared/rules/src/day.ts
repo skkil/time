@@ -14,7 +14,7 @@ export type DayPlan = {
 };
 
 export const isOpenWork = (task: Task) =>
-  task.completedAt === null && !task.someday && task.kind === 'task';
+  task.completedAt === null && task.kind === 'task';
 
 export function earlierTasks(tasks: Task[], date: DateKey) {
   return tasks

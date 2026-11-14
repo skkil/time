@@ -4,7 +4,6 @@ import type { Task } from '@skkil-time/client/types';
 const isActionable = (task: Task) =>
   task.completedAt === null &&
   task.kind === 'task' &&
-  !task.someday &&
   task.statusCategory !== 'backlog' &&
   task.waitingOn.length === 0;
 

@@ -31,7 +31,7 @@ class GlanceService(
                 SELECT t.title, b.task_id, b.start_at, b.end_at FROM time_block b
                 JOIN task t ON t.id = b.task_id
                 WHERE b.user_id = :user AND b.end_at > :now AND b.start_at < :end
-                  AND t.completed_at IS NULL AND NOT t.someday
+                  AND t.completed_at IS NULL
                 ORDER BY b.start_at, b.id
                 """,
             ).param("user", caller.id)
@@ -54,7 +54,7 @@ class GlanceService(
                 LEFT JOIN item_type ty ON ty.id = t.type_id
                 LEFT JOIN project p ON p.id = t.project_id
                 WHERE t.user_id = :user AND t.due_date = :today AND t.due_time IS NOT NULL
-                  AND t.completed_at IS NULL AND NOT t.someday AND COALESCE(ty.kind, 'task') = 'task'
+                  AND t.completed_at IS NULL AND COALESCE(ty.kind, 'task') = 'task'
                   AND (p.id IS NULL OR NOT p.archived)
                 ORDER BY t.due_time, t.position, t.id
                 """,
@@ -109,7 +109,7 @@ class GlanceService(
                 LEFT JOIN item_type ty ON ty.id = t.type_id
                 LEFT JOIN item_status st ON st.id = t.status_id
                 LEFT JOIN project p ON p.id = t.project_id
-                WHERE t.user_id = :user AND t.completed_at IS NULL AND NOT t.someday
+                WHERE t.user_id = :user AND t.completed_at IS NULL
                   AND COALESCE(ty.kind, 'task') = 'task'
                   AND COALESCE(st.category, '') <> 'backlog'
                   AND COALESCE(t.due_until, t.due_date) < :today

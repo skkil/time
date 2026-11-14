@@ -2571,27 +2571,6 @@
         }
       }
     },
-    "/api/v1/tasks/someday" : {
-      "post" : {
-        "tags" : [ "task-controller" ],
-        "operationId" : "setSomeday",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/TasksSomeday"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "204" : {
-            "description" : "No Content"
-          }
-        }
-      }
-    },
     "/api/v1/tasks/reschedule" : {
       "post" : {
         "tags" : [ "task-controller" ],
@@ -4747,9 +4726,6 @@
             "type" : [ "string", "null" ],
             "format" : "uuid"
           },
-          "someday" : {
-            "type" : "boolean"
-          },
           "nextStep" : {
             "type" : "string"
           },
@@ -4804,7 +4780,7 @@
             "format" : "uuid"
           }
         },
-        "required" : [ "blockedBy", "completedAt", "countsAsTime", "createdAt", "deadline", "dueDate", "dueTime", "dueUntil", "estimateMinutes", "id", "kind", "location", "milestoneId", "mustOn", "nextStep", "notes", "outcomeId", "parentId", "phaseId", "position", "priority", "projectId", "recurrence", "sectionId", "someday", "statusCategory", "statusChangedAt", "statusId", "title", "trackedSeconds", "typeId", "waitingOn" ]
+        "required" : [ "blockedBy", "completedAt", "countsAsTime", "createdAt", "deadline", "dueDate", "dueTime", "dueUntil", "estimateMinutes", "id", "kind", "location", "milestoneId", "mustOn", "nextStep", "notes", "outcomeId", "parentId", "phaseId", "position", "priority", "projectId", "recurrence", "sectionId", "statusCategory", "statusChangedAt", "statusId", "title", "trackedSeconds", "typeId", "waitingOn" ]
       },
       "TaskTypeId" : {
         "type" : "object",
@@ -5858,22 +5834,6 @@
         },
         "required" : [ "blockedById" ]
       },
-      "TasksSomeday" : {
-        "type" : "object",
-        "properties" : {
-          "ids" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string",
-              "format" : "uuid"
-            }
-          },
-          "someday" : {
-            "type" : "boolean"
-          }
-        },
-        "required" : [ "ids", "someday" ]
-      },
       "TaskReschedule" : {
         "type" : "object",
         "properties" : {
@@ -5896,8 +5856,7 @@
           "propertyName" : "kind",
           "mapping" : {
             "day" : "#/components/schemas/MoveToDay",
-            "week" : "#/components/schemas/MoveToWeek",
-            "someday" : "#/components/schemas/MoveToSomeday"
+            "week" : "#/components/schemas/MoveToWeek"
           }
         },
         "properties" : {
@@ -5920,11 +5879,6 @@
           }
         } ],
         "required" : [ "date" ]
-      },
-      "MoveToSomeday" : {
-        "allOf" : [ {
-          "$ref" : "#/components/schemas/MoveTarget"
-        } ]
       },
       "MoveToWeek" : {
         "allOf" : [ {
@@ -5954,8 +5908,6 @@
             "oneOf" : [ {
               "$ref" : "#/components/schemas/MoveToDay"
             }, {
-              "$ref" : "#/components/schemas/MoveToSomeday"
-            }, {
               "$ref" : "#/components/schemas/MoveToWeek"
             } ]
           },
@@ -5975,13 +5927,9 @@
           "blocksMoved" : {
             "type" : "integer",
             "format" : "int32"
-          },
-          "blocksRemoved" : {
-            "type" : "integer",
-            "format" : "int32"
           }
         },
-        "required" : [ "blocksMoved", "blocksRemoved", "tasks" ]
+        "required" : [ "blocksMoved", "tasks" ]
       },
       "SyncTokenRequest" : {
         "type" : "object",

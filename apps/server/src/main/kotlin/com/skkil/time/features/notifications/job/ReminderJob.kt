@@ -185,7 +185,6 @@ class ReminderJob(
                   AND t.due_date BETWEEN :fromDate AND :toDate
                   AND t.due_date + make_interval(mins => t.due_time) BETWEEN :from AND :to
                   AND t.completed_at IS NULL
-                  AND NOT t.someday
                   AND COALESCE(it.kind, 'task') = 'task'
                   AND t.reminded_for IS DISTINCT FROM to_char(t.due_date, 'YYYY-MM-DD') || ' ' || t.due_time
                   AND EXISTS (SELECT 1 FROM push_device d WHERE d.user_id = t.user_id AND d.scheduling = 'remote')

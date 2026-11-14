@@ -14,7 +14,7 @@ import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
-/** Moves tasks to a day, a week or Someday, taking their upcoming time blocks along. */
+/** Moves tasks to a day or a week, taking their upcoming time blocks along. */
 @Service
 @Transactional
 class TaskMoveService(private val jdbc: JdbcClient, private val tasks: TaskService) {
@@ -29,7 +29,6 @@ class TaskMoveService(private val jdbc: JdbcClient, private val tasks: TaskServi
         val now = caller.now()
         var moved = 0
         var blocksMoved = 0
-        var blocksRemoved = 0
         for (id in ids.distinct()) {
             val task = tasks.get(caller.id, id)
             if (target !is MoveTarget.Day) {
@@ -41,10 +40,7 @@ class TaskMoveService(private val jdbc: JdbcClient, private val tasks: TaskServi
                     """
                     UPDATE task SET due_date = CAST(:due AS DATE),
                       due_until = CAST(:until AS DATE),
-                      due_time = CASE WHEN CAST(:due AS DATE) IS NOT NULL AND CAST(:until AS DATE) IS NULL
-                        THEN due_time END,
-                      recurrence = CASE WHEN CAST(:due AS DATE) IS NOT NULL THEN recurrence END,
-                      someday = CAST(:due AS DATE) IS NULL,
+                      due_time = CASE WHEN CAST(:until AS DATE) IS NULL THEN due_time END,
                       must_on = CASE WHEN must_on BETWEEN CAST(:due AS DATE)
                         AND COALESCE(CAST(:until AS DATE), CAST(:due AS DATE)) THEN must_on END
                     WHERE user_id = :user AND id = :id
@@ -56,27 +52,19 @@ class TaskMoveService(private val jdbc: JdbcClient, private val tasks: TaskServi
                 .update()
             moved++
             if (!follow) continue
-            val from = task.dueDate
-            when {
-                dueDate == null -> {
-                    blocksRemoved += removeUpcoming(caller.id, id, now)
+            val from = task.dueDate ?: continue
+            val days =
+                if (dueUntil != null || task.dueUntil != null) {
+                    ChronoUnit.DAYS.between(monday(from), monday(dueDate))
+                } else {
+                    ChronoUnit.DAYS.between(from, dueDate)
                 }
-
-                from != null -> {
-                    val days =
-                        if (dueUntil != null || task.dueUntil != null) {
-                            ChronoUnit.DAYS.between(monday(from), monday(dueDate))
-                        } else {
-                            ChronoUnit.DAYS.between(from, dueDate)
-                        }
-                    if (days != 0L) blocksMoved += shiftUpcoming(caller.id, id, now, days)
-                }
-            }
+            if (days != 0L) blocksMoved += shiftUpcoming(caller.id, id, now, days)
         }
-        return MoveResult(moved, blocksMoved, blocksRemoved)
+        return MoveResult(moved, blocksMoved)
     }
 
-    private fun dates(target: MoveTarget): Pair<LocalDate?, LocalDate?> =
+    private fun dates(target: MoveTarget): Pair<LocalDate, LocalDate?> =
         when (target) {
             is MoveTarget.Day -> {
                 Pair(target.date, null)
@@ -85,10 +73,6 @@ class TaskMoveService(private val jdbc: JdbcClient, private val tasks: TaskServi
             is MoveTarget.Week -> {
                 ensure(target.monday.dayOfWeek == DayOfWeek.MONDAY) { "A week starts on a Monday." }
                 Pair(target.monday, target.monday.plusDays(WEEK_DAYS - 1))
-            }
-
-            MoveTarget.Someday -> {
-                Pair(null, null)
             }
         }
 
@@ -102,14 +86,6 @@ class TaskMoveService(private val jdbc: JdbcClient, private val tasks: TaskServi
                 WHERE user_id = :user AND task_id = :task AND start_at >= :from
                 """,
             ).param("seconds", days * DAY_SECONDS)
-            .param("user", user)
-            .param("task", task)
-            .param("from", from)
-            .update()
-
-    private fun removeUpcoming(user: Long, task: UUID, from: Long): Int =
-        jdbc
-            .sql("DELETE FROM time_block WHERE user_id = :user AND task_id = :task AND start_at >= :from")
             .param("user", user)
             .param("task", task)
             .param("from", from)

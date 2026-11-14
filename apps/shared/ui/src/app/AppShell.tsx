@@ -90,7 +90,6 @@ function Canvas() {
   const go = (next: Space) => {
     if (next === 'projects') {
       const last = getPreference('lastProject');
-      if (last === 'someday') return navigate({ to: '/projects/someday' });
       const groupId = last.replace(/^groups\//, '');
       if (last.startsWith('groups/') && isId(groupId))
         return navigate({

@@ -138,7 +138,6 @@ class TaskService(
                           due_until = NULL,
                           due_time = CASE WHEN CAST(:due AS DATE) IS NULL THEN NULL ELSE due_time END,
                           recurrence = CASE WHEN CAST(:due AS DATE) IS NULL THEN NULL ELSE recurrence END,
-                          someday = CASE WHEN CAST(:due AS DATE) IS NULL THEN someday ELSE FALSE END,
                           must_on = CASE WHEN must_on = CAST(:due AS DATE) THEN must_on ELSE NULL END
                         WHERE user_id = :user AND id = :id
                         """,
@@ -203,28 +202,6 @@ class TaskService(
         return get(user, id)
     }
 
-    fun setSomeday(user: Long, ids: List<UUID>, someday: Boolean) {
-        for (id in ids) {
-            val rows =
-                jdbc
-                    .sql(
-                        """
-                        UPDATE task SET someday = :someday,
-                          due_date = CASE WHEN :someday THEN NULL ELSE due_date END,
-                          due_until = CASE WHEN :someday THEN NULL ELSE due_until END,
-                          due_time = CASE WHEN :someday THEN NULL ELSE due_time END,
-                          recurrence = CASE WHEN :someday THEN NULL ELSE recurrence END,
-                          must_on = CASE WHEN :someday THEN NULL ELSE must_on END
-                        WHERE user_id = :user AND id = :id
-                        """,
-                    ).param("someday", someday)
-                    .param("user", user)
-                    .param("id", id)
-                    .update()
-            ensureChanged(rows, "Task")
-        }
-    }
-
     fun setMust(user: Long, id: UUID, mustOn: LocalDate?): Task {
         val rows =
             jdbc
@@ -232,8 +209,7 @@ class TaskService(
                     """
                     UPDATE task SET must_on = CAST(:must AS DATE),
                       due_date = CASE WHEN CAST(:must AS DATE) IS NULL OR due_date <= CAST(:must AS DATE)
-                                 THEN due_date ELSE CAST(:must AS DATE) END,
-                      someday = CASE WHEN CAST(:must AS DATE) IS NULL THEN someday ELSE FALSE END
+                                 THEN due_date ELSE CAST(:must AS DATE) END
                     WHERE user_id = :user AND id = :id
                     """,
                 ).param("must", mustOn)

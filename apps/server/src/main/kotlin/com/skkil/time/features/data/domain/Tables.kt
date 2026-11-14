@@ -149,7 +149,6 @@ val TABLES: List<Table> =
                 long("position"),
                 text("external_id"),
                 ref("outcome_id", "outcome"),
-                bool("someday"),
                 text("next_step"),
                 date("must_on"),
                 date("due_until"),

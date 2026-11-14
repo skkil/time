@@ -23,7 +23,6 @@ const task = (patch: Partial<Task>): Task => ({
   createdAt: 0,
   trackedSeconds: 0,
   outcomeId: null,
-  someday: false,
   nextStep: '',
   mustOn: null,
   typeId: null,

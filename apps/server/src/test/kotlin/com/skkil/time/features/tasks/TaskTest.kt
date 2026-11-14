@@ -8,7 +8,6 @@ import com.skkil.time.features.tasks.api.TaskNextStep
 import com.skkil.time.features.tasks.api.TaskOutcome
 import com.skkil.time.features.tasks.api.TaskReschedule
 import com.skkil.time.features.tasks.api.TasksMove
-import com.skkil.time.features.tasks.api.TasksSomeday
 import com.skkil.time.features.tasks.domain.MoveTarget
 import com.skkil.time.features.tasks.domain.TaskPlacement
 import com.skkil.time.features.tasks.domain.TaskRules
@@ -147,19 +146,13 @@ class TaskTest : TaskApiTest() {
     }
 
     @Test
-    fun `rescheduling and parking a task`() {
+    fun `rescheduling a task`() {
         val today = today()
         val id = create(input("Essay").copy(dueDate = today.minusDays(1))).id()
         post("/api/v1/tasks/reschedule", TaskReschedule(listOf(id), today)).andExpect { status { isNoContent() } }
         assertEquals(today.toString(), task(id)["dueDate"].asString())
 
-        post("/api/v1/tasks/someday", TasksSomeday(listOf(id), true)).andExpect { status { isNoContent() } }
-        val parked = task(id)
-        assertTrue(parked["someday"].asBoolean())
-        assertTrue(parked["dueDate"].isNull)
-
         val must = putJson("/api/v1/tasks/$id/must", TaskMust(today))
-        assertFalse(must["someday"].asBoolean())
         assertEquals(today.toString(), must["mustOn"].asString())
         assertEquals(today.toString(), must["dueDate"].asString())
 
@@ -194,7 +187,7 @@ class TaskTest : TaskApiTest() {
         )
         expectProblem(post("/api/v1/tasks/move", TasksMove(listOf(id), MoveTarget.Day(today), "stay")), 422, "invalid")
         val repeat = create(input("Run").copy(dueDate = today, recurrence = "every day")).id()
-        expectProblem(post("/api/v1/tasks/move", TasksMove(listOf(repeat), MoveTarget.Someday)), 422, "invalid")
+        expectProblem(post("/api/v1/tasks/move", TasksMove(listOf(repeat), MoveTarget.Week(monday))), 422, "invalid")
     }
 
     @Test
@@ -256,7 +249,7 @@ class TaskTest : TaskApiTest() {
         expectProblem(post("/api/v1/tasks", input("Child").copy(parentId = mine)), 404, "notFound")
         expectProblem(post("/api/v1/tasks", input("In theirs", project)), 404, "notFound")
         expectProblem(post("/api/v1/tasks/reschedule", TaskReschedule(listOf(mine), today())), 404, "notFound")
-        expectProblem(post("/api/v1/tasks/move", TasksMove(listOf(mine), MoveTarget.Someday)), 404, "notFound")
+        expectProblem(post("/api/v1/tasks/move", TasksMove(listOf(mine), MoveTarget.Day(today()))), 404, "notFound")
         expectProblem(delete("/api/v1/tasks/$mine"), 404, "notFound")
         post("/api/v1/tasks/delete", TaskIds(listOf(mine)))
         val theirs = create(input("Theirs")).id()

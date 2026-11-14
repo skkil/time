@@ -11,7 +11,6 @@ import { GroupView } from '@/features/projects/GroupView';
 import { ProjectPage } from '@/features/projects/ProjectPage';
 import { ProjectsSpace } from '@/features/projects/ProjectsSpace';
 import { LazyWeekReview } from '@/features/review/LazyWeekReview';
-import { SomedayPage } from '@/features/tasks/SomedayPage';
 import { type ProjectTab, isProjectTab } from '@/lib/preferences';
 import {
   type DateKey,
@@ -84,14 +83,6 @@ const todayRoute = createRoute({
   },
 });
 
-const somedayRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/someday',
-  beforeLoad: () => {
-    throw redirect({ to: '/projects/someday' });
-  },
-});
-
 const upcomingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/upcoming',
@@ -113,12 +104,6 @@ const projectsInboxRoute = createRoute({
   getParentRoute: () => projectsRoute,
   path: '/',
   component: () => <ProjectPage projectId={null} />,
-});
-
-const projectsSomedayRoute = createRoute({
-  getParentRoute: () => projectsRoute,
-  path: '/someday',
-  component: SomedayPage,
 });
 
 export const projectRoute = createRoute({
@@ -214,14 +199,8 @@ const routeTree = rootRoute.addChildren([
   inboxRoute,
   todayRoute,
   upcomingRoute,
-  somedayRoute,
   plannerRoute,
-  projectsRoute.addChildren([
-    projectsInboxRoute,
-    projectsSomedayRoute,
-    groupRoute,
-    projectRoute,
-  ]),
+  projectsRoute.addChildren([projectsInboxRoute, groupRoute, projectRoute]),
   ...legacyWeekRoutes,
   weekReviewRoute,
 ]);

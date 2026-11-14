@@ -90,11 +90,6 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
             &a.id("id")?,
             a.opt_id("outcomeId")?.as_ref(),
         )?),
-        "setTasksSomeday" => out(tasks::set_someday(
-            conn,
-            &a.get::<Vec<_>>("ids")?,
-            a.get("someday")?,
-        )?),
         "setTaskMust" => out(tasks::set_must(conn, &a.id("id")?, a.get("mustOn")?)?),
         "setTaskNextStep" => out(tasks::set_next_step(
             conn,

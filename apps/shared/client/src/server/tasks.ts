@@ -15,7 +15,6 @@ export const tasks: Commands<
   | 'moveTasks'
   | 'setTaskCompleted'
   | 'setTaskOutcome'
-  | 'setTasksSomeday'
   | 'setTaskMust'
   | 'setTaskNextStep'
   | 'deleteTasks'
@@ -52,8 +51,6 @@ export const tasks: Commands<
         body: { outcomeId },
       }),
     ),
-  setTasksSomeday: (ids, someday) =>
-    unwrap(api.POST('/api/v1/tasks/someday', { body: { ids, someday } })),
   setTaskMust: (id, mustOn) =>
     unwrap(
       api.PUT('/api/v1/tasks/{id}/must', { ...byId(id), body: { mustOn } }),

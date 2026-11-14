@@ -32,7 +32,7 @@ class ReminderService(
                     LEFT JOIN item_type ty ON ty.id = t.type_id
                     LEFT JOIN project p ON p.id = t.project_id
                     WHERE t.user_id = :user AND t.due_date BETWEEN :first AND :last AND t.due_time IS NOT NULL
-                      AND t.completed_at IS NULL AND NOT t.someday
+                      AND t.completed_at IS NULL
                       AND COALESCE(ty.kind, 'task') = 'task' AND (p.id IS NULL OR NOT p.archived)
                     """,
                 ).param("user", caller.id)
@@ -54,7 +54,7 @@ class ReminderService(
                     SELECT b.id, b.task_id, t.title, b.start_at FROM time_block b
                     JOIN task t ON t.id = b.task_id
                     WHERE b.user_id = :user AND b.start_at > :from AND b.start_at <= :to
-                      AND t.completed_at IS NULL AND NOT t.someday
+                      AND t.completed_at IS NULL
                     """,
                 ).param("user", caller.id)
                 .param("from", from)

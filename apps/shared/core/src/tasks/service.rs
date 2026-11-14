@@ -99,7 +99,6 @@ pub fn reschedule(conn: &Connection, ids: &[Id], due_date: Option<Date>) -> Resu
                              due_until = NULL,
                              due_time = CASE WHEN ?1 IS NULL THEN NULL ELSE due_time END,
                              recurrence = CASE WHEN ?1 IS NULL THEN NULL ELSE recurrence END,
-                             someday = CASE WHEN ?1 IS NULL THEN someday ELSE 0 END,
                              must_on = CASE WHEN must_on = ?1 THEN must_on ELSE NULL END
              WHERE id = ?2",
             params![due_date, id],
@@ -109,9 +108,9 @@ pub fn reschedule(conn: &Connection, ids: &[Id], due_date: Option<Date>) -> Resu
     Ok(())
 }
 
-/// Moves tasks to a day, a week or Someday. With `BlockMove::Follow`, blocks
-/// that haven't started shift by the same days as the date (whole weeks when
-/// a week is involved), and moving to Someday removes them.
+/// Moves tasks to a day or a week. With `BlockMove::Follow`, blocks that
+/// haven't started shift by the same days as the date (whole weeks when a
+/// week is involved).
 pub fn move_tasks(
     conn: &Connection,
     env: &dyn MutationEnv,
@@ -120,14 +119,13 @@ pub fn move_tasks(
     block_move: BlockMove,
 ) -> Result<MoveResult> {
     let (due_date, due_until) = match target {
-        MoveTarget::Day { date } => (Some(date), None),
+        MoveTarget::Day { date } => (date, None),
         MoveTarget::Week { monday } => {
             if monday.monday() != monday {
                 return Err(Error::invalid("A week starts on a Monday."));
             }
-            (Some(monday), Some(monday.add_days(WEEK_DAYS - 1)))
+            (monday, Some(monday.add_days(WEEK_DAYS - 1)))
         }
-        MoveTarget::Someday => (None, None),
     };
     let now = env.timestamp();
     let mut result = MoveResult::default();
@@ -147,9 +145,7 @@ pub fn move_tasks(
         conn.execute(
             "UPDATE task SET due_date = ?1,
                              due_until = ?2,
-                             due_time = CASE WHEN ?1 IS NOT NULL AND ?2 IS NULL THEN due_time END,
-                             recurrence = CASE WHEN ?1 IS NOT NULL THEN recurrence END,
-                             someday = ?1 IS NULL,
+                             due_time = CASE WHEN ?2 IS NULL THEN due_time END,
                              must_on = CASE WHEN must_on BETWEEN ?1 AND COALESCE(?2, ?1)
                                             THEN must_on END
              WHERE id = ?3",
@@ -159,19 +155,15 @@ pub fn move_tasks(
         if block_move == BlockMove::Leave {
             continue;
         }
-        match (task.due_date, due_date) {
-            (_, None) => result.blocks_removed += blocks::remove_upcoming(conn, id, now)?,
-            (Some(from), Some(to)) => {
-                let days = if due_until.is_some() || task.due_until.is_some() {
-                    to.monday().days_since(from.monday())
-                } else {
-                    to.days_since(from)
-                };
-                if days != 0 {
-                    result.blocks_moved += blocks::shift_upcoming(conn, id, now, days)?;
-                }
+        if let Some(from) = task.due_date {
+            let days = if due_until.is_some() || task.due_until.is_some() {
+                due_date.monday().days_since(from.monday())
+            } else {
+                due_date.days_since(from)
+            };
+            if days != 0 {
+                result.blocks_moved += blocks::shift_upcoming(conn, id, now, days)?;
             }
-            (None, Some(_)) => {}
         }
     }
     Ok(result)
@@ -240,28 +232,10 @@ pub fn set_outcome(conn: &Connection, id: &Id, outcome_id: Option<&Id>) -> Resul
     get(conn, id)
 }
 
-pub fn set_someday(conn: &Connection, ids: &[Id], someday: bool) -> Result<()> {
-    for id in ids {
-        let rows = conn.execute(
-            "UPDATE task SET someday = ?1,
-                             due_date = CASE WHEN ?1 THEN NULL ELSE due_date END,
-                             due_until = CASE WHEN ?1 THEN NULL ELSE due_until END,
-                             due_time = CASE WHEN ?1 THEN NULL ELSE due_time END,
-                             recurrence = CASE WHEN ?1 THEN NULL ELSE recurrence END,
-                             must_on = CASE WHEN ?1 THEN NULL ELSE must_on END
-             WHERE id = ?2",
-            params![someday, id],
-        )?;
-        ensure_changed(rows, "Task")?;
-    }
-    Ok(())
-}
-
 pub fn set_must(conn: &Connection, id: &Id, must_on: Option<Date>) -> Result<Task> {
     let rows = conn.execute(
         "UPDATE task SET must_on = ?1,
-                         due_date = CASE WHEN ?1 IS NULL OR due_date <= ?1 THEN due_date ELSE ?1 END,
-                         someday = CASE WHEN ?1 IS NULL THEN someday ELSE 0 END
+                         due_date = CASE WHEN ?1 IS NULL OR due_date <= ?1 THEN due_date ELSE ?1 END
          WHERE id = ?2",
         params![must_on, id],
     )?;

@@ -375,43 +375,6 @@ export function useTaskDependency() {
   };
 }
 
-export function useSetTasksSomeday() {
-  const cache = useTaskCache();
-  return useMutation({
-    mutationFn: ({ ids, someday }: { ids: Id[]; someday: boolean }) =>
-      withSnapshot(ids, () => commands.setTasksSomeday(ids, someday)),
-    onMutate: async ({ ids, someday }) => {
-      const previous = await cache.freeze();
-      cache.update((tasks) =>
-        tasks.map((task) =>
-          ids.includes(task.id)
-            ? {
-                ...task,
-                someday,
-                ...(someday && {
-                  dueDate: null,
-                  dueTime: null,
-                  recurrence: null,
-                  mustOn: null,
-                }),
-              }
-            : task,
-        ),
-      );
-      return { previous };
-    },
-    onSuccess: ({ snapshot }, { ids, someday }, context) => {
-      if (someday)
-        cache.offerRestore(
-          `Moved ${titleOf(ids, context.previous)} to Someday`,
-          snapshot,
-        );
-    },
-    onError: (_error, _vars, context) => cache.restore(context?.previous),
-    onSettled: () => cache.refresh(),
-  });
-}
-
 export function useSetTaskMust() {
   const cache = useTaskCache();
   return useMutation({
@@ -420,11 +383,7 @@ export function useSetTaskMust() {
     onMutate: async ({ id, mustOn }) => {
       const previous = await cache.freeze();
       cache.update((tasks) =>
-        tasks.map((task) =>
-          task.id === id
-            ? { ...task, mustOn, someday: mustOn ? false : task.someday }
-            : task,
-        ),
+        tasks.map((task) => (task.id === id ? { ...task, mustOn } : task)),
       );
       return { previous };
     },

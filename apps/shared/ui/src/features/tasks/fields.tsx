@@ -1,4 +1,4 @@
-import { SOMEDAY, dayTarget, weekTarget } from '@skkil-time/rules/move';
+import { dayTarget, weekTarget } from '@skkil-time/rules/move';
 import { parseDatePhrase } from '@skkil-time/rules/quick-add/dates';
 import { format } from 'date-fns';
 import {
@@ -140,7 +140,6 @@ function quickTargets(today: DateKey, repeating: boolean) {
       hint: 'any day',
       target: weekTarget(shiftKey(monday, 7)),
     },
-    { label: 'Someday', hint: 'no date', target: SOMEDAY },
   ];
 }
 

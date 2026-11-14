@@ -274,7 +274,7 @@ export function DayCanvas({
           <DialogHeader>
             <DialogTitle>From earlier days</DialogTitle>
             <DialogDescription>
-              Give each one a day, park it, or let it go.
+              Give each one a day or let it go.
             </DialogDescription>
           </DialogHeader>
           <Leftovers tasks={plan.earlier} target={dayTarget(todayKey())} />

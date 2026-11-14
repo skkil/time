@@ -28,7 +28,6 @@ pub struct Task {
     pub created_at: Timestamp,
     pub tracked_seconds: Seconds,
     pub outcome_id: Option<Id>,
-    pub someday: bool,
     pub next_step: String,
     pub must_on: Option<Date>,
     pub type_id: Option<Id>,
@@ -77,7 +76,6 @@ pub struct TaskPlacement {
 pub enum MoveTarget {
     Day { date: Date },
     Week { monday: Date },
-    Someday,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -95,5 +93,4 @@ pub enum BlockMove {
 pub struct MoveResult {
     pub tasks: i32,
     pub blocks_moved: i32,
-    pub blocks_removed: i32,
 }

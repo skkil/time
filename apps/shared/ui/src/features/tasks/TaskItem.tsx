@@ -9,7 +9,6 @@ import {
   PencilIcon,
   PlayIcon,
   StarIcon,
-  SunsetIcon,
   Trash2Icon,
 } from 'lucide-react';
 
@@ -47,7 +46,6 @@ import {
   useSections,
   useSetTaskCompleted,
   useSetTaskMust,
-  useSetTasksSomeday,
   useTaskIndex,
   useUpdateTask,
 } from './api';
@@ -85,7 +83,6 @@ export function TaskItem({
   const remove = useDeleteTask();
   const duplicate = useDuplicateTask();
   const setMust = useSetTaskMust();
-  const setSomeday = useSetTasksSomeday();
   const start = useStartTimer();
   const { data: timer } = useTimer();
   const { data: sections } = useSections();
@@ -372,14 +369,6 @@ export function TaskItem({
               >
                 <StarIcon />
                 {task.mustOn === today ? 'Not a must today' : 'Must do today'}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() =>
-                  setSomeday.mutate({ ids: [task.id], someday: !task.someday })
-                }
-              >
-                <SunsetIcon />
-                {task.someday ? 'Bring back from Someday' : 'Move to Someday'}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

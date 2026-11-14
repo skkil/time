@@ -1,7 +1,6 @@
 package com.skkil.time.features.glance
 
 import com.skkil.time.features.tasks.api.TaskMust
-import com.skkil.time.features.tasks.api.TasksSomeday
 import com.skkil.time.features.time.domain.BlockSpan
 import com.skkil.time.support.TaskApiTest
 import org.junit.jupiter.api.Test
@@ -31,8 +30,6 @@ class GlanceTest : TaskApiTest() {
         val thesis = create(input("Thesis")).id()
         putJson("/api/v1/tasks/$thesis/must", TaskMust(today))
         create(input("Overdue").copy(dueDate = today.minusDays(2)))
-        val parked = create(input("Parked").copy(dueDate = today.minusDays(3))).id()
-        post("/api/v1/tasks/someday", TasksSomeday(listOf(parked), true))
         val done = create(input("Done").copy(dueDate = today.minusDays(3))).id()
         complete(done)
 

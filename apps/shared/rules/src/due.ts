@@ -96,7 +96,7 @@ export const isOverdue = (
   );
 };
 
-/** Left behind for weeks: worth parking. */
+/** Left behind for weeks. */
 export function isStale(
   task: Pick<Task, 'dueDate' | 'dueUntil' | 'statusCategory' | 'completedAt'>,
   today = todayKey(),

@@ -230,8 +230,8 @@ function LeftoversStep({ ctx }: { ctx: RitualContext }) {
   return (
     <div className="grid gap-5">
       <StepHeading title="Leftovers">
-        Give each one {targetWord(ctx)}, another day, Someday, or let it go.
-        Nothing rolls over on its own.
+        Give each one {targetWord(ctx)}, another day, or let it go. Nothing
+        rolls over on its own.
       </StepHeading>
       <Leftovers tasks={leftovers} target={dayTarget(ctx.target)} />
     </div>
@@ -244,7 +244,7 @@ function PickMustsStep({ ctx }: { ctx: RitualContext }) {
   const setMust = useSetTaskMust();
   const index = useProjectIndex();
   const all = tasks ?? [];
-  const open = (task: Task) => task.completedAt === null && !task.someday;
+  const open = (task: Task) => task.completedAt === null;
   const musts = all.filter((task) => open(task) && task.mustOn === ctx.target);
   const candidates = useMemo(() => {
     const all = tasks ?? [];

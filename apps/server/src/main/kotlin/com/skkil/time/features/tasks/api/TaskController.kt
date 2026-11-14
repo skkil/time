@@ -83,13 +83,6 @@ class TaskController(
         @RequestBody body: TaskOutcome,
     ): Task = tasks.setOutcome(caller.id, id, body.outcomeId)
 
-    @PostMapping("/someday")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun setSomeday(
-        caller: Caller,
-        @RequestBody body: TasksSomeday,
-    ) = tasks.setSomeday(caller.id, body.ids, body.someday)
-
     @PutMapping("/{id}/must")
     fun setMust(
         caller: Caller,
