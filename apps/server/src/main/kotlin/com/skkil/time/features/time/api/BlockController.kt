@@ -43,7 +43,7 @@ class BlockController(private val blocks: BlockService, private val blockLog: Bl
         caller: Caller,
         @PathVariable id: UUID,
         @RequestBody span: BlockSpan,
-    ): TimeBlock = blocks.reschedule(caller.id, id, span)
+    ): TimeBlock = blocks.reschedule(caller, id, span)
 
     @DeleteMapping("/blocks/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

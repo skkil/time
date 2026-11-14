@@ -30,6 +30,22 @@ class BlockTest : TaskApiTest() {
     }
 
     @Test
+    fun `moving a block to another day moves its dated task`() {
+        val dated = create(input("Write intro").copy(dueDate = monday)).id()
+        val undated = create(input("Read")).id()
+        val nine = monday.atStartOfDay(ZoneId.of("UTC")).toEpochSecond() + 9 * 3600
+        val first = postJson("/api/v1/tasks/$dated/blocks", BlockSpan(nine, nine + 3600)).id()
+        val second = postJson("/api/v1/tasks/$undated/blocks", BlockSpan(nine, nine + 3600)).id()
+        val tuesday = nine + 86_400
+
+        putJson("/api/v1/blocks/$first", BlockSpan(tuesday, tuesday + 3600))
+        putJson("/api/v1/blocks/$second", BlockSpan(tuesday, tuesday + 3600))
+
+        assertEquals("2026-11-03", task(dated)["dueDate"].asString())
+        assertEquals(true, task(undated)["dueDate"].isNull)
+    }
+
+    @Test
     fun `rejects bad spans`() {
         val task = create(input("Read")).id()
         expectProblem(post("/api/v1/tasks/$task/blocks", BlockSpan(7200, 3600)), 422, "invalid")

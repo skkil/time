@@ -68,10 +68,15 @@ export function useRescheduleBlock(monday: DateKey) {
           endAt: before.endAt,
         });
         await cache.settle();
+        await cache.client.invalidateQueries({ queryKey: keys.tasks });
       });
     },
     onError: (_error, _vars, context) => cache.restore(context?.previous),
-    onSettled: () => cache.settle(),
+    onSettled: () =>
+      Promise.all([
+        cache.settle(),
+        cache.client.invalidateQueries({ queryKey: keys.tasks }),
+      ]),
   });
 }
 

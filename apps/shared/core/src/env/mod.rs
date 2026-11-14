@@ -40,6 +40,15 @@ pub trait MutationEnv {
     fn today(&self) -> Date {
         Date(self.now().date_naive())
     }
+
+    /// The day `at` falls on in the user's time zone when they acted.
+    fn date_of(&self, at: Timestamp) -> Date {
+        let offset = *self.now().offset();
+        let local = DateTime::from_timestamp(at.0, 0)
+            .expect("timestamps are in range")
+            .with_timezone(&offset);
+        Date(local.date_naive())
+    }
 }
 
 #[derive(Debug, Default)]

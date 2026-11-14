@@ -26,7 +26,7 @@ class TimeMutations(
                 blocks.create(caller, args.get<UUID>("taskId"), args.get<BlockSpan>("span"))
             },
             mutation("rescheduleBlock", "id", "span") { caller, args ->
-                blocks.reschedule(caller.id, args.get<UUID>("id"), args.get<BlockSpan>("span"))
+                blocks.reschedule(caller, args.get<UUID>("id"), args.get<BlockSpan>("span"))
             },
             mutation("deleteBlock", "id") { caller, args ->
                 blocks.delete(caller.id, args.get<UUID>("id"))

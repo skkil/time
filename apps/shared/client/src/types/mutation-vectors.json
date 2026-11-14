@@ -1171,6 +1171,82 @@
           }
         }
       ]
+    },
+    {
+      "name": "createTask",
+      "args": {
+        "input": {
+          "title": "Prune the roses",
+          "notes": "",
+          "projectId": "019a4b00-0000-7000-8000-0000000000e0",
+          "sectionId": null,
+          "parentId": null,
+          "priority": 4,
+          "dueDate": "2026-11-04",
+          "dueTime": null,
+          "deadline": null,
+          "recurrence": null,
+          "estimateMinutes": 30
+        }
+      },
+      "ids": ["019a4b00-0000-7000-8000-0000000000f0"],
+      "expect": [
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-0000000000f0",
+          "row": {
+            "due_date": "2026-11-04"
+          }
+        }
+      ]
+    },
+    {
+      "name": "createBlock",
+      "args": {
+        "taskId": "019a4b00-0000-7000-8000-0000000000f0",
+        "span": {
+          "startAt": 1793754000,
+          "endAt": 1793755800
+        }
+      },
+      "ids": ["019a4b00-0000-7000-8000-0000000000f1"],
+      "expect": [
+        {
+          "table": "time_block",
+          "id": "019a4b00-0000-7000-8000-0000000000f1",
+          "row": {
+            "start_at": 1793754000
+          }
+        }
+      ]
+    },
+    {
+      "name": "rescheduleBlock",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-0000000000f1",
+        "span": {
+          "startAt": 1793840400,
+          "endAt": 1793842200
+        }
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "time_block",
+          "id": "019a4b00-0000-7000-8000-0000000000f1",
+          "row": {
+            "start_at": 1793840400,
+            "end_at": 1793842200
+          }
+        },
+        {
+          "table": "task",
+          "id": "019a4b00-0000-7000-8000-0000000000f0",
+          "row": {
+            "due_date": "2026-11-05"
+          }
+        }
+      ]
     }
   ]
 }

@@ -38,13 +38,29 @@ pub fn create(
     get(conn, &id)
 }
 
-pub fn reschedule(conn: &Connection, id: &Id, span: &BlockSpan) -> Result<TimeBlock> {
+/// Moves a block. When it lands on another day, its open, one-off, dated task
+/// moves to that day too.
+pub fn reschedule(
+    conn: &Connection,
+    env: &dyn MutationEnv,
+    id: &Id,
+    span: &BlockSpan,
+) -> Result<TimeBlock> {
     validate(span)?;
-    let rows = conn.execute(
+    let before = get(conn, id)?;
+    conn.execute(
         "UPDATE time_block SET start_at = ?1, end_at = ?2 WHERE id = ?3",
         params![span.start_at, span.end_at, id],
     )?;
-    ensure_changed(rows, "Time block")?;
+    let day = env.date_of(span.start_at);
+    if env.date_of(before.start_at) != day {
+        conn.execute(
+            "UPDATE task SET due_date = ?1
+             WHERE id = ?2 AND completed_at IS NULL AND recurrence IS NULL
+               AND due_date IS NOT NULL AND due_until IS NULL",
+            params![day, before.task_id],
+        )?;
+    }
     get(conn, id)
 }
 

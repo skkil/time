@@ -45,6 +45,37 @@ fn rejects_bad_spans() {
     .unwrap();
 }
 
+#[test]
+fn moving_a_block_to_another_day_moves_its_dated_task() {
+    let (db, env) = (db(), env());
+    db.call(|conn| {
+        let (monday, tuesday) = (date("2026-11-02"), date("2026-11-03"));
+        let nine = |day: crate::types::Date| BlockSpan {
+            start_at: Timestamp(day.start().0 + 9 * 3600),
+            end_at: Timestamp(day.start().0 + 10 * 3600),
+        };
+        let dated = tasks::create(
+            conn,
+            &env,
+            &tasks::TaskInput {
+                due_date: Some(monday),
+                ..task_input("Write intro", None)
+            },
+        )?;
+        let undated = tasks::create(conn, &env, &task_input("Read", None))?;
+        let first = create(conn, &env, &dated.id, &nine(monday))?;
+        let second = create(conn, &env, &undated.id, &nine(monday))?;
+
+        reschedule(conn, &env, &first.id, &nine(tuesday))?;
+        reschedule(conn, &env, &second.id, &nine(tuesday))?;
+
+        assert_eq!(tasks::get(conn, &dated.id)?.due_date, Some(tuesday));
+        assert_eq!(tasks::get(conn, &undated.id)?.due_date, None);
+        Ok(())
+    })
+    .unwrap();
+}
+
 mod logging {
     use chrono::{FixedOffset, TimeZone};
 

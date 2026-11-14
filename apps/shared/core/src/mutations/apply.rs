@@ -126,7 +126,12 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
             &a.id("taskId")?,
             &a.get("span")?,
         )?),
-        "rescheduleBlock" => out(blocks::reschedule(conn, &a.id("id")?, &a.get("span")?)?),
+        "rescheduleBlock" => out(blocks::reschedule(
+            conn,
+            env,
+            &a.id("id")?,
+            &a.get("span")?,
+        )?),
         "deleteBlock" => out(blocks::delete(conn, &a.id("id")?)?),
 
         "createTimeEntry" => out(time_entries::create(conn, env, &a.get("input")?)?),

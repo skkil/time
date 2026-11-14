@@ -51,18 +51,32 @@ class BlockService(private val jdbc: JdbcClient, private val tasks: TaskService)
         return get(caller.id, id)
     }
 
-    fun reschedule(user: Long, id: UUID, span: BlockSpan): TimeBlock {
+    /** Moves a block. When it lands on another day, its open, one-off, dated task moves to that day too. */
+    fun reschedule(caller: Caller, id: UUID, span: BlockSpan): TimeBlock {
         validate(span)
-        val rows =
+        val before = get(caller.id, id)
+        jdbc
+            .sql("UPDATE time_block SET start_at = :start, end_at = :end WHERE user_id = :user AND id = :id")
+            .param("start", span.startAt)
+            .param("end", span.endAt)
+            .param("user", caller.id)
+            .param("id", id)
+            .update()
+        val day = caller.dateOf(span.startAt)
+        if (caller.dateOf(before.startAt) != day) {
             jdbc
-                .sql("UPDATE time_block SET start_at = :start, end_at = :end WHERE user_id = :user AND id = :id")
-                .param("start", span.startAt)
-                .param("end", span.endAt)
-                .param("user", user)
-                .param("id", id)
+                .sql(
+                    """
+                    UPDATE task SET due_date = :day
+                    WHERE user_id = :user AND id = :task AND completed_at IS NULL AND recurrence IS NULL
+                      AND due_date IS NOT NULL AND due_until IS NULL
+                    """,
+                ).param("day", day)
+                .param("user", caller.id)
+                .param("task", before.taskId)
                 .update()
-        ensureChanged(rows, "Time block")
-        return get(user, id)
+        }
+        return get(caller.id, id)
     }
 
     fun delete(user: Long, id: UUID) {
