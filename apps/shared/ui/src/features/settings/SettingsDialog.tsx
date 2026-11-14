@@ -156,12 +156,18 @@ export function SettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[min(560px,calc(100dvh-2rem))] flex-col gap-0 overflow-hidden p-0 sm:grid sm:max-w-3xl sm:grid-cols-[180px_minmax(0,1fr)]">
+      <DialogContent
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          (event.currentTarget as HTMLElement).focus();
+        }}
+        className="flex h-[min(560px,calc(100dvh-2rem))] flex-col gap-0 overflow-hidden p-0 *:data-[slot=dialog-close]:top-3 *:data-[slot=dialog-close]:right-3 sm:grid sm:max-w-3xl sm:grid-cols-[196px_minmax(0,1fr)] sm:*:data-[slot=dialog-close]:top-5 sm:*:data-[slot=dialog-close]:right-5"
+      >
         <nav
           aria-label="Settings"
-          className="flex shrink-0 items-center gap-0.5 overflow-x-auto border-b bg-white/[.03] p-2 pr-12 sm:grid sm:content-start sm:items-stretch sm:border-r sm:border-b-0 sm:p-3"
+          className="mr-12 flex shrink-0 items-center gap-0.5 overflow-x-auto px-3 py-3 sm:mr-0 sm:grid sm:content-start sm:items-stretch sm:border-r sm:bg-white/[.03] sm:px-4 sm:py-6"
         >
-          <DialogTitle className="sr-only text-sm sm:not-sr-only sm:mb-2 sm:px-2">
+          <DialogTitle className="sr-only text-sm sm:not-sr-only sm:mb-3 sm:px-2">
             Settings
           </DialogTitle>
           {visible.map(({ id, label, icon: Icon }) => (
@@ -186,7 +192,7 @@ export function SettingsDialog({
             </button>
           ))}
         </nav>
-        <section className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+        <section className="min-h-0 flex-1 overflow-y-auto border-t p-5 sm:border-t-0 sm:px-8 sm:py-7">
           <h3 className="font-heading text-base font-bold">{active.label}</h3>
           <DialogDescription className="mb-4">
             {typeof active.description === 'function'
