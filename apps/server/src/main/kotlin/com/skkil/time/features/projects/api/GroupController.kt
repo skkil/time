@@ -35,6 +35,14 @@ class GroupController(private val groups: GroupService) {
     ): Group =
         groups.rename(caller.id, id, body.name)
 
+    @PutMapping("/{id}/position")
+    fun reorder(
+        caller: Caller,
+        @PathVariable id: UUID,
+        @RequestBody body: ProjectPlacement,
+    ): Group =
+        groups.reorder(caller.id, id, body.before)
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(

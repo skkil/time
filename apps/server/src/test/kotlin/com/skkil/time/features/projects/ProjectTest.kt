@@ -3,6 +3,7 @@ package com.skkil.time.features.projects
 import com.skkil.time.features.projects.api.Archived
 import com.skkil.time.features.projects.api.CanvasContent
 import com.skkil.time.features.projects.api.GroupName
+import com.skkil.time.features.projects.api.ProjectPlacement
 import com.skkil.time.features.projects.domain.ProjectInput
 import com.skkil.time.features.projects.domain.ProjectSettings
 import com.skkil.time.support.ApiTest
@@ -80,6 +81,19 @@ class ProjectTest : ApiTest() {
         expectProblem(post("/api/v1/groups", GroupName("acme")), 422, "invalid")
         subject = UUID.randomUUID().toString()
         postJson("/api/v1/groups", GroupName("Acme"))
+    }
+
+    @Test
+    fun `reorders groups`() {
+        val a = postJson("/api/v1/groups", GroupName("A")).id()
+        postJson("/api/v1/groups", GroupName("B"))
+        val c = postJson("/api/v1/groups", GroupName("C")).id()
+        val names = { getJson("/api/v1/groups").toList().map { group -> group["name"].asString() } }
+
+        putJson("/api/v1/groups/$c/position", ProjectPlacement(a))
+        assertEquals(listOf("C", "A", "B"), names())
+        putJson("/api/v1/groups/$c/position", ProjectPlacement(null))
+        assertEquals(listOf("A", "B", "C"), names())
     }
 
     @Test

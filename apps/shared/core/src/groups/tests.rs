@@ -5,6 +5,25 @@ use crate::projects;
 use crate::testing::{db, env, project};
 
 #[test]
+fn reorders_groups() {
+    let (db, env) = (db(), env());
+    db.call(|conn| {
+        let a = create(conn, &env, "A")?;
+        create(conn, &env, "B")?;
+        let c = create(conn, &env, "C")?;
+        let names = |conn: &rusqlite::Connection| -> crate::error::Result<Vec<String>> {
+            Ok(list(conn)?.into_iter().map(|g| g.name).collect())
+        };
+        reorder(conn, &c.id, Some(&a.id))?;
+        assert_eq!(names(conn)?, ["C", "A", "B"]);
+        reorder(conn, &c.id, None)?;
+        assert_eq!(names(conn)?, ["A", "B", "C"]);
+        Ok(())
+    })
+    .unwrap();
+}
+
+#[test]
 fn names_are_unique_and_deleting_frees_projects() {
     let (db, env) = (db(), env());
     db.call(|conn| {

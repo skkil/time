@@ -17,6 +17,7 @@ pub const MUTATIONS: &[&str] = &[
     "removeTaskDependency",
     "createGroup",
     "renameGroup",
+    "reorderGroup",
     "deleteGroup",
     "saveProjectCanvas",
     "createTask",

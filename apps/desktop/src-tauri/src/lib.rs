@@ -90,6 +90,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
             groups::list_groups,
             groups::create_group,
             groups::rename_group,
+            groups::reorder_group,
             groups::delete_group,
             canvas::get_project_canvas,
             canvas::save_project_canvas,

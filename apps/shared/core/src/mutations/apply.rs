@@ -50,6 +50,11 @@ pub fn apply(conn: &Connection, env: &impl MutationEnv, name: &str, args: &Value
 
         "createGroup" => out(groups::create(conn, env, &a.text("name")?)?),
         "renameGroup" => out(groups::rename(conn, &a.id("id")?, &a.text("name")?)?),
+        "reorderGroup" => out(groups::reorder(
+            conn,
+            &a.id("id")?,
+            a.opt_id("before")?.as_ref(),
+        )?),
         "deleteGroup" => out(groups::delete(conn, &a.id("id")?)?),
 
         "saveProjectCanvas" => out(canvas::save(

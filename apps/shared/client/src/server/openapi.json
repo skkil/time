@@ -1942,6 +1942,43 @@
         }
       }
     },
+    "/api/v1/groups/{id}/position" : {
+      "put" : {
+        "tags" : [ "group-controller" ],
+        "operationId" : "reorder_2",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProjectPlacement"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Group"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/days/{date}/note" : {
       "put" : {
         "tags" : [ "review-controller" ],

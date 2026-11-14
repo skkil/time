@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { type Id, commands } from '@/backend';
+import { type Group, type Id, commands } from '@/backend';
 import { keys } from '@/lib/query';
+import { renumber } from '@/lib/reorder';
 
 import { useProjectIndex } from './api';
 import { rootOf } from './tree';
@@ -49,6 +50,22 @@ export function useRenameGroup() {
     mutationFn: ({ id, name }: { id: Id; name: string }) =>
       commands.renameGroup(id, name),
     onSuccess: invalidate,
+  });
+}
+
+export function useReorderGroup() {
+  const client = useQueryClient();
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: ({ id, before }: { id: Id; before: Id | null }) =>
+      commands.reorderGroup(id, before),
+    onMutate: async ({ id, before }) => {
+      await client.cancelQueries({ queryKey: keys.groups });
+      client.setQueryData<Group[]>(keys.groups, (groups = []) =>
+        renumber(groups, id, before),
+      );
+    },
+    onSettled: invalidate,
   });
 }
 

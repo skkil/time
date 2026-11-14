@@ -1,7 +1,7 @@
 use rusqlite::{Connection, params};
 
 use super::model::Group;
-use super::queries::{get, name_taken};
+use super::queries::{get, list, name_taken};
 use crate::env::MutationEnv;
 use crate::error::{Error, Result};
 use crate::types::Id;
@@ -33,6 +33,28 @@ pub fn rename(conn: &Connection, id: &Id, name: &str) -> Result<Group> {
         params![name, id],
     )?;
     ensure_changed(rows, "Group")?;
+    get(conn, id)
+}
+
+/// Moves a group before `before` (to the end when `before` is `None` or not a
+/// group) and renumbers every group densely.
+pub fn reorder(conn: &Connection, id: &Id, before: Option<&Id>) -> Result<Group> {
+    get(conn, id)?;
+    let mut ids: Vec<Id> = list(conn)?
+        .into_iter()
+        .map(|group| group.id)
+        .filter(|other| other != id)
+        .collect();
+    let index = before
+        .and_then(|before| ids.iter().position(|other| other == before))
+        .unwrap_or(ids.len());
+    ids.insert(index, id.clone());
+    for (position, id) in ids.iter().enumerate() {
+        conn.execute(
+            "UPDATE project_group SET position = ?1 WHERE id = ?2",
+            params![position as i64 + 1, id],
+        )?;
+    }
     get(conn, id)
 }
 

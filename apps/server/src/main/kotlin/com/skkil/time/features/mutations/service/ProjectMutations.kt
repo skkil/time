@@ -48,6 +48,9 @@ class ProjectMutations(
             mutation("renameGroup", "id", "name") { caller, args ->
                 groups.rename(caller.id, args.get<UUID>("id"), args.get<String>("name"))
             },
+            mutation("reorderGroup", "id", "before") { caller, args ->
+                groups.reorder(caller.id, args.get<UUID>("id"), args.get<UUID?>("before"))
+            },
             mutation("deleteGroup", "id") { caller, args ->
                 groups.delete(caller.id, args.get<UUID>("id"))
             },

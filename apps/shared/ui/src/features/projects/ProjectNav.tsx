@@ -46,7 +46,13 @@ import {
   useProjectIndex,
   useReorderProject,
 } from './api';
-import { useGroups } from './groups';
+import { useGroups, useReorderGroup } from './groups';
+import {
+  GROUPS_LIST,
+  NavDnd,
+  SortableItem,
+  SortableList,
+} from './nav-sortable';
 import { MAX_PROJECT_DEPTH, type ProjectNode } from './tree';
 
 type DialogState = { parentId: Id | null } | null;
@@ -65,6 +71,7 @@ export function ProjectNav() {
   const [showArchived, setShowArchived] = useState(false);
   const archive = useArchiveProject();
   const reorder = useReorderProject();
+  const reorderGroup = useReorderGroup();
   const remove = useDeleteProject();
 
   const openCounts = useMemo(() => {
@@ -109,28 +116,31 @@ export function ProjectNav() {
       reorder.mutate({ id: node.id, before }),
   };
 
-  const renderNode = (
-    node: ProjectNode,
-    _: number,
-    siblings: ProjectNode[],
-  ) => {
-    const children = node.children.filter((child) => !isInactive(child));
-    const isCollapsed = collapsed.has(node.id);
+  const renderList = (list: string, nodes: ProjectNode[]) => {
+    const ids = nodes.map((node) => node.id);
     return (
-      <li key={node.id}>
-        <ProjectRow
-          node={node}
-          count={openCounts.get(node.id) ?? 0}
-          hasChildren={children.length > 0}
-          collapsed={isCollapsed}
-          onToggle={() => toggle(node.id)}
-          actions={actions}
-          siblings={siblings.map((sibling) => sibling.id)}
-        />
-        {children.length > 0 && !isCollapsed && (
-          <ul>{children.map(renderNode)}</ul>
-        )}
-      </li>
+      <SortableList items={ids}>
+        {nodes.map((node) => {
+          const children = node.children.filter((child) => !isInactive(child));
+          const isCollapsed = collapsed.has(node.id);
+          return (
+            <SortableItem key={node.id} id={node.id} list={list} items={ids}>
+              <ProjectRow
+                node={node}
+                count={openCounts.get(node.id) ?? 0}
+                hasChildren={children.length > 0}
+                collapsed={isCollapsed}
+                onToggle={() => toggle(node.id)}
+                actions={actions}
+                siblings={ids}
+              />
+              {children.length > 0 && !isCollapsed && (
+                <ul>{renderList(`children:${node.id}`, children)}</ul>
+              )}
+            </SortableItem>
+          );
+        })}
+      </SortableList>
     );
   };
 
@@ -144,6 +154,7 @@ export function ProjectNav() {
       nodes: roots.filter((node) => node.groupId === group.id),
     }))
     .filter(({ nodes }) => nodes.length > 0);
+  const groupIds = grouped.map(({ group }) => group.id);
 
   const archived = index.flat.filter((node) => {
     const parent =
@@ -173,15 +184,32 @@ export function ProjectNav() {
         </Button>
       </div>
 
-      <ul className="min-h-0 overflow-y-auto">
-        {loose.map(renderNode)}
-        {grouped.map(({ group, nodes }) => (
-          <li key={group.id}>
-            <GroupHeading group={group} />
-            <ul>{nodes.map(renderNode)}</ul>
-          </li>
-        ))}
-      </ul>
+      <NavDnd
+        onMove={(list, id, before) =>
+          list === GROUPS_LIST
+            ? reorderGroup.mutate({ id, before })
+            : reorder.mutate({ id, before })
+        }
+      >
+        <ul className="min-h-0 overflow-y-auto">
+          {renderList('loose', loose)}
+          <SortableList items={groupIds}>
+            {grouped.map(({ group, nodes }) => (
+              <SortableItem
+                key={group.id}
+                id={group.id}
+                list={GROUPS_LIST}
+                items={groupIds}
+                handle={(drag) => (
+                  <GroupHeading group={group} siblings={groupIds} drag={drag} />
+                )}
+              >
+                <ul>{renderList(`group:${group.id}`, nodes)}</ul>
+              </SortableItem>
+            ))}
+          </SortableList>
+        </ul>
+      </NavDnd>
 
       {index.active.length === 0 && (
         <button

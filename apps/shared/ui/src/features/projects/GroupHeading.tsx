@@ -1,5 +1,12 @@
+import type { useSortable } from '@dnd-kit/sortable';
 import { Link } from '@tanstack/react-router';
-import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  MoreHorizontalIcon,
+  PencilIcon,
+  Trash2Icon,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import type { Group } from '@/backend';
@@ -7,14 +14,30 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { stepBefore } from '@/lib/reorder';
 
-import { useDeleteGroup, useRenameGroup } from './groups';
+import { useDeleteGroup, useRenameGroup, useReorderGroup } from './groups';
 
-export function GroupHeading({ group }: { group: Group }) {
+export function GroupHeading({
+  group,
+  siblings = [],
+  drag,
+}: {
+  group: Group;
+  siblings?: Group['id'][];
+  drag?: {
+    ref: (node: HTMLElement | null) => void;
+    listeners: ReturnType<typeof useSortable>['listeners'];
+  };
+}) {
   const rename = useRenameGroup();
   const remove = useDeleteGroup();
+  const reorder = useReorderGroup();
+  const up = stepBefore(siblings, group.id, -1);
+  const down = stepBefore(siblings, group.id, 1);
   const [renaming, setRenaming] = useState(false);
 
   if (renaming)
@@ -39,7 +62,11 @@ export function GroupHeading({ group }: { group: Group }) {
     );
 
   return (
-    <div className="group/org mt-4 mb-1 flex h-6 items-center px-2">
+    <div
+      ref={drag?.ref}
+      {...drag?.listeners}
+      className="group/org mt-4 mb-1 flex h-6 items-center px-2"
+    >
       <h3 className="min-w-0 flex-1 truncate font-sans text-xs font-semibold text-muted-foreground">
         <Link
           to="/projects/groups/$groupId"
@@ -65,6 +92,26 @@ export function GroupHeading({ group }: { group: Group }) {
             <PencilIcon />
             Rename
           </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={up === undefined}
+            onSelect={() =>
+              up !== undefined && reorder.mutate({ id: group.id, before: up })
+            }
+          >
+            <ArrowUpIcon />
+            Move up
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={down === undefined}
+            onSelect={() =>
+              down !== undefined &&
+              reorder.mutate({ id: group.id, before: down })
+            }
+          >
+            <ArrowDownIcon />
+            Move down
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => remove.mutate(group.id)}>
             <Trash2Icon />
             Remove group

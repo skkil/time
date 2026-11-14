@@ -17,6 +17,7 @@ export const projects: Commands<
   | 'listGroups'
   | 'createGroup'
   | 'renameGroup'
+  | 'reorderGroup'
   | 'deleteGroup'
   | 'getProjectCanvas'
   | 'saveProjectCanvas'
@@ -64,6 +65,13 @@ export const projects: Commands<
   createGroup: (name) => unwrap(api.POST('/api/v1/groups', { body: { name } })),
   renameGroup: (id, name) =>
     unwrap(api.PUT('/api/v1/groups/{id}', { ...byId(id), body: { name } })),
+  reorderGroup: (id, before) =>
+    unwrap(
+      api.PUT('/api/v1/groups/{id}/position', {
+        ...byId(id),
+        body: { before },
+      }),
+    ),
   deleteGroup: (id) => unwrap(api.DELETE('/api/v1/groups/{id}', byId(id))),
   getProjectCanvas: (projectId) =>
     unwrap(api.GET('/api/v1/projects/{id}/canvas', byId(projectId))),

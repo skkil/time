@@ -27,6 +27,12 @@ pub async fn rename_group(db: State<'_, Db>, id: Id, name: String) -> Result<Gro
 
 #[tauri::command]
 #[specta::specta]
+pub async fn reorder_group(db: State<'_, Db>, id: Id, before: Option<Id>) -> Result<Group> {
+    mutate(&db, "reorderGroup", json!({ "id": id, "before": before }))
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn delete_group(db: State<'_, Db>, id: Id) -> Result<()> {
     mutate(&db, "deleteGroup", json!({ "id": id }))
 }

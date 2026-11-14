@@ -68,6 +68,22 @@ class GroupService(private val jdbc: JdbcClient) {
         return get(user, id)
     }
 
+    fun reorder(user: Long, id: UUID, before: UUID?): Group {
+        get(user, id)
+        val ids = list(user).map { it.id }.filter { it != id }.toMutableList()
+        val index = ids.indexOf(before).takeIf { it >= 0 } ?: ids.size
+        ids.add(index, id)
+        ids.forEachIndexed { position, group ->
+            jdbc
+                .sql("UPDATE project_group SET position = :position WHERE user_id = :user AND id = :id")
+                .param("position", position + 1)
+                .param("user", user)
+                .param("id", group)
+                .update()
+        }
+        return get(user, id)
+    }
+
     fun delete(user: Long, id: UUID) {
         val rows =
             jdbc

@@ -1243,6 +1243,46 @@
           }
         }
       ]
+    },
+    {
+      "name": "createGroup",
+      "args": {
+        "name": "Errands"
+      },
+      "ids": ["019a4b00-0000-7000-8000-0000000000f2"],
+      "expect": [
+        {
+          "table": "project_group",
+          "id": "019a4b00-0000-7000-8000-0000000000f2",
+          "row": {
+            "name": "Errands"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reorderGroup",
+      "args": {
+        "id": "019a4b00-0000-7000-8000-0000000000f2",
+        "before": "019a4b00-0000-7000-8000-00000000000b"
+      },
+      "ids": [],
+      "expect": [
+        {
+          "table": "project_group",
+          "id": "019a4b00-0000-7000-8000-0000000000f2",
+          "row": {
+            "position": 1
+          }
+        },
+        {
+          "table": "project_group",
+          "id": "019a4b00-0000-7000-8000-00000000000b",
+          "row": {
+            "position": 2
+          }
+        }
+      ]
     }
   ]
 }

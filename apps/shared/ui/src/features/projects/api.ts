@@ -9,6 +9,7 @@ import {
   commands,
 } from '@/backend';
 import { keys } from '@/lib/query';
+import { renumber } from '@/lib/reorder';
 
 import { buildProjectIndex } from './tree';
 
@@ -49,11 +50,36 @@ export function useUpdateProject() {
 }
 
 export function useReorderProject() {
+  const client = useQueryClient();
   const invalidate = useInvalidateProjects();
   return useMutation({
     mutationFn: ({ id, before }: { id: Id; before: Id | null }) =>
       commands.reorderProject(id, before),
-    onSuccess: invalidate,
+    onMutate: async ({ id, before }) => {
+      await client.cancelQueries({ queryKey: keys.projects });
+      client.setQueryData<Project[]>(keys.projects, (projects = []) => {
+        const parentId = projects.find(
+          (project) => project.id === id,
+        )?.parentId;
+        const moved = new Map(
+          renumber(
+            projects
+              .filter((project) => project.parentId === parentId)
+              .sort((a, b) => a.position - b.position),
+            id,
+            before,
+          ).map((project) => [project.id, project]),
+        );
+        return projects
+          .map((project) => moved.get(project.id) ?? project)
+          .sort(
+            (a, b) =>
+              a.position - b.position ||
+              (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+          );
+      });
+    },
+    onSettled: invalidate,
   });
 }
 

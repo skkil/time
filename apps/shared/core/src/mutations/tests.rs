@@ -160,6 +160,7 @@ fn walk_every_mutation(conn: &Connection) -> Vec<(String, Value)> {
     s.run("reorderProject", json!({"id": copy, "before": null}));
     let acme = s.id("createGroup", json!({"name": "Acme"}));
     s.run("renameGroup", json!({"id": acme, "name": "Acme Inc"}));
+    s.run("reorderGroup", json!({"id": acme, "before": null}));
     s.run(
         "updateProjectSettings",
         json!({"id": website, "settings": {

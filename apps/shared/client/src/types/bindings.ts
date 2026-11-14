@@ -18,6 +18,7 @@ export const commands = {
 	listGroups: () => __TAURI_INVOKE<Group[]>("list_groups"),
 	createGroup: (name: string) => __TAURI_INVOKE<Group>("create_group", { name }),
 	renameGroup: (id: Id, name: string) => __TAURI_INVOKE<Group>("rename_group", { id, name }),
+	reorderGroup: (id: Id, before: Id | null) => __TAURI_INVOKE<Group>("reorder_group", { id, before }),
 	deleteGroup: (id: Id) => __TAURI_INVOKE<null>("delete_group", { id }),
 	getProjectCanvas: (projectId: Id) => __TAURI_INVOKE<ProjectCanvas>("get_project_canvas", { projectId }),
 	saveProjectCanvas: (projectId: Id, content: string) => __TAURI_INVOKE<ProjectCanvas>("save_project_canvas", { projectId, content }),
